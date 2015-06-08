@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   EOF
   s.version  = Simp::Cli::VERSION
   s.license  = 'Apache-2.0'
-  s.email    = 'info@simp.dev'  # TODO: decide on a good catchall POC account
+  s.email    = 'simp@simp-project.org'
   s.homepage = 'https://github.com/NationalSecurityAgency/rubygem-simp-cli'
   s.authors  = [
                  'Trevor Vaughan',

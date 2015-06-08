@@ -45,11 +45,12 @@ group :development do
   # enhanced REPL + debugging environment
   gem 'pry', is_ruby_old ? '< 0.10' : nil
   gem 'pry-doc'
-  gem 'pry-debugger'
 
   # Automatically test changes
   gem 'guard', is_ruby_old ? '< 2.0.0' : nil
   gem 'guard-shell'
   gem 'guard-rspec'
-###   gem 'gem2rpm'
+
+  # Generate HISTORY.md from git tags
+  gem 'gitlog-md'
 end
