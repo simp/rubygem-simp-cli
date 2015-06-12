@@ -89,9 +89,16 @@ class Simp::Cli::Config::Utils
        require 'base64'
        # Ruby 1.8.7 hack to do Random.new.bytes(4):
        salt = salt || (x = ''; 4.times{ x += ((rand * 255).floor.chr ) }; x)
-       "{SSHA}"+Base64.encode64(
-         Digest::SHA1.digest( string.to_s + salt.to_s )+ salt.to_s
-       ).chomp
+
+       digest = Digest::SHA1.digest( string + salt )
+
+       # NOTE: Digest::SHA1.digest in Ruby 2.0.0+ returns a String encoding in
+       #       ASCII-8BIT, whereas all other Strings in play are UTF-8
+       if RUBY_VERSION.split('.').first.to_i >= 2
+         digest = digest.force_encoding( 'UTF-8' )
+       end
+
+       "{SSHA}"+Base64.encode64( digest + salt ).chomp
     end
 
 
