@@ -6,6 +6,9 @@ rvm:
   - 1.9.3
   - 2.0.0
 
+env:
+  - SIMP_SKIP_NON_SIMPOS_TESTS=1
+
 script:
   - 'bundle exec rake spec'
 

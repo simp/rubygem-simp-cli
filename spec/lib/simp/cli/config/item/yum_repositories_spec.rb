@@ -44,11 +44,16 @@ describe Simp::Cli::Config::Item::YumRepositories do
       expect( File.directory?( File.join( @yum_dist_dir, 'Updates') ) ).to eq( true )
     end
 
-    it 'generates the yum Updates repo metadata' do
-      file =  File.join( @yum_dist_dir, 'Updates', 'repodata', 'repomd.xml' )
-      expect( File.exists?( file )).to eq( true )
-      expect( File.size?( file ) ).to  be_truthy
-    end
+      it 'generates the yum Updates repo metadata' do
+        file =  File.join( @yum_dist_dir, 'Updates', 'repodata', 'repomd.xml' )
+
+        if (value = ENV['SIMP_SKIP_NON_SIMPOS_TESTS'])
+          skip "skipping because env var SIMP_SKIP_NON_SIMPOS_TESTS is set to #{value}"
+        else
+          expect( File.exists?( file )).to eq( true )
+          expect( File.size?( file ) ).to  be_truthy
+        end
+      end
 
     it 'enables simp::yum::enable_simp_repos in hiera' do
       lines = File.readlines( @tmp_yaml_file ).join( "\n" )
