@@ -12,7 +12,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.0
+Version: 1.0.1
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -80,6 +80,9 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Wed Jun 24 2015 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0.1-0
+- Version bump to account for whatever made the version bump on the Gem
+
 * Fri Apr 24 2015 Nick Markowski <nmarkowski@keywcorp.com> - 1.0.0-0
 - Use dist/, not pkg/, for built gems/rpms.  Added dist to the clean list.
 - Determine el_version from mock chroot.
