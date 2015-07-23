@@ -87,15 +87,16 @@ class Simp::Cli::Config::Utils
     def encrypt_openldap_hash( string, salt=nil )
        require 'digest/sha1'
        require 'base64'
-       # Ruby 1.8.7 hack to do Random.new.bytes(4):
-       salt = salt || (x = ''; 4.times{ x += ((rand * 255).floor.chr ) }; x)
 
+       # Ruby 1.8.7 hack to do Random.new.bytes(4):
+       salt   = salt || (x = ''; 4.times{ x += ((rand * 255).floor.chr ) }; x)
        digest = Digest::SHA1.digest( string + salt )
 
-       # NOTE: Digest::SHA1.digest in Ruby 2.0.0+ returns a String encoding in
+       # NOTE: Digest::SHA1.digest in Ruby 1.9+ returns a String encoding in
        #       ASCII-8BIT, whereas all other Strings in play are UTF-8
-       if RUBY_VERSION.split('.').first.to_i >= 2
+       if RUBY_VERSION.split('.')[0..1].join('.').to_f > 1.8
          digest = digest.force_encoding( 'UTF-8' )
+         salt   = salt.force_encoding( 'UTF-8' )
        end
 
        "{SSHA}"+Base64.encode64( digest + salt ).chomp
