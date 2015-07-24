@@ -126,7 +126,7 @@ module Simp::Cli::Config
 
     # ask an interactive question (via stdout/stdin)
     def query_ask
-      value = ask( "<%= color('#{@key}', WHITE, BOLD) %>:", highline_question_type ) do |q|
+      value = ask( "<%= color('#{@key}', WHITE, BOLD) %>: ", highline_question_type ) do |q|
         q.default = default_value unless default_value.to_s.empty?
 
         # validate input via the validate() method
@@ -274,14 +274,16 @@ module Simp::Cli::Config
       if agree( "generate a password?" ){ |q| q.default = default }
         password = Simp::Cli::Config::Utils.generate_password
         say "<%= color( %q{#{''.ljust(80,'-')}}, GREEN)%>\n"
-        say "<%= color( %q{NOTE: }, GREEN, BOLD)%>" +
+        say '<%= color( %q{NOTE: }, GREEN, BOLD)%>' +
             "<%= color( %q{ the generated password is: }) %>\n"
         say "\n"
         say "<%= color( %q{   #{password}}, YELLOW, BOLD )%>  "
         say "\n"
         say "\n"
-        say "Please remember it!"
+        say 'Please remember it!'
         say "<%= color( %q{#{''.ljust(80,'-')}}, GREEN)%>\n"
+        say_blue '*** Press enter to continue ***' , ['BOLD', 'BLINK']
+        ask ''
       end
       password
     end

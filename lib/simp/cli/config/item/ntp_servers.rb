@@ -9,17 +9,22 @@ module Simp::Cli::Config
   class Item::NTPServers < ListItem
     def initialize
       super
-      @key         = 'ntpd::servers'
-      @description =  %Q{Your network's NTP time servers.}
-      @description += %Q{\n\nNOTE: a consistent time source is critical to yours systems' security.}
-      @description += %Q{\nDO NOT run multiple production systems using individual hardware clocks!}
+      @key              = 'ntpd::servers'
+      @warnings         = {
+        :no_ntp            => "A consistent time source is critical to your systems' security.",
+        :warning_hw_clocks => "DO NOT run multiple production systems using individual hardware clocks!",
+      }
+      @description      =  "Your network's NTP time servers.\n\n#{@warnings.values.join("\n")}"
       @allow_empty_list = true
-
-      @extra_description = ''
     end
 
-    def decription
-      "#{@description}#{@extra_description}"
+    def description
+      extra = ''
+      if @config_items.key? 'gateway'
+        gateway  = @config_items.fetch('gateway').value
+        extra = "\nFor many networks, the default gateway (#{gateway}) provides an NTP server."
+      end
+      "#{@description}#{extra}"
     end
 
     def os_value( file='/etc/ntp/ntpservers' )
@@ -40,16 +45,20 @@ module Simp::Cli::Config
     end
 
     def recommended_value
-      @extra_description = ''
       if (!os_value.empty?) && (os_value.first !~ /^127\./)
         os_value
-      elsif @config_items.key? 'gateway'
-        gateway  = @config_items.fetch('gateway').value
-        @extra_description = %{\n(In many networks, the default gateway provides an NTP server}
-        [ gateway ]
       else
         nil
       end
+    end
+
+    # allow empty NTP servers, but reiterate warning because it's important.
+    def validate list
+      if !@silent && (list.is_a?(Array) || list.is_a?(String)) && list.empty?
+        say_red( "IMPORTANT: #{@warnings.fetch(:no_ntp)}" )
+        sleep 3  # TODO: should there be a standard timeout for Item delays?
+      end
+      super
     end
 
     def validate_item item

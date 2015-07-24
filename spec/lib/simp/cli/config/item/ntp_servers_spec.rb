@@ -5,6 +5,7 @@ require_relative( 'spec_helper' )
 describe Simp::Cli::Config::Item::NTPServers do
   before :each do
     @ci = Simp::Cli::Config::Item::NTPServers.new
+    @ci.silent = true
   end
 
 #  describe "#recommended_value" do
@@ -30,6 +31,11 @@ describe Simp::Cli::Config::Item::NTPServers do
       expect( @ci.validate ['pool.ntp.org.'] ).to eq false
       expect( @ci.validate ['192.168.1.1.'] ).to eq false
       expect( @ci.validate ['1.2.3.4/24'] ).to eq false
+    end
+
+    it "accepts an empty list" do
+      expect( @ci.validate [] ).to eq true
+      expect( @ci.validate "" ).to eq true
     end
   end
 
