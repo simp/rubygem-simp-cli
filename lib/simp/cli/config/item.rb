@@ -2,6 +2,7 @@ require 'highline/import'
 require 'puppet'
 require 'yaml'
 require File.expand_path( 'utils', File.dirname(__FILE__) )
+require 'highline'
 
 module Simp; end
 class Simp::Cli; end
@@ -126,7 +127,12 @@ module Simp::Cli::Config
 
     # ask an interactive question (via stdout/stdin)
     def query_ask
-      value = ask( "<%= color('#{@key}', WHITE, BOLD) %>:", highline_question_type ) do |q|
+      # NOTE: This trailing space at the end of the String obliquely instructs
+      # Highline to keep the prompt on the same line as the question.  If the
+      # String did not end with a space or tab, Highline would move the input
+      # prompt to the next line (which, for our purposes, looks confusing)
+      value = ask( "<%= color('#{@key}', WHITE, BOLD) %>: ",
+                  highline_question_type ) do |q|
         q.default = default_value unless default_value.to_s.empty?
 
         # validate input via the validate() method
@@ -134,7 +140,7 @@ module Simp::Cli::Config
 
         # if the answer is not valid, construct a reply:
         q.responses[:not_valid] =  "<%= color( %q{Invalid answer!}, RED ) %>\n"
-        q.responses[:not_valid] += "<%= color( %q{#{ (not_valid_message || description) }}, CYAN) %>\n"
+        q.responses[:not_valid] += "<%= color( %q{#{ (not_valid_message || description) }}, YELLOW) %>\n"
         q.responses[:not_valid] += "#{q.question}  |#{q.default}|"
 
         query_extras q
@@ -274,14 +280,16 @@ module Simp::Cli::Config
       if agree( "generate a password?" ){ |q| q.default = default }
         password = Simp::Cli::Config::Utils.generate_password
         say "<%= color( %q{#{''.ljust(80,'-')}}, GREEN)%>\n"
-        say "<%= color( %q{NOTE: }, GREEN, BOLD)%>" +
+        say '<%= color( %q{NOTE: }, GREEN, BOLD)%>' +
             "<%= color( %q{ the generated password is: }) %>\n"
         say "\n"
         say "<%= color( %q{   #{password}}, YELLOW, BOLD )%>  "
         say "\n"
         say "\n"
-        say "Please remember it!"
+        say 'Please remember it!'
         say "<%= color( %q{#{''.ljust(80,'-')}}, GREEN)%>\n"
+        say_blue '*** Press enter to continue ***' , ['BOLD', 'BLINK']
+        ask ''
       end
       password
     end
@@ -335,7 +343,9 @@ module Simp::Cli::Config
     end
 
     def not_valid_message
-      "enter a comma or space-delimited list"
+      extra = 'hit enter to skip'
+      extra = "hit enter to accept default value" if default_value
+      "enter a comma or space-delimited list (#{extra})"
     end
 
     def query_extras( q )
@@ -343,7 +353,10 @@ module Simp::Cli::Config
       # It would probably be better (but more complex) to provide native Array
       # support for highline.
       # TODO: Override #query_ask using Highline's #gather?
-      q.default = q.default.join( " " ) if q.default.is_a? Array
+      q.default  = q.default.join( " " ) if q.default.is_a? Array
+      reminder = ::HighLine.color( not_valid_message,
+                            ::HighLine.const_get('YELLOW') )
+      q.question = "#{reminder}\n#{q.question}"
       q
     end
 

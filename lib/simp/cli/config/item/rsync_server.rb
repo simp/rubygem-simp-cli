@@ -12,7 +12,8 @@ module Simp::Cli::Config
       @key         = 'rsync::server'
       @description = 'rsync server (usually the primary puppet master)'
       @__warning   = false
-      @file = '/etc/rsyncd.conf'
+      @file        = '/etc/rsyncd.conf'
+      @skip_query  = true
     end
 
     def os_value
