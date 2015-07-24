@@ -12,11 +12,6 @@ describe Simp::Cli::Config::Item::LogServers do
       expect( @ci.recommended_value ).to be_nil
     end
   end
-  describe "#recommended_value" do
-    it "recommends nil when gateway is unavailable" do
-      expect( @ci.recommended_value ).to be_nil
-    end
-  end
 
   describe "#validate" do
     it "validates array with good hosts" do
@@ -41,6 +36,11 @@ describe Simp::Cli::Config::Item::LogServers do
       expect( @ci.validate ['log.loggitylog.org.'] ).to eq false
       expect( @ci.validate ['.log.loggitylog.org'] ).to eq false
 
+    end
+
+    it "accepts an empty list" do
+      expect( @ci.validate [] ).to eq true
+      expect( @ci.validate "" ).to eq true
     end
   end
 
