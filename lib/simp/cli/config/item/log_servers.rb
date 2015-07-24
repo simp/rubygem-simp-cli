@@ -18,14 +18,6 @@ module Simp::Cli::Config
       nil
     end
 
-    def recommended_value
-      if @config_items.key? 'hostname'
-        [ @config_items.fetch('hostname').value ]
-      else
-        nil
-      end
-    end
-
     def validate_item item
       ( Simp::Cli::Config::Utils.validate_hostname( item ) ||
         Simp::Cli::Config::Utils.validate_fqdn( item ) ||
