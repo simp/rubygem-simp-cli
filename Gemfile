@@ -23,10 +23,10 @@ gemspec
 
 # mandatory gems
 gem 'bundler'
-#  gem 'rake'
-#  gem 'highline', '~> 1.6.1'  # NOTE: 1.7+ requires ruby 1.9.3+
-#  gem 'puppet'
-#  gem 'facter'
+gem 'rake'
+gem 'highline', '~> 1.6.1'  # NOTE: 1.7+ requires ruby 1.9.3+
+gem 'puppet'
+gem 'facter'
 
 
 
@@ -51,6 +51,6 @@ group :development do
   gem 'guard-shell'
   gem 'guard-rspec'
 
-  # Generate HISTORY.md from git tags
+  # Generate HISTORY.md from git tags (experimental, but promising)
   gem 'gitlog-md'
 end
