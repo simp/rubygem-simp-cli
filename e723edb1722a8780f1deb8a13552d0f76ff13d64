@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c8243a0f",
+        "filename": "lib/simp/cli/config/item.rb",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1004834
+      },
+      "writtenOn": "2015-07-27T15:26:27Z",
+      "side": 1,
+      "message": "Might want to add a note about the magic that you found that prompted this.",
+      "revId": "e723edb1722a8780f1deb8a13552d0f76ff13d64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
