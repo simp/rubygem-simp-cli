@@ -115,6 +115,8 @@ class Simp::Cli::Config::ItemListFactory
           - LdapRootHash
           - LdapMaster
           - LdapUri
+         false:
+          - RemoveLdap
 
       # ==== rsync ====
       - RsyncBase
