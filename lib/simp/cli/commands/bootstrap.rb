@@ -190,7 +190,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       track_output("#{pupcmd}")
       i = i + 1
     end
-    if i == 3
+    if i == 3 and $use_ldap
       puts "   \033[1mWarning\033[0m: It does not look like LDAP was properly configured to start."
       puts "   Please check your configuration."
     else
