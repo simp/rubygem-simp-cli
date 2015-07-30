@@ -4,6 +4,12 @@ shared_examples 'a child of Simp::Cli::Config::Item' do
       expect( @ci.to_yaml_s ).not_to match(/FIXME/)
     end
   end
+
+  describe '#key' do
+    it 'returns a String' do
+      expect( @ci.key ).to be_a_kind_of(String)
+    end
+  end
 end
 
 
