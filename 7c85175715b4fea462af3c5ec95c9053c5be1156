@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f03469fd",
+        "filename": "lib/simp/cli/config/item/remove_ldap.rb",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2015-08-04T15:02:11Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem to be needed.",
+      "range": {
+        "startLine": 1,
+        "startChar": 0,
+        "endLine": 2,
+        "endChar": 25
+      },
+      "revId": "7c85175715b4fea462af3c5ec95c9053c5be1156",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b0574125",
+        "filename": "lib/simp/cli/config/item/remove_ldap.rb",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2015-08-04T15:02:11Z",
+      "side": 1,
+      "message": "Why is @key commented out?",
+      "revId": "7c85175715b4fea462af3c5ec95c9053c5be1156",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
