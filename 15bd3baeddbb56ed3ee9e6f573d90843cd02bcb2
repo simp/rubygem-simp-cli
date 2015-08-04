@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_dcaf777b",
+        "filename": "lib/simp/cli/config/item/remove_ldap.rb",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2015-08-04T17:03:02Z",
+      "side": 1,
+      "message": "Do not omit @key",
+      "revId": "15bd3baeddbb56ed3ee9e6f573d90843cd02bcb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fcb27be3",
+        "filename": "lib/simp/cli/config/item/remove_ldap.rb",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2015-08-04T17:03:02Z",
+      "side": 1,
+      "message": "If you aren\u0027t using @file (e.g., for testing), remove it",
+      "revId": "15bd3baeddbb56ed3ee9e6f573d90843cd02bcb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5cc36737",
+        "filename": "lib/simp/cli/config/item_list_factory.rb",
+        "patchSetId": 2
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2015-08-04T17:03:02Z",
+      "side": 1,
+      "message": "Suggestion: The purpose of this Item would be clearer if it was named something like \"RemoveLdapFromFqdnYaml\" or \"RemoveLdapFromHiera.\"",
+      "range": {
+        "startLine": 119,
+        "startChar": 12,
+        "endLine": 119,
+        "endChar": 22
+      },
+      "revId": "15bd3baeddbb56ed3ee9e6f573d90843cd02bcb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
