@@ -32,7 +32,7 @@ module Simp::Cli::Config
         Dir.chdir(yumpath) do
           FileUtils.mkdir('Updates') unless File.directory?('Updates')
           Dir.chdir('Updates') do
-            system( %q(find . -type f -name '*.rpm' -exec ln -sf {} \\;) )
+            system( %q(find .. -type f -name '*.rpm' -exec ln -sf {} \\;) )
             cmd = 'createrepo -qqq -p --update .'
             if @silent
               cmd << ' &> /dev/null'
