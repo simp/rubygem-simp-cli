@@ -17,6 +17,5 @@ simp::yum::enable_simp_repos : false
 
 classes :
   - 'simp::server'
-  - 'simp::ldap_server'
   - 'simp::yum_server'
   - 'simp::kickstart_server'

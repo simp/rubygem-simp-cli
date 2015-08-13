@@ -104,6 +104,7 @@ class Simp::Cli::Config::ItemListFactory
       # ==== ldap ====
       - UseLdap:
          true:
+          - AddLdapToHiera
           - LdapBaseDn
           - LdapBindDn
           - LdapBindPw
@@ -115,6 +116,8 @@ class Simp::Cli::Config::ItemListFactory
           - LdapRootHash
           - LdapMaster
           - LdapUri
+         false:
+          - RemoveLdapFromHiera
 
       # ==== rsync ====
       - RsyncBase
