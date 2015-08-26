@@ -82,6 +82,7 @@ class Simp::Cli::Config::ItemListFactory
       - UseIPtables
       - CommonRunLevelDefault
       - UseSELinux
+      - UseFips
       - SetGrubPassword:
          true:
           - GrubPassword

@@ -12,7 +12,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.2
+Version: 1.0.3
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -80,6 +80,9 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Wed Aug 26 2015 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.3-0
+- Added use_fips item for 'simp config'
+
 * Thu Jul 23 2015 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.2-0
 - Fixed UTF-8/ASCII-8BIT encoding error in ruby 1.9+
 
