@@ -12,7 +12,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.3
+Version: 1.0.4
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -80,6 +80,9 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Wed Aug 26 2015 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.4-0
+- Added use_fips item for 'simp config'
+
 * Wed Aug 12 2015 Nick Miller <nick.miller@onyxpoint.com> - 1.0.3-0
 - use_ldap can now be set to false.
 - Added a function to add ldap to hiera when needed.
