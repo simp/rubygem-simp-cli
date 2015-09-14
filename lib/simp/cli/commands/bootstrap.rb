@@ -3,6 +3,7 @@ module Simp::Cli::Commands; end
 class Simp::Cli::Commands::Bootstrap < Simp::Cli
   require 'pty'
   require 'timeout'
+  require 'facter'
 
   @verbose = false
   @track = true
@@ -170,6 +171,12 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     end
 
     puts
+
+    if Facter.value(:selinux) and !Facter.value(:selinux_current_mode).nil? and Facter.value(:selinux_current_mode) != "disabled" then
+      puts 'Relabeling filesystem for selinux...'
+      @logfile.puts('Relabeling filesystem for selinux.')
+      system("fixfiles -f relabel >> #{@logfile.path} 2>&1")
+    end
 
     puts "*** Running Puppet Finalization ***"
     puts

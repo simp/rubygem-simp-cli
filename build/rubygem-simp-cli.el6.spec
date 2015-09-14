@@ -16,7 +16,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.4
+Version: 1.0.5
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -88,6 +88,10 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Mon Sep 14 2015 Nick Markowski <nmarkowski@keywcorp.com> - 1.0.5-0
+- If selinux is enabled, run fixfiles before the finalization puppet runs
+  in bootstrap.
+
 * Wed Aug 26 2015 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.4-0
 - Added use_fips item for 'simp config'
 
