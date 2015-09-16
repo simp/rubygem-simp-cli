@@ -77,6 +77,7 @@ class Simp::Cli::Config::ItemListFactory
       # ==== globals ====
       - NTPServers          NOAPPLY
       - LogServers
+      - FailoverLogServers
       - SimpYumServers
       - UseAuditd
       - UseIPtables
