@@ -39,7 +39,8 @@ module Simp::Cli::Config
       `sed -i '/^.main./ a \\    stringify_facts   = false\'  #{@file}`
       `sed -i '/^.main./ a \\    environmentpath   = /etc/puppet/environments\' #{@file}`
       `sed -i '/trusted_node_data/ a \\    server            = #{@config_items.fetch( 'puppet::server' ).value}\' #{@file}`
-
+      keylength = @config_items.fetch( 'use_fips', nil )? '2048' : '4096'
+      `sed -i '/^.main./ a \\    keylength         = #{keylength}\' #{@file}`
 
       # do not die if config items aren't found
       puppet_server  = 'puppet.change.me'
@@ -54,7 +55,6 @@ module Simp::Cli::Config
       if item = @config_items.fetch( 'puppet::ca_port', nil )
         puppet_ca_port = item.value
       end
-
 
       puppet_conf = File.readlines(@file)
       File.open("#{@file}", 'w') do |out_file|

@@ -16,7 +16,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.5
+Version: 1.0.6
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -88,6 +88,9 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Fri Sep 18 2015 Kendall Moore <kmoore@keywcorp.com> - 1.0.6-0
+- Set the keylength variable in puppet.conf
+
 * Mon Sep 14 2015 Nick Markowski <nmarkowski@keywcorp.com> - 1.0.5-0
 - If selinux is enabled, run fixfiles before the finalization puppet runs
   in bootstrap.

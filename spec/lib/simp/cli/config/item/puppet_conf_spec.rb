@@ -11,6 +11,7 @@ describe Simp::Cli::Config::Item::PuppetConf do
     @puppet_server  = 'puppet.nerd'
     @puppet_ca      = 'puppetca.nerd'
     @puppet_ca_port = '9999'
+    @use_fips       = true
 
     previous_items = {}
     s = Simp::Cli::Config::Item::PuppetServer.new
@@ -21,6 +22,9 @@ describe Simp::Cli::Config::Item::PuppetConf do
     previous_items[ s.key ] = s
     s = Simp::Cli::Config::Item::PuppetCAPort.new
     s.value = @puppet_ca_port
+    previous_items[ s.key ] = s
+    s = Simp::Cli::Config::Item::UseFips.new
+    s.value = @use_fips
     previous_items[ s.key ] = s
 
     @ci.config_items = previous_items
@@ -89,6 +93,10 @@ describe Simp::Cli::Config::Item::PuppetConf do
 
       it "configures trusted_node_data" do
         expect( @lines ).to match(%r{^\s*trusted_node_data\s*=\strue} )
+      end
+
+      it "configures keylength" do
+        expect( @lines ).to match(%r{^\s*keylength\s*=\s2048} )
       end
 
       after :context do
