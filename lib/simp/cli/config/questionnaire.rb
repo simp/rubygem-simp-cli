@@ -4,7 +4,6 @@ module Simp::Cli::Config; end
 
 require File.expand_path( '../commands/config', File.dirname(__FILE__) )
 require File.expand_path( 'utils', File.dirname(__FILE__) )
-require 'yaml/store' # for safety-saving
 
 # Builds a SIMP configuration profile based on an Array of Config::Items
 #
