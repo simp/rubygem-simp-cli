@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1ae5cdf2_18ba420a",
+        "filename": "lib/simp/cli/commands/config.rb",
+        "patchSetId": 1
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2015-09-28T22:48:50Z",
+      "side": 1,
+      "message": "I\u0027m not too comfortable about this changing the digest_algorithm no matter what every time \"simp config\" is run.  Even a \"simp config --help\" will silently change the configuration of the user\u0027s or system\u0027s Puppet settings.  \n\nWhat if this were an apply() action for the use_fips item, which had to be answered before all other questions?\n\nI\u0027ll whomp up a patch to try it out.",
+      "revId": "460e2af12bde1e7be37817c82ed353f07560b469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
