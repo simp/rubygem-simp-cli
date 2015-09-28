@@ -44,6 +44,7 @@ class Simp::Cli::Config::ItemListFactory
       # - ItemG
       ---
       # ==== network ====
+      - UseFips
       - NetworkInterface
       - SetupNIC:
          true:
@@ -83,7 +84,6 @@ class Simp::Cli::Config::ItemListFactory
       - UseIPtables
       - CommonRunLevelDefault
       - UseSELinux
-      - UseFips
       - SetGrubPassword:
          true:
           - GrubPassword

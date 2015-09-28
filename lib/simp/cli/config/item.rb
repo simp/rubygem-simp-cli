@@ -400,7 +400,7 @@ module Simp::Cli::Config
       if @skip_apply || (not_root_msg.size != 0)
         extra = "<%= color( %q{(skipping apply#{not_root_msg})}, MAGENTA, BOLD)%> "
         say( "#{extra}#{@key}" ) unless @silent
-        if !(@value.nil? || @value.empty?)
+        if !(@value.nil? || @value.class == TrueClass || @value.class == FalseClass || @value.empty?)
           say( "= '<%= color( %q{#{@value}}, BOLD )%>'\n" ) unless @silent
         end
       else

@@ -80,11 +80,11 @@ class Simp::Cli::Commands::Config  < Simp::Cli
       @options[:noninteractive] += 1
     end
 
-    opts.on("-s", "--skip-safety-save",         "Ignore any saftey-save files") do
+    opts.on("-s", "--skip-safety-save",         "Ignore any safety-save files") do
       @options[:use_safety_save] = false
     end
 
-    opts.on("-S", "--accept-safety-save",  "Automatically apply any saftey-save files") do
+    opts.on("-S", "--accept-safety-save",  "Automatically apply any safety-save files") do
       @options[:autoaccept_safety_save] = true
     end
 
@@ -166,7 +166,7 @@ class Simp::Cli::Commands::Config  < Simp::Cli
       answers_hash = YAML.load(File.read(file))
       answers_hash.empty?
     rescue Errno::EACCES
-      error = "WARNING: Could not access the anwers file '#{file}'!"
+      error = "WARNING: Could not access the answers file '#{file}'!"
       say "<%= color(%q{#{error}}, YELLOW) %>\n"
     rescue
       # If the file existed, but ingest failed, then there's a problem
@@ -175,8 +175,6 @@ class Simp::Cli::Commands::Config  < Simp::Cli
 
     answers_hash
   end
-
-
 
   def self.run(args = [])
     begin
@@ -197,7 +195,7 @@ class Simp::Cli::Commands::Config  < Simp::Cli
     # NOTE: answers from an interrupted session take precedence over input file
     answers_hash = saved_session.merge( answers_hash )
 
-    # NOTE: answers provided from the cli take precendence over everything else
+    # NOTE: answers provided from the cli take precedence over everything else
     cli_answers  = Hash[ ARGV[1..-1].map{ |x| x.split '=' } ]
     answers_hash = answers_hash.merge( cli_answers )
 

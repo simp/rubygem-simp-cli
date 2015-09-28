@@ -11,7 +11,6 @@ module Simp::Cli::Config
       super
       @key         = 'puppet::server'
       @description = %q{The Hostname or FQDN of the puppet server.}
-#      @fact        = 'fqdn'
     end
 
     def os_value

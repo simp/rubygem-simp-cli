@@ -16,7 +16,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.6
+Version: 1.0.7
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -88,6 +88,10 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Mon Sep 28 2015 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0-7-0
+- Ensure that the puppet digest algorithm is set to sha256 prior if FIPS
+  mode is enabled in 'simp config'
+
 * Fri Sep 18 2015 Kendall Moore <kmoore@keywcorp.com> - 1.0.6-0
 - Set the keylength variable in puppet.conf
 

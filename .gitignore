@@ -1,0 +1,7 @@
+.*.sw?
+/dist
+/pkg
+/.rspec_system
+/.bundle
+/vendor
+/Gemfile.lock
