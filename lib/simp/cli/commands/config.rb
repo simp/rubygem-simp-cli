@@ -1,6 +1,7 @@
 require 'highline/import'
 require 'yaml'
 require 'fileutils'
+require 'find'
 
 require File.expand_path( '../../cli', File.dirname(__FILE__) )
 require File.expand_path( '../config/item', File.dirname(__FILE__) )
@@ -186,9 +187,14 @@ class Simp::Cli::Commands::Config  < Simp::Cli
       exit 1
     end
 
-    # This ensures that the path to the fips_enabled fact is available
-    # when `simp config` is run directly after installing a fresh SIMP ISO
-    Facter.search( '/etc/puppet/environments/simp/modules/common/lib/facter' )
+    # Ensure that custom facts are available before the first pluginsync
+    %x{puppet config print modulepath}.strip.split(':').each do |dir|
+      Find.find(dir) do |mod_path|
+        fact_path = File.expand_path('lib/facter', mod_path)
+        Facter.search(fact_path) if File.directory?(fact_path)
+        Find.prune unless mod_path == dir
+      end
+    end
 
     # read in answers file
     answers_hash = {}
