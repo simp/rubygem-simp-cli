@@ -186,6 +186,10 @@ class Simp::Cli::Commands::Config  < Simp::Cli
       exit 1
     end
 
+    # This ensures that the path to the fips_enabled fact is available
+    # when `simp config` is run directly after installing a fresh SIMP ISO
+    Facter.search( '/etc/puppet/environments/simp/modules/common/lib/facter' )
+
     # read in answers file
     answers_hash = {}
     if file = @options.fetch( :input_file )
