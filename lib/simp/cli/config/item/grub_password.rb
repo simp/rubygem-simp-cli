@@ -41,7 +41,7 @@ module Simp::Cli::Config
     def apply
       if Facter.value('lsbmajdistrelease') > "6" then
         # TODO: beg team hercules to make a augeas provider for grub2 passwords?
-        `sed -i 's/password_pbkdf2 root/password_pbkdf2 root #{@value}/' /etc/grub.d/01_users`
+        `sed -i 's/password_pbkdf2 root.*$/password_pbkdf2 root #{@value}/' /etc/grub.d/01_users`
         `grub2-mkconfig -o /etc/grub2.cfg`
       else
         `sed -i '/password/ c\password --encrypted #{@value}' /boot/grub/grub.conf`
