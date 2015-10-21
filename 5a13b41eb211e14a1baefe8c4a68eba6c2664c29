@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ab29df4_83d8f454",
+        "filename": "lib/simp/cli/config/item/puppet_autosign.rb",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2015-10-21T19:48:42Z",
+      "side": 1,
+      "message": "Keeping the old `recommended_value`/`os_value` methods from the old ListItem seems more elaborate than an ActionItem needs to be. \n\nOn the other hand, it doesn\u0027t reduce clarity much and the logic is slightly improved.  This would be worth keeping (over reverting to an older commit) in the event that we wished to switch back to an interactive Item in the future.",
+      "revId": "5a13b41eb211e14a1baefe8c4a68eba6c2664c29",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
