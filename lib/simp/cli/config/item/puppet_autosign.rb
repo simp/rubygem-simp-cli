@@ -4,11 +4,12 @@ require File.expand_path( '../utils', File.dirname(__FILE__) )
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
-  class Item::PuppetAutosign < ListItem
+  class Item::PuppetAutosign < ActionItem
+    attr_accessor :file
     def initialize
       super
       @key         = 'puppet::autosign'
-      @description = %Q{You should place any hostnames/domains here that you wish to autosign.\nThe most security conscious method is to list each individual hostname:\n  hosta.your.domain\n  hostb.your.domain\n\nWildcard domains work, but absolutely should NOT be used unless you fully trust your network.}
+      @description = %Q{By default, the only host eligible for autosign is the puppet master.}
       @file        = '/etc/puppet/autosign.conf'
     end
 
@@ -28,35 +29,36 @@ module Simp::Cli::Config
         end
         values << line.strip
       end
-      values
+      if values.size == 0
+        nil
+      else
+        values
+      end
     end
 
     def recommended_value
-      item = @config_items.fetch( 'hostname', nil )
-      [ item.value ] if item
-    end
-
-    def validate_item item
-      # FIXME: this is incomplete
-      Simp::Cli::Config::Utils.validate_hostname( item ) ||
-      Simp::Cli::Config::Utils.validate_fqdn( item ) ||
-      Simp::Cli::Config::Utils.validate_ip( item ) ||
-      item =~ /\*/
+      item = os_value
+      if !item
+        item = @config_items.fetch( 'hostname', nil )
+        item = [ item.value ] if item
+      end
+      item
     end
 
     def apply
+      entries = recommended_value
       say_green "Updating #{@file}..." if !@silent
       File.open(@file, 'w') do |file|
         file.puts "# You should place any hostnames/domains here that you wish to autosign.\n" +
-                  "# The most security conscious method is to list each individual hostname:\n" +
+                  "# The most security-conscious method is to list each individual hostname:\n" +
                   "#   hosta.your.domain\n" +
                   "#   hostb.your.domain\n" +
                   "#\n" +
                   "# Wildcard domains work, but absolutely should NOT be used unless you fully\n" +
                   "# trust your network.\n" +
                   "#   *.your.domain\n\n"
-        @current_value.values.each do |value|
-          file.puts(value)
+        entries.each do |entry|
+          file.puts(entry)
         end
       end
     end
