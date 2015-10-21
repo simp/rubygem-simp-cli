@@ -1,5 +1,6 @@
 $: << File.expand_path( '../lib/', __FILE__ )
 require 'simp/cli'
+require 'date'
 
 Gem::Specification.new do |s|
   s.name     = 'simp-cli'
