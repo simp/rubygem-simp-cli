@@ -25,8 +25,9 @@ class Simp::Cli::Commands::Config  < Simp::Cli
     :output_file        => File.expand_path( default_outfile ),
     :puppet_system_file => '/etc/puppet/environments/production/hieradata/simp_def.yaml',
 
-    :use_safety_save        => true,
-    :autoaccept_safety_save => false,
+    :use_safety_save         => true,
+    :autoaccept_safety_save  => false,
+    :fail_on_missing_answers => false,
   }
 
   @opt_parser      = OptionParser.new do |opts|
@@ -53,11 +54,19 @@ class Simp::Cli::Commands::Config  < Simp::Cli
       @options[:output_file] = file
     end
 
-    opts.on("-i", "-a", "-e", "--apply FILE", "Apply a pre-existing answers FILE. ",
+    opts.on("-i", "-a", "-e", "--apply FILE", "Apply answers FILE (fails on missing items)",
+                                              ) do |file|
+      @options[:input_file] = file
+      @options[:fail_on_missing_answers] = true
+    end
+
+    opts.on("-I", "-A", "-E", "--apply-with-questions FILE",
+                                              "Apply answers FILE (asks on missing items) ",
                                               "  Note that the edited configuration",
                                               "  will be written to the file specified in ",
                                               "   --output.") do |file|
       @options[:input_file] = file
+      @options[:fail_on_missing_answers] = false
     end
 
     opts.separator opts_separator
@@ -77,7 +86,8 @@ class Simp::Cli::Commands::Config  < Simp::Cli
     end
 
     opts.on("-f", "--non-interactive", "Force default answers (prompt if unknown)",
-                                       "  (-ff fails instead of prompting)") do |file|
+                                       #"  (-ff fails instead of prompting)"
+                                       ) do |file|
       @options[:noninteractive] += 1
     end
 
@@ -189,6 +199,7 @@ class Simp::Cli::Commands::Config  < Simp::Cli
 
     # Ensure that custom facts are available before the first pluginsync
     %x{puppet config print modulepath}.strip.split(':').each do |dir|
+      next unless File.directory?(dir)
       Find.find(dir) do |mod_path|
         fact_path = File.expand_path('lib/facter', mod_path)
         Facter.search(fact_path) if File.directory?(fact_path)

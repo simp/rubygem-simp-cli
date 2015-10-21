@@ -34,8 +34,9 @@ than your security policies allow.
     def apply
       if @value
         # This is a one-off prep item needed to handle Puppet certs w/FIPS mode
-        %x(puppet config set digest_algorithm sha256)
-        $?.success?
+        cmd = %q(puppet config set digest_algorithm sha256)
+        puts cmd unless @silent
+        %x{#{cmd}}
       else
         puts 'not using FIPS mode: noop'
         true # we applied nothing, successfully!

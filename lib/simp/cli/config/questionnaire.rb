@@ -18,8 +18,8 @@ class Simp::Cli::Config::Questionnaire
 
   def initialize( options = {} )
     @options = {
-     :noninteractive => INTERACTIVE,
-     :verbose        => 0
+     :noninteractive          => INTERACTIVE,
+     :verbose                 => 0
     }.merge( options )
   end
 
@@ -48,10 +48,15 @@ class Simp::Cli::Config::Questionnaire
   #
   # simp config can run in the following modes:
   #   - interactive (prompt each item)
-  #   - mostly non-interactive (-f; prompt items that can't be inferred)
+  #   - mostly non-interactive (-f/-A; prompt items that can't be inferred)
+  #   - never prompt (-a/-ff);
   #   - never prompt (-ff; relies on cli args for non-inferrable items))
   def process_item item
     item.skip_query = true if @options[ :noninteractive ] >= NONINTERACTIVE
+    if @options.fetch( :fail_on_missing_answers, false )
+      item.fail_on_missing_answer = true
+    end
+
     if @options[ :noninteractive ] == INTERACTIVE
       item.query
     else

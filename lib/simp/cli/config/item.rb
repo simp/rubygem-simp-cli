@@ -13,6 +13,7 @@ module Simp::Cli::Config
     attr_accessor :die_on_apply_fail, :allow_user_apply
     attr_accessor :config_items
     attr_accessor :next_items_tree
+    attr_accessor :fail_on_missing_answer
 
     def initialize(key = nil, description = nil)
       @key               = key         # answers file key for the config Item
@@ -26,6 +27,7 @@ module Simp::Cli::Config
       @silent            = false       # no output to stdout/Highline
       @die_on_apply_fail = false       # halt simp config if apply fails
       @allow_user_apply  = false       # allow non-superuser to apply
+      @fail_on_missing_answer = false  # error out if @value is not pre-populated
 
       @config_items      = {}          # a hash of all previous Config::Items
       # a Hash of additional Items that this Item may need to add to the Queue
@@ -103,6 +105,14 @@ module Simp::Cli::Config
     # choose @value of Item
     def query
       extra = query_status
+
+      if @value.nil? && @fail_on_missing_answer
+        say( "<%= color(%q(FATAL: no answer for '), RED) %>" +
+             "<%= color(%q{#{extra}#{@key}}, BOLD,  RED)%>" +
+             "<%= color(%q('; exiting!), RED)%>\n" )
+        exit 1
+      end
+
       if !@skip_query && @value.nil?
         print_banner
         @value = query_ask
