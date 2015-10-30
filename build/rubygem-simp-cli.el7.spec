@@ -12,7 +12,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.8
+Version: 1.0.9
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -80,6 +80,10 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Fri Oct 30 2015 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.9-0
+- Made 'simp config' item 'puppet::autosign' non-interactive
+- Fixed broken documentation path in 'simp doc'
+
 * Thu Oct 15 2015 Nick Markowski <nmarkowski@keywcorp.com> - 1.0.8-0
 - Grub passwords are now replaced instead of being amended during config.
 
