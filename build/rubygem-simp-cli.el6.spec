@@ -16,11 +16,11 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.8
+Version: 1.0.9
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
-URL: https://github.com/NationalSecurityAgency/rubygem-simp-cli
+URL: https://github.com/simp/rubygem-simp-cli
 Source0: %{gemname}-%{version}.gem
 Requires: ruby(abi) = %{rubyabi}
 Requires: ruby(rubygems)
@@ -34,7 +34,7 @@ Requires: facter => 2.2
 # Requires: rubygem(highline) < 1.7    # error!
 # Requires: rubygem(facter) => 2       # not packaged as rubygem-facter
 # Requires: rubygem(facter) < 3        # not packaged as rubygem-facter
-#Requires: facter < 3                  # error!
+# Requires: facter < 3                 # error!
 BuildRequires: ruby(abi) = %{rubyabi}
 BuildRequires: ruby(rubygems)
 BuildRequires: ruby
@@ -88,6 +88,10 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Fri Oct 30 2015 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.9-0
+- Made 'simp config' item 'puppet::autosign' non-interactive
+- Fixed broken documentation path in 'simp doc'
+
 * Thu Oct 15 2015 Nick Markowski <nmarkowski@keywcorp.com> - 1.0.8-0
 - Grub passwords are now replaced instead of being amended during config.
 
