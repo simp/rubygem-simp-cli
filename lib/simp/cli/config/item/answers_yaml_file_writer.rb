@@ -13,7 +13,7 @@ module Simp::Cli::Config
       super
       @key             = 'yaml::file_writer'
       @description     = %Q{Writes Config::Item answers so far to YAML file (apply-only; noop).}
-      @file            = '/etc/puppet/environments/production/hieradata/simp_def.yaml'
+      @file            = '/etc/puppet/environments/simp/hieradata/simp_def.yaml'
       @backup_old_file = false
     end
 

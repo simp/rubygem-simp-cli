@@ -12,7 +12,7 @@ module Simp::Cli::Config
       super
       @key         = 'puppet::remove_ldap_from_hiera'
       @description = %Q{Removes any ldap classes from hieradata/hosts/puppet.your.domain.yaml (apply-only; noop).}
-      @dir         = "/etc/puppet/environments/production/hieradata/hosts"
+      @dir         = "/etc/puppet/environments/simp/hieradata/hosts"
       @file        = nil
     end
 

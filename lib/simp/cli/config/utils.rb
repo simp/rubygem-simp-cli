@@ -110,7 +110,7 @@ class Simp::Cli::Config::Utils
 
     def generate_certificates(
           hostnames,
-          ca_dir='/etc/puppet/environments/production/FakeCA'
+          ca_dir='/etc/puppet/environments/simp/FakeCA'
         )
       result = true
       Dir.chdir( ca_dir ) do

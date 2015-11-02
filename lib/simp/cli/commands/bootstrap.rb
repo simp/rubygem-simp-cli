@@ -35,20 +35,20 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
   # Ensure the puppetserver is running ca on the specified port.
   # Used ensure the puppetserver service is running.
   def self.ensure_running(port = nil)
-    if port == nil then
+    if port == nil
       port = `puppet config print ca_port`.strip
     end
     begin
-      running = (%x{/usr/bin/curl -sS --cert /var/lib/puppet/ssl/certs/`hostname`.pem --key /var/lib/puppet/ssl/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
-      if not running then
-        system('/usr/bin/puppet resource service puppetserver ensure="running" enable=true > /dev/null 2>&1 &')
+      running = (%x{curl -sS --cert /var/lib/puppet/ssl/certs/`hostname`.pem --key /var/lib/puppet/ssl/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
+      unless running
+        system('puppet resource service puppetserver ensure="running" enable=true > /dev/null 2>&1 &')
         stages = %w{. o O @ *}
         rest = 0.4
         timeout = 5
 
         Timeout::timeout(timeout*60) {
           while not running do
-            running = (%x{/usr/bin/curl -sS --cert /var/lib/puppet/ssl/certs/`hostname`.pem --key /var/lib/puppet/ssl/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
+            running = (%x{curl -sS --cert /var/lib/puppet/ssl/certs/`hostname`.pem --key /var/lib/puppet/ssl/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
             stages.each{ |x|
               $stdout.flush
               print "Waiting for Puppet Server to Start  " + x + "\r"
@@ -122,6 +122,30 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     super
 
     bootstrap_start_time = Time.now
+
+    # Set us up to use the SIMP environment. Be careful to preserve the
+    # existing 'production' environment if one exists.
+    environment_path = '/etc/puppet/environments'
+    simp_env = "#{environment_path}/simp"
+
+    fail("Could not find the environment path at #{environment_path}") unless File.exist?(environment_path)
+
+    Dir.chdir(environment_path) do
+      fail("Could not find a 'simp' installation at #{simp_env}") unless File.exist?(simp_env)
+
+      if File.exist?('production')
+        if File.symlink?('production')
+          unless File.new('simp').stat == File.new(File.readlink('production'))
+            FileUtils.mv('production',"pre_simp_production_#{bootstrap_start_time.to_i}")
+          end
+        else
+            FileUtils.mv('production',"pre_simp_production_#{bootstrap_start_time.to_i}")
+        end
+      end
+
+      FileUtils.ln_s('simp','production')
+    end
+
     linecounts = Array.new
 
     # Open log file
@@ -130,8 +154,14 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     @logfile = File.open(logfilepath, 'w')
 
     # Define the puppet command call and the run command options
-    pupcmd = "/usr/bin/puppet agent  --pluginsync --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150"
-    pupruns = ['pki,stunnel,concat','firstrun,concat','rsync,concat,apache,iptables','user','group']
+    pupcmd = "/usr/bin/puppet agent --pluginsync --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150"
+    pupruns = [
+      'pki,stunnel,concat',
+      'firstrun,concat',
+      'rsync,concat,apache,iptables',
+      'user',
+      'group'
+    ]
 
     # Print intro
     system('clear')
@@ -144,11 +174,11 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     # Kill all puppet processes and stop specific services
     puts "Killing all Puppet processes, httpd and removing Puppet ssl certs.\n\n" if @verbose
-    system("/usr/bin/killall -9 puppetmasterd >& /dev/null")
-    system("/usr/bin/killall -9 puppet >& /dev/null")
+    system("pkill -9 -f puppetmasterd >& /dev/null")
+    system("pkill -9 -f puppet >& /dev/null")
     system('pkill -f pserver_tmp')
-    system("/sbin/service puppetserver stop >& /dev/null")
-    system("/sbin/service httpd stop >& /dev/null")
+    system("puppet resource service puppetserver ensure=stopped >& /dev/null")
+    system("puppet resource service httpd ensure=stopped >& /dev/null")
     FileUtils.rm_rf(Dir.glob('/var/lib/puppet/ssl'))
     FileUtils.rm_f(Dir.glob('/var/run/puppet/*'))
     FileUtils.touch('/.autorelabel')
@@ -158,9 +188,9 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     FileUtils.mkdir_p('/var/lib/puppet/pserver_tmp')
     FileUtils.chown('puppet','puppet','/var/lib/puppet/pserver_tmp')
-    system(%{/usr/bin/puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver' match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m -Djava.io.tmpdir=/var/lib/puppet/pserver_tmp"' 2>&1 > /dev/null})
-    system(%{/usr/bin/puppet resource simp_file_line puppetserver path='/etc/puppetserver/conf.d/webserver.conf' match='^\\s*ssl-host' line='    ssl-host = 0.0.0.0' 2>&1 > /dev/null})
-    system(%{/usr/bin/puppet resource simp_file_line puppetserver path='/etc/puppetserver/conf.d/webserver.conf' match='^\\s*ssl-port' line='    ssl-port = 8150' 2>&1 > /dev/null})
+    system(%{puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver' match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m -Djava.io.tmpdir=/var/lib/puppet/pserver_tmp"' 2>&1 > /dev/null})
+    system(%{puppet resource simp_file_line puppetserver path='/etc/puppetserver/conf.d/webserver.conf' match='^\\s*ssl-host' line='    ssl-host = 0.0.0.0' 2>&1 > /dev/null})
+    system(%{puppet resource simp_file_line puppetserver path='/etc/puppetserver/conf.d/webserver.conf' match='^\\s*ssl-port' line='    ssl-port = 8150' 2>&1 > /dev/null})
 
     puts
 
@@ -172,7 +202,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     puts
 
-    if Facter.value(:selinux) and !Facter.value(:selinux_current_mode).nil? and Facter.value(:selinux_current_mode) != "disabled" then
+    if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? && (Facter.value(:selinux_current_mode) != "disabled")
       puts 'Relabeling filesystem for selinux...'
       @logfile.puts('Relabeling filesystem for selinux.')
       system("fixfiles -f relabel >> #{@logfile.path} 2>&1")
@@ -187,24 +217,24 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     # From this point on, run puppet without specifying the masterport since
     # puppetserver is configured.
-    pupcmd = "/usr/bin/puppet agent  --pluginsync --onetime --no-daemonize --no-show_diff --verbose --no-splay"
+    pupcmd = "puppet agent --pluginsync --onetime --no-daemonize --no-show_diff --verbose --no-splay"
 
-    # Run puppet agent upto 2x to get slapd running (unless it already is)
+    # Run puppet agent up to 3X to get slapd running (unless it already is)
     # If this fails, LDAP is probably not configured right
     i = 0
-    while i < 3 and not system("/bin/ps -C slapd >& /dev/null") do
+    while (i < 3) && !system('/bin/ps -C slapd >& /dev/null') do
       # No longer running puppet against 8150.
       track_output("#{pupcmd}")
       i = i + 1
     end
-    if i == 3 and $use_ldap
+    if (i == 3) && $use_ldap
       puts "   \033[1mWarning\033[0m: It does not look like LDAP was properly configured to start."
       puts "   Please check your configuration."
     else
       # At this point, we should be connected to LDAP properly.
       # Run puppet up to 3 additional times if we can't verify that we're actually connected!
       j = 0
-      while j < 3 and not system("getent group | grep -q administrators") do
+      while (j < 3) && !system('getent group administrators') do
         track_output("#{pupcmd}")
         j = j + 1
       end
@@ -218,7 +248,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     # Clean up the leftover puppetserver process (if any)
     begin
       pserver_proc = %x{netstat -tlpn}.split("\n").select{|x| x =~ /\d:8150/}
-      if not pserver_proc.empty? then
+      unless pserver_proc.empty?
         pserver_pid = pserver_proc.first.split.last.split('/').first.to_i
         Process.kill('KILL',pserver_pid)
       end
@@ -232,11 +262,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     puts "*** SIMP Bootstrap Complete! ***"
     puts "Duration of complete bootstrap: #{Time.now - bootstrap_start_time} seconds" if @verbose
 
-    # Check for httpd and passenger running as well as the output from
-    # switch. It's entirely possible that everything started fine already.
-    passenger_running = Dir.glob("/var/run/passenger/passenger*").empty?
-    %x{/bin/ps -C httpd}
-    if !($?.success? and passenger_running) and (linecounts.include?(-1) or linecounts.uniq.length < linecounts.length)
+    if !system('ps -C httpd') && (linecounts.include?(-1) || (linecounts.uniq.length < linecounts.length))
       puts "   \033[1mWarning\033[0m: Primitive checks indicate there may have been issues."
       puts "   Check '#{@logfile.path}' for details."
       puts "   Please run 'puppet agent -t' by hand to debug your configuration."
