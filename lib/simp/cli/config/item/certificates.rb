@@ -13,8 +13,8 @@ module Simp::Cli::Config
       @key         = 'certificates'
       @description = %Q{Sets up the cerificates for SIMP on apply. (apply-only; noop)}
       @dirs        = {
-        :keydist => '/etc/puppet/environments/production/keydist',
-        :fake_ca => '/etc/puppet/environments/production/FakeCA',
+        :keydist => '/etc/puppet/environments/simp/keydist',
+        :fake_ca => '/etc/puppet/environments/simp/FakeCA',
       }
       @die_on_apply_fail = true
     end

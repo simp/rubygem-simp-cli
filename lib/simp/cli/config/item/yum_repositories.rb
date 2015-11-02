@@ -15,7 +15,7 @@ module Simp::Cli::Config
       @description = %Q{Sets up the yum repositores for SIMP on apply. (apply-only; noop)}
       @www_yum_dir = File.exists?( '/var/www/yum/') ? '/var/www/yum' : '/srv/www/yum'
       @yum_repos_d = '/etc/yum.repos.d'
-      @yaml_file   = '/etc/puppet/environments/production/hieradata/hosts/puppet.your.domain.yaml'
+      @yaml_file   = '/etc/puppet/environments/simp/hieradata/hosts/puppet.your.domain.yaml'
     end
 
     def apply
