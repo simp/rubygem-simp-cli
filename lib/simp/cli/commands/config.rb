@@ -23,7 +23,7 @@ class Simp::Cli::Commands::Config  < Simp::Cli
 
     :input_file         => nil,
     :output_file        => File.expand_path( default_outfile ),
-    :puppet_system_file => '/etc/puppet/environments/production/hieradata/simp_def.yaml',
+    :puppet_system_file => '/etc/puppet/environments/simp/hieradata/simp_def.yaml',
 
     :use_safety_save         => true,
     :autoaccept_safety_save  => false,

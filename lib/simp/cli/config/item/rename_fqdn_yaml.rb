@@ -13,7 +13,7 @@ module Simp::Cli::Config
       super
       @key         = 'puppet::rename_fqdn_yaml'
       @description = %Q{Renames hieradata/hosts/puppet.your.domain.yaml (apply-only; noop).}
-      @file        = '/etc/puppet/environments/production/hieradata/hosts/puppet.your.domain.yaml'
+      @file        = '/etc/puppet/environments/simp/hieradata/hosts/puppet.your.domain.yaml'
     end
 
     def apply
