@@ -89,6 +89,8 @@ class Simp::Cli::Config::ItemListFactory
           - GrubPassword
       - Certificates
       - YumRepositories
+      - IsMasterYumServer
+      - EnableSimpRepos
       - RenameFqdnYaml
 
       # ==== puppet ====
