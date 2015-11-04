@@ -54,7 +54,7 @@ class Simp::Cli::Commands::Config  < Simp::Cli
       @options[:output_file] = file
     end
 
-    opts.on("-i", "-a", "-e", "--apply FILE", "Apply answers FILE (fails on missing items)",
+    opts.on("-i", "-a", "-e", "--apply FILE", "Apply answers FILE (fails on missing items)"
                                               ) do |file|
       @options[:input_file] = file
       @options[:fail_on_missing_answers] = true
@@ -85,7 +85,7 @@ class Simp::Cli::Commands::Config  < Simp::Cli
       @options[:dry_run] = true
     end
 
-    opts.on("-f", "--non-interactive", "Force default answers (prompt if unknown)",
+    opts.on("-f", "--non-interactive", "Force default answers (prompt if unknown)"
                                        #"  (-ff fails instead of prompting)"
                                        ) do |file|
       @options[:noninteractive] += 1
