@@ -61,7 +61,7 @@ module Simp::Cli::Config
         end
 
         # enable 'simp::yum::enable_simp_repos' in hosts/puppet.your.domain.yaml
-        if ! File.exist?('filesystem.repo')
+        if @config_items.fetch('is_master_yum_server').value && !File.exist?('filesystem.repo')
           cmd = %Q{sed -i '/simp::yum::enable_simp_repos : false/ c\\simp::yum::enable_simp_repos : true' #{@yaml_file}}
           puts cmd if !@silent
           %x{#{cmd}}
