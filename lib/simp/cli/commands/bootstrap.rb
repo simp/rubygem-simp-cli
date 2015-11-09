@@ -234,7 +234,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       # At this point, we should be connected to LDAP properly.
       # Run puppet up to 3 additional times if we can't verify that we're actually connected!
       j = 0
-      while (j < 3) && !system('getent group administrators') do
+      while (j < 3) && !system('getent group administrators >& /dev/null') do
         track_output("#{pupcmd}")
         j = j + 1
       end
