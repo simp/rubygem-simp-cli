@@ -135,7 +135,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
       if File.exist?('production')
         if File.symlink?('production')
-          unless File.new('simp').stat == File.new(File.readlink('production'))
+          unless File.readlink('production') == 'simp'
             FileUtils.mv('production',"pre_simp_production_#{bootstrap_start_time.to_i}")
           end
         else
