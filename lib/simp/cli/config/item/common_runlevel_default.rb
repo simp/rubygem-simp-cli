@@ -8,7 +8,7 @@ module Simp::Cli::Config
   class Item::CommonRunLevelDefault < Item
     def initialize
       super
-      @key         = 'common::runlevel'
+      @key         = 'simplib::runlevel'
       @description = %Q{The default system runlevel (1-5).}
     end
 

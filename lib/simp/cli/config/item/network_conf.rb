@@ -40,7 +40,7 @@ module Simp::Cli::Config
         cmd += %Q@ipaddr => '#{ipaddress}', @
         cmd += %Q@netmask => '#{netmask}', @
         cmd += %Q@gateway => '#{gateway}' } @
-        cmd += %Q@class{ 'common::resolv': @
+        cmd += %Q@class{ 'simplib::resolv': @
         cmd += %Q@resolv_domain => '#{resolv_domain}', @
         cmd += %Q@nameservers => #{ format_puppet_array( dns_servers ) }, @
         cmd += %Q@search => #{ format_puppet_array( dns_search ) }, @
