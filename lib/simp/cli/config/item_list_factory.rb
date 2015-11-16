@@ -42,6 +42,10 @@ class Simp::Cli::Config::ItemListFactory
       #     - ItemE
       #     - ItemF
       # - ItemG
+      #
+      # modifers:
+      #   USERAPPLY = execute apply() even when running non-privileged
+      #   SILENT    = set the Item's .silent flag to true
       ---
       # ==== network ====
       - UseFips
@@ -65,7 +69,7 @@ class Simp::Cli::Config::ItemListFactory
              - Gateway      SILENT
              - DNSServers   SILENT
              - DNSSearch    SILENT
-         false:                    # don't configure network (but get network info)
+         false:                    # don't configure network (but ask for info)
          - Hostname
          - IPAddress
          - Netmask
@@ -121,6 +125,7 @@ class Simp::Cli::Config::ItemListFactory
           - LdapUri
          false:
           - RemoveLdapFromHiera
+      - SssdDomains
 
       # ==== rsync ====
       - RsyncBase
