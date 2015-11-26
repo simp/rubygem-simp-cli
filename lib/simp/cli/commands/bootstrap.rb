@@ -143,7 +143,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
         end
       end
 
-      FileUtils.ln_s('simp','production')
+      FileUtils.ln_s('simp','production') unless File.exist?('production')
     end
 
     linecounts = Array.new
