@@ -16,7 +16,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.14
+Version: 1.0.15
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -88,6 +88,9 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Thu Nov 26 2015 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0.15-0
+- Fixed mistaken symlink in simp environment
+
 * Mon Nov 16 2015 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.14-0
 - Added logic to set sssd::domains to include LDAP when `use_ldap` is true.
 
