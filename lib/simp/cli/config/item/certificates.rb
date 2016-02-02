@@ -27,7 +27,7 @@ module Simp::Cli::Config
 
       if !(
         File.exist?("#{@dirs[:keydist]}/#{hostname}/#{hostname}.pub") &&
-        File.exist?("#{@dirs[:fake_ca]}/#{hostname}/#{hostname}.pem")
+        File.exist?("#{@dirs[:keydist]}/#{hostname}/#{hostname}.pem")
       )
         say_green "INFO: No certificates were found for '#{hostname}, generating..." if !@silent
         Simp::Cli::Config::Utils.generate_certificates([hostname], @dirs[:fake_ca])
