@@ -16,7 +16,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.15
+Version: 1.0.16
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -88,6 +88,10 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Tue Feb 02 2016 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0.16-0
+- Fixed issue with overwriting pre-existing host certificates during 'simp
+  config'
+
 * Thu Nov 26 2015 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0.15-0
 - Fixed mistaken symlink in simp environment
 
