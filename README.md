@@ -34,7 +34,7 @@ Controls user passwords.
 Validates various subsystems
 
 ##### `cleancerts` _(deprecated - use `puppet cert clean CERTNAME` instead)_
-Revokes and removed Puppet certificates from a list of hosts.
+Revokes and removes Puppet certificates from a list of hosts.
 
 ##### `runpuppet`_(deprecated - use [mcollective](http://puppetlabs.com/mcollective) instead._
 Runs puppet on a list of hosts.
