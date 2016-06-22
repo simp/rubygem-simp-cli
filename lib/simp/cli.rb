@@ -5,7 +5,7 @@ module Simp; end
 
 # namespace for SIMP CLI commands
 class Simp::Cli
-  VERSION = '1.0.16'
+  VERSION = '1.0.17'
 
   require 'optparse'
   require 'simp/cli/lib/utils'
