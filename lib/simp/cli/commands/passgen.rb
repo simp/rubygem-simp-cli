@@ -3,7 +3,6 @@ module Simp::Cli::Commands; end
 class Simp::Cli::Commands::Passgen < Simp::Cli
   require 'fileutils'
 
-  @target_dir = '/etc/puppet/modules/site/files/gen_passwd'
   @show_list = false
   @show_users = Array.new
   @set_users = Array.new
@@ -41,6 +40,15 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
       puts opts
       exit 0
     end
+
+    unless @target_dir
+      env_path = %x(puppet config print environmentpath).strip
+      if File.directory?(env_path)
+        @target_dir = File.join(env_path, 'simp/simp_autofiles/gen_passwd')
+      else
+        raise(OptionParser::ParseError, 'Could not find a target passgen directory, please specify one with the `-d` option')
+      end
+    end
   end
 
   def self.run(args = Array.new)
@@ -51,8 +59,9 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
 
     begin
       Dir.chdir(@target_dir) do
-        @user_names = Dir.glob("*").map { |x| x = File.basename(x, '.last') }.sort.uniq.select do |name|
-          File.ftype("#{@target_dir}/#{name}").eql?("file")
+          #File.ftype("#{@target_dir}/#{name}").eql?("file")
+        @user_names = Dir.glob("*").select do |x|
+          File.file?(x) && (x !~ /\..+$/)
         end
       end
     rescue => err
@@ -75,7 +84,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
           if File.exists?(last_password_file)
             last_password = File.open(last_password_file, 'r').gets
           end
-          puts "  Previous: #{lass_password}" if last_password
+          puts "  Previous: #{last_password}" if last_password
         end
       else
         raise "Invalid username '#{user}' selected.\n\n Valid: #{@user_names.join(', ')}"
