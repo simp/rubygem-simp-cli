@@ -9,8 +9,8 @@ before_install:
     - sudo apt-get install -y libcrack2
 
 rvm:
-  - 1.9.3
   - 2.0.0
+  - 2.1.0
 
 env:
   - SIMP_SKIP_NON_SIMPOS_TESTS=1

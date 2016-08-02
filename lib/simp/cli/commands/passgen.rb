@@ -20,7 +20,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
       @target_dir = dir
     end
 
-    opts.on("-l", "--list", "List possible usernames upon whic to operate") do
+    opts.on("-l", "--list", "List possible usernames upon which to operate") do
       @show_list = true
     end
 
@@ -41,6 +41,13 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
       exit 0
     end
 
+   end
+
+  def self.run(args = Array.new)
+    super
+
+    raise "The SIMP Passgen Tool requires at least one argument to work" if args.empty?
+
     unless @target_dir
       env_path = %x(puppet config print environmentpath).strip
       if File.directory?(env_path)
@@ -49,12 +56,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
         raise(OptionParser::ParseError, 'Could not find a target passgen directory, please specify one with the `-d` option')
       end
     end
-  end
 
-  def self.run(args = Array.new)
-    super
-
-    raise "The SIMP Passgen Tool requires at least one argument to work" if args.empty?
     raise "Target directory '#{@target_dir}' does not exist" unless File.directory?(@target_dir)
 
     begin
