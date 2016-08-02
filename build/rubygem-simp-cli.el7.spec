@@ -12,7 +12,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.18
+Version: 1.0.19
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -80,6 +80,12 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Tue Aug 02 2016 Liz Nemsick <lnemsick.simp@gmail.com> - 1.0.19-0
+- Fix simp options parsing bug.
+
+* Tue Aug 02 2016 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0.18-0
+- Fix RPM spec file.
+
 * Wed Jun 22 2016 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0.17-0
 - Nail 'listen' to a safe version as a runtime dependency for 'guard'
 
