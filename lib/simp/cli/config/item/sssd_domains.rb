@@ -12,7 +12,7 @@ module Simp::Cli::Config
       @key         = 'sssd::domains'
       @description = %Q{
         A list of domains for SSSD to use.
-        `simp config` will automativcally populate this field with `FQDN` if
+        `simp config` will automatically populate this field with `FQDN` if
         `use_fqdn` is true, otherwise it will comment out the field.
       }.gsub(/^\s+/, '' )
     end
