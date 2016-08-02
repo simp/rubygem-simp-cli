@@ -12,7 +12,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.17
+Version: 1.0.18
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
