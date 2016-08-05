@@ -15,9 +15,17 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'grub::password'
-      @description = %Q{The password to access GRUB}
+      @description = %Q{The password to access GRUB.
+
+The value entered is used to set the GRUB password and to generate a hash
+stored in #{@key}.}
+      @applied_status = :unattempted
     end
 
+    def query_prompt
+      # make it clear we are asking for the password, not the hash
+      'GRUB password'
+    end
 
     def validate string
       !string.to_s.strip.empty? && super
@@ -39,6 +47,7 @@ module Simp::Cli::Config
 
 
     def apply
+      @applied_status = :failed
       if Facter.value('lsbmajdistrelease') > "6" then
         # TODO: beg team hercules to make a augeas provider for grub2 passwords?
         `sed -i 's/password_pbkdf2 root.*$/password_pbkdf2 root #{@value}/' /etc/grub.d/01_users`
@@ -46,6 +55,12 @@ module Simp::Cli::Config
       else
         `sed -i '/password/ c\password --encrypted #{@value}' /boot/grub/grub.conf`
       end
+      @applied_status = :applied if $?.success?
     end
+
+    def apply_summary
+      "Setting of GRUB password #{@applied_status}"
+    end
+
   end
 end

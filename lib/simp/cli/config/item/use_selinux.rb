@@ -10,11 +10,12 @@ module Simp::Cli::Config
       super
       @key         = 'selinux::ensure'
       @fact        = 'selinux_current_mode'
-      @description = %Q{SELinux is good.
+      @description = %Q{SELinux mode to use.
 
-Not all modules are compatible with SELinux in enforcing mode but the core
-SIMP modules are. You should not take this below 'permissive' unless it is
-truly necessary.}
+SELinux is a key security feature.  Although all SIMP modules are
+compatible with SELinux in enforcing mode, this may not be the case
+for other site modules.  Nevertheless, you should not take this
+setting below 'permissive' unless it is truly necessary.}
     end
 
     def validate( x )

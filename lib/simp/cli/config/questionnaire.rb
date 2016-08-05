@@ -48,8 +48,8 @@ class Simp::Cli::Config::Questionnaire
   #
   # simp config can run in the following modes:
   #   - interactive (prompt each item)
-  #   - mostly non-interactive (-f/-A; prompt items that can't be inferred)
-  #   - never prompt (-a/-ff);
+  #   - mostly non-interactive (-f/-A; prompt items that can't be inferred or pulled from cli args)
+  #   - never prompt (-a; optionally use cli args for non-inferrable items);
   #   - never prompt (-ff; relies on cli args for non-inferrable items))
   def process_item item
     item.skip_query = true if @options[ :noninteractive ] >= NONINTERACTIVE
@@ -60,19 +60,21 @@ class Simp::Cli::Config::Questionnaire
     if @options[ :noninteractive ] == INTERACTIVE
       item.query
     else
-      value = item.default_value
+      value = item.default_value_noninteractive
 
       if item.validate( value )
         item.value = value
         item.print_summary if @options.fetch( :verbose ) >= 0
       else
-        # alert user that the value is wrong
-        print_invalid_item_error item
-
         # present an interactive prompt for invalid answers unless '-ff'
-        exit 1 if @options.fetch( :noninteractive ) >= REALLY_NONINTERACTIVE
-        item.skip_query = false
-        value = item.query
+        if @options.fetch( :noninteractive ) >= REALLY_NONINTERACTIVE
+          raise "FATAL: '#{item.value}' is an invalid answer for '#{item.key}'"
+        else
+          # alert user that the value is wrong
+          print_invalid_item_error item
+          item.skip_query = false
+          value = item.query
+        end
       end
     end
     item.safe_apply

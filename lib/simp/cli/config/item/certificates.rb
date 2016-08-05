@@ -11,29 +11,38 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'certificates'
-      @description = %Q{Sets up the cerificates for SIMP on apply. (apply-only; noop)}
+      @description = %Q{Generates certificates for SIMP as needed; action-only.}
       @dirs        = {
         :keydist => '/etc/puppet/environments/simp/keydist',
         :fake_ca => '/etc/puppet/environments/simp/FakeCA',
       }
       @die_on_apply_fail = true
+      @hostname = nil
     end
-
 
     def apply
       # Certificate Management
+      @applied_status = :failed
       say_green 'Checking system certificates...' if !@silent
-      hostname = @config_items.fetch( 'hostname' ).value
-
+      @hostname = @config_items.fetch( 'hostname' ).value
       if !(
-        File.exist?("#{@dirs[:keydist]}/#{hostname}/#{hostname}.pub") &&
-        File.exist?("#{@dirs[:keydist]}/#{hostname}/#{hostname}.pem")
+        File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pub") &&
+        File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pem")
       )
-        say_green "INFO: No certificates were found for '#{hostname}, generating..." if !@silent
-        Simp::Cli::Config::Utils.generate_certificates([hostname], @dirs[:fake_ca])
+        say_green "INFO: No certificates were found for '#{@hostname}, generating..." if !@silent
+        result = Simp::Cli::Config::Utils.generate_certificates([@hostname], @dirs[:fake_ca])
+        @applied_status = :applied if result
       else
-        say_yellow "WARNING: Found existing certificates for #{hostname}, not recreating" if !@silent
+        @applied_status = :unnecessary
+        @applied_detail = "certificates already exist in #{@dirs[:keydist]}"
+        say_magenta "INFO: Found existing certificates for #{@hostname}, not recreating" if !@silent
       end
     end
+
+    def apply_summary
+      "FakeCA certificate generation for #{@hostname ? @hostname : 'SIMP'} #{@applied_status}" +
+        (@applied_detail ? ":\n\t#{@applied_detail}" : '')
+    end
+
   end
 end

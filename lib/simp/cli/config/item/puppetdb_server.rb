@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppetdb::master::config::puppetdb_server'
-      @description = %Q{The dns name or ip of the puppetdb server}
+      @description = %Q{The DNS name or IP of the PuppetDB server.}
       @value       = recommended_value
     end
 

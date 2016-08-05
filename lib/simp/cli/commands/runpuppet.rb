@@ -10,7 +10,7 @@ class Simp::Cli::Commands::Runpuppet < Simp::Cli
   @timeout = -1
 
   @opt_parser = OptionParser.new do |opts|
-    opts.banner = "\n === The SIMP RunPuppet Tool ==="
+    opts.banner = "\n=== The SIMP RunPuppet Tool ==="
     opts.separator ""
     opts.separator "The SIMP RunPuppet Tool allows you to run the Puppet agent on a list of hosts."
     opts.separator ""
@@ -40,12 +40,13 @@ class Simp::Cli::Commands::Runpuppet < Simp::Cli
 
     opts.on("-h", "--help", "Print this message") do
       puts opts
-      exit 0
+      @help_requested = true
     end
   end
 
   def self.run(args = Array.new)
     super
+    return if @help_requested
 
     raise Simp::Runpuppet::Error.new("SIMP RunPuppet cannot be run as 'root'.") if Process.uid == 0
 

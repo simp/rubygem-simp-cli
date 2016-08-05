@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'set_grub_password'
-      @description = %Q{Whether or not to set the GRUB password on this system.}
+      @description = %Q{Whether to set the GRUB password on this system.}
     end
 
     def recommended_value

@@ -10,7 +10,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'ldap::master'
-      @description = %Q{This is the LDAP master in URI form (ldap://server)}
+      @description = %Q{This is the LDAP master in URI form (ldap://server).}
     end
 
     def recommended_value

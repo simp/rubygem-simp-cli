@@ -11,32 +11,45 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppet::add_ldap_to_hiera'
-      @description = %Q{Adds simp::ldap_server to hieradata/hosts/puppet.your.domain.yaml (apply-only; noop).}
+      @description = %Q{Adds simp::ldap_server to hieradata/hosts/<host>.yaml; action-only.}
       @dir         = "/etc/puppet/environments/simp/hieradata/hosts"
       @file        = nil
     end
 
     def apply
-      success = true
+      @applied_status = :failed
       fqdn    = @config_items.fetch( 'hostname' ).value
-      file    = File.join( @dir, "#{fqdn}.yaml")
+      @file    = File.join( @dir, "#{fqdn}.yaml")
 
-      say_green 'Adding simp::ldap_server to the <domain>.yaml file' if !@silent
+      say_green "Adding simp::ldap_server to the #{fqdn}.yaml file" if !@silent
 
-      if File.exists?(file)
-        success = true
-        yaml = File.open(file, "a") do |f|
-          f.puts "  - 'simp::ldap_server'"
+      if File.exists?(@file)
+        yaml = IO.readlines(@file)
+
+        File.open(@file, "w") do |f|
+          yaml.each do |line|
+            line.chomp!
+            if line =~ /^classes\s*:/
+              f.puts line
+              f.puts "  - 'simp::ldap_server'"
+            else
+              f.puts line unless contains_ldap?(line)
+            end
+          end
         end
+        @applied_status = :applied
       else
-        success = false
-        say_yellow "WARNING: file not found: #{file}"
+        say_red "ERROR: file not found: #{@file}"
       end
-      success
     end
 
+    def apply_summary
+      "Addition of simp::ldap_server to #{@file ? File.basename(@file) : '<host>.yaml'} " +
+        @applied_status.to_s
+    end
 
     def contains_ldap?( line )
+      #TODO Only care about simp::ldap_server, so should remove references to openldap?
       (line =~ /^\s*-\s+(([a-z_:'"]*::)*(open)*ldap|(open)*ldap[a-z_:'"]*)/m) ? true : false
     end
   end

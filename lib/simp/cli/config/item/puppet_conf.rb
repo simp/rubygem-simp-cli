@@ -11,7 +11,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppet::conf'
-      @description = 'silent item; configures /etc/puppet/puppet.conf'
+      @description = 'Configures /etc/puppet/puppet.conf; action-only.'
       # FIXME: this path will change with Puppet Enterprise; should this autodetect?
       @file        = '/etc/puppet/puppet.conf'
     end
@@ -21,9 +21,11 @@ module Simp::Cli::Config
     #       consider using IO handles instead of File.open (easier to test in memory)?
     #       or use Puppet::Settings ( https://github.com/puppetlabs/puppet/blob/master/lib/puppet/settings.rb )?
     def apply
+      @applied_status = :failed
       say_green "Updating #{@file}..." if !@silent
       if @skip_apply
         say_yellow "WARNING: directed to skip Puppet configuration of #{file}" if !@silent
+        @applied_status = :skipped
         return
       end
 
@@ -92,7 +94,11 @@ module Simp::Cli::Config
           end
         end
       end
+      @applied_status = :applied
+    end
 
+    def apply_summary
+      "Update to Puppet settings in #{@file} #{@applied_status}"
     end
   end
 end
