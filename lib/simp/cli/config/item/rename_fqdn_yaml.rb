@@ -12,29 +12,44 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppet::rename_fqdn_yaml'
-      @description = %Q{Renames hieradata/hosts/puppet.your.domain.yaml (apply-only; noop).}
+      @description = %q{Renames hieradata/hosts/puppet.your.domain.yaml template file to
+ hieradata/hosts/<host>.yaml when no <host>.yaml file exists
+(apply-only; noop).}
       @file        = '/etc/puppet/environments/simp/hieradata/hosts/puppet.your.domain.yaml'
+      @new_file    = nil
     end
 
     def apply
       result   = true
       fqdn     = @config_items.fetch( 'hostname' ).value
-      new_file = File.join( File.dirname( @file ), "#{fqdn}.yaml" )
-      say_green 'Moving default <domain>.yaml file' if !@silent
+      @new_file = File.join( File.dirname( @file ), "#{fqdn}.yaml" )
+      say_green "Renaming #{File.basename(@file)} template to #{File.basename(@new_file)}" if !@silent
 
       if File.exists?(@file)
-        if File.exists?( new_file )
-          result = false
-          diff   = `diff #{new_file} #{@file}`
-          say_yellow "WARNING: #{File.basename( new_file )} exists, but the content differs from the original system content. Review and consider updating:\n#{diff}" if !diff.empty?
+        if File.exists?( @new_file )
+          say_green "INFO: Rename will not be done. #{@new_file} exists."
+          say_yellow "WARNING: Review differences between #{File.basename(@file)} template" +
+            " and\n         #{File.basename(@new_file)} for any updates."
+          sleep(2)
         else
-          File.rename( @file, new_file )
+          File.rename( @file, @new_file )
         end
       else
-        result = false
-        say_yellow "WARNING: file not found: #{@file}"
+        if File.exists?(@new_file)
+          say_green "INFO: Rename not required.  Template file #{File.basename(@file)} " +
+            "\n      no longer exists, but #{File.basename(@new_file)} does."
+        else
+          say_red "ERROR: Rename not possible. Neither template file #{File.basename(@file)}" +
+            " or\n       #{File.basename(@new_file)} exist."
+          result = false
+        end
       end
-      true
+      result
+    end
+
+    def apply_summary
+      "Rename of #{File.basename(@file)} template to " +
+        "#{@new_file ? File.basename(@new_file) : '<host>.yaml'} #{@applied_status.to_s}"
     end
   end
 end

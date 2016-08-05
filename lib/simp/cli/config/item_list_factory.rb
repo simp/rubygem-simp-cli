@@ -92,9 +92,12 @@ class Simp::Cli::Config::ItemListFactory
          true:
           - GrubPassword
       - Certificates
+      # Move the hieradata/hosts/puppet.your.domain.yaml template to
+      # hieradata/hosts/<domain>.yaml file (as appropriate) before
+      # dealing with any features that modify that file
+      - RenameFqdnYaml
       - IsMasterYumServer
       - YumRepositories
-      - RenameFqdnYaml
 
       # ==== puppet ====
       - PuppetServer
@@ -129,8 +132,8 @@ class Simp::Cli::Config::ItemListFactory
 
       # ==== rsync ====
       - RsyncBase
-      - RsyncServer
-      - RsyncTimeout
+      - RsyncServer         SILENT
+      - RsyncTimeout        SILENT
 
       # ==== writers ====
       - AnswersYAMLFileWriter FILE=#{ @options.fetch( :puppet_system_file, '/dev/null') }

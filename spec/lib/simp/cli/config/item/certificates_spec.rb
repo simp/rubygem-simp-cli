@@ -30,17 +30,36 @@ describe Simp::Cli::Config::Item::Certificates do
         FileUtils.cp_r( Dir["#{src_dir}/*"], @tmp_dirs[:fake_ca] )
 
         @ci.dirs   = @tmp_dirs
-        @ci.apply
       end
 
-      it 'runs gencerts_nopass.sh auto' do
+      it 'returns true when cert generation required and succeeds' do
+        expect( @ci.apply ).to be true
         dir = File.join( @tmp_dirs[:keydist], @hostname )
         expect( File.exists? dir ).to be true
       end
 
+      it 'returns false when cert generation required and fails' do
+        ENV['SIMP_CLI_CERTIFICATES_FAIL']='true'
+        expect( @ci.apply ).to be false
+      end
+
+      it 'returns true when cert generation is not required' do
+        Simp::Cli::Config::Utils.generate_certificates([@hostname], @tmp_dirs[:fake_ca])
+        dir = File.join( @tmp_dirs[:keydist], @hostname )
+        expect( File.exists? dir ).to be true
+        expect( @ci.apply ).to be true
+      end
+
       after :each do
         FileUtils.remove_entry_secure @tmp_dir
+        ENV.delete 'SIMP_CLI_CERTIFICATES_FAIL'
       end
+    end
+  end
+
+  describe "#apply_summary" do
+    it 'reports not attempted status when #safe_apply not called' do
+      expect(@ci.apply_summary).to eq 'Certificate setup for SIMP not attempted'
     end
   end
 

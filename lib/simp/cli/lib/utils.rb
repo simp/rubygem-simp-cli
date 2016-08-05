@@ -5,7 +5,7 @@ module Utils
 
   def yes_or_no(prompt, default_yes)
     print prompt + (default_yes ? ' [Y|n]: ' : ' [y|N]: ')
-    case STDIN.gets
+    case STDIN.gets.strip
     when /^(y|Y)/
       true
     when /^(n|N)/

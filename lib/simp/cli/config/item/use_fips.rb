@@ -21,6 +21,7 @@ FIPS mode disables the use of MD5 and may require weaker ciphers or key lengths
 than your security policies allow.
 }
      @allow_user_apply = true
+     @applied_status = 'not attempted'
     end
 
     def os_value
@@ -38,9 +39,13 @@ than your security policies allow.
         puts cmd unless @silent
         %x{#{cmd}}
       else
-        puts 'not using FIPS mode: noop'
+        say_green 'not using FIPS mode: noop'
         true # we applied nothing, successfully!
       end
+    end
+
+    def apply_summary
+      "Digest algorithm adjustment for FIPS (as needed) #{@applied_status}"
     end
   end
 end

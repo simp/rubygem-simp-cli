@@ -11,38 +11,43 @@ module Simp::Cli::Config
       @key               = 'hostname::conf'
       @description       = 'action item; configures hostname'
       @die_on_apply_fail = true
+      @fqdn              = nil
     end
 
     def apply
       success  = true
-      fqdn     = @config_items.fetch( 'hostname'    ).value
+      @fqdn     = @config_items.fetch( 'hostname'    ).value
       # TODO: should we use this shortname instead of fqdn?
-      hostname = fqdn.split('.').first
+      hostname = @fqdn.split('.').first
 
       # copy/pasta'd logic from old simp config
       # TODO: replace this with 'puppet apply' + network::global
       say_green '  updating hostname...' if !@silent
 
-      `hostname #{fqdn}`
+      `hostname #{@fqdn}`
       success = success && $?.success?
 
       `sed -i '/HOSTNAME/d' /etc/sysconfig/network`
       success = success && $?.success?
 
-      `echo HOSTNAME=#{fqdn} >> /etc/sysconfig/network`
+      `echo HOSTNAME=#{@fqdn} >> /etc/sysconfig/network`
       success = success && $?.success?
 
       # For EL 7 / systemd
       if File.exist?('/etc/hostname')
         say_green '  updating /etc/hostname...'
-        File.open('/etc/hostname','w'){|fh| fh.puts(fqdn)}
+        File.open('/etc/hostname','w'){|fh| fh.puts(@fqdn)}
 
         # hostnamectl is required to persist the change under systemd
-        `hostnamectl --static --pretty set-hostname #{fqdn}`
+        `hostnamectl --static --pretty set-hostname #{@fqdn}`
         success = success && $?.success?
       end
 
       success
+    end
+
+    def apply_summary
+      "Setting of hostname#{@fqdn ? ' to ' + @fqdn : ''} #{@applied_status}"
     end
   end
 end

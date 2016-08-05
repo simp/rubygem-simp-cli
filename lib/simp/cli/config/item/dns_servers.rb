@@ -53,5 +53,9 @@ module Simp::Cli::Config
     def validate_item item
       Simp::Cli::Config::Utils.validate_ip item
     end
+
+    def not_valid_message
+      "Invalid list of DNS server IP addresses."
+    end
   end
 end

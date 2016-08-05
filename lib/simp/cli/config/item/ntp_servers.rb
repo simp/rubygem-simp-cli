@@ -65,5 +65,9 @@ module Simp::Cli::Config
       ( Simp::Cli::Config::Utils.validate_ip( item ) ||
         Simp::Cli::Config::Utils.validate_fqdn( item ) )
     end
+
+    def not_valid_message
+      "Invalid list of NTP servers."
+    end
   end
 end

@@ -80,6 +80,13 @@ describe Simp::Cli::Config::Item::AnswersYAMLFileWriter do
     end
   end
 
+  describe "#apply_summary" do
+    it 'reports not attempted status when #safe_apply not called' do
+      @ci.file = 'simp_def.yaml'
+      expect(@ci.apply_summary).to eq('Creation of simp_def.yaml not attempted')
+    end
+  end
+
   it_behaves_like "an Item that doesn't output YAML"
   it_behaves_like "a child of Simp::Cli::Config::Item"
 end

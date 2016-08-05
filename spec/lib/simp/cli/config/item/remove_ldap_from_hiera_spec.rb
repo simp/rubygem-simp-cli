@@ -53,6 +53,12 @@ describe Simp::Cli::Config::Item::RemoveLdapFromHiera do
     end
   end
 
+  describe "#apply_summary" do
+    it 'reports not attempted status when #safe_apply not called' do
+      expect(@ci.apply_summary).to eq 'Removal of ldap classes from <host>.yaml not attempted'
+    end
+  end
+
   it_behaves_like "an Item that doesn't output YAML"
   it_behaves_like 'a child of Simp::Cli::Config::Item'
 end
