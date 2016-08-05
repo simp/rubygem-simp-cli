@@ -1,19 +1,35 @@
 ---
 language: ruby
 cache: bundler
+notifications:
+  email: false
 
 # to provide the cracklib-check
+# NOTE:  Comment the the sudo and before_install keys when running locally,
+#        unless you are running on an ubuntu machine 
+#
+# TODO:  Can we use run in TravisCI container environments, instead of standard
+#        environments, if we use the addon.apt.packages key?
+#        May need to get libcrack2  on the approved package whitelist.
 sudo: required
 before_install:
-    - sudo apt-get update -qq
-    - sudo apt-get install -y libcrack2
+  - sudo apt-get update -qq
+  - sudo apt-get install -y libcrack2
 
+# Ideally, we would want to test on 1.8.7 and 1.9.3, as those
+# are the native Ruby versions on CentOS 6 / CentOS 7, respectively.
+# Unfortunately, our test environment requires gems that don't work
+# with Ruby 1.8.7 and the Travis CI Ruby 1.9.3 environment fails
+# to install the simp-cli gem for testing.
 rvm:
+#  - 1.9.3
   - 2.0.0
   - 2.1.0
 
+# travish requires env.global key
 env:
-  - SIMP_SKIP_NON_SIMPOS_TESTS=1
+  global:
+    - SIMP_SKIP_NON_SIMPOS_TESTS=1
 
 
 script:

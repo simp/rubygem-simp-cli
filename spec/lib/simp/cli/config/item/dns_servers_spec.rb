@@ -71,6 +71,42 @@ describe Simp::Cli::Config::Item::DNSServers do
     end
   end
 
+  describe '#query' do
+    context "accepts recommended values and displays options and selection" do
+      before do
+        @input = StringIO.new("\n")
+        @output = StringIO.new
+        @prev_terminal = $terminal
+        $terminal = HighLine.new(@input, @output)
+      end
+
+      after do
+        @input.close
+        @output.close
+        $terminal = @prev_terminal
+      end
+
+      it 'handles a single nameserver' do
+        @ci.file = File.join(@files_dir,'resolv.conf__single')
+        @ci.query
+        expect( @ci.value ).to eq ['10.0.0.1']
+        list = '\["10.0.0.1"\]'
+        r = /os value:\s+#{list}.* recommended value:\s+#{list}.* dns::servers = .*#{list}/m
+        expect( @output.string ).to match r
+      end
+
+      it 'handles multiple nameservers' do
+        @ci.file = File.join(@files_dir,'resolv.conf__multiple')
+        @ci.query
+        expect( @ci.value ).to eq ['10.0.0.1', '10.0.0.2', '10.0.0.3']
+        list = '\["10.0.0.1", "10.0.0.2", "10.0.0.3"\]'
+        r = /os value:\s+#{list}.* recommended value:\s+#{list}.* dns::servers = .*#{list}/m
+        expect( @output.string ).to match r
+      end
+
+    end
+  end
+
   it_behaves_like 'a child of Simp::Cli::Config::Item'
 end
 

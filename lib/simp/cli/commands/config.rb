@@ -12,17 +12,14 @@ module Simp::Cli::Commands; end
 
 # Handle CLI interactions for "simp config"
 class Simp::Cli::Commands::Config  < Simp::Cli
-  default_outfile = '~/.simp/simp_conf.yaml'
-
-  @version         = Simp::Cli::VERSION
-  @advanced_config = false
-  @options         = {
+  DEFAULT_OUTFILE = '~/.simp/simp_conf.yaml'
+  SIMP_CONFIG_DEFAULT_OPTIONS = {
     :verbose            => 0,
     :noninteractive     => 0,
     :dry_run            => false, # TODO: between these two, we should choose better names
 
     :input_file         => nil,
-    :output_file        => File.expand_path( default_outfile ),
+    :output_file        => File.expand_path( DEFAULT_OUTFILE ),
     :puppet_system_file => '/etc/puppet/environments/simp/hieradata/simp_def.yaml',
 
     :use_safety_save         => true,
@@ -30,9 +27,12 @@ class Simp::Cli::Commands::Config  < Simp::Cli
     :fail_on_missing_answers => false,
   }
 
+  @version         = Simp::Cli::VERSION
+  @options         = SIMP_CONFIG_DEFAULT_OPTIONS
+
   @opt_parser      = OptionParser.new do |opts|
     opts_separator = ' '*4 + '-'*76
-    opts.banner = "\n=== The SIMP Configuration Tool === "
+    opts.banner = "\n=== The SIMP Configuration Tool ==="
     opts.separator ""
     opts.separator "The SIMP Configuration Tool is designed to assist the configuration of a SIMP"
     opts.separator "machine. It offers two main features:"
@@ -50,7 +50,7 @@ class Simp::Cli::Commands::Config  < Simp::Cli
 
     opts.on("-o", "--output FILE", "The answers FILE where the created/edited ",
                                    "system configuration will be written.  ",
-                                   "  (defaults to '#{default_outfile}')") do |file|
+                                   "  (defaults to '#{DEFAULT_OUTFILE}')") do |file|
       @options[:output_file] = file
     end
 
@@ -103,7 +103,7 @@ class Simp::Cli::Commands::Config  < Simp::Cli
 
     opts.on("-h", "--help", "Print this message") do
       puts opts
-      exit 0
+      @help_requested = true
     end
   end
 
@@ -165,37 +165,33 @@ class Simp::Cli::Commands::Config  < Simp::Cli
   def self.read_answers_file file
     answers_hash = {}    # Read the input file
 
-    if file
-      unless File.exist?(file)
-        raise "Could not access the file '#{file}'!"
-      end
-    else
-      file = @options[:system_file]
+    unless File.exist?(file)
+      raise "Could not access the file '#{file}'!"
     end
 
     begin
       answers_hash = YAML.load(File.read(file))
-      answers_hash.empty?
-    rescue Errno::EACCES
-      error = "WARNING: Could not access the answers file '#{file}'!"
-      say "<%= color(%q{#{error}}, YELLOW) %>\n"
-    rescue
-      # If the file existed, but ingest failed, then there's a problem
-      raise "System Configuration File: '#{file}' is corrupted.\nReview the file and either fix or remove it before trying again."
+      answers_hash = {} if !answers_hash.is_a?(Hash) # empty yaml file returns false
+
+    # If the file existed, but ingest failed, then there's a problem. Unfortunately,
+    # the YAML library in Ruby has changed between Ruby 1.8.7 and Ruby 1.9.3 in a way
+    # that makes it impossible to catch YAML-specific exceptions. So, rescue and
+    # re-raise any other unrelated exceptions you think may occur first (e.g.,
+    # SignalException when user enters <CONTROL-C>), or these exceptions
+    # will be reported incorrectly!
+    rescue SignalException => e
+      raise
+    rescue Exception => e
+      raise "System configuration file '#{file}' is corrupted:\n" +  e.message +
+       "\nReview the file and either fix or remove it before trying again."
     end
 
     answers_hash
   end
 
   def self.run(args = [])
-    begin
-      super # parse @options
-    rescue OptionParser::InvalidOption=> e
-      error = "ERROR: #{e.message}"
-      say "\n<%= color(%q{#{error}}, RED) %>\n"
-      puts @opt_parser
-      exit 1
-    end
+    super # parse @options, will raise upon parsing error
+    return if @help_requested
 
     # Ensure that custom facts are available before the first pluginsync
     %x{puppet config print modulepath}.strip.split(':').each do |dir|
@@ -230,6 +226,35 @@ class Simp::Cli::Commands::Config  < Simp::Cli
     questionnaire      = Simp::Cli::Config::Questionnaire.new( @options )
     answers            = questionnaire.process( item_list, {} )
 
+    if answers
+      apply_actions = answers.select { |key,value| value.applied_time }
+      unless apply_actions.empty? 
+        say ( "\n<%= color(%q{==========================}, BOLD) %>\n" )
+        say ( "\n<%= color(%q{Summary of Applied Changes}, BOLD) %>\n" )
+        apply_actions.each.sort{ |a,b| a[1].applied_time <=> b[1].applied_time }.each do |pair| 
+          item = pair[1]
+          case item.applied_status
+          when :skipped
+            color = :MAGENTA
+          when :applied
+            color = :GREEN
+          when :failed
+            color = :RED
+          end
+          say "  <%= color(%q{#{item.apply_summary}}, #{color}, BOLD) %>\n" #unless item.silent
+        end
+      end
+    end
+
     remove_saved_session
+  end
+
+  # Resets options to original values.
+  # This ugly method is needed for unit-testing, in which multiple occurrences of
+  # the self.run method are called with different options.
+  # FIXME Variables set here are really class variables, not instance variables.
+  def self.reset_options
+    @options = SIMP_CONFIG_DEFAULT_OPTIONS
+    @help_requested = false
   end
 end

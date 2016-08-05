@@ -23,5 +23,11 @@ describe Simp::Cli::Config::Item::HostnameConf do
     end
   end
 
+  describe "#apply_summary" do
+    it 'reports not attempted status when #safe_apply not called' do
+      expect(@ci.apply_summary).to eq 'Setting of hostname not attempted'
+    end
+  end
+
   it_behaves_like "an Item that doesn't output YAML"
 end

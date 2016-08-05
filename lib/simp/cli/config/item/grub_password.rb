@@ -16,6 +16,7 @@ module Simp::Cli::Config
       super
       @key         = 'grub::password'
       @description = %Q{The password to access GRUB}
+      @applied_status = 'not attempted'
     end
 
 
@@ -47,5 +48,10 @@ module Simp::Cli::Config
         `sed -i '/password/ c\password --encrypted #{@value}' /boot/grub/grub.conf`
       end
     end
+
+    def apply_summary
+      "Setting of GRUB password #{@applied_status}"
+    end
+
   end
 end
