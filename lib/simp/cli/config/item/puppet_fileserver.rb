@@ -100,5 +100,9 @@ module Simp::Cli::Config
 
       true
     end
+
+    def apply_summary
+      "Update to Puppet fileserver settings in #{@file} #{@applied_status}"
+    end
   end
 end

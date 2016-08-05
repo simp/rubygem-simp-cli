@@ -40,5 +40,9 @@ module Simp::Cli::Config
       }
       true
     end
+
+    def apply_summary
+      "Update to #{@file} to ensure puppet server entries exist #{@applied_status}"
+    end
   end
 end

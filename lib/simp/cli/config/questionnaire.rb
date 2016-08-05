@@ -60,7 +60,7 @@ class Simp::Cli::Config::Questionnaire
     if @options[ :noninteractive ] == INTERACTIVE
       item.query
     else
-      value = item.default_value
+      value = item.default_value_noninteractive
 
       if item.validate( value )
         item.value = value

@@ -22,7 +22,7 @@ module Simp::Cli::Config
       bootproto = (dhcp == 'static') ? 'none' : dhcp
       interface = @config_items.fetch( 'network::interface'   ).value
 
-      # apply the interface useing the SIMP classes
+      # apply the interface using the SIMP classes
       # NOTE: the "FACTER_ipaddress=XXX" helps puppet avoid a fatal error that
       #       occurs in the core ipaddress fact on offline systems.
       cmd = %Q@FACTER_ipaddress=XXX puppet apply -e "network::add_eth{'#{interface}': bootproto => '#{bootproto}', onboot => 'yes'@
@@ -53,6 +53,10 @@ module Simp::Cli::Config
 
       puts cmd unless @silent
       %x{#{cmd}}
+    end
+
+    def apply_summary
+      "Configuration of network interfaces #{@applied_status}"
     end
 
    def format_puppet_array v
