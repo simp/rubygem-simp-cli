@@ -32,6 +32,11 @@ describe Simp::Cli::Config::Item::NetworkConf do
     end
   end
 
+  describe "#apply_summary" do
+    it 'reports unattempted status when #apply not called' do
+      expect(@ci.apply_summary).to eq 'Configuration of a network interface unattempted'
+    end
+  end
 
   # helper method to create a number of previous answers
   def init_config_items( extra_answers={} )

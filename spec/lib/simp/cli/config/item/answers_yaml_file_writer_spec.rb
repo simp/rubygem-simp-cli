@@ -67,6 +67,7 @@ describe Simp::Cli::Config::Item::AnswersYAMLFileWriter do
 
     it "writes a file" do
       expect( File.exists?( @tmp_file ) ).to be true
+      expect( @ci.applied_status ).to eq :applied
     end
 
     it "writes the correct values" do
@@ -77,6 +78,14 @@ describe Simp::Cli::Config::Item::AnswersYAMLFileWriter do
 
     after :context do
       FileUtils.rm @tmp_file
+    end
+  end
+
+  describe "#apply_summary" do
+    it 'reports unattempted status when #apply not called' do
+      ci        = Simp::Cli::Config::Item::AnswersYAMLFileWriter.new
+      ci.file = 'simp_def.yaml'
+      expect(ci.apply_summary).to eq('Creation of simp_def.yaml unattempted')
     end
   end
 

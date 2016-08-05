@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'ldap::bind_dn'
-      @description = %Q{LDAP Bind Distinguished Name}
+      @description = %Q{The LDAP Bind Distinguished Name.}
     end
 
 

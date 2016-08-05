@@ -10,7 +10,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppet::ca'
-      @description = 'The Puppet Certificate Authority'
+      @description = 'The Puppet Certificate Authority.'
     end
 
     def os_value

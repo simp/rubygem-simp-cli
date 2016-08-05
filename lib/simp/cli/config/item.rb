@@ -7,8 +7,10 @@ require 'highline'
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
+  class ItemError < StandardError; end
   class Item
     attr_accessor :key, :value, :description, :fact
+    attr_accessor :applied_status, :applied_time, :applied_detail
     attr_accessor :skip_query, :skip_apply, :skip_yaml, :silent
     attr_accessor :die_on_apply_fail, :allow_user_apply
     attr_accessor :config_items
@@ -20,6 +22,10 @@ module Simp::Cli::Config
       @description       = description # A text description of the Item
       @value             = nil         # value (decided by user)
       @fact              = nil         # Facter fact to query OS value
+      @applied_status    = nil         # status of an applied change, as appropriate
+      @applied_time      = nil         # time at which applied change completed
+      @applied_detail    = nil         # details about the apply to be conveyed to user
+
 
       @skip_query        = false       # skip the query and use the default_value
       @skip_apply        = false       # skip the apply
@@ -30,13 +36,14 @@ module Simp::Cli::Config
       @fail_on_missing_answer = false  # error out if @value is not pre-populated
 
       @config_items      = {}          # a hash of all previous Config::Items
-      # a Hash of additional Items that this Item may need to add to the Queue
-      # the keys of the Has are used to look up the queue
+      # a Hash of additional Items whose value this Item may need to use.
+      # The keys of the Hash are used to look up the queue
       # format:
       #   'answer1' => [ Item1, Item2, .. ]
       #   'answer2' => [ Item3, Item4, .. ]
       @next_items_tree   = {}
     end
+
 
     # methods used to infer Item#value
     # --------------------------------------------------------------------------
@@ -87,10 +94,11 @@ module Simp::Cli::Config
       return if @silent
       say_blue "=== #{@key} ===", ['BOLD']
       say_blue description
-      say_blue "    - os value:          #{os_value}"          if os_value
-      say_blue "    - os value:          #{puppet_value}"      if puppet_value
-      say_blue "    - recommended value: #{recommended_value}" if recommended_value
-      say_blue "    - chosen value:      #{@value}"            if @value
+      # inspect is a work around for Ruby 1.8.7 Array.to_s garbage
+      say_blue "    - os value:          #{os_value.inspect}"          if os_value
+      say_blue "    - os value:          #{puppet_value.inspect}"      if puppet_value
+      say_blue "    - recommended value: #{recommended_value.inspect}" if recommended_value
+      say_blue "    - chosen value:      #{@value.inspect}"            if @value
     end
 
 
@@ -98,7 +106,7 @@ module Simp::Cli::Config
     def print_summary
       return if @silent
       fail '@key is empty' if "#{@key}".empty?
-      say( "#{@key} = '<%= color( %q{#{value}}, BOLD )%>'\n" )
+      say( "#{@key} = '<%= color( %q{#{@value}}, BOLD )%>'\n" )
     end
 
 
@@ -107,10 +115,7 @@ module Simp::Cli::Config
       extra = query_status
 
       if @value.nil? && @fail_on_missing_answer
-        say( "<%= color(%q(FATAL: no answer for '), RED) %>" +
-             "<%= color(%q{#{extra}#{@key}}, BOLD,  RED)%>" +
-             "<%= color(%q('; exiting!), RED)%>\n" )
-        exit 1
+        raise "FATAL: no answer for '#{extra}#{@key}'"
       end
 
       if !@skip_query && @value.nil?
@@ -119,7 +124,8 @@ module Simp::Cli::Config
       end
 
       # summarize the item's status after the query is complete
-      say( "#{extra}#{@key} = '<%= color( %q{#{@value}}, BOLD )%>'\n" ) unless @silent
+      # inspect is a work around for Ruby 1.8.7 Array.to_s garbage
+      say( "#{extra}#{@key} = <%= color( %q{#{@value.inspect}}, BOLD )%>\n" ) unless @silent
     end
 
 
@@ -134,6 +140,10 @@ module Simp::Cli::Config
       extra
     end
 
+    # prompt to use for query
+    def query_prompt
+      @key
+    end
 
     # ask an interactive question (via stdout/stdin)
     def query_ask
@@ -141,27 +151,34 @@ module Simp::Cli::Config
       # Highline to keep the prompt on the same line as the question.  If the
       # String did not end with a space or tab, Highline would move the input
       # prompt to the next line (which, for our purposes, looks confusing)
-      value = ask( "<%= color('#{@key}', WHITE, BOLD) %>: ",
+      value = ask( "<%= color('#{query_prompt}', WHITE, BOLD) %>: ",
                   highline_question_type ) do |q|
         q.default = default_value unless default_value.to_s.empty?
 
         # validate input via the validate() method
         q.validate = lambda{ |x| validate( x )}
 
+        # do this before constructing reply to invalid response, to allow
+        # any specializations to q parameters to be made (e.g., q.default)
+        query_extras q
+
         # if the answer is not valid, construct a reply:
         q.responses[:not_valid] =  "<%= color( %q{Invalid answer!}, RED ) %>\n"
-        q.responses[:not_valid] += "<%= color( %q{#{ (not_valid_message || description) }}, YELLOW) %>\n"
+        q.responses[:not_valid] += "<%= color( %q{#{ (not_valid_message || description) }}, RED) %>\n"
         q.responses[:not_valid] += "#{q.question}  |#{q.default}|"
-
-        query_extras q
+        q
       end
       value
     end
 
-
     # returns the default answer to Item#query
     def default_value
       @value || recommended_value
+    end
+
+    # returns the default answer to Item for noninteractive operations
+    def default_value_noninteractive
+      default_value
     end
 
 
@@ -210,10 +227,32 @@ module Simp::Cli::Config
       options = options.unshift( '' ) unless options.empty?
       say "<%= color(%q{#{msg}}, GREEN #{options.join(', ')}) %>\n" unless @silent
     end
-
+    def say_magenta( msg, options=[] )
+      options = options.unshift( '' ) unless options.empty?
+      say "<%= color(%q{#{msg}}, MAGENTA #{options.join(', ')}) %>\n" unless @silent
+    end
 
     def safe_apply; nil; end
     def apply; nil; end
+
+    # summary of outcome of apply
+    def apply_summary; nil; end
+
+    def status_color
+      case (@applied_status)
+      when :applied
+        color = :GREEN
+      when :unattempted, :skipped, :unnecessary
+        color = :MAGENTA
+      when :deferred  # operator intervention recommended
+        color = :YELLOW
+      when :failed
+        color = :RED
+      else
+        color = :RED
+      end
+      color
+    end
   end
 
 
@@ -223,7 +262,12 @@ module Simp::Cli::Config
   #  note that @value is a Strin
   class YesNoItem < Item
     def not_valid_message
-      "enter 'yes' or 'no'"
+      "Enter 'yes' or 'no'"
+    end
+
+    # Transform 'yes'/'no' defaults to true/false
+    def default_value_noninteractive
+      highline_question_type.call default_value
     end
 
     def validate( v )
@@ -245,11 +289,8 @@ module Simp::Cli::Config
     # always cast internal type of @value to a boolean.  As a workaround, we
     # cast it here before it is committed to the super's YAML output.
     def to_yaml_s
-      _value = @value
       @value = highline_question_type.call @value
-      x = super
-      @value = _value
-      x
+      super
     end
 
     def next_items
@@ -313,8 +354,8 @@ module Simp::Cli::Config
       while !password
         answers = []
         [0,1].each{ |x|
-          say "please enter a password:"     if x == 0
-          say "please confirm the password:" if x == 1
+          say "Please enter a password:"     if x == 0
+          say "Please confirm the password:" if x == 1
           answers[x] = super
         }
         if answers.first == answers.last
@@ -353,9 +394,14 @@ module Simp::Cli::Config
     end
 
     def not_valid_message
+      "Invalid list."
+    end
+
+    def instructions
       extra = 'hit enter to skip'
       extra = "hit enter to accept default value" if default_value
-      "enter a comma or space-delimited list (#{extra})"
+      instructions = "Enter a comma or space-delimited list (#{extra})"
+      ::HighLine.color( instructions, ::HighLine.const_get('YELLOW') )
     end
 
     def query_extras( q )
@@ -364,9 +410,7 @@ module Simp::Cli::Config
       # support for highline.
       # TODO: Override #query_ask using Highline's #gather?
       q.default  = q.default.join( " " ) if q.default.is_a? Array
-      reminder = ::HighLine.color( not_valid_message,
-                            ::HighLine.const_get('YELLOW') )
-      q.question = "#{reminder}\n#{q.question}"
+      q.question = "#{instructions}\n#{q.question}"
       q
     end
 
@@ -395,6 +439,20 @@ module Simp::Cli::Config
     def validate_item( x )
       fail 'not implemented!'
     end
+
+    # print a pretty summary of the ListItem's key+value, printed to stdout
+    def print_summary
+      return if @silent
+      fail '@key is empty' if "#{@key}".empty?
+
+      final_value = value
+      if final_value.nil?
+        say( "#{@key} = '<%= color( %q{[]}, BOLD )%>'\n" )
+      else
+        # inspect is a work around for Ruby 1.8.7 Array.to_s garbage
+        say( "#{@key} = '<%= color( %q{#{final_value.inspect}}, BOLD )%>'\n" )
+      end
+    end
   end
 
 
@@ -408,31 +466,37 @@ module Simp::Cli::Config
       end
 
       if @skip_apply || (not_root_msg.size != 0)
-        extra = "<%= color( %q{(skipping apply#{not_root_msg})}, MAGENTA, BOLD)%> "
-        say( "#{extra}#{@key}" ) unless @silent
+        @applied_status = :skipped
+        extra = "<%= color( %q{(skipping apply#{not_root_msg})}, #{status_color}, BOLD)%>"
+        say( "#{extra} #{@key}" ) unless @silent
         if !(@value.nil? || @value.class == TrueClass || @value.class == FalseClass || @value.empty?)
           say( "= '<%= color( %q{#{@value}}, BOLD )%>'\n" ) unless @silent
         end
       else
-        extra = "<%= color( %q{(applying changes)}, GREEN, BOLD)%> "
-        say( "#{extra}for #{@key}\n" ) unless @silent
+        extra = "<%= color( %q{(applying changes)}, GREEN, BOLD)%>"
+        say( "#{extra} for #{@key}\n" ) unless @silent
         begin
-          result = apply
-          if result
-            extra = "<%= color( %q{(change applied)}, GREEN, BOLD)%> "
-          else
-            extra = "<%= color( %q{(change failed)}, RED, BOLD)%> "
-          end
-          say( "#{extra}for #{@key}\n" ) unless @silent
+          apply
+          extra = "<%= color( %q{(change #{@applied_status})}, #{status_color}, BOLD)%>"
+          say( "#{extra} for #{@key}\n" ) unless @silent
+          fail apply_summary if @applied_status == :failed and @die_on_apply_fail
+
+        # Pass up the stack exceptions that may indicate the user has
+        # interrupted execution
+        rescue EOFError, SignalException => e
+          raise
+        # Handle any exceptions generated by the apply()
         rescue Exception => e
-          extra = "<%= color( %q{(change failed)}, RED, BOLD) %> "
-          say( "#{extra}for #{@key}:\n#{e.message}" )
+          @applied_status = :failed
+          extra = "<%= color( %q{(change #{@applied_status})}, #{status_color}, BOLD)%>"
+          say( "#{extra} for #{@key}:}" )
           say "<%= color( %q{#{e.message.to_s.gsub( /^/, '    ' )}}, RED) %> \n"
 
           # Some failures should be punished by death
           fail e if @die_on_apply_fail
         end
       end
+      @applied_time = Time.now
     end
   end
 
@@ -443,6 +507,7 @@ module Simp::Cli::Config
 
     def initialize
       super
+      @applied_status = :unattempted
     end
 
     # internal method to change the system (returns the result of the apply)
