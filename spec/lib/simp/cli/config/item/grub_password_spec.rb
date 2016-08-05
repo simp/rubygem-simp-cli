@@ -20,5 +20,11 @@ describe Simp::Cli::Config::Item::GrubPassword do
     end
   end
 
+  describe "#apply_summary" do
+    it 'reports unattempted status when #apply not called' do
+      expect(@ci.apply_summary).to eq 'Setting of GRUB password unattempted'
+    end
+  end
+
   it_behaves_like "a child of Simp::Cli::Config::Item"
 end

@@ -8,7 +8,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'ipaddress'
-      @description = 'The IP address of this system'
+      @description = 'The IP address of the system.'
       @__warning   = false
     end
 

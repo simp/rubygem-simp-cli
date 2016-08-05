@@ -15,6 +15,15 @@ describe Simp::Cli::Config::Item do
     it "has nil values when initialized" do
       expect( @ci.os_value ).to be_nil
     end
+
+    it "has nil applied_status when initialized" do
+      expect( @ci.applied_status ).to be_nil
+    end
+
+    it "has nil applied_time when initialized" do
+      expect( @ci.applied_time ).to be_nil
+    end
+
   end
 
   describe "#print_summary" do
@@ -26,6 +35,12 @@ describe Simp::Cli::Config::Item do
     it "raises a RuntimeError on empty @key" do
       @ci.key = ""
       expect{ @ci.print_summary }.to raise_error( RuntimeError )
+    end
+  end
+
+  describe "#apply_summary" do
+    it "returns nil by default" do
+      expect( @ci.apply_summary ).to be_nil
     end
   end
 
@@ -55,6 +70,12 @@ describe Simp::Cli::Config::ActionItem do
     @ci         = Simp::Cli::Config::ActionItem.new
     @ci.key     = "action::item"
 #    @ci.silent = true
+  end
+
+  describe "#initialize" do
+    it "has 'unattempted' applied_status when initialized" do
+      expect( @ci.applied_status ).to eq :unattempted
+    end
   end
 
   describe "#apply" do

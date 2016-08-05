@@ -10,7 +10,9 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'dns::search'
-      @description = %Q{The DNS domain search string.\nRemember to put these in the appropriate order for your environment!}
+      @description = %Q{The DNS domain search string.
+
+Remember to put these in the appropriate order for your environment!}
       @file        = '/etc/resolv.conf'
     end
 
@@ -43,6 +45,10 @@ module Simp::Cli::Config
     def validate_item item
       # return false if !fqdn.is_a? String
       Simp::Cli::Config::Utils.validate_fqdn item
+    end
+
+    def not_valid_message
+      "Invalid list of DNS domains."
     end
   end
 end

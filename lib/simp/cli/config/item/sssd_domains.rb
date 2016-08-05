@@ -10,11 +10,10 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'sssd::domains'
-      @description = %Q{
-        A list of domains for SSSD to use.
-        `simp config` will automatically populate this field with `FQDN` if
-        `use_fqdn` is true, otherwise it will comment out the field.
-      }.gsub(/^\s+/, '' )
+      @description = %Q{A list of domains for SSSD to use.
+
+`simp config` will automatically populate this field with `FQDN` if
+`use_fqdn` is true, otherwise it will comment out the field.}
     end
 
 
@@ -30,6 +29,10 @@ module Simp::Cli::Config
         @skip_yaml = true
         @value = []
       end
+    end
+
+    def not_valid_message
+      "Invalid list of SSSD domains."
     end
   end
 end

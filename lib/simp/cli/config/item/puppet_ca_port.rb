@@ -10,7 +10,8 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppet::ca_port'
-      @description = 'The port which the Puppet CA will listen on (8141 by default).'
+      @description = %q{The port on which the Puppet Certificate Authority will listen
+(8141 by default).}
     end
 
     def os_value
