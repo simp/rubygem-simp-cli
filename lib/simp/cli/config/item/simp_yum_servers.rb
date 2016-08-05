@@ -26,5 +26,9 @@ module Simp::Cli::Config
         Simp::Cli::Config::Utils.validate_ip( item )
       )
     end
+
+    def not_valid_message
+      "Invalid list of yum servers."
+    end
   end
 end

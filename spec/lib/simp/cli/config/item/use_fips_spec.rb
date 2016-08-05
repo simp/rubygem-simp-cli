@@ -25,5 +25,11 @@ describe Simp::Cli::Config::Item::UseFips do
     end
   end
 
+  describe "#apply_summary" do
+    it 'reports not attempted status when #safe_apply not called' do
+      expect(@ci.apply_summary).to eq 'Digest algorithm adjustment for FIPS (as needed) not attempted'
+    end
+  end
+
   it_behaves_like "a child of Simp::Cli::Config::Item"
 end

@@ -11,16 +11,18 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'use_fips'
-      @description = %q{Enable FIPS mode on this system.
+      @description = %q{Prepare and set system to use FIPS mode.
 
-FIPS mode enforces strict compliance with FIPS-140-2.  All core SIMP modules
-can support this configuration.
+use_fips enforces strict compliance with FIPS-140-2.  All core SIMP modules
+can support this configuration. Enabling use_fips here will enable FIPS on this
+puppet environment.
 
 IMPORTANT: Be sure you know the security tradeoffs of FIPS-140-2 compliance.
 FIPS mode disables the use of MD5 and may require weaker ciphers or key lengths
 than your security policies allow.
 }
      @allow_user_apply = true
+     @applied_status = 'not attempted'
     end
 
     def os_value
@@ -38,9 +40,13 @@ than your security policies allow.
         puts cmd unless @silent
         %x{#{cmd}}
       else
-        puts 'not using FIPS mode: noop'
+        say_green 'not using FIPS mode: noop'
         true # we applied nothing, successfully!
       end
+    end
+
+    def apply_summary
+      "Digest algorithm adjustment for FIPS (as needed) #{@applied_status}"
     end
   end
 end

@@ -9,51 +9,62 @@ describe Simp::Cli::Config::Item::RenameFqdnYaml do
     @ci.silent = true   # turn off command line summary on stdout
   end
 
-  context "when ensuring the hosts entry" do
-    before :context do
-      @files_dir       = File.expand_path( 'files', File.dirname( __FILE__ ) )
-      @tmp_dir         = File.expand_path( 'tmp', File.dirname( __FILE__ ) )
-      @file            = File.join( @files_dir,'puppet.your.domain.yaml')
-      @tmp_file        = File.join( @tmp_dir, 'temp__puppet.your.domain.yaml' )
-      @ci.file         = @tmp_file
+  describe "#apply_summary" do
+    it 'reports not attempted status when #safe_apply not called' do
+      @ci.file = 'puppet.your.domain.yaml'
+      expect(@ci.apply_summary).to eq "Rename of puppet.your.domain.yaml template to <host>.yaml not attempted"
+    end
+  end
 
+  describe "#apply" do
+    before :each do
       @fqdn            = 'hostname.domain.tld'
+      @files_dir       = File.expand_path( 'files', File.dirname( __FILE__ ) )
+      @tmp_dir         = Dir.mktmpdir( File.basename(__FILE__) )
+      @file            = File.join( @files_dir,'puppet.your.domain.yaml')
+      @template_file   = File.join( @tmp_dir, 'puppet.your.domain.yaml' )
+      @ci.file         = @template_file
+
       item             = Simp::Cli::Config::Item::Hostname.new
       item.value       = @fqdn
       @ci.config_items[item.key] = item
       @new_file        = File.join( @tmp_dir, "#{@fqdn}.yaml" )
     end
 
+    after :each do
+      FileUtils.chmod_R 0777, @tmp_dir
+      FileUtils.remove_entry_secure @tmp_dir
+    end
 
-    context "when moving the yaml file" do
-      before :context do
-        [@tmp_file, @new_file].each do |file|
-          FileUtils.rm file if File.exists? file
-        end
+    it "renames template when <host>.yaml does not exist" do
+      FileUtils.cp(@file, @template_file)
+      expect(@ci.apply).to eq true
+      expect( File ).to exist( @new_file )
+      expect( File ).not_to exist( @template_file )
+    end
 
-        FileUtils.mkdir_p   @tmp_dir
-        FileUtils.copy_file @file, @tmp_file
+    it "does not rename template when <host>.yaml does exist" do
+      FileUtils.cp(@file, @template_file)
+      FileUtils.cp(@file, @new_file)
+      File.open(@new_file, 'w') { |file|  file.puts("#  make sure files differ") }
+      expect(@ci.apply).to eq true
+      expect( File ).to exist( @template_file )
+      expect( File ).to exist( @new_file )
+      expect( FileUtils.compare_file(@template_file, @new_file)).to be false
+    end
 
-        @result = @ci.apply
-      end
+    it "does nothing when template does not exist but <host>.yaml does exist" do
+      FileUtils.cp(@file, @new_file)
+      expect(@ci.apply).to eq true
+    end
 
-      it "places a file in the correct location" do
-        expect( File ).to exist( @new_file )
-      end
+    it "fails when both template and <host>.yaml do not exist" do
+      expect(@ci.apply).to eq false
+    end
 
-      it "doesn't leave a file in the old location" do
-        expect( File ).not_to exist( @tmp_file )
-      end
-
-      it "reports success" do
-        expect( @result ).to eq true
-      end
-
-      after :context do
-        [@tmp_file, @new_file].each do |file|
-          FileUtils.rm file if File.exists? file
-        end
-      end
+    it "raises exception when 'hostname' config does not exist" do
+      @ci.config_items.delete('hostname')
+      expect{ @ci.apply }.to raise_error( KeyError, 'key not found: "hostname"' )
     end
   end
 

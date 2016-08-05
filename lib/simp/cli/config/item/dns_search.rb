@@ -44,5 +44,9 @@ module Simp::Cli::Config
       # return false if !fqdn.is_a? String
       Simp::Cli::Config::Utils.validate_fqdn item
     end
+
+    def not_valid_message
+      "Invalid list of DNS domains."
+    end
   end
 end

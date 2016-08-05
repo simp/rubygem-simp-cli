@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'ldap::base_dn'
-      @description = %Q{The Base DN of the LDAP server}
+      @description = %Q{The Base Distinguished Name of the LDAP server}
     end
 
 

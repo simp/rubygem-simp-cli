@@ -8,7 +8,7 @@ class Simp::Cli::Commands::Cleancerts < Simp::Cli
   @host_errors = Array.new
 
   @opt_parser = OptionParser.new do |opts|
-    opts.banner = "\n === The SIMP CleanCerts Tool ==="
+    opts.banner = "\n=== The SIMP CleanCerts Tool ==="
     opts.separator ""
     opts.separator "The SIMP CleanCerts Tool revokes and removes the Puppet certificates from a"
     opts.separator "list of hosts."
@@ -33,20 +33,16 @@ class Simp::Cli::Commands::Cleancerts < Simp::Cli
 
     opts.on("-h", "--help", "Print this message") do
       puts opts
-      exit 0
+      @help_requested = 0
     end
   end
 
-
-  def self.clean_certs
-
-    success
-  end
-
   def self.run(args = Array.new)
-    File.exists?('/usr/sbin/puppetd') && File.exists?('/usr/sbin/puppetca')
+    super
+    return if @help_requested
 
     raise "SIMP CleanCerts cannot be run as 'root'." if Process.uid == 0
+    raise "/usr/bin/puppetca is not installed" unless File.exists?('/usr/sbin/puppetca')
 
     @host_list = Array.new
     if @gen_host_list
@@ -60,7 +56,7 @@ class Simp::Cli::Commands::Cleancerts < Simp::Cli
 
     if @host_list.size == 0
       puts "No known hosts to clean!"
-      exit 0
+      return
     end
 
     system("echo 'Please review the list of hosts to clean certificates on:\n - #{@host_list.join("\n - ")}' | less -f")
@@ -82,7 +78,6 @@ class Simp::Cli::Commands::Cleancerts < Simp::Cli
       result = %x{pssh -f -h #{@host_file} -OStrictHostKeyChecking=no "sudo /bin/rm -rf /var/lib/puppet/ssl"}
       result.each_line do |line|
         if line =~ /.*\[FAILURE\]\s([A-Za-z0-9\-\.]+).*/
-          success = false
           @host_errors << $1
         end
       end
