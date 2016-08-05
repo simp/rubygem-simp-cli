@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'ldap::sync_dn'
-      @description = %Q{}
+      @description = %Q{The LDAP Sync Distinguished Name.}
     end
 
     def validate( x )

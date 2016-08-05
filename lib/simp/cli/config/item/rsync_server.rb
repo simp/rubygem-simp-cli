@@ -10,7 +10,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'rsync::server'
-      @description = 'rsync server (usually the primary puppet master)'
+      @description = 'The rsync server (usually the primary Puppet master).'
       @__warning   = false
       @file        = '/etc/rsyncd.conf'
       @skip_query  = true

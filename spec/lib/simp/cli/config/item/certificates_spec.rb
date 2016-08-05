@@ -30,17 +30,44 @@ describe Simp::Cli::Config::Item::Certificates do
         FileUtils.cp_r( Dir["#{src_dir}/*"], @tmp_dirs[:fake_ca] )
 
         @ci.dirs   = @tmp_dirs
-        @ci.apply
       end
 
-      it 'runs gencerts_nopass.sh auto' do
-        dir = File.join( @tmp_dirs[:keydist], @hostname )
-        expect( File.exists? dir ).to be true
+      context "when cert generation is required " do
+        it 'generates certs and reports :succeeded status on success' do
+          @ci.apply
+          expect( @ci.applied_status ).to eq :succeeded
+          dir = File.join( @tmp_dirs[:keydist], @hostname )
+          expect( File.exists? dir ).to be true
+        end
+
+        it 'reports :failed status on failure' do
+          ENV['SIMP_CLI_CERTIFICATES_FAIL']='true'
+          @ci.apply
+          expect( @ci.applied_status ).to eq :failed
+        end
+      end
+
+      context "when cert generation is not required " do
+        it 'reports :unnecessary status' do
+          Simp::Cli::Config::Utils.generate_certificates([@hostname], @tmp_dirs[:fake_ca])
+          dir = File.join( @tmp_dirs[:keydist], @hostname )
+          expect( File.exists? dir ).to be true
+          @ci.apply
+          expect( @ci.applied_status ).to eq :unnecessary
+          expect(@ci.apply_summary).to match /FakeCA certificate generation for puppet.testing.fqdn unnecessary:\n\tcertificates already exist/m
+        end
       end
 
       after :each do
         FileUtils.remove_entry_secure @tmp_dir
+        ENV.delete 'SIMP_CLI_CERTIFICATES_FAIL'
       end
+    end
+  end
+
+  describe "#apply_summary" do
+    it 'reports unattempted status when #apply not called' do
+      expect(@ci.apply_summary).to eq 'FakeCA certificate generation for SIMP unattempted'
     end
   end
 
