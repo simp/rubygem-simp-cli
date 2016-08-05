@@ -9,7 +9,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
   @remove_users = Array.new
 
   @opt_parser = OptionParser.new do |opts|
-    opts.banner = "\n === The SIMP Passgen Tool === "
+    opts.banner = "\n=== The SIMP Passgen Tool ==="
     opts.separator ""
     opts.separator "The SIMP Passgen Tool is a simple password control utility. It allows the"
     opts.separator "viewing, setting, and removal of user passwords."
@@ -38,15 +38,15 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
 
     opts.on("-h", "--help", "Print this message.") do
       puts opts
-      exit 0
+      @help_requested = true
     end
 
    end
 
   def self.run(args = Array.new)
-    super
-
     raise "The SIMP Passgen Tool requires at least one argument to work" if args.empty?
+    super
+    return if @help_requested
 
     unless @target_dir
       env_path = %x(puppet config print environmentpath).strip
@@ -135,5 +135,18 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
       end
       puts
     end
+  end
+
+  # Resets options to original values.
+  # This ugly method is needed for unit-testing, in which multiple occurrences of
+  # the self.run method are called with different options.
+  # FIXME Variables set here are really class variables, not instance variables.
+  def self.reset_options
+    @show_list = false
+    @show_users = Array.new
+    @set_users = Array.new
+    @remove_users = Array.new
+    @target_dir = nil
+    @help_requested = false
   end
 end

@@ -32,7 +32,7 @@ describe Simp::Cli::Config::Item::PuppetHostsEntry do
         FileUtils.mkdir_p   @tmp_dir
         FileUtils.copy_file @file, @tmp_file
 
-        @result = @ci.apply
+        @ci.apply
       end
 
       it "configures hosts with the correct values" do
@@ -41,7 +41,7 @@ describe Simp::Cli::Config::Item::PuppetHostsEntry do
       end
 
       it "reports success" do
-        expect( @result ).to eq true
+        expect( @ci.applied_status ).to eq :succeeded
       end
 
       after :context do
@@ -55,7 +55,7 @@ describe Simp::Cli::Config::Item::PuppetHostsEntry do
         FileUtils.mkdir_p   @tmp_dir
         FileUtils.copy_file @file, @tmp_file
 
-        @result = @ci.apply
+        @ci.apply
       end
 
       it "configures hosts with the correct values" do
@@ -70,12 +70,20 @@ describe Simp::Cli::Config::Item::PuppetHostsEntry do
       end
 
       it "reports success" do
-        expect( @result ).to eq true
+        expect( @ci.applied_status ).to eq :succeeded
       end
 
       after :context do
         FileUtils.rm @tmp_file
       end
+    end
+  end
+
+  describe "#apply_summary" do
+    it 'reports unattempted status when #apply not called' do
+      ci        = Simp::Cli::Config::Item::PuppetHostsEntry.new
+      ci.file = 'hosts'
+      expect(ci.apply_summary).to eq 'Update to hosts to ensure puppet server entries exist unattempted'
     end
   end
 

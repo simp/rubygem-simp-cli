@@ -11,7 +11,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'ldap::uri'
-      @description = %Q{List of OpenLDAP servers in URI form (ldap://server)}
+      @description = %Q{The list of OpenLDAP servers in URI form (ldap://server).}
     end
 
 
@@ -38,6 +38,10 @@ module Simp::Cli::Config
         Simp::Cli::Config::Utils.validate_fqdn( item )     ||
         Simp::Cli::Config::Utils.validate_ip( item )
       )
+    end
+
+    def not_valid_message
+      "Invalid list of URIs for LDAP servers."
     end
   end
 end

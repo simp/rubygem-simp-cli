@@ -29,15 +29,15 @@ Displays SIMP documentation in elinks.
 ##### `passgen`
 Controls user passwords.
 
-#### Recently deprecated
-##### `cleancerts` _(deprecated - use `puppet cert clean CERTNAME` instead)_
+#### Recently removed
+##### `cleancerts` _- use `puppet cert clean CERTNAME` instead_
 Revokes and removes Puppet certificates from a list of hosts.
 
-##### `runpuppet`_(deprecated - use [mcollective](http://puppetlabs.com/mcollective) instead._
+##### `runpuppet`_- use [mcollective](http://puppetlabs.com/mcollective) instead_
 Runs puppet on a list of hosts.
 
 
-##### `puppeteval` _(deprecated - use `puppet agent --evaltrace` instead)_
+##### `puppeteval` _- use `puppet agent --evaltrace` instead_
 Gathers metrics information on Puppet runs.
 
 

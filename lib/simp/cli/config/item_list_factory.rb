@@ -44,8 +44,13 @@ class Simp::Cli::Config::ItemListFactory
       # - ItemG
       #
       # modifers:
-      #   USERAPPLY = execute apply() even when running non-privileged
-      #   SILENT    = set the Item's .silent flag to true
+      #   FILE=value   = set the Item's .file flag to value
+      #   NEWKEY=value = set the Item's .key to value
+      #   NOAPPLY      = set the Item's .skip_apply flag to true
+      #   NOYAML       = set the Item's .skip_yaml flag to true
+      #   SILENT       = set the Item's .silent flag to true
+      #   SKIPQUERY    = set the Item's .skip_query flag to true
+      #   USERAPPLY    = execute apply() even when running non-privileged
       ---
       # ==== network ====
       - UseFips
@@ -92,9 +97,12 @@ class Simp::Cli::Config::ItemListFactory
          true:
           - GrubPassword
       - Certificates
+      # Move the hieradata/hosts/puppet.your.domain.yaml template to
+      # hieradata/hosts/<domain>.yaml file (as appropriate) before
+      # dealing with any features that modify that file
+      - RenameFqdnYaml
       - IsMasterYumServer
       - YumRepositories
-      - RenameFqdnYaml
 
       # ==== puppet ====
       - PuppetServer
@@ -129,11 +137,16 @@ class Simp::Cli::Config::ItemListFactory
 
       # ==== rsync ====
       - RsyncBase
-      - RsyncServer
-      - RsyncTimeout
+      - RsyncServer         SILENT
+      - RsyncTimeout        SILENT
 
       # ==== writers ====
-      - AnswersYAMLFileWriter FILE=#{ @options.fetch( :puppet_system_file, '/dev/null') }
+      # The answers Hash returned by Questionnaire::process uses Item.key as the Hash key.  So,
+      # only the apply results for the last AnswersYAMLFileWriter will be recorded in that Hash.
+      # Since we want to see the results for both writers, below, we need to make the keys distinct.
+      # Note the results of the safety-save writers will be effectivey squashed, as they will be
+      # overwritten in the Hash with results for the writer that has the default key.
+      - AnswersYAMLFileWriter FILE=#{ @options.fetch( :puppet_system_file, '/dev/null') } NEWKEY=yaml::production_file_writer
       - AnswersYAMLFileWriter FILE=#{ @options.fetch( :output_file, '/dev/null') } USERAPPLY
     EOF
     items = YAML.load items_yaml
@@ -180,6 +193,9 @@ class Simp::Cli::Config::ItemListFactory
       item.allow_user_apply = true if part == 'USERAPPLY'
       if part =~ /^FILE=(.+)/
         item.file = $1
+      end
+      if part =~ /^NEWKEY=(.+)/
+        item.key = $1
       end
 
     end

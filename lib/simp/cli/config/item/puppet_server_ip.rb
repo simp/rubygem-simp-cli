@@ -8,7 +8,9 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppet::server::ip'
-      @description = %Q{The Puppet server's IP address.\nThis is used to configure /etc/hosts properly.}
+      @description = %Q{The Puppet server's IP address.
+
+This is used to configure /etc/hosts properly.}
     end
 
 

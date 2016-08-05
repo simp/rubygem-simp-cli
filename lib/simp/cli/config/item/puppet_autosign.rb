@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppet::autosign'
-      @description = %Q{By default, the only host eligible for autosign is the puppet master.}
+      @description = %Q{By default, the only host eligible for autosign is the Puppet master; action-only.}
       @file        = '/etc/puppet/autosign.conf'
     end
 
@@ -46,6 +46,7 @@ module Simp::Cli::Config
     end
 
     def apply
+      @applied_status = :failed
       entries = recommended_value
       say_green "Updating #{@file}..." if !@silent
       File.open(@file, 'w') do |file|
@@ -61,6 +62,11 @@ module Simp::Cli::Config
           file.puts(entry)
         end
       end
+      @applied_status = :succeeded
+    end
+
+    def apply_summary
+      "Setup of autosign in #{@file} #{@applied_status}"
     end
   end
 end

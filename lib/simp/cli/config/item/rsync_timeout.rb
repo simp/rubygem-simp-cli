@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'rsync::timeout'
-      @description = 'maximum rsync timeout in seconds.  0 = no timeout'
+      @description = 'The maximum rsync timeout in seconds.  0 = no timeout.'
       @skip_query  = true
     end
 

@@ -1,4 +1,5 @@
 .*.sw?
+/coverage
 /dist
 /pkg
 /.rspec_system

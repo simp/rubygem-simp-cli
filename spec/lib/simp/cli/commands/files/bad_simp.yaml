@@ -1,0 +1,54 @@
+---
+use_fips: false
+"network::interface": oops_eth
+"network::setup_nic": true
+dhcp: static
+hostname: puppet.test.local
+ipaddress: "1.2.3.4"
+netmask: "255.255.255.0"
+gateway: "1.2.3.1"
+"dns::servers":
+  - "1.2.3.10"
+"dns::search":
+  - test.local
+client_nets:
+  - "1.2.3.0/24"
+"ntpd::servers":
+  - time-a.nist.gov
+log_servers:
+  - "1.2.3.11"
+failover_log_servers:
+  - "1.2.3.12"
+"simp::yum::servers":
+  - "%{hiera('puppet::server')}"
+use_auditd: true
+use_iptables: true
+"simplib::runlevel": "3"
+"selinux::ensure": enforcing
+set_grub_password: true
+"grub::password": "$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX."
+is_master_yum_server: true
+"puppet::server": puppet.test.local
+"puppet::server::ip": "1.2.3.4"
+"puppet::ca": puppet.test.local
+"puppet::ca_port": 8141
+"puppetdb::master::config::puppetdb_server": "%{hiera('puppet::server')}"
+"puppetdb::master::config::puppetdb_port": "8139"
+use_ldap: true
+"ldap::base_dn": "dc=test,dc=local"
+"ldap::bind_dn": "cn=hostAuth,ou=Hosts,%{hiera('ldap::base_dn')}"
+"ldap::bind_pw": "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm"
+"ldap::bind_hash": "{SSHA}tx9ennniDQnmx83gPjCqhy6pknR89QsD"
+"ldap::sync_dn": "cn=LDAPSync,ou=Hosts,%{hiera('ldap::base_dn')}"
+"ldap::sync_pw": "6Pe4*3oW0Rw.VXx2BbdvfnU2bv9x*%CB"
+"ldap::sync_hash": "{SSHA}Y0aQ6WWCriBQGXxlEeRNdWZsX8ey3LDz"
+"ldap::root_dn": "cn=LDAPAdmin,ou=People,%{hiera('ldap::base_dn')}"
+"ldap::root_hash": "{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL"
+"ldap::master": "ldap://puppet.test.local"
+"ldap::uri":
+  - "ldap://puppet.test.local"
+"sssd::domains":
+  - LDAP
+"rsync::base": /srv/rsync
+"rsync::server": "127.0.0.1"
+"rsync::timeout": "1"
