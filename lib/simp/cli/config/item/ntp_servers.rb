@@ -14,7 +14,8 @@ module Simp::Cli::Config
         :no_ntp            => "A consistent time source is critical to your systems' security.",
         :warning_hw_clocks => "DO NOT run multiple production systems using individual hardware clocks!",
       }
-      @description      =  "Your network's NTP time servers.\n\n#{@warnings.values.join("\n")}"
+      @description      =  %Q{Your network's NTP time servers.
+#{@warnings.values.join("\n")}}
       @allow_empty_list = true
     end
 
@@ -64,6 +65,10 @@ module Simp::Cli::Config
     def validate_item item
       ( Simp::Cli::Config::Utils.validate_ip( item ) ||
         Simp::Cli::Config::Utils.validate_fqdn( item ) )
+    end
+
+    def not_valid_message
+      "Invalid list of NTP servers."
     end
   end
 end

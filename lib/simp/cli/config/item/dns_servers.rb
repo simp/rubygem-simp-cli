@@ -12,18 +12,18 @@ module Simp::Cli::Config
       @key         = 'dns::servers'
       @description = %Q{A list of DNS servers for the managed hosts.
 
-        If the first entry of this list is set to '127.0.0.1', then
-        all clients will configure themselves as caching DNS servers
-        pointing to the other entries in the list.
+If the first entry of this list is set to '127.0.0.1', then
+all clients will configure themselves as caching DNS servers
+pointing to the other entries in the list.
 
-        If you have a system that's including the 'named' class and
-        is *not* in this list, then you'll need to set a variable at
-        the top of that node entry called $named_server to 'true'.
-        This will get around the convenience logic that was put in
-        place to handle the caching entries and will not attempt to
-        convert your system to a caching DNS server. You'll know
-        that you have this situation if you end up with a duplicate
-        definition for File['/etc/named.conf'].}.gsub(/^ +/, '')
+If you have a system that's including the 'named' class and
+is *not* in this list, then you'll need to set a variable at
+the top of that node entry called $named_server to 'true'.
+This will get around the convenience logic that was put in
+place to handle the caching entries and will not attempt to
+convert your system to a caching DNS server. You'll know
+that you have this situation if you end up with a duplicate
+definition for File['/etc/named.conf'].}
       @file = '/etc/resolv.conf'
     end
 
@@ -52,6 +52,10 @@ module Simp::Cli::Config
     # Each DNS server should be a valid IP address
     def validate_item item
       Simp::Cli::Config::Utils.validate_ip item
+    end
+
+    def not_valid_message
+      "Invalid list of DNS server IP addresses."
     end
   end
 end

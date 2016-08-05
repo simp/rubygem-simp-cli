@@ -12,29 +12,56 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppet::rename_fqdn_yaml'
-      @description = %Q{Renames hieradata/hosts/puppet.your.domain.yaml (apply-only; noop).}
+      @description = %q{Renames hieradata/hosts/puppet.your.domain.yaml template file to
+ hieradata/hosts/<host>.yaml when no <host>.yaml file exists; action-only.}
       @file        = '/etc/puppet/environments/simp/hieradata/hosts/puppet.your.domain.yaml'
+      @new_file    = nil
     end
 
     def apply
+      @applied_status = :failed
       result   = true
       fqdn     = @config_items.fetch( 'hostname' ).value
-      new_file = File.join( File.dirname( @file ), "#{fqdn}.yaml" )
-      say_green 'Moving default <domain>.yaml file' if !@silent
+      @new_file = File.join( File.dirname( @file ), "#{fqdn}.yaml" )
+      say_green "Renaming #{File.basename(@file)} template to #{File.basename(@new_file)}" if !@silent
 
       if File.exists?(@file)
-        if File.exists?( new_file )
-          result = false
-          diff   = `diff #{new_file} #{@file}`
-          say_yellow "WARNING: #{File.basename( new_file )} exists, but the content differs from the original system content. Review and consider updating:\n#{diff}" if !diff.empty?
+        if File.exists?( @new_file )
+          diff   = `diff #{@new_file} #{@file}`
+          if diff.empty?
+            @applied_status = :applied
+            FileUtils.rm_rf(@file)
+          else
+            @applied_status = :deferred
+            @applied_status_detail =
+              "Manual merging of #{File.basename(@file)} into #{File.basename(@new_file)} may be required"
+
+            message = %Q{WARNING: #{File.basename( @new_file )} exists, but differs from the template.
+Review and consider updating:
+#{diff}}
+            say_yellow message
+            sleep(2)
+          end
         else
-          File.rename( @file, new_file )
+          File.rename( @file, @new_file )
+          @applied_status = :applied
         end
       else
-        result = false
-        say_yellow "WARNING: file not found: #{@file}"
+        if File.exists?(@new_file)
+          @applied_status = :unnecessary
+          @applied_status_detail = "Template already moved to #{File.basename(@new_file)}"
+          say_magenta "INFO: Rename not required. #{@applied_status_detail}"
+        else
+          say_red "ERROR: Rename not possible. Neither template file " +
+            "#{File.basename(@file)} or\n#{File.basename(@new_file)} exist."
+        end
       end
-      true
+    end
+
+    def apply_summary
+      "Rename of #{File.basename(@file)} template to " +
+        "#{@new_file ? File.basename(@new_file) : '<host>.yaml'} #{@applied_status.to_s}" +
+        "#{@applied_status_detail ? ":\n\t#{@applied_status_detail}" : ''}"
     end
   end
 end

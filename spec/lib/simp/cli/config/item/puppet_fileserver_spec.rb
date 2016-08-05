@@ -29,7 +29,7 @@ describe Simp::Cli::Config::Item::PuppetFileServer do
           item.value       = "scli.tasty.bacon"
           @ci.config_items = { 'hostname' => item }
 
-          @result = @ci.apply
+          @ci.apply
         end
 
         it "configures server with correct domain" do
@@ -38,13 +38,21 @@ describe Simp::Cli::Config::Item::PuppetFileServer do
         end
 
         it "reports success" do
-          expect( @result ).to eq true
+          expect( @ci.applied_status ).to eq :applied
         end
 
         after :context do
           FileUtils.rm @tmp_file
         end
       end
+    end
+  end
+
+  describe "#apply_summary" do
+    it 'reports unattempted status when #apply not called' do
+      ci = Simp::Cli::Config::Item::PuppetFileServer.new
+      ci.file = 'puppet.conf'
+      expect(ci.apply_summary).to eq 'Update to Puppet fileserver settings in puppet.conf unattempted'
     end
   end
 
