@@ -10,7 +10,10 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'log_servers'
-      @description = %Q{Your log server(s). Only use hostnames here if at all possible.}
+      @description = %Q{The log server(s) to receive forwarded logs. The default value is
+to not forward any logs.
+
+Only use hostnames here if at all possible. Default value is no forwarding.}
       @allow_empty_list = true
     end
 
@@ -22,6 +25,10 @@ module Simp::Cli::Config
       ( Simp::Cli::Config::Utils.validate_hostname( item ) ||
         Simp::Cli::Config::Utils.validate_fqdn( item ) ||
         Simp::Cli::Config::Utils.validate_ip( item ) )
+    end
+
+    def not_valid_message
+      "Invalid list of log servers."
     end
   end
 end

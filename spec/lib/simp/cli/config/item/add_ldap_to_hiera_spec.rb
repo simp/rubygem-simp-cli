@@ -27,7 +27,7 @@ describe Simp::Cli::Config::Item::AddLdapToHiera do
       before :each do
         @fqdn            = 'hostname.domain.tld'
         @files_dir       = File.expand_path( 'files', File.dirname( __FILE__ ) )
-        @tmp_dir         = File.expand_path( 'tmp', File.dirname( __FILE__ ) )
+        @tmp_dir         = Dir.mktmpdir( File.basename(__FILE__) )
         @file            = File.join( @files_dir,'puppet.your.domain.yaml')
         @tmp_file        = File.join( @tmp_dir, "#{@fqdn}.yaml" )
         @ci.dir          = @tmp_dir
@@ -47,9 +47,19 @@ describe Simp::Cli::Config::Item::AddLdapToHiera do
         @result = @ci.apply
       end
 
+      after :each do
+        FileUtils.remove_entry_secure @tmp_dir
+      end
+
       it "file will contain the simp::ldap_server class" do
         expect( File.open(@tmp_file).readlines.join("\n") ).to match(/simp::ldap_server/)
       end
+    end
+  end
+
+  describe "#apply_summary" do
+    it 'reports not attempted status when #safe_apply not called' do
+      expect(@ci.apply_summary).to eq 'Addition of simp::ldap_server to <host>.yaml not attempted'
     end
   end
 

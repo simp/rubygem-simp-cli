@@ -61,5 +61,9 @@ module Simp::Cli::Config
 
       true
     end
+
+    def not_valid_message
+      "Invalid list of client networks in CIDR notation."
+    end
   end
 end

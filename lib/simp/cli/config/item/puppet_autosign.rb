@@ -62,5 +62,9 @@ module Simp::Cli::Config
         end
       end
     end
+
+    def apply_summary
+      "Setup of autosign in #{@file} #{@applied_status}"
+    end
   end
 end

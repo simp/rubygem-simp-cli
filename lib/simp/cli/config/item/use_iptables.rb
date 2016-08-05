@@ -11,7 +11,7 @@ module Simp::Cli::Config
       @key         = 'use_iptables'
       @description = %Q{Whether or not to use iptables on this system.
 
-If there is code that calls the IPTables native type directly, this option may
+If you use other tools that IPTables native type directly, this option may
 not function properly.  We are looking into solutions for this issue.}
     end
 

@@ -17,7 +17,6 @@ module Simp::Cli::Config
       @backup_old_file = false
     end
 
-
     # prints an answers file to an iostream
     def print_answers_yaml( iostream, answers )
       iostream.puts "#======================================="
@@ -43,16 +42,21 @@ module Simp::Cli::Config
     end
 
 
-    # write a file
+    # write a file and returns the number of bytes written
     def write_answers_yaml_file( file, answers )
       say_green "Writing answers to: #{file}" if !@silent
       FileUtils.mkdir_p( File.dirname( file ) )
       File.open( file, 'w' ){ |fh| print_answers_yaml( fh, answers ) }
     end
 
-
     def apply
       write_answers_yaml_file( @file, @config_items ) if @config_items.size > 0
+    end
+
+    def apply_summary
+      # Note @file is modified outside of the constructor, so string returned
+      # by brief can't be static
+      "Creation of #{@file} #{@applied_status}"
     end
   end
 end

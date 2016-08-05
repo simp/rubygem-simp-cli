@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'use_ldap'
-      @description = %Q{Whether or not to use LDAP on this system.\nIf you disable this, modules will not attempt to use LDAP where possible.}
+      @description = %Q{Whether to use LDAP on this system.\nIf you disable this, modules will not attempt to use LDAP where possible.}
     end
 
     def recommended_value

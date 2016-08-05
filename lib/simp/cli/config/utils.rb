@@ -57,14 +57,12 @@ class Simp::Cli::Config::Utils
       require 'shellwords'
       if password.length < 8
         raise Simp::Cli::Config::PasswordError, "Password must be at least 8 characters long"
-        false
       else
         pass_result = `echo #{Shellwords.escape(password)} | cracklib-check`.split(':').last.strip
         if pass_result == "OK"
           true
         else
           raise Simp::Cli::Config::PasswordError, "Invalid Password: #{pass_result}"
-          false
         end
       end
     end

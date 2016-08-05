@@ -79,6 +79,13 @@ describe Simp::Cli::Config::Item::PuppetHostsEntry do
     end
   end
 
+  describe "#apply_summary" do
+    it 'reports not attempted status when #safe_apply not called' do
+      @ci.file = 'hosts'
+      expect(@ci.apply_summary).to eq 'Update to hosts to ensure puppet server entries exist not attempted'
+    end
+  end
+
   it_behaves_like "an Item that doesn't output YAML"
   it_behaves_like "a child of Simp::Cli::Config::Item"
 end

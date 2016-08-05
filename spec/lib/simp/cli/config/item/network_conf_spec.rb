@@ -32,6 +32,11 @@ describe Simp::Cli::Config::Item::NetworkConf do
     end
   end
 
+  describe "#apply_summary" do
+    it 'reports not attempted status when #safe_apply not called' do
+      expect(@ci.apply_summary).to eq 'Configuration of network interfaces not attempted'
+    end
+  end
 
   # helper method to create a number of previous answers
   def init_config_items( extra_answers={} )
