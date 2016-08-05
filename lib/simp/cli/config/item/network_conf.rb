@@ -9,23 +9,25 @@ module Simp::Cli::Config
     def initialize
       super
       @key               = 'network::conf'
-      @description       = 'action item; configures network interfaces'
+      @description       = 'Configures a network interface; action-only.'
       @die_on_apply_fail = true
+      @interface         = nil
     end
 
     def apply
+      @applied_status = :failed
       ci  = {}
       cmd = nil
 
       dhcp      = @config_items.fetch( 'dhcp'        ).value
       # BOOTPROTO=none is valid to spec; BOOTPROTO=static isn't
       bootproto = (dhcp == 'static') ? 'none' : dhcp
-      interface = @config_items.fetch( 'network::interface'   ).value
+      @interface = @config_items.fetch( 'network::interface'   ).value
 
-      # apply the interface useing the SIMP classes
+      # apply the interface using the SIMP classes
       # NOTE: the "FACTER_ipaddress=XXX" helps puppet avoid a fatal error that
       #       occurs in the core ipaddress fact on offline systems.
-      cmd = %Q@FACTER_ipaddress=XXX puppet apply -e "network::add_eth{'#{interface}': bootproto => '#{bootproto}', onboot => 'yes'@
+      cmd = %Q@FACTER_ipaddress=XXX puppet apply -e "network::add_eth{'#{@interface}': bootproto => '#{bootproto}', onboot => 'yes'@
 
       if bootproto == 'none'
         ipaddress   = @config_items.fetch( 'ipaddress'   ).value
@@ -53,6 +55,11 @@ module Simp::Cli::Config
 
       puts cmd unless @silent
       %x{#{cmd}}
+      @applied_status = :applied if $?.success?
+    end
+
+    def apply_summary
+      "Configuration of #{@interface ? @interface : 'a'} network interface #{@applied_status}"
     end
 
    def format_puppet_array v

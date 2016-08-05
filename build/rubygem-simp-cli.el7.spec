@@ -12,7 +12,7 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.19
+Version: 1.0.20
 Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
@@ -80,6 +80,19 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 
 %changelog
+* Fri Aug 12 2016 Liz Nemsick <lnemsick.simp@gmail.com> - 1.0.20-0
+- Fix array formatting bugs present when 'simp config' is used with
+  Ruby 1.8.7.
+- Fix bug with processing of yes/no item defaults, when the
+  non-interactive configuration mode of 'simp config' is enabled.
+- Print out a summary of actions taken by 'simp config'.
+- Adjust 'simp config' processing to ensure any hiera changes are
+  made to the site yaml file, not just the template yaml file
+  delivered with SIMP.
+- Refine 'simp config' configuration descriptions and other output.
+- Improved error handling.
+- Expand tests.
+
 * Tue Aug 02 2016 Liz Nemsick <lnemsick.simp@gmail.com> - 1.0.19-0
 - Fix simp options parsing bug.
 

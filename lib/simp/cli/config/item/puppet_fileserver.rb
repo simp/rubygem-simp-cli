@@ -12,11 +12,12 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppet::fileserver'
-      @description = 'silent item; configures /etc/puppet/fileserver.conf'
+      @description = 'Configures /etc/puppet/fileserver.conf; action-only.'
       @file        = '/etc/puppet/fileserver.conf'
     end
 
     def apply
+      @applied_status = :failed
       say_green "  updating Puppet configurations in #{@file}..." if !@silent
 
       conf = @file
@@ -98,7 +99,11 @@ module Simp::Cli::Config
 
       File.open(conf,'w'){|x| x.puts(fileserver_new.join("\n"))}
 
-      true
+      @applied_status = :applied
+    end
+
+    def apply_summary
+      "Update to Puppet fileserver settings in #{@file} #{@applied_status}"
     end
   end
 end
