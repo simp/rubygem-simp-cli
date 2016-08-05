@@ -9,10 +9,10 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'is_master_yum_server'
-      @description = %q{Is the master also used as a YUM server?
+      @description = %q{Whether the master will also be a YUM server.
 
-This option should be yes if the Puppet master (this system) will also act as a
-YUM server.
+This option should be yes if the Puppet master (this system) will also act
+as a YUM server for system packages or other custom repositories.
 }
     end
 

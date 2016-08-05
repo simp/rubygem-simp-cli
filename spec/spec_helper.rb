@@ -14,6 +14,12 @@
 # users commonly want.
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
+
+require 'simplecov'
+SimpleCov.start do
+  add_filter "/spec/"  # don't count coverage of test files!
+end
+
 RSpec.configure do |config|
 
   $LOAD_PATH << File.expand_path( '../lib', File.dirname(__FILE__) )
@@ -38,6 +44,18 @@ RSpec.configure do |config|
     # a real object. This is generally recommended, and will default to
     # `true` in RSpec 4.
     mocks.verify_partial_doubles = true
+  end
+
+  # Useless backtrace noise
+  backtrace_exclusion_patterns = [
+    /spec_helper/,
+    /gems/
+  ]
+
+  if config.respond_to?(:backtrace_exclusion_patterns)
+    config.backtrace_exclusion_patterns = backtrace_exclusion_patterns
+  elsif config.respond_to?(:backtrace_clean_patterns)
+    config.backtrace_clean_patterns = backtrace_exclusion_patterns
   end
 
 # The settings below are suggested to provide a good initial experience

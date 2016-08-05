@@ -8,7 +8,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
   @verbose = false
   @track = true
   @opt_parser = OptionParser.new do |opts|
-    opts.banner = "\n === The SIMP Bootstrap Tool === "
+    opts.banner = "\n=== The SIMP Bootstrap Tool ==="
     opts.separator "\nThe SIMP Bootstrap Tool aids initial configuration of the system by"
     opts.separator "bootstrapping it. This should be run after 'simp config' has applied a new"
     opts.separator "system configuration."
@@ -27,7 +27,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     opts.on("-h", "--help", "Print out this message.") do
       puts opts
-      exit
+      @help_requested = true
     end
   end
 
@@ -120,6 +120,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
   def self.run(args = [])
     super
+    return if @help_requested
 
     bootstrap_start_time = Time.now
 

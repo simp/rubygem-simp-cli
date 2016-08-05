@@ -9,6 +9,6 @@ class Simp::Cli::Commands::Doc < Simp::Cli
   end
 
   def self.help
-    puts "Show SIMP documentation in elinks"
+    puts "\n=== The SIMP Doc Tool ===\nShow SIMP documentation in elinks, a text-based web browser"
   end
 end

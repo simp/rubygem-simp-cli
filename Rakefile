@@ -11,8 +11,9 @@ require 'find'
 
 
 CLEAN.include "#{@package}-*.gem"
-CLEAN.include 'pkg'
+CLEAN.include 'coverage'
 CLEAN.include 'dist'
+CLEAN.include 'pkg'
 Find.find( @rakefile_dir ) do |path|
   if File.directory? path
     CLEAN.include path if File.basename(path) == 'tmp'
@@ -34,9 +35,14 @@ end
 desc 'special notes about these rake commands'
 task :help do
   puts %Q{
-== environment variables ==
+== Environment Variables ==
 SIMP_RPM_BUILD     when set, alters the gem produced by pkg:gem to be RPM-safe.
                    'pkg:gem' sets this automatically.
+== Restrictions ==
+- Because the code for this gem uses a global, singleton HighLine object,
+  the tests for this code cannot be parallelized.
+- To prevent actual changes from being made to your system, some of the
+  'simp config' tests fail if the tests are run as root.
   }
 end
 

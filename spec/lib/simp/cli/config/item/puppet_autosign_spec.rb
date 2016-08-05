@@ -6,8 +6,7 @@ require_relative( 'spec_helper' )
 describe Simp::Cli::Config::Item::PuppetAutosign do
   before :each do
     @file_dir  = File.expand_path( 'files',  File.dirname( __FILE__ ) )
-    tmp_dir    = File.expand_path( 'tmp',  File.dirname( __FILE__ ) )
-    @tmp_dir   = Dir.mktmpdir(File.basename(__FILE__), tmp_dir )
+    @tmp_dir   = Dir.mktmpdir(File.basename(__FILE__) )
     @ci        = Simp::Cli::Config::Item::PuppetAutosign.new
     @ci.silent = true
 
@@ -42,6 +41,12 @@ describe Simp::Cli::Config::Item::PuppetAutosign do
       @ci.apply
       lines = File.readlines( @ci.file ).join( "\n" )
       expect( lines ).to match(%r{^puppet.domain.tld$})
+    end
+  end
+
+  describe "#apply_summary" do
+    it 'reports unattempted status when #apply not called' do
+      expect(@ci.apply_summary).to eq 'Setup of autosign in /etc/puppet/autosign.conf unattempted'
     end
   end
 
