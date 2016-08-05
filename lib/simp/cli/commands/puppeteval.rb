@@ -4,7 +4,7 @@ class Simp::Cli::Commands::Puppeteval < Simp::Cli
   require 'facter'
 
   def self.help
-    puts "This tool gathers metric information for a Puppet run that it will run."
+    puts "\n=== The SIMP PuppetEval Tool ===\nThis tool gathers metric information for a Puppet run that it executes."
   end
 
   def self.run(args = Array.new)

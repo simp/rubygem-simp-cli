@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'ldap::sync_pw'
-      @description = %Q{The LDAP sync password}
+      @description = %Q{The LDAP Sync password.}
     end
 
 

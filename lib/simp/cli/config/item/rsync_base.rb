@@ -9,13 +9,11 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'rsync::base'
-      @description = <<-EOF.gsub(/^ {8}/,'')
-        Several modules use rsync as a means of pulling down large
-        collections of files. This provides a single point of configuration
-        for the system defaults.
+      @description = %Q{The root location of the files to be distributed via rsync.
 
-        Individual modules can be overridden as required.
-      EOF
+Several SIMP modules use rsync over stunnel as an efficient distribution
+mechanism for large collections of files.  The location of files to be
+rsync'd can be overridden in individual modules as required.}
       if Facter.value('lsbmajdistrelease') < '7' then
         @base_dir = '/srv/rsync'
       else

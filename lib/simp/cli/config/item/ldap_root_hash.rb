@@ -11,8 +11,8 @@ module Simp::Cli::Config
       @key                 = 'ldap::root_hash'
       @description         = %Q{The LDAP root password hash.
 
-        If you set this with simp config, type the password and the hash will be
-        generated for you.' }.gsub( /^\s{8}/, '' )
+If you set this with simp config, type the password and the hash will be
+generated for you.}
       @generate_by_default = false
     end
 

@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'ldap::bind_hash'
-      @description = %Q{The salted LDAP bind password hash}
+      @description = %Q{The salted LDAP Bind password hash.}
       @skip_query  = true
     end
 

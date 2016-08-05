@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'ldap::bind_pw'
-      @description = %Q{The LDAP bind password}
+      @description = %Q{The LDAP Bind password.}
     end
 
     def validate string

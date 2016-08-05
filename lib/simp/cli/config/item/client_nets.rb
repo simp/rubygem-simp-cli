@@ -9,10 +9,10 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'client_nets'
-      @description = %Q{
-        A list of client networks for your systems, in CIDR notation.
-        If you need this to be more (or less) restrictive for a given class,
-        you can override it in Hiera.}.gsub(/^\s+/, '' )
+      @description = %Q{A list of client networks for your systems, in CIDR notation.
+
+If you need this to be more (or less) restrictive for a given class,
+you can override it in Hiera.}
       @allow_empty_list = false
     end
 
@@ -60,6 +60,10 @@ module Simp::Cli::Config
       return false if !(cidr.to_i >= 0 && cidr.to_i <= 32)
 
       true
+    end
+
+    def not_valid_message
+      "Invalid list of client networks in CIDR notation."
     end
   end
 end

@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'dhcp'
-      @description = %q{Whether or not to use DHCP to set up your network ("static" or "dhcp")}
+      @description = %q{Whether to use DHCP to set up your network ("static" or "dhcp").}
     end
 
     def recommended_value

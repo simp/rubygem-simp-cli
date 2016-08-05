@@ -12,14 +12,14 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppet::hosts_entry'
-      @description = %Q{Ensures an entry for the puppet server in /etc/hosts (apply-only; noop).}
+      @description = %Q{Ensures an entry for the Puppet server in /etc/hosts; action-only.}
       @file        = '/etc/hosts'
     end
 
     def apply
+      @applied_status = :failed
       puppet_server    = @config_items.fetch( 'puppet::server' ).value
       puppet_server_ip = @config_items.fetch( 'puppet::server::ip' ).value
-      status = false
 
       say_green "Updating #{@file}..." if !@silent
 
@@ -38,7 +38,11 @@ module Simp::Cli::Config
         fh.puts("#{puppet_server_ip} #{puppet_server} #{puppet_server.split('.').first}")
         fh.puts(values)
       }
-      true
+      @applied_status = :applied
+    end
+
+    def apply_summary
+      "Update to #{@file} to ensure puppet server entries exist #{@applied_status}"
     end
   end
 end
