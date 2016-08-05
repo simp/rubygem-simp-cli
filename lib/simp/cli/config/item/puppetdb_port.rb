@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'puppetdb::master::config::puppetdb_port'
-      @description = %Q{The PuppetDB server port number}
+      @description = %Q{The PuppetDB server port number.}
       @value       = recommended_value
     end
 

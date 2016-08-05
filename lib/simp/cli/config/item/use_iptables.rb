@@ -9,10 +9,11 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'use_iptables'
-      @description = %Q{Whether or not to use iptables on this system.
+      @description = %Q{Whether to use iptables on this system.
 
-If there is code that calls the IPTables native type directly, this option may
-not function properly.  We are looking into solutions for this issue.}
+If this system has other Puppet modules that use the IPTables native type
+directly, this option may not function properly.  We are looking into
+solutions for this issue.}
     end
 
     def recommended_value

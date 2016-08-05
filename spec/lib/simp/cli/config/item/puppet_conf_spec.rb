@@ -2,6 +2,7 @@ require 'simp/cli/config/item/puppet_conf'
 require 'simp/cli/config/item/puppet_ca'
 require 'simp/cli/config/item/puppet_ca_port'
 require 'simp/cli/config/item/puppet_server'
+require 'simp/cli/config/item/use_fips'
 
 require_relative( 'spec_helper' )
 
@@ -102,6 +103,14 @@ describe Simp::Cli::Config::Item::PuppetConf do
       after :context do
         FileUtils.rm @tmp_file
       end
+    end
+  end
+
+  describe "#apply_summary" do
+    it 'reports unattempted status when #apply not called' do
+      ci = Simp::Cli::Config::Item::PuppetConf.new
+      ci.file = 'puppet.conf'
+      expect(ci.apply_summary).to eq 'Update to Puppet settings in puppet.conf unattempted'
     end
   end
 

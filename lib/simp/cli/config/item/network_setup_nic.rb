@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'network::setup_nic'
-      @description = %Q{Do you want to activate this NIC now?}
+      @description = %Q{Whether to activate this NIC now.}
     end
 
     def recommended_value
@@ -20,7 +20,6 @@ module Simp::Cli::Config
       # TODO: check, then
       # The NIC does not currently have an IP, Netmask, or Gateway
       nic = @config_items.fetch('network::interface').value
-#      @description.gsub( 'this NIC'
       super
     end
 

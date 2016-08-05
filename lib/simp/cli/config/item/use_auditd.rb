@@ -9,7 +9,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'use_auditd'
-      @description = %q{Whether or not to use auditd on this system.}
+      @description = %q{Whether to use auditd on this system.}
     end
 
     def recommended_value

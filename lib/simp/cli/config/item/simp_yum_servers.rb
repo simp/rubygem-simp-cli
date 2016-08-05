@@ -10,7 +10,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'simp::yum::servers'
-      @description = %Q{Your SIMP yum server(s).}
+      @description = %Q{The yum server(s) for SIMP packages.}
       @allow_empty_list = true
     end
 
@@ -25,6 +25,10 @@ module Simp::Cli::Config
         Simp::Cli::Config::Utils.validate_fqdn( item ) ||
         Simp::Cli::Config::Utils.validate_ip( item )
       )
+    end
+
+    def not_valid_message
+      "Invalid list of yum servers."
     end
   end
 end
