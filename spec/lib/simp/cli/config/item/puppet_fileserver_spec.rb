@@ -48,6 +48,13 @@ describe Simp::Cli::Config::Item::PuppetFileServer do
     end
   end
 
+  describe "#apply_summary" do
+    it 'reports not attempted status when #safe_apply not called' do
+      @ci.file = 'puppet.conf'
+      expect(@ci.apply_summary).to eq 'Update to Puppet fileserver settings in puppet.conf not attempted'
+    end
+  end
+
   it_behaves_like "an Item that doesn't output YAML"
   it_behaves_like "a child of Simp::Cli::Config::Item"
 end

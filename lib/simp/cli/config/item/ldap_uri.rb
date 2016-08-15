@@ -39,5 +39,9 @@ module Simp::Cli::Config
         Simp::Cli::Config::Utils.validate_ip( item )
       )
     end
+
+    def not_valid_message
+      "Invalid list of URIs for LDAP servers."
+    end
   end
 end

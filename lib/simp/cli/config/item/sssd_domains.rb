@@ -31,5 +31,9 @@ module Simp::Cli::Config
         @value = []
       end
     end
+
+    def not_valid_message
+      "Invalid list of SSSD domains."
+    end
   end
 end

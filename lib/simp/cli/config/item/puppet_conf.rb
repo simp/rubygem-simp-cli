@@ -92,7 +92,10 @@ module Simp::Cli::Config
           end
         end
       end
+    end
 
+    def apply_summary
+      "Update to Puppet settings in #{@file} #{@applied_status}"
     end
   end
 end

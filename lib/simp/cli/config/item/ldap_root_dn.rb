@@ -9,19 +9,8 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'ldap::root_dn'
-      @description = %Q{The LDAP root DN.}
+      @description = %Q{The LDAP root Distinguished Name.}
 
-    end
-
-
-    def os_value
-      # TODO: turn into custom fact?
-      result = nil
-      if File.readable?('/etc/openldap/ldap.conf') &&
-        `grep rootdn /etc/openldap/slapd.conf` =~ /\Arootdn\s+[\"](.*)[\"]\s*/
-        result = $1
-      end
-      result
     end
 
     def os_value
