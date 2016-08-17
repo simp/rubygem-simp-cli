@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_a38564d0",
+        "filename": ".travis.yml",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2016-08-17T05:14:01Z",
+      "side": 1,
+      "message": "Thanks for documenting this.",
+      "revId": "5385a6640ced0d8ea98414c70d411fcd604d1636",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_836b801f",
+        "filename": "Gemfile",
+        "patchSetId": 4
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2016-08-17T05:14:01Z",
+      "side": 1,
+      "message": "Now that we\u0027re testing with 2.0+, we could remove all the `is_ruby_old` checks and just `fail()` the Gemfile at this point.",
+      "revId": "5385a6640ced0d8ea98414c70d411fcd604d1636",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
