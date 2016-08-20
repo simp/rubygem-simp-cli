@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "baa041b7_1d2fc4a8",
+        "filename": "lib/simp/cli/config/item.rb",
+        "patchSetId": 7
+      },
+      "lineNbr": 248,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2016-08-20T00:25:16Z",
+      "side": 1,
+      "message": "trailing whitespace",
+      "range": {
+        "startLine": 248,
+        "startChar": 47,
+        "endLine": 248,
+        "endChar": 48
+      },
+      "revId": "b7e089a45f1f70b66fe84d94a2c32917edc4e800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_7d2010b1",
+        "filename": "lib/simp/cli/config/item/grub_password.rb",
+        "patchSetId": 7
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2016-08-20T00:25:16Z",
+      "side": 1,
+      "message": "ᕙ(⇀‸↼‶)ᕗ",
+      "revId": "b7e089a45f1f70b66fe84d94a2c32917edc4e800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_c05a93f2",
+        "filename": "lib/simp/cli/config/item/network_setup_nic.rb",
+        "patchSetId": 7
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2016-08-20T00:25:16Z",
+      "side": 1,
+      "message": "We might want to set @skip_yaml \u003d true here, otherwise the definition will get written out to the site\u0027s simp_def.yaml.  \n\nHowever, right now it can be used as an answers file.  Hrmm.",
+      "revId": "b7e089a45f1f70b66fe84d94a2c32917edc4e800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_dd415c65",
+        "filename": "spec/lib/simp/cli/commands/files/simp.yaml",
+        "patchSetId": 7
+      },
+      "lineNbr": 10,
+      "author": {
+        "id": 1005143
+      },
+      "writtenOn": "2016-08-20T00:25:16Z",
+      "side": 1,
+      "message": "trailing whitespace",
+      "range": {
+        "startLine": 10,
+        "startChar": 15,
+        "endLine": 10,
+        "endChar": 16
+      },
+      "revId": "b7e089a45f1f70b66fe84d94a2c32917edc4e800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
