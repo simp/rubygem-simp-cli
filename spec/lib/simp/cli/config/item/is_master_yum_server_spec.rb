@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/is_master_yum_server'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::IsMasterYumServer do
   before :each do

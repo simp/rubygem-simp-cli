@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/add_ldap_to_hiera'
 require 'simp/cli/config/item/hostname'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::AddLdapToHiera do
   before :each do

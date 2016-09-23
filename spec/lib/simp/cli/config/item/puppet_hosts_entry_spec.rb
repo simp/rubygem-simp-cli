@@ -2,7 +2,7 @@ require 'simp/cli/config/item/puppet_hosts_entry'
 require 'simp/cli/config/item/puppet_server'
 require 'simp/cli/config/item/puppet_server_ip'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::PuppetHostsEntry do
   before :all do

@@ -1,7 +1,7 @@
 require 'simp/cli/config/item/ipaddress'
 require 'simp/cli/config/item/network_interface'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::IPAddress do
   before :each do

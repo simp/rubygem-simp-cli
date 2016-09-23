@@ -9,7 +9,7 @@ require 'simp/cli/config/item/ipaddress'
 require 'simp/cli/config/item/netmask'
 require 'simp/cli/config/item/network_dhcp'
 
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::HostnameConf do
   before :each do

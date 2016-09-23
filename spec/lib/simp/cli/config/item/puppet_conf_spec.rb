@@ -4,7 +4,7 @@ require 'simp/cli/config/item/puppet_ca_port'
 require 'simp/cli/config/item/puppet_server'
 require 'simp/cli/config/item/use_fips'
 
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::PuppetConf do
   before :context do
@@ -29,6 +29,10 @@ describe Simp::Cli::Config::Item::PuppetConf do
     previous_items[ s.key ] = s
 
     @ci.config_items = previous_items
+  end
+
+  before :each do
+    allow(@ci).to receive(:`)
   end
 
   describe "#apply" do
@@ -69,35 +73,38 @@ describe Simp::Cli::Config::Item::PuppetConf do
       end
 
       it "configures server" do
-        expect( @lines ).to match(%r{^\s*server\s*=\s#{@puppet_server}} )
+        expect(@ci).to receive(:`).with("puppet config set server #{@puppet_server}").once
+        @ci.apply
       end
 
       it "configures ca_server" do
-        expect( @lines ).to match(%r{^\s*ca_server\s*=\s#{@puppetca_server}} )
+        expect(@ci).to receive(:`).with("puppet config set ca_server #{@puppet_ca}").once
+        @ci.apply
       end
 
       it "configures ca_port" do
-        expect( @lines ).to match(%r{^\s*ca_port\s*=\s#{@puppetca_port}} )
-      end
-
-      it "configures environmentpath" do
-        expect( @lines ).to match(%r{^\s*environmentpath\s*=\s/etc/puppet/environments} )
+        expect(@ci).to receive(:`).with("puppet config set ca_port #{@puppet_ca_port}").once
+        @ci.apply
       end
 
       it "configures stringify_facts" do
-        expect( @lines ).to match(%r{^\s*stringify_facts\s*=\sfalse} )
+        expect(@ci).to receive(:`).with("puppet config set stringify_facts false").once
+        @ci.apply
       end
 
       it "configures digest_algorithm" do
-        expect( @lines ).to match(%r{^\s*digest_algorithm\s*=\ssha256} )
+        expect(@ci).to receive(:`).with("puppet config set digest_algorithm sha256").once
+        @ci.apply
       end
 
       it "configures trusted_node_data" do
-        expect( @lines ).to match(%r{^\s*trusted_node_data\s*=\strue} )
+        expect(@ci).to receive(:`).with("puppet config set trusted_node_data true").once
+        @ci.apply
       end
 
       it "configures keylength" do
-        expect( @lines ).to match(%r{^\s*keylength\s*=\s2048} )
+        expect(@ci).to receive(:`).with("puppet config set keylength 2048").once
+        @ci.apply
       end
 
       after :context do

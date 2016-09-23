@@ -3,6 +3,7 @@ require 'puppet'
 require 'yaml'
 require File.expand_path( 'utils', File.dirname(__FILE__) )
 require 'highline'
+require 'simp/cli/lib/utils'
 
 module Simp; end
 class Simp::Cli; end
@@ -16,6 +17,7 @@ module Simp::Cli::Config
     attr_accessor :config_items
     attr_accessor :next_items_tree
     attr_accessor :fail_on_missing_answer
+    attr_reader   :puppet_apply_cmd
 
     def initialize(key = nil, description = nil)
       @key               = key         # answers file key for the config Item
@@ -34,6 +36,21 @@ module Simp::Cli::Config
       @die_on_apply_fail = false       # halt simp config if apply fails
       @allow_user_apply  = false       # allow non-superuser to apply
       @fail_on_missing_answer = false  # error out if @value is not pre-populated
+
+      possible_module_paths = [
+        '/usr/share/simp/modules',
+        '/etc/puppetlabs/code/environments/simp/modules',
+        '/etc/puppet/environments/simp/modules'
+      ]
+
+      possible_module_paths.each do |modpath|
+        if File.directory?(modpath)
+          @puppet_apply_cmd = "puppet apply --modulepath=#{modpath} "
+          break
+        end
+      end
+
+      @puppet_apply_cmd ||= 'puppet apply '
 
       @config_items      = {}          # a hash of all previous Config::Items
       # a Hash of additional Items whose value this Item may need to use.

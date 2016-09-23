@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/failover_log_servers'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::FailoverLogServers do
   before :each do

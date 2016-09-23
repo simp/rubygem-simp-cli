@@ -2,7 +2,7 @@ require 'simp/cli/config/item/client_nets'
 
 require 'simp/cli/config/item/ipaddress'
 require 'simp/cli/config/item/netmask'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::ClientNets do
   before :each do

@@ -13,8 +13,8 @@ module Simp::Cli::Config
       @key         = 'certificates'
       @description = %Q{Generates certificates for SIMP as needed; action-only.}
       @dirs        = {
-        :keydist => '/etc/puppet/environments/simp/keydist',
-        :fake_ca => '/etc/puppet/environments/simp/FakeCA',
+        :keydist => "#{::Utils.puppet_info[:simp_environment_path]}/keydist",
+        :fake_ca => ::Utils.puppet_info[:fake_ca_path]
       }
       @die_on_apply_fail = true
       @hostname = nil

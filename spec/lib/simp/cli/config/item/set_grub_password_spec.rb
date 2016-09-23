@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/set_grub_password'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::SetGrubPassword do
   before :each do
