@@ -1,5 +1,5 @@
 require 'simp/cli/commands/config'
-require_relative( '../spec_helper' )
+require 'spec_helper'
 require 'fileutils'
 require 'set'
 require 'tmpdir'
@@ -227,7 +227,11 @@ describe Simp::Cli::Commands::Config do
       expect(summary).to match /Update to Puppet settings in \/etc\/puppet\/puppet.conf skipped/m
       expect(summary).to match /Update to \/etc\/hosts to ensure puppet server entries exist skipped/m
       expect(summary).to match /Addition of simp::ldap_server to <host>.yaml skipped/m
-      expect(summary).to match /Creation of \/etc\/puppet\/environments\/simp\/hieradata\/simp_def.yaml skipped/m
+
+      # The prefix of this path is going to depend explicitly on where Puppet
+      # is installed on your system since this is not hard coded in the
+      # environment.
+      expect(summary).to match /Creation of .*\/environments\/simp\/hieradata\/simp_def.yaml skipped/m
       expect(summary).to match /#{@output_file} created/m
     end
 

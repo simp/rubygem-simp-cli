@@ -1,6 +1,6 @@
 require 'simp/cli/config/item'
 require 'rspec/its'
-require_relative 'spec_helper'
+require 'spec_helper'
 
 describe Simp::Cli::Config::Item do
   before :each do

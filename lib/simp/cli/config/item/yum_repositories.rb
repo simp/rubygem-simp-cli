@@ -17,7 +17,7 @@ module Simp::Cli::Config
       @www_yum_dir = File.exists?( '/var/www/yum/') ? '/var/www/yum' : '/srv/www/yum'
       @yumpath     = nil
       @yum_repos_d = '/etc/yum.repos.d'
-      @dir         = "/etc/puppet/environments/simp/hieradata/hosts"
+      @dir         = "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/hosts"
       @yaml_file   = nil
 
       @yum_update  = :unattempted # action that is always done

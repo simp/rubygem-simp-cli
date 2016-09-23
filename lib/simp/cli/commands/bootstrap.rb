@@ -39,7 +39,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       port = `puppet config print ca_port`.strip
     end
     begin
-      running = (%x{curl -sS --cert /var/lib/puppet/ssl/certs/`hostname`.pem --key /var/lib/puppet/ssl/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
+      running = (%x{curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/`hostname`.pem --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
       unless running
         system('puppet resource service puppetserver ensure="running" enable=true > /dev/null 2>&1 &')
         stages = %w{. o O @ *}
@@ -48,7 +48,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
         Timeout::timeout(timeout*60) {
           while not running do
-            running = (%x{curl -sS --cert /var/lib/puppet/ssl/certs/`hostname`.pem --key /var/lib/puppet/ssl/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
+            running = (%x{curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/`hostname`.pem --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
             stages.each{ |x|
               $stdout.flush
               print "Waiting for Puppet Server to Start  " + x + "\r"
@@ -126,13 +126,12 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     # Set us up to use the SIMP environment. Be careful to preserve the
     # existing 'production' environment if one exists.
-    environment_path = '/etc/puppet/environments'
-    simp_env = "#{environment_path}/simp"
+    environment_path = ::Utils.puppet_info[:simp_environment_path]
 
-    fail("Could not find the environment path at #{environment_path}") unless File.exist?(environment_path)
+    fail("Could not find the simp environment path at #{environment_path}") unless File.directory?(environment_path)
 
-    Dir.chdir(environment_path) do
-      fail("Could not find a 'simp' installation at #{simp_env}") unless File.exist?(simp_env)
+    Dir.chdir(File.dirname(environment_path)) do
+      File.directory?('simp')
 
       if File.exist?('production')
         if File.symlink?('production')
@@ -155,7 +154,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     @logfile = File.open(logfilepath, 'w')
 
     # Define the puppet command call and the run command options
-    pupcmd = "/usr/bin/puppet agent --pluginsync --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150"
+    pupcmd = 'puppet agent --pluginsync --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150'
     pupruns = [
       'pki,stunnel,concat',
       'firstrun,concat',
@@ -180,18 +179,25 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     system('pkill -f pserver_tmp')
     system("puppet resource service puppetserver ensure=stopped >& /dev/null")
     system("puppet resource service httpd ensure=stopped >& /dev/null")
-    FileUtils.rm_rf(Dir.glob('/var/lib/puppet/ssl'))
-    FileUtils.rm_f(Dir.glob('/var/run/puppet/*'))
+    FileUtils.rm_rf(Dir.glob(File.join(::Utils.puppet_info[:config]['ssldir'],'*')))
+    FileUtils.rm_f(Dir.glob(File.join(::Utils.puppet_info[:config]['rundir'],'*')))
     FileUtils.touch('/.autorelabel')
 
     puts "*** Starting the Puppetmaster ***"
     puts
 
-    FileUtils.mkdir_p('/var/lib/puppet/pserver_tmp')
-    FileUtils.chown('puppet','puppet','/var/lib/puppet/pserver_tmp')
-    system(%{puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver' match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m -Djava.io.tmpdir=/var/lib/puppet/pserver_tmp"' 2>&1 > /dev/null})
-    system(%{puppet resource simp_file_line puppetserver path='/etc/puppetserver/conf.d/webserver.conf' match='^\\s*ssl-host' line='    ssl-host = 0.0.0.0' 2>&1 > /dev/null})
-    system(%{puppet resource simp_file_line puppetserver path='/etc/puppetserver/conf.d/webserver.conf' match='^\\s*ssl-port' line='    ssl-port = 8150' 2>&1 > /dev/null})
+    FileUtils.mkdir_p("#{::Utils.puppet_info[:config]['vardir']}/pserver_tmp")
+    FileUtils.chown('puppet','puppet',"#{::Utils.puppet_info[:config]['vardir']}/pserver_tmp")
+    system(%{puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver' match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m -Djava.io.tmpdir=#{::Utils.puppet_info[:config]['vardir']}/pserver_tmp"' 2>&1 > /dev/null})
+
+    if File.directory?('/etc/puppetlabs/puppetserver/conf.d')
+      puppetserver_dir = '/etc/puppetlabs/puppetserver/conf.d'
+    else
+      puppetserver_dir = '/etc/puppetserver/conf.d'
+    end
+
+    system(%{puppet resource simp_file_line puppetserver path='#{puppetserver_dir}/webserver.conf' match='^\\s*ssl-host' line='    ssl-host = 0.0.0.0' 2>&1 > /dev/null})
+    system(%{puppet resource simp_file_line puppetserver path='#{puppetserver_dir}/webserver.conf' match='^\\s*ssl-port' line='    ssl-port = 8150' 2>&1 > /dev/null})
 
     puts
 

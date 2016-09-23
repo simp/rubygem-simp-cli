@@ -3,7 +3,7 @@ require 'simp/cli/config/item/hostname'
 require 'simp/cli/config/item/is_master_yum_server'
 require 'rspec/its'
 require 'tmpdir'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::YumRepositories do
   context "in a SIMP directory structure" do
@@ -238,6 +238,15 @@ describe Simp::Cli::Config::Item::YumRepositories do
       after :each do
         @fake_facts.each{ |k,v| ENV.delete "FACTER_#{k}" }
         if Dir.exist?(@yum_dist_dir)
+          # On some systems, not being able to access the directory causes
+          # FileUtils.chmod_R to not be able to set the permissions properly on
+          # mode 0000 subdirectories. This subsequently causes
+          # remove_entry_secure to fail.
+
+          if Dir.exist?(@tmp_repos_d)
+            FileUtils.chmod(0777, @tmp_repos_d)
+          end
+
           FileUtils.chmod_R(0777, @yum_dist_dir)
           FileUtils.remove_entry_secure(@yum_dist_dir)
         end

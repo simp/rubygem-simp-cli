@@ -2,7 +2,7 @@ require 'simp/cli/config/item/puppet_fileserver'
 
 require 'simp/cli/config/item/hostname'
 
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::PuppetFileServer do
   before :all do

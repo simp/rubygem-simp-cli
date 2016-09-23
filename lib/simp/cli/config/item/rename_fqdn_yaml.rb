@@ -14,7 +14,7 @@ module Simp::Cli::Config
       @key         = 'puppet::rename_fqdn_yaml'
       @description = %q{Renames hieradata/hosts/puppet.your.domain.yaml template file to
  hieradata/hosts/<host>.yaml when no <host>.yaml file exists; action-only.}
-      @file        = '/etc/puppet/environments/simp/hieradata/hosts/puppet.your.domain.yaml'
+      @file        = "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/hosts/puppet.your.domain.yaml"
       @new_file    = nil
     end
 

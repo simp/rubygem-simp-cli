@@ -1,7 +1,7 @@
 require 'simp/cli/config/item/puppet_autosign'
 require 'simp/cli/config/item/hostname'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::PuppetAutosign do
   before :each do

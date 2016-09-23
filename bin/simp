@@ -1,6 +1,15 @@
 #!/usr/bin/env ruby
 
-$LOAD_PATH << File.expand_path( '../lib', File.dirname(__FILE__) )
+# Check for Puppet 4 and use it if present
+if File.directory?('/opt/puppetlabs/puppet/lib/ruby')
+  $LOAD_PATH.unshift(Dir.glob('/opt/puppetlabs/puppet/lib/ruby/*'))
+  $LOAD_PATH.flatten!
+end
+
+if File.directory?('/opt/puppetlabs/puppet/bin')
+  ENV['PATH'] = '/opt/puppetlabs/puppet/bin:' + ENV['PATH']
+end
+
+$LOAD_PATH.unshift(File.expand_path( '../lib', File.dirname(__FILE__) ))
 require 'simp/cli'
 exit Simp::Cli.start
-

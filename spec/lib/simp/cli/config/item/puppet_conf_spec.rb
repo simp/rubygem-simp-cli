@@ -4,7 +4,7 @@ require 'simp/cli/config/item/puppet_ca_port'
 require 'simp/cli/config/item/puppet_server'
 require 'simp/cli/config/item/use_fips'
 
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::PuppetConf do
   before :context do
@@ -78,10 +78,6 @@ describe Simp::Cli::Config::Item::PuppetConf do
 
       it "configures ca_port" do
         expect( @lines ).to match(%r{^\s*ca_port\s*=\s#{@puppetca_port}} )
-      end
-
-      it "configures environmentpath" do
-        expect( @lines ).to match(%r{^\s*environmentpath\s*=\s/etc/puppet/environments} )
       end
 
       it "configures stringify_facts" do
