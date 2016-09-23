@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/use_fips'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::UseFips do
   before :each do

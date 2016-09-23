@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/use_ldap'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::UseLdap do
   before :each do

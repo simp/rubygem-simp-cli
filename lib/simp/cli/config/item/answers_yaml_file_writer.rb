@@ -1,5 +1,6 @@
 require "resolv"
 require 'highline/import'
+require 'simp/cli/lib/utils'
 require File.expand_path( '../item', File.dirname(__FILE__) )
 require File.expand_path( '../utils', File.dirname(__FILE__) )
 
@@ -11,9 +12,10 @@ module Simp::Cli::Config
 
     def initialize
       super
+
       @key             = 'yaml::file_writer'
       @description     = %Q{Writes Config::Item answers so far to YAML file; action-only.}
-      @file            = '/etc/puppet/environments/simp/hieradata/simp_def.yaml'
+      @file            = "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/simp_def.yaml"
       @backup_old_file = false
     end
 

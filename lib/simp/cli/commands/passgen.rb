@@ -49,7 +49,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
     return if @help_requested
 
     unless @target_dir
-      env_path = %x(puppet config print environmentpath).strip
+      env_path = ::Utils.puppet_info[:environment_path]
       if File.directory?(env_path)
         @target_dir = File.join(env_path, 'simp/simp_autofiles/gen_passwd')
       else

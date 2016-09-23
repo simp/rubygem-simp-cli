@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/network_dhcp'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::DHCP do
   before :each do

@@ -12,7 +12,7 @@ module Simp::Cli::Config
       super
       @key         = 'puppet::add_ldap_to_hiera'
       @description = %Q{Adds simp::ldap_server to hieradata/hosts/<host>.yaml; action-only.}
-      @dir         = "/etc/puppet/environments/simp/hieradata/hosts"
+      @dir         = "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/hosts"
       @file        = nil
     end
 

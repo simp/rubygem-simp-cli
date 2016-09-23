@@ -27,7 +27,7 @@ module Simp::Cli::Config
       # apply the interface using the SIMP classes
       # NOTE: the "FACTER_ipaddress=XXX" helps puppet avoid a fatal error that
       #       occurs in the core ipaddress fact on offline systems.
-      cmd = %Q@FACTER_ipaddress=XXX puppet apply -e "network::add_eth{'#{@interface}': bootproto => '#{bootproto}', onboot => 'yes'@
+      cmd = %Q(FACTER_ipaddress=XXX #{@puppet_apply_cmd} -e "network::add_eth{'#{@interface}': bootproto => '#{bootproto}', onboot => 'yes')
 
       if bootproto == 'none'
         ipaddress   = @config_items.fetch( 'ipaddress'   ).value

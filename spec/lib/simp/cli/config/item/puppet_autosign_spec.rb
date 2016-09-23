@@ -1,7 +1,7 @@
 require 'simp/cli/config/item/puppet_autosign'
 require 'simp/cli/config/item/hostname'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::PuppetAutosign do
   before :each do
@@ -46,7 +46,7 @@ describe Simp::Cli::Config::Item::PuppetAutosign do
 
   describe "#apply_summary" do
     it 'reports unattempted status when #apply not called' do
-      expect(@ci.apply_summary).to eq 'Setup of autosign in /etc/puppet/autosign.conf unattempted'
+      expect(@ci.apply_summary).to eq 'Setup of autosign in /etc/puppetlabs/puppet/autosign.conf unattempted'
     end
   end
 

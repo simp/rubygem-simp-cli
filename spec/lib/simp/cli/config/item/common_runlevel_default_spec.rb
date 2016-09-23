@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/common_runlevel_default'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::CommonRunLevelDefault do
   before :each do
