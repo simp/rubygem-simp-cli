@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/ldap_bind_hash'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::LdapBindHash do
   before :each do

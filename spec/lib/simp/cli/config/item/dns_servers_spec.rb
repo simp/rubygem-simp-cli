@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/dns_servers'
 require 'simp/cli/config/item/ipaddress'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::DNSServers do
   before :all do

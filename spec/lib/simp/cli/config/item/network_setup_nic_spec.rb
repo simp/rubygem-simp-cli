@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/network_setup_nic'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::SetupNIC do
   before :each do

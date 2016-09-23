@@ -1,10 +1,9 @@
-# Generated from simp-cli-0.7.0.gem by gem2rpm -*- rpm-spec -*-
-# vim: set syntax=eruby:
 %global gemname simp-cli
 
-%global gemdir /usr/local/share/gems
+%global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global ruby_version 2.0
+%global cli_version 1.0.21
+%global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
 # unless this line is present:
@@ -12,74 +11,102 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.20
-Release: 0%{?dist}
+Version: %{cli_version}
+Release: 0
 Group: Development/Languages
 License: Apache-2.0
-URL: https://github.com/NationalSecurityAgency/rubygem-simp-cli
-Source0: %{gemname}-%{version}.gem
-# NOTE: in el6 this was ruby(abi):
-Requires: ruby(runtime_executable) => %{ruby_version}
-Requires: ruby(rubygems)
-Requires: puppet => 3
-Requires: rubygem-highline => 1.6.1
-Requires: facter => 2.2
-BuildRequires: ruby(runtime_executable) => %{ruby_version}
+URL: https://github.com/simp/rubygem-simp-cli
+Source0: %{name}-%{cli_version}-%{release}.tar.gz
+Source1: %{gemname}-%{cli_version}.gem
+Requires: puppet >= 3
+Requires: facter >= 2.2
+Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 BuildRequires: ruby(rubygems)
 BuildRequires: ruby
 BuildArch: noarch
-Provides: rubygem(%{gemname}) = %{version}
+Provides: rubygem(%{gemname}) = %{cli_version}
 
 %description
 simp-cli provides the 'simp' command to configure and manage SIMP.
 
-
 %package doc
 Summary: Documentation for %{name}
 Group: Documentation
-Requires: %{name} = %{version}-%{release}
+Requires: %{name} = %{cli_version}-%{release}
 BuildArch: noarch
 
 %description doc
 Documentation for %{name}
 
+%package highline
+Summary: A highline Gem for use with the SIMP CLI
+Version: %{highline_version}
+Release: 0
+License: GPL-2.0
+URL: https://github.com/JEG2/highline
+Source11: highline-%{highline_version}.gem
+BuildRequires: ruby(rubygems)
+BuildRequires: ruby
+BuildArch: noarch
+Provides: rubygem(%{gemname}-highline) = %{highline_version}
+
+%description highline
+simp-cli-highline is required for the proper functionality of simp-cli
 
 %prep
-%setup -q -c -T
-echo "======= %setup PWD: ${PWD}"
-echo "======= %setup gemdir: %{gemdir}"
-mkdir -p .%{gemdir}
-mkdir -p .%{_bindir} # NOTE: this is needed for el7
-gem install --local --install-dir .%{gemdir} \
-            --bindir .%{_bindir} \
-            --force %{SOURCE0}
+%setup -q
 
 %build
 
 %install
-mkdir -p %{buildroot}%{gemdir}
-cp -pa .%{gemdir}/* \
-        %{buildroot}%{gemdir}/
+echo "======= %setup PWD: ${PWD}"
+echo "======= %setup gemdir: %{gemdir}"
 
-mkdir -p %{buildroot}%{_bindir}
-cp -pa .%{_bindir}/* \
-        %{buildroot}%{_bindir}/
+mkdir -p %{buildroot}/%{gemdir}
+mkdir -p %{buildroot}/%{_bindir} # NOTE: this is needed for el7
+gem install --local --install-dir %{buildroot}/%{gemdir} --force %{SOURCE1}
 
-find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
+cd ext/gems/highline
+gem install --local --install-dir %{buildroot}/%{gemdir} --force %{SOURCE11}
+cd -
+
+cat <<EOM > %{buildroot}%{_bindir}/simp
+#!/bin/bash
+
+PATH=/opt/puppetlabs/bin:/opt/puppetlabs/puppet/bin:\$PATH
+
+%{geminstdir}/bin/simp \$@
+
+EOM
 
 %files
-%dir %{geminstdir}
-%{_bindir}/simp
-%{geminstdir}/bin
-%{geminstdir}/lib
-%exclude %{gemdir}/cache/%{gemname}-%{version}.gem
-%{gemdir}/specifications/%{gemname}-%{version}.gemspec
+%defattr(0644, root, root, 0755)
+%{geminstdir}
+%attr(0755,-,-) %{geminstdir}/bin/simp
+%attr(0755,-,-) %{_bindir}/simp
+%exclude %{gemdir}/cache/%{gemname}-%{cli_version}.gem
+%{gemdir}/specifications/%{gemname}-%{cli_version}.gemspec
+
+%files highline
+%defattr(0644, root, root, 0755)
+%{gemdir}/gems/highline-%{highline_version}
+%exclude %{gemdir}/cache/highline-%{highline_version}.gem
+%{gemdir}/specifications/highline-%{highline_version}.gemspec
 
 %files doc
-%doc %{gemdir}/doc/%{gemname}-%{version}
-
+%doc %{gemdir}/doc
 
 %changelog
+* Sat Oct 01 2016 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0.22-0
+- Changes made to support both SIMP 6 and legacy versions.
+- Bundled in highline
+
+* Thu Sep 22 2016 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0.21-0
+- Updated the Rakefile to use the simp-rake-helpers file
+- Updated the SIMP command line to install to /usr/share/simp/ruby and to use
+  the AIO ruby if present and the system ruby otherwise.
+- Ensure that the 'simp' executable is installed to the actual system bindir
+
 * Fri Aug 12 2016 Liz Nemsick <lnemsick.simp@gmail.com> - 1.0.20-0
 - Fix array formatting bugs present when 'simp config' is used with
   Ruby 1.8.7.
@@ -168,3 +195,4 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 * Fri Mar 06 2015 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.0-0
 - Initial package
 
+# vim: set syntax=eruby:

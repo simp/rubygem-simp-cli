@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/ldap_uri'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::LdapUri do
   before :each do

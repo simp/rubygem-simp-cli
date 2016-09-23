@@ -40,7 +40,7 @@ gemspec
 # mandatory gems
 gem 'bundler'
 gem 'rake'
-gem 'highline', '~> 1.6.1'  # NOTE: This is the latest Ruby 1.8.7 can use.
+gem 'highline', :path => 'ext/gems/highline'
 gem 'puppet', puppetversion
 gem 'facter'
 gem 'json_pure', ruby_is_old ? '1.5.5' : '~> 1.8.0'
@@ -75,4 +75,5 @@ group :development do
   gem 'gitlog-md'
 
   gem 'rubocop'
+  gem 'simp-rake-helpers'
 end

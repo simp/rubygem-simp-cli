@@ -1,5 +1,5 @@
+require 'spec_helper'
 require 'simp/cli/commands/config'
-require_relative( '../spec_helper' )
 require 'fileutils'
 require 'set'
 require 'tmpdir'
@@ -216,18 +216,22 @@ describe Simp::Cli::Commands::Config do
       end
 
       summary = @output.string.split('Summary of Applied Changes')[1]
-      expect(summary).to match /No digest algorithm adjustment necessary since FIPS is not enabled/m
-      expect(summary).to match /Configuration of a network interface skipped/m
-      expect(summary).to match /Setting of hostname skipped/m
-      expect(summary).to match /Setting of GRUB password skipped/m
-      expect(summary).to match /FakeCA certificate generation for SIMP skipped/m
-      expect(summary).to match /Rename of puppet.your.domain.yaml template to <host>.yaml skipped/m
-      expect(summary).to match /YUM Update repo configuration and update to simp::yum::enable_simp_repos in <host>.yaml skipped/m
-      expect(summary).to match /Setup of autosign in \/etc\/puppet\/autosign.conf skipped/m
-      expect(summary).to match /Update to Puppet settings in \/etc\/puppet\/puppet.conf skipped/m
-      expect(summary).to match /Update to \/etc\/hosts to ensure puppet server entries exist skipped/m
-      expect(summary).to match /Addition of simp::ldap_server to <host>.yaml skipped/m
-      expect(summary).to match /Creation of \/etc\/puppet\/environments\/simp\/hieradata\/simp_def.yaml skipped/m
+      expect(summary).to match %r{No digest algorithm adjustment necessary since FIPS is not enabled}m
+      expect(summary).to match %r{Configuration of a network interface skipped}m
+      expect(summary).to match %r{Setting of hostname skipped}m
+      expect(summary).to match %r{Setting of GRUB password skipped}m
+      expect(summary).to match %r{FakeCA certificate generation for SIMP skipped}m
+      expect(summary).to match %r{Rename of puppet.your.domain.yaml template to <host>.yaml skipped}m
+      expect(summary).to match %r{YUM Update repo configuration and update to simp::yum::enable_simp_repos in <host>.yaml skipped}m
+      expect(summary).to match %r{Setup of autosign in /etc/puppetlabs/puppet/autosign.conf skipped}m
+      expect(summary).to match %r{Update to Puppet settings in /etc/puppetlabs/puppet/puppet.conf skipped}m
+      expect(summary).to match %r{Update to /etc/hosts to ensure puppet server entries exist skipped}m
+      expect(summary).to match %r{Addition of simp::ldap_server to <host>.yaml skipped}m
+
+      # The prefix of this path is going to depend explicitly on where Puppet
+      # is installed on your system since this is not hard coded in the
+      # environment.
+      expect(summary).to match /Creation of .*\/environments\/simp\/hieradata\/simp_def.yaml skipped/m
       expect(summary).to match /#{@output_file} created/m
     end
 

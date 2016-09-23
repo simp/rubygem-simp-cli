@@ -1,6 +1,37 @@
 #!/usr/bin/env ruby
 
-$LOAD_PATH << File.expand_path( '../lib', File.dirname(__FILE__) )
-require 'simp/cli'
-exit Simp::Cli.start
+# Check for Puppet 4 and use it if present
+if File.directory?('/opt/puppetlabs/puppet/lib/ruby')
+  $LOAD_PATH.unshift(Dir.glob('/opt/puppetlabs/puppet/lib/ruby/*'))
+  $LOAD_PATH.flatten!
+end
 
+if File.directory?('/opt/puppetlabs/puppet/bin')
+  ENV['PATH'] = '/opt/puppetlabs/puppet/bin:' + ENV['PATH']
+end
+
+$LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), '../lib')))
+Gem.path.unshift(File.expand_path(File.join(File.dirname(__FILE__), '../../..')))
+
+# Having extra, or missing, libraries in the Fact path doesn't hurt anything.
+fact_paths = [
+  %(/usr/share/simp/modules/stdlib/lib/facter),
+  %(/usr/share/simp/modules/simplib/lib/facter),
+  ENV['FACTER_PATH']
+]
+
+require 'rubygems'
+require 'simp/cli'
+require 'facter'
+
+# This is needed for calls to the Facter module directly
+fact_paths.each do |fpath|
+  Facter.search(fpath)
+end
+
+Facter.loadfacts
+
+# This is needed for laters calls to facter via Puppet
+ENV['FACTER_PATH'] = fact_paths.join(':')
+
+exit Simp::Cli.start

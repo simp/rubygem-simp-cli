@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/ntp_servers'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::NTPServers do
   before :each do

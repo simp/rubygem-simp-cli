@@ -7,6 +7,9 @@ end
 class Simp::Cli::Config::Utils
   DEFAULT_PASSWORD_LENGTH = 32
   class << self
+
+    require 'simp/cli/lib/utils'
+
     def validate_fqdn fqdn
       # snarfed from:
       #   https://www.safaribooksonline.com/library/view/regular-expressions-cookbook/9781449327453/ch08s15.html
@@ -108,8 +111,9 @@ class Simp::Cli::Config::Utils
 
     def generate_certificates(
           hostnames,
-          ca_dir='/etc/puppet/environments/simp/FakeCA'
+          ca_dir = ::Utils.puppet_info[:fake_ca_path]
         )
+
       result = true
       Dir.chdir( ca_dir ) do
         File.open('togen', 'w'){|file| hostnames.each{ |host| file.puts host }}

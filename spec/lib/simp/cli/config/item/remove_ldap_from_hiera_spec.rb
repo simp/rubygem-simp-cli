@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/remove_ldap_from_hiera'
 require 'simp/cli/config/item/hostname'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::RemoveLdapFromHiera do
   before :each do
