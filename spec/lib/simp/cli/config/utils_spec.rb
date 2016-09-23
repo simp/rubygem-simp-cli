@@ -1,6 +1,6 @@
 require 'simp/cli/config/utils'
 require 'rspec/its'
-require_relative 'spec_helper'
+require 'spec_helper'
 
 describe Simp::Cli::Config::Utils do
   describe ".validate_fqdn" do
@@ -125,6 +125,9 @@ describe Simp::Cli::Config::Utils do
   describe ".generate_certificates" do
     it "runs './gencerts_nopass.sh auto' in the FakeCA dir" do
       # TODO: scaffold a FakeCA dir, cacertkey, and ./gencerts_nopass.sh?
+
+      #expect( Simp::Cli::Config::Utils.generate_certificates('foo')).to_not raise_exception
+
       skip 'How should we test this?'
     end
   end

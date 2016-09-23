@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/puppet_server_ip'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::PuppetServerIP do
   before :each do

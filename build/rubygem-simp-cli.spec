@@ -1,10 +1,8 @@
-# Generated from simp-cli-0.7.0.gem by gem2rpm -*- rpm-spec -*-
-# vim: set syntax=eruby:
 %global gemname simp-cli
 
-%global gemdir /usr/local/share/gems
+#%global gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
+%global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global ruby_version 2.0
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
 # unless this line is present:
@@ -12,19 +10,16 @@
 
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
-Version: 1.0.20
-Release: 0%{?dist}
+Version: 1.0.21
+Release: 0
 Group: Development/Languages
 License: Apache-2.0
-URL: https://github.com/NationalSecurityAgency/rubygem-simp-cli
-Source0: %{gemname}-%{version}.gem
-# NOTE: in el6 this was ruby(abi):
-Requires: ruby(runtime_executable) => %{ruby_version}
-Requires: ruby(rubygems)
-Requires: puppet => 3
-Requires: rubygem-highline => 1.6.1
-Requires: facter => 2.2
-BuildRequires: ruby(runtime_executable) => %{ruby_version}
+URL: https://github.com/simp/rubygem-simp-cli
+Source0: %{name}-%{version}-%{release}.tar.gz
+Source1: %{gemname}-%{version}.gem
+Requires: puppet >= 3
+Requires: rubygem-highline >= 1.6.1
+Requires: facter >= 2.2
 BuildRequires: ruby(rubygems)
 BuildRequires: ruby
 BuildArch: noarch
@@ -32,7 +27,6 @@ Provides: rubygem(%{gemname}) = %{version}
 
 %description
 simp-cli provides the 'simp' command to configure and manage SIMP.
-
 
 %package doc
 Summary: Documentation for %{name}
@@ -43,43 +37,43 @@ BuildArch: noarch
 %description doc
 Documentation for %{name}
 
-
 %prep
-%setup -q -c -T
-echo "======= %setup PWD: ${PWD}"
-echo "======= %setup gemdir: %{gemdir}"
-mkdir -p .%{gemdir}
-mkdir -p .%{_bindir} # NOTE: this is needed for el7
-gem install --local --install-dir .%{gemdir} \
-            --bindir .%{_bindir} \
-            --force %{SOURCE0}
+%setup -q
 
 %build
 
 %install
-mkdir -p %{buildroot}%{gemdir}
-cp -pa .%{gemdir}/* \
-        %{buildroot}%{gemdir}/
+echo "======= %setup PWD: ${PWD}"
+echo "======= %setup gemdir: %{gemdir}"
 
-mkdir -p %{buildroot}%{_bindir}
-cp -pa .%{_bindir}/* \
-        %{buildroot}%{_bindir}/
+mkdir -p %{buildroot}/%{gemdir}
+mkdir -p %{buildroot}/%{_bindir} # NOTE: this is needed for el7
+gem install --local --install-dir %{buildroot}/%{gemdir} --force %{SOURCE1}
 
-find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
+cat <<EOM > %{buildroot}%{_bindir}/simp
+#!/bin/bash
+
+/usr/share/simp/ruby/gems/simp-cli/bin/simp $@
+EOM
 
 %files
-%dir %{geminstdir}
-%{_bindir}/simp
-%{geminstdir}/bin
-%{geminstdir}/lib
+%defattr(0644, root, root, 0755)
+%{geminstdir}
+%attr(0755,-,-) %{_bindir}/simp
+%attr(0755,-,-) %{gemdir}/bin/simp
 %exclude %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
 %files doc
 %doc %{gemdir}/doc/%{gemname}-%{version}
 
-
 %changelog
+* Thu Sep 22 2016 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0.21-0
+- Updated the Rakefile to use the simp-rake-helpers file
+- Updated the SIMP command line to install to /usr/share/simp/ruby and to use
+  the AIO ruby if present and the system ruby otherwise.
+- Ensure that the 'simp' executable is installed to the actual system bindir
+
 * Fri Aug 12 2016 Liz Nemsick <lnemsick.simp@gmail.com> - 1.0.20-0
 - Fix array formatting bugs present when 'simp config' is used with
   Ruby 1.8.7.
@@ -168,3 +162,4 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 * Fri Mar 06 2015 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.0-0
 - Initial package
 
+# vim: set syntax=eruby:

@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/rsync_server'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::RsyncServer do
   before :each do

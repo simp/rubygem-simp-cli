@@ -1,5 +1,5 @@
 require 'simp/cli/config/item/puppetdb_server'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::PuppetDBServer do
   before :each do

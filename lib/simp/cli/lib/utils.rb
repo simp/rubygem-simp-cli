@@ -1,7 +1,53 @@
 module Utils
+
   module_function
 
   DEFAULT_PASSWORD_LENGTH = 32
+
+  class PuppetInfo
+    attr_reader :system_puppet_info
+
+    def initialize
+      config = get_config
+
+      # Kill the comments and blanks if any exists
+      config_hash = Hash.new
+      config.each do |line|
+        next if line =~ /^\s*(#.*)?$/
+
+        param,value = line.split('=')
+        param.strip!
+        value.strip!
+
+        value = nil if value.empty?
+        config_hash[param] = value
+      end
+
+      # Check for Puppet 4 paths first
+      if config_hash['codedir']
+        environment_path = File.join(config_hash['codedir'], 'environments')
+      else
+        environment_path = File.join(config_hash['confdir'], 'environments')
+      end
+
+      @system_puppet_info = {
+        :config => config_hash,
+        :environment_path => environment_path,
+        :simp_environment_path => File.join(environment_path, 'simp'),
+        :fake_ca_path => File.join(environment_path, 'simp', 'FakeCA')
+      }
+    end
+
+    def get_config
+      return %x{puppet config print}.lines
+    end
+  end
+
+  def puppet_info
+    @@puppet_info ||= PuppetInfo.new
+
+    return @@puppet_info.system_puppet_info
+  end
 
   def yes_or_no(prompt, default_yes)
     print prompt + (default_yes ? ' [Y|n]: ' : ' [y|N]: ')
@@ -95,17 +141,6 @@ module Utils
       value = STDIN.gets.strip
     end
     value
-  end
-
-  def generate_certificates(hostname)
-    Dir.chdir('/etc/puppet/Config/FakeCA') do
-      file = File.open('togen', 'w')
-      file.puts hostname
-      file.close
-
-      passphrase = `cat cacertkey`.chomp
-      system('./gencerts_nopass.sh auto')
-    end
   end
 
   def valid_ip?(value)

@@ -1,3 +1,5 @@
+require 'spec_helper'
+
 shared_examples 'a child of Simp::Cli::Config::Item' do
   describe '#to_yaml_s' do
     it 'does not contain FIXME' do

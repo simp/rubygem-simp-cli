@@ -75,4 +75,5 @@ group :development do
   gem 'gitlog-md'
 
   gem 'rubocop'
+  gem 'simp-rake-helpers', '~> 2.0'
 end
