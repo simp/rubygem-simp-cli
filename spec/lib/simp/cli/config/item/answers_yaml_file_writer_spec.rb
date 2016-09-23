@@ -2,7 +2,7 @@ require 'simp/cli/config/item/answers_yaml_file_writer'
 require 'simp/cli/config/item/puppet_server'
 require 'simp/cli/config/item/puppet_server_ip'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::AnswersYAMLFileWriter do
   before :all do

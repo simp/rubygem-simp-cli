@@ -10,16 +10,11 @@ module Simp::Cli::Config
 
     def initialize
       super
+      @file        = File.join(::Utils.puppet_info[:config]['confdir'], 'puppet.conf')
       @key         = 'puppet::conf'
-      @description = 'Configures /etc/puppet/puppet.conf; action-only.'
-      # FIXME: this path will change with Puppet Enterprise; should this autodetect?
-      @file        = '/etc/puppet/puppet.conf'
+      @description = "Configures #{@file}; action-only."
     end
 
-    # NOTE: This is (mostly) lifted straight from the old simp config
-    # TODO: refactor sed statements to pure ruby,
-    #       consider using IO handles instead of File.open (easier to test in memory)?
-    #       or use Puppet::Settings ( https://github.com/puppetlabs/puppet/blob/master/lib/puppet/settings.rb )?
     def apply
       @applied_status = :failed
       say_green "Updating #{@file}..." if !@silent
@@ -29,20 +24,23 @@ module Simp::Cli::Config
         return
       end
 
+      success = true
       backup_file = "#{@file}.pre_simpconfig"
       FileUtils.cp("#{@file}", backup_file)
       `sed -i '/^\s*server.*/d'          #{@file}`
       `sed -i '/.*trusted_node_data.*/d' #{@file}`
       `sed -i '/.*digest_algorithm.*/d'  #{@file}`
       `sed -i '/.*stringify_facts.*/d'   #{@file}`
-      `sed -i '/.*environment_path.*/d'  #{@file}`
-      `sed -i '/^.main./ a \\    trusted_node_data = true\'   #{@file}`
-      `sed -i '/^.main./ a \\    digest_algorithm  = sha256\' #{@file}`
-      `sed -i '/^.main./ a \\    stringify_facts   = false\'  #{@file}`
-      `sed -i '/^.main./ a \\    environmentpath   = /etc/puppet/environments\' #{@file}`
-      `sed -i '/trusted_node_data/ a \\    server            = #{@config_items.fetch( 'puppet::server' ).value}\' #{@file}`
+
+      %x{puppet config set trusted_node_data true}
+      success &&= $?.success?
+      %x{puppet config set digest_algorithm sha256}
+      success &&= $?.success?
+      %x{puppet config set stringify_facts false}
+      success &&= $?.success?
       keylength = @config_items.fetch( 'use_fips', nil )? '2048' : '4096'
-      `sed -i '/^.main./ a \\    keylength         = #{keylength}\' #{@file}`
+      %x{puppet config set keylength #{keylength}}
+      success &&= $?.success?
 
       # do not die if config items aren't found
       puppet_server  = 'puppet.change.me'
@@ -58,43 +56,14 @@ module Simp::Cli::Config
         puppet_ca_port = item.value
       end
 
-      puppet_conf = File.readlines(@file)
-      File.open("#{@file}", 'w') do |out_file|
-        line_check = {
-          'server'    => false,
-          'ca_server' => false,
-          'ca_port'   => false
-        }
-        puppet_conf.each do |line|
-          if line !~ /^\s*(#{line_check.keys.join('|')})(\s*=\s*)/
-            out_file.puts line
-          else
-            $1.chomp
-            line_check[$1] = true
-            case $1
-              when 'server' then
-                out_file.puts "    #{$1}#{$2}#{puppet_server}"
-              when 'ca_server' then
-                out_file.puts "    #{$1}#{$2}#{puppet_ca}"
-              when 'ca_port' then
-                out_file.puts "    #{$1}#{$2}#{puppet_ca_port}"
-            end
-          end
-        end
-        line_check.keys.each do |key|
-          if not line_check[key] then
-            case key
-              when 'server' then
-                out_file.puts "    server    = #{puppet_server}"
-              when 'ca_server' then
-                out_file.puts "    ca_server = #{puppet_ca}"
-              when 'ca_port' then
-                out_file.puts "    ca_port   = #{puppet_ca_port}"
-            end
-          end
-        end
-      end
-      @applied_status = :succeeded
+      %x{puppet config set server #{puppet_server}}
+      success &&= $?.success?
+      %x{puppet config set ca_server #{puppet_ca}}
+      success &&= $?.success?
+      %x{puppet config set ca_port #{puppet_ca_port}}
+      success &&= $?.success?
+
+      @applied_status = success ? :succeeded : :failed
     end
 
     def apply_summary

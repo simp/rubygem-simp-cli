@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/dns_search'
 require 'simp/cli/config/item/hostname'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::DNSSearch do
   before :all do

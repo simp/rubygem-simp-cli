@@ -10,7 +10,7 @@ module Simp::Cli::Config
       super
       @key         = 'puppet::autosign'
       @description = %Q{By default, the only host eligible for autosign is the Puppet master; action-only.}
-      @file        = '/etc/puppet/autosign.conf'
+      @file        = File.join(::Utils.puppet_info[:config]['confdir'], 'autosign.conf')
     end
 
     def os_value

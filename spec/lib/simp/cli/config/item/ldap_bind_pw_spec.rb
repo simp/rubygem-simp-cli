@@ -1,5 +1,5 @@
 require 'simp/cli/config/item/ldap_bind_pw'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::LdapBindPw do
   before :each do
