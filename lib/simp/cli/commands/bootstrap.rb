@@ -189,9 +189,9 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     FileUtils.mkdir_p('/var/lib/puppet/pserver_tmp')
     FileUtils.chown('puppet','puppet','/var/lib/puppet/pserver_tmp')
-    system(%{puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver' match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m -Djava.io.tmpdir=/var/lib/puppet/pserver_tmp"' 2>&1 > /dev/null})
-    system(%{puppet resource simp_file_line puppetserver path='/etc/puppetserver/conf.d/webserver.conf' match='^\\s*ssl-host' line='    ssl-host = 0.0.0.0' 2>&1 > /dev/null})
-    system(%{puppet resource simp_file_line puppetserver path='/etc/puppetserver/conf.d/webserver.conf' match='^\\s*ssl-port' line='    ssl-port = 8150' 2>&1 > /dev/null})
+    system(%{puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver' match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m -Djava.io.tmpdir=/var/lib/puppet/pserver_tmp"' > /dev/null 2>&1})
+    system(%{puppet resource simp_file_line puppetserver path='/etc/puppetserver/conf.d/webserver.conf' match='^\\s*ssl-host' line='    ssl-host = 0.0.0.0' > /dev/null 2>&1})
+    system(%{puppet resource simp_file_line puppetserver path='/etc/puppetserver/conf.d/webserver.conf' match='^\\s*ssl-port' line='    ssl-port = 8150' > /dev/null 2>&1})
 
     puts
 
@@ -263,7 +263,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     puts "*** SIMP Bootstrap Complete! ***"
     puts "Duration of complete bootstrap: #{Time.now - bootstrap_start_time} seconds" if @verbose
 
-    if !system('ps -C httpd 2>&1 > /dev/null') && (linecounts.include?(-1) || (linecounts.uniq.length < linecounts.length))
+    if !system('ps -C httpd > /dev/null 2>&1') && (linecounts.include?(-1) || (linecounts.uniq.length < linecounts.length))
       puts "   \033[1mWarning\033[0m: Primitive checks indicate there may have been issues."
       puts "   Check '#{@logfile.path}' for details."
       puts "   Please run 'puppet agent -t' by hand to debug your configuration."
