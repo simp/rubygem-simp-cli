@@ -20,7 +20,7 @@ class Simp::Cli::Commands::Config  < Simp::Cli
 
     :input_file         => nil,
     :output_file        => File.expand_path( DEFAULT_OUTFILE ),
-    :puppet_system_file => '/etc/puppet/environments/simp/hieradata/simp_def.yaml',
+    :puppet_system_file => "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/simp_def.yaml",
 
     :use_safety_save         => true,
     :autoaccept_safety_save  => false,
@@ -231,7 +231,7 @@ EOM
     return if @help_requested
 
     # Ensure that custom facts are available before the first pluginsync
-    %x{puppet config print modulepath}.strip.split(':').each do |dir|
+    ::Utils.puppet_info[:config]['modulepath'].split(':').each do |dir|
       next unless File.directory?(dir)
       Find.find(dir) do |mod_path|
         fact_path = File.expand_path('lib/facter', mod_path)

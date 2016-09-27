@@ -1,6 +1,6 @@
 require 'simp/cli/config/item/puppet_ca_port'
 require 'rspec/its'
-require_relative( 'spec_helper' )
+require_relative 'spec_helper'
 
 describe Simp::Cli::Config::Item::PuppetCAPort do
   before :each do
