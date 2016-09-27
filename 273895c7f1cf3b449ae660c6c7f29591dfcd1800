@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_cb47d6a1",
+        "filename": "build/rubygem-simp-cli.spec",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1004834
+      },
+      "writtenOn": "2016-09-27T23:49:47Z",
+      "side": 1,
+      "message": "It doesn\u0027t overwrite it, its a different location.",
+      "parentUuid": "baa041b7_6b7e8a1c",
+      "revId": "273895c7f1cf3b449ae660c6c7f29591dfcd1800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8bbf8ecf",
         "filename": "lib/simp/cli/config/item/puppet_conf.rb",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-27T21:31:38Z",
       "side": 1,
       "message": "this changes addresses FIXME",
+      "revId": "273895c7f1cf3b449ae660c6c7f29591dfcd1800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_8bcc2e36",
+        "filename": "lib/simp/cli/config/item/puppet_conf.rb",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1004834
+      },
+      "writtenOn": "2016-09-27T23:49:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "baa041b7_8bbf8ecf",
       "revId": "273895c7f1cf3b449ae660c6c7f29591dfcd1800",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_abc7f210",
+        "filename": "lib/simp/cli/config/item/puppet_conf.rb",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1004834
+      },
+      "writtenOn": "2016-09-27T23:49:47Z",
+      "side": 1,
+      "message": "This is all super dead with the next release. But, yes, the environmentpath is always correctly set natively now.",
+      "parentUuid": "baa041b7_2bcf6280",
+      "revId": "273895c7f1cf3b449ae660c6c7f29591dfcd1800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8b8d4e33",
         "filename": "lib/simp/cli/lib/utils.rb",
         "patchSetId": 1
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_6bcd6a2f",
+        "filename": "lib/simp/cli/lib/utils.rb",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1004834
+      },
+      "writtenOn": "2016-09-27T23:49:47Z",
+      "side": 1,
+      "message": "This is true, but it\u0027s the only part that we actually use.",
+      "parentUuid": "baa041b7_8b8d4e33",
+      "revId": "273895c7f1cf3b449ae660c6c7f29591dfcd1800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_4b83c603",
         "filename": "spec/spec_helper.rb",
         "patchSetId": 1
@@ -81,6 +153,24 @@
       "writtenOn": "2016-09-27T21:31:38Z",
       "side": 1,
       "message": "What is the mechanism to set puppet_version?",
+      "revId": "273895c7f1cf3b449ae660c6c7f29591dfcd1800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "baa041b7_4bd2a6d2",
+        "filename": "spec/spec_helper.rb",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1004834
+      },
+      "writtenOn": "2016-09-27T23:49:47Z",
+      "side": 1,
+      "message": "let(:puppet_version)",
+      "parentUuid": "baa041b7_4b83c603",
       "revId": "273895c7f1cf3b449ae660c6c7f29591dfcd1800",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
