@@ -37,6 +37,23 @@
     },
     {
       "key": {
+        "uuid": "baa041b7_0baede2d",
+        "filename": "build/rubygem-simp-cli.spec",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1008746
+      },
+      "writtenOn": "2016-09-28T00:12:12Z",
+      "side": 1,
+      "message": "Looking at this line more closely.  I thought it was overwriting %{_bindir}/simp generated for the gem. Looks like this is cat\u0027ing a string to a directory?  Shouldn\u0027t this be to a file?  What am I missing?",
+      "revId": "273895c7f1cf3b449ae660c6c7f29591dfcd1800",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "baa041b7_8bbf8ecf",
         "filename": "lib/simp/cli/config/item/puppet_conf.rb",
         "patchSetId": 1
