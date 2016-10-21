@@ -16,9 +16,9 @@ Gem.path.unshift(File.expand_path(File.join(File.dirname(__FILE__), '../../..'))
 # Having extra, or missing, libraries in the Fact path doesn't hurt anything.
 fact_paths = [
   %(/usr/share/simp/modules/stdlib/lib/facter),
-  %(/usr/share/simp/modules/simplib/lib/facter),
-  ENV['FACTER_PATH']
+  %(/usr/share/simp/modules/simplib/lib/facter)
 ]
+fact_paths << ENV['FACTER_PATH'] unless ENV['FACTER_PATH'].nil? or ENV['FACTER_PATH'].empty?
 
 require 'rubygems'
 require 'simp/cli'

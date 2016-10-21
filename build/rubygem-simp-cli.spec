@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 1.0.21
+%global cli_version 1.0.23
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -97,6 +97,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Oct 20 2016 Liz Nemsick <lnemsick.simp@gmail.com> - 1.0.23-0
+- Fix minor bug causing spec tests to fail
+
 * Sat Oct 01 2016 Trevor Vaughan <tvaughan@onyxpoint.com> - 1.0.22-0
 - Changes made to support both SIMP 6 and legacy versions.
 - Bundled in highline
