@@ -5,5 +5,5 @@
 /.rspec_system
 /.bundle
 /vendor
-/Gemfile.lock
+Gemfile.lock
 spec/lib/simp/cli/config/item/tmp/

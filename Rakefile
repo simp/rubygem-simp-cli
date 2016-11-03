@@ -95,6 +95,6 @@ namespace :pkg do
     end
   end
 
-  task :rpm => [:gem]
+  Rake::Task[:rpm].prerequisites.unshift(:gem)
 end
 # vim: syntax=ruby
