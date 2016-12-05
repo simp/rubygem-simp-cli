@@ -152,8 +152,13 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     FileUtils.mkpath(File.dirname(logfilepath)) unless File.exists?(logfilepath)
     @logfile = File.open(logfilepath, 'w')
 
+    puppet_major_version = `puppet --version`.chomp.split('.').first
     # Define the puppet command call and the run command options
-    pupcmd = 'puppet agent --pluginsync --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150'
+    pupcmd = 'puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150'
+    if puppet_major_version == '3'
+      pupcmd += " --pluginsync"
+    end
+
     pupruns = [
       'pki,stunnel,concat',
       'firstrun,concat',
@@ -228,7 +233,10 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     # From this point on, run puppet without specifying the masterport since
     # puppetserver is configured.
-    pupcmd = "puppet agent --pluginsync --onetime --no-daemonize --no-show_diff --verbose --no-splay"
+    pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay"
+    if puppet_major_version == '3'
+      pupcmd += " --pluginsync"
+    end
 
     # Run puppet agent up to 3X to get slapd running (unless it already is)
     # If this fails, LDAP is probably not configured right

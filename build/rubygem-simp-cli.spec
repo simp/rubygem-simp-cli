@@ -97,6 +97,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon Dec 05 2016 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.24-0
+- Suppress `--pluginsync` unless Puppet version is `3.x`
+
 * Thu Oct 20 2016 Liz Nemsick <lnemsick.simp@gmail.com> - 1.0.23-0
 - Fix minor bug causing spec tests to fail
 
