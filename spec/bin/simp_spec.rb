@@ -13,7 +13,7 @@ def execute(command, input_file = nil)
   pid = spawn(command, *spawn_args)
 
   # in case we have screwed up our test
-  Timeout::timeout(10) { Process.wait(pid) }
+  Timeout::timeout(30) { Process.wait(pid) }
   exitstatus = $?.nil? ? nil : $?.exitstatus
   stdout = IO.read(stdout_file) if File.exists?(stdout_file)
   stderr = IO.read(stderr_file) if File.exists?(stderr_file)
@@ -59,8 +59,24 @@ end
 # - outputs to stdout and stderr appropriately
 describe "simp executable" do
   let(:simp_exe) { File.join(File.dirname(__FILE__), '..', '..', 'bin','simp') }
+
+  before :all do
+    env_files_dir = File.join(File.dirname(__FILE__), '..', 'lib', 'simp',
+      'cli', 'commands', 'files')
+    code_dir = File.join(ENV['HOME'], '.puppetlabs', 'etc', 'code')
+    FileUtils.mkdir_p(code_dir)
+
+# FIXME without :verbose option, copy doesn't copy all....
+#    FileUtils.cp_r(File.join(env_files_dir, 'environments'), code_dir)
+    FileUtils.cp_r(File.join(env_files_dir, 'environments'), code_dir, :verbose => true)
+  end
+
   before :each do
     @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
+    @simp_config_args = 
+      "-o #{File.join(@tmp_dir, 'simp_conf.yaml')}" +
+      "-p #{File.join(@tmp_dir, 'simp_config_settings.yaml')}" +
+      "-l #{File.join(@tmp_dir, 'simp_config.log')}"
   end
 
   after :each do
@@ -70,29 +86,29 @@ describe "simp executable" do
   context "when run" do
     it "handles lack of command line arguments" do
       results = execute(simp_exe)
-      expect(results[:exitstatus]).to be 0
+      expect(results[:exitstatus]).to eq 0
       expect(results[:stdout]).to match(/Usage: simp \[command\]/)
       expect(results[:stderr]).to be_empty
     end
 
     it "handles command line arguments" do
       results = execute("#{simp_exe} config -h")
-      expect(results[:exitstatus]).to be 0
+      expect(results[:exitstatus]).to eq 0
       expect(results[:stdout]).to match(/=== The SIMP Configuration Tool ===/)
       expect(results[:stderr]).to be_empty
     end
 
     it "processes console input" do
       stdin_file = File.join(File.dirname(__FILE__), 'files', 'simp_config_full_stdin_file')
-      results = execute("#{simp_exe} config -o #{File.join(@tmp_dir, 'simp.yaml')}", stdin_file)
+      results = execute("#{simp_exe} config #{@simp_config_args}", stdin_file)
       if results[:exitstatus] != 0
         puts "=============stdout===================="
         puts results[:stdout]
         puts "=============stderr===================="
         puts results[:stderr]
       end
-      expect(results[:exitstatus]).to be 0
-      expect(results[:stdout].size).not_to be 0
+      expect(results[:exitstatus]).to eq 0
+      expect(results[:stdout].size).not_to eq 0
       #TODO better validation?
       #FIXME  stderr is full of the following messages
       #   "stty: 'standard input': Inappropriate ioctl for device"
@@ -101,28 +117,28 @@ describe "simp executable" do
 
     it "gracefully handles console input termination" do
       stdin_file = File.join(File.dirname(__FILE__), 'files', 'simp_config_trunc_stdin_file')
-      results = execute("#{simp_exe} config -o #{File.join(@tmp_dir, 'simp.yaml')}", stdin_file)
-      expect(results[:exitstatus]).to be 1
+      results = execute("#{simp_exe} config #{@simp_config_args}", stdin_file)
+      expect(results[:exitstatus]).to eq 1
       expect(results[:stderr]).to match(/Input terminated! Exiting/)
     end
 
     it "gracefully handles program interrupt" do
-      command = "#{simp_exe} config -o #{File.join(@tmp_dir, 'simp.yaml')}"
+      command = "#{simp_exe} config #{@simp_config_args}"
       results = execute_and_signal(command, 'INT')
-      expect(results[:exitstatus]).to be 1
+      expect(results[:exitstatus]).to eq 1
       expect(results[:stderr]).to match(/Processing interrupted! Exiting/)
     end
 
     it "handles other program-terminating signals" do
-      command = "#{simp_exe} config -o #{File.join(@tmp_dir, 'simp.yaml')}"
+      command = "#{simp_exe} config #{@simp_config_args}"
       results = execute_and_signal(command, 'HUP')
-      expect(results[:exitstatus]).to be 1
+      expect(results[:exitstatus]).to eq 1
       expect(results[:stderr]).to match(/Process received signal SIGHUP. Exiting/)
     end
 
     it "reports processing failures" do
       results = execute("#{simp_exe} bootstrap --oops")
-      expect(results[:exitstatus]).to be 1
+      expect(results[:exitstatus]).to eq 1
       expect(results[:stdout]).to be_empty
       expect(results[:stderr]).to match(
         /'bootstrap' command options error: invalid option: --oops/)
