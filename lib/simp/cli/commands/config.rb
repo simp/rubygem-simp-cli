@@ -253,7 +253,7 @@ EOM
     return if @help_requested
     @options[:start_time] = Time.now
 
-    setup_logger
+    set_up_logger
 
     # Ensure that custom facts are available before the first pluginsync
     if ::Utils.puppet_info[:config]['modulepath']  # nil in spec tests with Puppet 4
@@ -336,7 +336,7 @@ EOM
     remove_saved_session
   end
 
-  def self.setup_logger
+  def self.set_up_logger
     unless @options[:log_file]
       @options[:log_file] = File.join(SIMP_CLI_HOME, "simp_config.log.#{@options[:start_time].strftime('%Y%m%dT%H%M%S')}")
     end

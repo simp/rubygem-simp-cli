@@ -318,7 +318,7 @@ describe Simp::Cli::Commands::Config do
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set hostname",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set GRUB password",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set default Puppet environment to 'simp'",
-         "#{fmt_begin}#{skip_msg}#{fmt_end} Setup Puppet autosign",
+         "#{fmt_begin}#{skip_msg}#{fmt_end} Set up Puppet autosign",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Update Puppet settings",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Ensure Puppet server /etc/hosts entry exists",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Create SIMP server <host>.yaml from template",

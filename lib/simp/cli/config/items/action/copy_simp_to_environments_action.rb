@@ -1,4 +1,5 @@
 require File.expand_path( '../action_item', File.dirname(__FILE__) )
+require 'simp/cli/lib/utils'
 require 'fileutils'
 
 module Simp; end
@@ -53,7 +54,7 @@ module Simp::Cli::Config
     end
 
     def apply_summary
-      "Copy of SIMP environment into Puppet environment path #{@applied_status_detail}"
+      "Copy of SIMP environment into Puppet environment path #{@applied_status}"
     end
 
     def enable_copy

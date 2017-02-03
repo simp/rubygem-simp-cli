@@ -10,7 +10,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'yum::repositories::update'
-      @description = 'Setup local YUM repositories for SIMP'
+      @description = 'Set up local YUM repositories for SIMP'
       @www_yum_dir = '/var/www/yum/'
       @yumpath     = nil
       @yum_repos_d = '/etc/yum.repos.d'

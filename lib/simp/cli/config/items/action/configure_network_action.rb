@@ -49,7 +49,7 @@ module Simp::Cli::Config
       cmd += %Q@}"@
 # TODO: maybe good ideas
 #   - set $::domain with FACTER_domain=
-#   - set simplib::resolv{ named_autofonf => false
+#   - set resolv{ named_autoconf => false
 
       result = execute(cmd)
       @applied_status = :succeeded if result

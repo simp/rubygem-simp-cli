@@ -6,7 +6,7 @@ cli::network::hostname: puppet.test.local
 #cli::network::interface: PROMPT-REQUIRED  test-system specific
 cli::network::ipaddress: "1.2.3.4"
 cli::network::netmask: "255.255.255.0"
-cli::network::setup_nic: true
+cli::network::set_up_nic: true
 cli::set_grub_password: true
 cli::set_production_to_simp: true
 cli::simp::scenario: simp-lite

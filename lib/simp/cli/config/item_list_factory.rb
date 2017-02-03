@@ -218,7 +218,7 @@ class Simp::Cli::Config::ItemListFactory
 
       # ==== Network ====
       - CliNetworkInterface
-      - CliSetupNIC:  # Network info gathered and/or set here is needed by many Items
+      - CliSetUpNIC:  # Network info gathered and/or set here is needed by many Items
          true:
          - CliNetworkDHCP:
             static:                # gather info first, then configure network
@@ -265,7 +265,7 @@ class Simp::Cli::Config::ItemListFactory
       - SimpOptionsPuppetCAPort            SKIPQUERY SILENT # default is correct
       - PuppetDBMasterConfigPuppetDBServer SKIPQUERY SILENT # default is correct
       - PuppetDBMasterConfigPuppetDBPort   SKIPQUERY SILENT # default is correct
-      - SetupPuppetAutosignAction
+      - SetUpPuppetAutosignAction
       - UpdatePuppetConfAction
       - AddPuppetHostsEntryAction
       # Move the hieradata/hosts/puppet.your.domain.yaml template to

@@ -8,7 +8,6 @@ module Simp::Cli::Config
       super
       @key         = 'simp_options::ldap::root_dn'
       @description = %Q{The LDAP Root Distinguished Name.}
-
     end
 
     def recommended_value

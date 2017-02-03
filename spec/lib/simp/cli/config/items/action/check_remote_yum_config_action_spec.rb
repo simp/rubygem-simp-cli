@@ -4,7 +4,7 @@ require_relative '../spec_helper'
 describe Simp::Cli::Config::Item::CheckRemoteYumConfigAction do
   before :each do
     @ci        = Simp::Cli::Config::Item::CheckRemoteYumConfigAction.new
-#    @ci.silent = true # uncomment out this line to see log message
+    @ci.silent = true # uncomment out this line to see log message
   end
 
   describe "#apply" do
@@ -18,7 +18,7 @@ describe Simp::Cli::Config::Item::CheckRemoteYumConfigAction do
       actual_message = IO.read(warning_file)
       expect( actual_message).to eq @ci.warning_message
       expected_summary = 
-        "Your YUM configuration may be incomplete.  Verify you have setup system (OS)\n" +
+        "Your YUM configuration may be incomplete.  Verify you have set up system (OS)\n" +
         "    updates and SIMP repositories before running 'simp bootstrap'."
       expect( @ci.apply_summary ).to eq expected_summary
     end

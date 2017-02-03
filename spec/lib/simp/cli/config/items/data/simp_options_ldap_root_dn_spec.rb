@@ -7,24 +7,6 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapRootDn do
     @ci = Simp::Cli::Config::Item::SimpOptionsLdapRootDn.new
   end
 
-  describe '#os_value' do
-    it 'returns no OS value when cli::is_ldap_server is not present' do
-      expect( @ci.os_value ).to be_nil
-    end
-
-    it 'returns no OS value when cli::is_ldap_server is false' do
-      item = Simp::Cli::Config::Item::CliIsLdapServer.new
-      item.value = false
-      @ci.config_items[item.key] = item
-      expect( @ci.os_value ).to be_nil
-    end
-
-    context 'when cli::is_ldap_server is true' do
-      pending 'returns rootdn from existing /etc/openldap/sldapd.conf'
-      pending 'returns nil when that /etc/openldap/sldapd.conf does not exist'
-    end
-  end
-
   describe '#recommended_value' do
     it 'returns no value when cli::is_ldap_server is not present' do
       expect( @ci.recommended_value ).to be_nil

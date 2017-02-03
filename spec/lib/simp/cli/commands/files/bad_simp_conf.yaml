@@ -8,7 +8,7 @@ cli::network::hostname: puppet.test.local
 cli::network::interface: oops_eth
 cli::network::ipaddress: "1.2.3.4"
 cli::network::netmask: "255.255.255.0"
-cli::network::setup_nic: true
+cli::network::set_up_nic: true
 cli::puppet::server::ip: "1.2.3.4"
 cli::set_grub_password: true
 cli::set_production_to_simp: true

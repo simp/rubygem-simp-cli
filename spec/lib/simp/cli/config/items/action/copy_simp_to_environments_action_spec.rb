@@ -41,6 +41,7 @@ describe Simp::Cli::Config::Item::CopySimpToEnvironmentsAction do
       it 'reports succeeded status' do
         @ci.apply
         expect( @ci.applied_status ).to eq :succeeded
+        expect( @ci.apply_summary ).to eq 'Copy of SIMP environment into Puppet environment path succeeded'
       end
     end
 
@@ -49,6 +50,7 @@ describe Simp::Cli::Config::Item::CopySimpToEnvironmentsAction do
         ENV['MOCK_SIMP_RPM_HELPER_FAIL'] = 'simp'
         @ci.apply
         expect( @ci.applied_status ).to eq :failed
+        expect( @ci.apply_summary ).to eq 'Copy of SIMP environment into Puppet environment path failed'
       end
     end
 
@@ -57,6 +59,7 @@ describe Simp::Cli::Config::Item::CopySimpToEnvironmentsAction do
         ENV['MOCK_SIMP_RPM_HELPER_FAIL'] = 'simplib'
         @ci.apply
         expect( @ci.applied_status ).to eq :failed
+        expect( @ci.apply_summary ).to eq 'Copy of SIMP environment into Puppet environment path failed'
       end
     end
 

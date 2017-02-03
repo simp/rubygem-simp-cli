@@ -4,7 +4,7 @@ require_relative '../spec_helper'
 describe Simp::Cli::Config::Item::SetProductionToSimpAction do
   before :each do
     @ci            = Simp::Cli::Config::Item::SetProductionToSimpAction.new
-#    @ci.silent     = true # comment out this line if you want to see the messages generated
+    @ci.silent     = true # comment out this line if you want to see the messages generated
     @ci.start_time = Time.new(2017, 1, 13, 11, 42, 3)
   end
 

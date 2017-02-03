@@ -20,7 +20,7 @@ When the SIMP server is installed from ISO, it is configured via
 /etc/yum.repos.d/simp_filesystem.repo and simp::yum class parameters
 to use local system (OS) and local SIMP repositories in /var/www/yum.
 Since /etc/yum.repos.d/simp_filesystem.repo does not exist on this
-system, you must manually setup your system and SIMP repositories and
+system, you must manually set up your system and SIMP repositories and
 then set SIMP server configuration appropriately.  This must be done
 prior to 'simp bootstrap', or the boostrap will fail.
 
@@ -33,7 +33,7 @@ DOC
 
     def apply
       # TODO run 'repoquery-i simp', puts the results
-      # if returns nothing, repo is definitely not setup
+      # if returns nothing, repo is definitely not set up
       # if returns something, is this sufficient to verify?
 
       # issue a warning
@@ -50,7 +50,7 @@ DOC
 
     def apply_summary
       if @applied_status == :deferred
-      %Q{Your YUM configuration may be incomplete.  Verify you have setup system (OS)
+      %Q{Your YUM configuration may be incomplete.  Verify you have set up system (OS)
     updates and SIMP repositories before running 'simp bootstrap'.}
       else
         "Checking remote YUM configuration #{@applied_status}"

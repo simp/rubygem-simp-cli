@@ -9,7 +9,7 @@ module Simp::Cli::Config
 
     def initialize
       super
-      @key         = "puppet::hosts_entry"
+      @key         = 'puppet::hosts_entry'
       @description = 'Ensure Puppet server /etc/hosts entry exists'
       @file        = '/etc/hosts'
     end

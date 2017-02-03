@@ -45,7 +45,6 @@ Gem::Specification.new do |s|
   #### ------------
   if !ENV.fetch( 'SIMP_RPM_BUILD', false )
     s.add_runtime_dependency 'puppet',   '~> 4'
-    s.add_runtime_dependency 'facter',   '~> 2'
   end
   #### ------------
 

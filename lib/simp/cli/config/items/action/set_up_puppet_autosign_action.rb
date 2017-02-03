@@ -3,12 +3,12 @@ require File.expand_path( '../action_item', File.dirname(__FILE__) )
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
-  class Item::SetupPuppetAutosignAction < ActionItem
+  class Item::SetUpPuppetAutosignAction < ActionItem
     attr_accessor :file
     def initialize
       super
       @key         = 'puppet::autosign'
-      @description = 'Setup Puppet autosign'
+      @description = 'Set up Puppet autosign'
       @file        = File.join(::Utils.puppet_info[:config]['confdir'], 'autosign.conf')
     end
 
@@ -45,11 +45,13 @@ module Simp::Cli::Config
 
     def apply
       @applied_status = :failed
-      backup_file = "#{@file}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-      debug( "Backing up #{@file} to #{backup_file}" )
-      FileUtils.cp(@file, backup_file)
-      group_id = File.stat(@file).gid
-      File.chown(nil, group_id, backup_file)
+      if File.exist?(@file)
+        backup_file = "#{@file}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
+        debug( "Backing up #{@file} to #{backup_file}" )
+        FileUtils.cp(@file, backup_file)
+        group_id = File.stat(@file).gid
+        File.chown(nil, group_id, backup_file)
+      end
 
       entries = recommended_value
       debug( "Updating #{@file}" )

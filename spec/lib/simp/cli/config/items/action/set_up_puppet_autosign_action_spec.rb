@@ -1,9 +1,9 @@
-require 'simp/cli/config/items/action/setup_puppet_autosign_action'
+require 'simp/cli/config/items/action/set_up_puppet_autosign_action'
 require 'simp/cli/config/items/data/cli_network_hostname'
 require 'rspec/its'
 require_relative '../spec_helper'
 
-describe Simp::Cli::Config::Item::SetupPuppetAutosignAction do
+describe Simp::Cli::Config::Item::SetUpPuppetAutosignAction do
   before :each do
     @file_dir  = File.expand_path( 'files',  File.dirname( __FILE__ ) )
     @tmp_dir   = Dir.mktmpdir(File.basename(__FILE__) )
@@ -16,7 +16,7 @@ describe Simp::Cli::Config::Item::SetupPuppetAutosignAction do
       :simp_environment_path => File.join(@tmp_dir, 'environments', 'simp'),
       :fake_ca_path => File.join(@tmp_dir, 'environments', 'simp', 'FakeCA')
     } )
-    @ci        = Simp::Cli::Config::Item::SetupPuppetAutosignAction.new
+    @ci        = Simp::Cli::Config::Item::SetUpPuppetAutosignAction.new
     @ci.silent = true
     @ci.start_time = Time.new(2017, 1, 13, 11, 42, 3)
 
