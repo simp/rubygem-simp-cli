@@ -35,6 +35,14 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
     before :each do
       # remove any backup file from a previous test
       FileUtils.rm_f(@backup_file)
+
+      # set initial state of puppet config
+      `puppet config set digest_algorithm md5`
+      `puppet config set keylength 128`
+      `puppet config set server 127.0.0.1`
+      `puppet config set ca_server 127.0.0.1`
+      `puppet config set ca_port 1000`
+      `puppet config set trusted_server_facts false`
     end
 
     context 'updates puppet configuration' do
@@ -50,10 +58,11 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
         expect( `puppet config print server`.strip ).to eq @puppet_server
         expect( `puppet config print ca_server`.strip ).to eq @puppet_ca
         expect( `puppet config print ca_port`.strip ).to eq @puppet_ca_port
+        expect( `puppet config print trusted_server_facts`.strip ).to eq 'true'
         expect( File ).to exist(@backup_file)
       end
 
-      it 'backs up config file  and configures server for non-FIPS mode' do
+      it 'backs up config file and configures server for non-FIPS mode' do
         item  = Simp::Cli::Config::Item::SimpOptionsFips.new
         item.value = false
         @ci.config_items[ item.key ] = item
@@ -64,6 +73,7 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
         expect( `puppet config print server`.strip ).to eq @puppet_server
         expect( `puppet config print ca_server`.strip ).to eq @puppet_ca
         expect( `puppet config print ca_port`.strip ).to eq @puppet_ca_port
+        expect( `puppet config print trusted_server_facts`.strip ).to eq 'true'
         expect( File ).to exist(@backup_file)
       end
     end

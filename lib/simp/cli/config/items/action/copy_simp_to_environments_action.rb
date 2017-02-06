@@ -39,16 +39,19 @@ module Simp::Cli::Config
         "    #{File.dirname(@dest_dir)}" )
       cmd = "#{@copy_script} --rpm_dir=#{simp_env_dir} --rpm_section='post' --rpm_status=1" +
         " --target_dir='.'"
-      return unless execute(cmd)
+      return unless show_wait_spinner {
+        execute(cmd)
+      }
 
       modules_dir = File.join(@source_dir, 'modules')
       debug( "Copying SIMP modules installed at #{modules_dir} to \n    #{File.dirname(@dest_dir)}" )
       module_list = Dir.glob(File.join(modules_dir, '*'))
       module_list.sort.each do |module_dir|
         debug( "Copying SIMP module #{File.basename(module_dir)} to \n    #{File.dirname(@dest_dir)}")
-        print '.'
         cmd = "#{@copy_script} --rpm_dir=#{module_dir} --rpm_section='post' --rpm_status=1"
-        return unless execute(cmd)
+        return unless show_wait_spinner {
+          execute(cmd)
+        }
       end
       @applied_status = :succeeded
     end

@@ -51,7 +51,9 @@ module Simp::Cli::Config
 #   - set $::domain with FACTER_domain=
 #   - set resolv{ named_autoconf => false
 
-      result = execute(cmd)
+      result = show_wait_spinner {
+        execute(cmd)
+      }
       @applied_status = :succeeded if result
     end
 

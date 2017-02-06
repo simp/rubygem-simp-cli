@@ -26,6 +26,7 @@ module Simp::Cli::Config::Logging
 
   class Logger
     def initialize
+      @file          = nil
       @file_logger   = ::Logger.new($stdout)
       @console_level = ::Logger::ERROR
       @file_level    = ::Logger::ERROR
@@ -33,7 +34,10 @@ module Simp::Cli::Config::Logging
     end
     
     def open_logfile(file)
-      @file_logger = ::Logger.new(File.new(file, 'w'))  # overwrite existing file
+      @file.close if @file
+      @file = File.new(file, 'w')  # overwrite existing file
+      @file.sync = true            # flush after every write
+      @file_logger = ::Logger.new(@file)
       @file_logger.formatter = proc do |severity, datetime, progname, msg |
         timestamp = datetime.strftime('%Y-%m-%d %H:%M:%S')
         "#{timestamp}: #{msg}\n"
@@ -113,14 +117,15 @@ module Simp::Cli::Config::Logging
       else
         options = ", #{font_options.join(', ')}"
         extra = ''
-        if message[-1] == ' '
+        adjusted_message = message.dup
+        if adjusted_message[-1] == ' '
           # HighLine interprets a space at the end of a message to mean
           # that an ending <CR> should be omitted. We need to maintain
           # this in our formatted message.
-          formatted_message = message.chop
+          adjusted_message.chop!
           extra = ' '
         end
-        formatted_message = "<%= color(%q{#{message}}#{options}) %>#{extra}"
+        formatted_message = "<%= color(%q{#{adjusted_message}}#{options}) %>#{extra}"
       end
       formatted_message
     end

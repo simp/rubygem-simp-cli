@@ -27,14 +27,13 @@ module Simp::Cli::Config
 
       # sed only fails if file doesn't exist and we know @file exists
       # because the copy above didn't fail
+      # TODO are these seds really needed?
       execute("sed -i '/^\s*server.*/d'          #{@file}")
       execute("sed -i '/.*trusted_node_data.*/d' #{@file}")
       execute("sed -i '/.*digest_algorithm.*/d'  #{@file}")
       execute("sed -i '/.*stringify_facts.*/d'   #{@file}")
 
-      success = execute('puppet config set digest_algorithm sha256')
       keylength = get_item( 'simp_options::fips' ).value ? '2048' : '4096'
-      success = success && execute("puppet config set keylength #{keylength}")
 
       # do not die if config items aren't found
       puppet_server  = 'puppet.change.me'
@@ -50,9 +49,15 @@ module Simp::Cli::Config
         puppet_ca_port = item.value
       end
 
-      success = success && execute("puppet config set server #{puppet_server}")
-      success = success && execute("puppet config set ca_server #{puppet_ca}")
-      success = success && execute("puppet config set ca_port #{puppet_ca_port}")
+      success = show_wait_spinner {
+        config_success = execute('puppet config set digest_algorithm sha256')
+        config_success = config_success && execute("puppet config set keylength #{keylength}")
+        config_success = config_success && execute("puppet config set server #{puppet_server}")
+        config_success = config_success && execute("puppet config set ca_server #{puppet_ca}")
+        config_success = config_success && execute("puppet config set ca_port #{puppet_ca_port}")
+        config_success = config_success && execute("puppet config set trusted_server_facts true")
+        config_success
+      }
 
       @applied_status = success ? :succeeded : :failed
     end

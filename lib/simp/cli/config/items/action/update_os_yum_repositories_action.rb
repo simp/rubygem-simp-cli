@@ -31,7 +31,6 @@ module Simp::Cli::Config
                            Facter.value('operatingsystemrelease'),
                            Facter.value('architecture')
                          )
-      info( "\nThis setup may take some time... ", [:GREEN] )
       debug( "Updating YUM Updates repository at #{File.join(@yumpath, 'Updates')}" )
       begin
         Dir.chdir(@yumpath) do
@@ -39,7 +38,9 @@ module Simp::Cli::Config
           Dir.chdir('Updates') do
             execute( %q(find .. -type f -name '*.rpm' -exec ln -sf {} \\;) )
             cmd = 'createrepo -q -p --update .'
-            result = execute(cmd)
+            result = show_wait_spinner {
+              execute(cmd)
+            }
             raise YumRepoError.new("'#{cmd}' failed in #{Dir.pwd}") unless result
           end
         end
