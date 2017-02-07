@@ -6,22 +6,18 @@ class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SetServerLdapServerConfigAction < SetServerHieradataActionItem
     def initialize
-      @hiera_to_add = [
-        'simp_options::ldap::sync_pw',
-        'simp_options::ldap::sync_hash',
-        'simp_options::ldap::root_hash',
-      ]
+      @hiera_to_add = [ 'simp_openldap::server::conf::rootpw' ]
       super
       @key = 'puppet::set_server_ldap_server_config'
 
       # override with a shorter message
-      @description = 'Set LDAP Sync & Root password hashes in SIMP server <host>.yaml'
+      @description = 'Set LDAP Root password hash in SIMP server <host>.yaml'
     end
 
     # override with a shorter message
     def apply_summary
       file = @file ? File.basename(@file) : 'SIMP server <host>.yaml'
-      "Setting of LDAP Sync & Root password hashes in #{file} #{@applied_status}"
+      "Setting of LDAP Root password hash in #{file} #{@applied_status}"
     end
   end
 end

@@ -8,7 +8,6 @@ module Simp::Cli::Config
       super
       @key         = 'simp_options::ldap::sync_hash'
       @description = %Q{}
-      @data_type   = :server_hiera
       @skip_query  = true # generated from another Item, so no query required
     end
 

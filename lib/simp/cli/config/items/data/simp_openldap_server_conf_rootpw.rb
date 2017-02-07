@@ -3,10 +3,10 @@ require File.expand_path( '../password_item',  File.dirname(__FILE__) )
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
-  class Item::SimpOptionsLdapRootHash < PasswordItem
+  class Item::SimpOpenldapServerConfRootpw < PasswordItem
     def initialize
       super
-      @key                 = 'simp_options::ldap::root_hash'
+      @key                 = 'simp_openldap::server::conf::rootpw'
       @description         = %Q{The LDAP Root password hash.
 
 When set via 'simp config', it is generated from the password
@@ -18,13 +18,6 @@ entered on the command line.}
 
     def query_prompt
       'LDAP Root password'
-    end
-
-    def os_value
-      if File.readable?('/etc/openldap/slapd.conf')
-        `grep rootpw /etc/openldap/slapd.conf 2>/dev/null` =~ /\Arootpw\s+(.*)\s*/
-        $1
-      end
     end
 
     def encrypt( string, salt=nil )

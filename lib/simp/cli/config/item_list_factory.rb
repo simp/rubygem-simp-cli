@@ -301,7 +301,7 @@ class Simp::Cli::Config::ItemListFactory
               - SimpOptionsLdapBindHash    SILENT                 # never queries 
               - SimpOptionsLdapSyncPw      GENERATENOQUERY SILENT # automatically generate
               - SimpOptionsLdapSyncHash    SILENT                 # never queries
-              - SimpOptionsLdapRootHash
+              - SimpOpenldapServerConfRootpw
               - AddLdapServerClassToServerAction
               - SetServerLdapServerConfigAction
              false:
@@ -309,6 +309,8 @@ class Simp::Cli::Config::ItemListFactory
               - SimpOptionsLdapBindDn
               - SimpOptionsLdapBindPw      NEVERGENERATE
               - SimpOptionsLdapBindHash    SILENT #never queries
+              - SimpOptionsLdapSyncPw      NEVERGENERATE
+              - SimpOptionsLdapSyncHash    SILENT # never queries
               - SimpOptionsLdapMaster
               - SimpOptionsLdapUri
          false:

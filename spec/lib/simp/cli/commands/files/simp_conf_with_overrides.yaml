@@ -20,6 +20,7 @@ simp::yum::os_update_url: "http://os/path"
 simp::yum::servers:
   - "1.2.3.6"
 simp::yum::simp_update_url: "http://simp/path"
+simp_openldap::server::conf::rootpw: "{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL"
 simp_options::dns::search:
   - test.local
 simp_options::dns::servers:
@@ -31,7 +32,6 @@ simp_options::ldap: true
 simp_options::ldap::base_dn: "dc=test,dc=local"
 simp_options::ldap::bind_hash: "{SSHA}tx9ennniDQnmx83gPjCqhy6pknR89QsD"
 simp_options::ldap::bind_pw: "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm"
-simp_options::ldap::root_hash: "{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL"
 simp_options::ldap::sync_hash: "{SSHA}Y0aQ6WWCriBQGXxlEeRNdWZsX8ey3LDz"
 simp_options::ldap::sync_pw: "6Pe4*3oW0Rw.VXx2BbdvfnU2bv9x*%CB"
 simp_options::ntpd::servers: []

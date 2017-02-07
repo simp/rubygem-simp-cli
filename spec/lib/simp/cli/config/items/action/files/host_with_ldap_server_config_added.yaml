@@ -9,20 +9,12 @@ puppetdb::master::config::puppet_service_name: 'puppetserver'
 puppetdb::globals::version: 'latest'
 puppetdb::master::config::restart_puppet: false
 
-# === simp_options::ldap::sync_pw ===
-# The LDAP Sync password.
-simp_options::ldap::sync_pw: N0t=@=R#@l=Sync=P@ssw0rd
-
-# === simp_options::ldap::sync_hash ===
-# 
-simp_options::ldap::sync_hash: "{SSHA}DeadBeefDeadBeefDeadBeefDeadBeef"
-
-# === simp_options::ldap::root_hash ===
+# === simp_openldap::server::conf::rootpw ===
 # The LDAP Root password hash.
 # 
 # When set via 'simp config', it is generated from the password
 # entered on the command line.
-simp_options::ldap::root_hash: "{SSHA}deadbeefDEADBEEFdeadbeefDEADBEEF"
+simp_openldap::server::conf::rootpw: "{SSHA}deadbeefDEADBEEFdeadbeefDEADBEEF"
 
 classes :
   - 'simp::server'

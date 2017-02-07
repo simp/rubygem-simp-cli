@@ -9,7 +9,6 @@ module Simp::Cli::Config
       super
       @key           = 'simp_options::ldap::sync_pw'
       @description   = %Q{The LDAP Sync password.}
-      @data_type     = :server_hiera
       @password_name = 'LDAP Sync'
     end
 

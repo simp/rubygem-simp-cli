@@ -1,8 +1,6 @@
 require 'simp/cli/config/items/action/set_server_ldap_server_config_action'
 require 'simp/cli/config/items/data/cli_network_hostname'
-require 'simp/cli/config/items/data/simp_options_ldap_sync_pw'
-require 'simp/cli/config/items/data/simp_options_ldap_sync_hash'
-require 'simp/cli/config/items/data/simp_options_ldap_root_hash'
+require 'simp/cli/config/items/data/simp_openldap_server_conf_rootpw'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
@@ -24,15 +22,7 @@ describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
       item.value       = @fqdn
       @ci.config_items[item.key] = item
 
-      item             = Simp::Cli::Config::Item::SimpOptionsLdapSyncPw.new
-      item.value       =  'N0t=@=R#@l=Sync=P@ssw0rd'
-      @ci.config_items[item.key] = item
-
-      item             = Simp::Cli::Config::Item::SimpOptionsLdapSyncHash.new
-      item.value       = '{SSHA}DeadBeefDeadBeefDeadBeefDeadBeef'
-      @ci.config_items[item.key] = item
-
-      item             = Simp::Cli::Config::Item::SimpOptionsLdapRootHash.new
+      item             = Simp::Cli::Config::Item::SimpOpenldapServerConfRootpw.new
       item.value       = '{SSHA}deadbeefDEADBEEFdeadbeefDEADBEEF' 
       @ci.config_items[item.key] = item
     end
@@ -52,9 +42,7 @@ describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
     end
 
     it 'replaces LDAP server config <host>.yaml' do
-      @ci.config_items['simp_options::ldap::sync_pw'].value = '6Pe4*3oW0Rw.VXx2BbdvfnU2bv9x*%CB'
-      @ci.config_items['simp_options::ldap::sync_hash'].value = '{SSHA}Y0aQ6WWCriBQGXxlEeRNdWZsX8ey3LDz'
-      @ci.config_items['simp_options::ldap::root_hash'].value = '{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL'
+      @ci.config_items['simp_openldap::server::conf::rootpw'].value = '{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL'
       file = File.join(@files_dir, 'host_with_ldap_server_config_added.yaml')
       FileUtils.copy_file file, @tmp_file
 
@@ -76,37 +64,20 @@ describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
         ' could not find cli::network::hostname' )
     end
 
-    it 'fails when simp_options::ldap::sync_pw item does not exist' do
-      @ci.config_items.delete('simp_options::ldap::sync_pw')
+    it 'fails when simp_openldap::server::conf::rootpw item does not exist' do
+      @ci.config_items.delete('simp_openldap::server::conf::rootpw')
       file = File.join( @files_dir,'puppet.your.domain.yaml')
       FileUtils.copy_file file, @tmp_file
       expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
         'Internal error: Simp::Cli::Config::Item::SetServerLdapServerConfigAction' + 
-        ' could not find simp_options::ldap::sync_pw' )
-    end
-    it 'fails when simp_options::ldap::sync_hash item does not exist' do
-      @ci.config_items.delete('simp_options::ldap::sync_hash')
-      file = File.join( @files_dir,'puppet.your.domain.yaml')
-      FileUtils.copy_file file, @tmp_file
-      expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::SetServerLdapServerConfigAction' + 
-        ' could not find simp_options::ldap::sync_hash' )
-    end
-
-    it 'fails when simp_options::ldap::root_hash item does not exist' do
-      @ci.config_items.delete('simp_options::ldap::root_hash')
-      file = File.join( @files_dir,'puppet.your.domain.yaml')
-      FileUtils.copy_file file, @tmp_file
-      expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::SetServerLdapServerConfigAction' + 
-        ' could not find simp_options::ldap::root_hash' )
+        ' could not find simp_openldap::server::conf::rootpw' )
     end
   end
 
   describe '#apply_summary' do
     it 'reports unattempted status when #apply not called' do
       expect(@ci.apply_summary).to eq(
-        'Setting of LDAP Sync & Root password hashes in SIMP server <host>.yaml unattempted')
+        'Setting of LDAP Root password hash in SIMP server <host>.yaml unattempted')
     end
   end
 

@@ -1,10 +1,10 @@
-require 'simp/cli/config/items/data/simp_options_ldap_root_hash'
+require 'simp/cli/config/items/data/simp_openldap_server_conf_rootpw'
 require 'rspec/its'
 require_relative '../spec_helper'
 
-describe Simp::Cli::Config::Item::SimpOptionsLdapRootHash do
+describe Simp::Cli::Config::Item::SimpOpenldapServerConfRootpw do
   before :each do
-    @ci = Simp::Cli::Config::Item::SimpOptionsLdapRootHash.new
+    @ci = Simp::Cli::Config::Item::SimpOpenldapServerConfRootpw.new
   end
 
   describe "#encrypt" do

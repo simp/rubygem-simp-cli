@@ -67,9 +67,8 @@ def generate_simp_input_setting_values(scenario = 'simp-lite')
     "cn=hostAuth,ou=Hosts,dc=test,dc=local\n" << # LDAP bind DN
     "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm\n"      << # LDAP bind password
     "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm\n"      << # confirm LDAP bind password
-    "\n"                                      << # don't auto-generate a password
-    "MCMD3u-iTXA8O6yCoDMotMGPTeHd7IGI\n"      << # LDAP root password
-    "MCMD3u-iTXA8O6yCoDMotMGPTeHd7IGI\n"      << # confirm LDAP root password
+    "MCMD3u-iTXA8O6yCoDMotMGPTeHd7IGI\n"      << # LDAP sync password
+    "MCMD3u-iTXA8O6yCoDMotMGPTeHd7IGI\n"      << # confirm LDAP sync password
     "ldap://puppet.test.local\n"              << # LDAP root master URI
     "ldap://puppet.test.local\n"              << # OpenLDAP server URIs
     "1.2.3.11\n"                              << # log servers
@@ -114,12 +113,12 @@ def normalize(file, other_keys_to_exclude = [])
   # These config items whose values cannot be arbitrarily set
   # and/or vary each time they run.
   min_exclude_set = Set.new [
-     'simp_options::fips',            # set by FIPS mode on running system which we can't control
-     'cli::network::interface',       # depends upon actual interfaces available
-     'grub::password',                # hash value that varies from run-to-run with same password
-     'simp_options::ldap::bind_hash', # hash value that varies from run-to-run with same password
-     'simp_options::ldap::sync_hash', # hash value that varies from run-to-run with same password
-     'simp_options::ldap::root_hash'  # hash value that varies from run-to-run with same password
+     'simp_options::fips',                 # set by FIPS mode on running system which we can't control
+     'cli::network::interface',            # depends upon actual interfaces available
+     'grub::password',                     # hash value that varies from run-to-run with same password
+     'simp_options::ldap::bind_hash',      # hash value that varies from run-to-run with same password
+     'simp_options::ldap::sync_hash',      # hash value that varies from run-to-run with same password
+     'simp_openldap::server::conf::rootpw' # hash value that varies from run-to-run with same password
   ]
 
   exclude_set = min_exclude_set.merge(other_keys_to_exclude)
@@ -334,7 +333,7 @@ describe Simp::Cli::Commands::Config do
          "#{fmt_begin}#{skip_msg}#{fmt_end} Enable remote YUM repos in SIMP server <host>.yaml",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Check remote YUM configuration",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Add simp::server::ldap class to SIMP server <host>.yaml",
-         "#{fmt_begin}#{skip_msg}#{fmt_end} Set LDAP Sync & Root password hashes in SIMP server <host>.yaml",
+         "#{fmt_begin}#{skip_msg}#{fmt_end} Set LDAP Root password hash in SIMP server <host>.yaml",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Generate interim certificates for SIMP server",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Write SIMP global hieradata to YAML file."
        ]
@@ -382,7 +381,7 @@ describe Simp::Cli::Commands::Config do
          %r{Enabling of remote system .OS. and SIMP YUM repositories in SIMP server <host>.yaml}m,
          %r{Checking remote YUM configuration skipped}m,
          %r{Addition of simp::server::ldap to SIMP server <host>.yaml class list skipped}m,
-         %r{Setting of LDAP Sync & Root password hashes in SIMP server <host>.yaml skipped}m,
+         %r{Setting of LDAP Root password hash in SIMP server <host>.yaml skipped}m,
          %r{Interim certificate generation for SIMP server skipped}m,
          %r{Creation of #{@puppet_system_file} skipped}m,
          %r{#{@answers_output_file} created}m,
