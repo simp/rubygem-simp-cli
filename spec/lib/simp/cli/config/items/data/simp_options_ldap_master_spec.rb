@@ -56,9 +56,9 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapMaster do
   describe '#validate' do
     it 'validates good ldap uri' do
       expect( @ci.validate 'ldap://master' ).to eq true
-      expect( @ci.validate 'ldap://master-server' ).to eq true
+      expect( @ci.validate 'ldaps://master-server' ).to eq true
       expect( @ci.validate 'ldap://master.ldap.org' ).to eq true
-      expect( @ci.validate 'ldap://192.168.1.1' ).to eq true
+      expect( @ci.validate 'ldaps://192.168.1.1' ).to eq true
     end
 
     it "doesn't validate bad ldap uri" do

@@ -50,9 +50,9 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapUri do
   describe '#validate' do
     it 'validates array with good hosts' do
       expect( @ci.validate ['ldap://log'] ).to eq true
-      expect( @ci.validate ['ldap://log-server'] ).to eq true
+      expect( @ci.validate ['ldaps://log-server'] ).to eq true
       expect( @ci.validate ['ldap://log.loggitylog.org'] ).to eq true
-      expect( @ci.validate ['ldap://192.168.1.1'] ).to eq true
+      expect( @ci.validate ['ldaps://192.168.1.1'] ).to eq true
       expect( @ci.validate ['ldap://192.168.1.1', 'ldap://log.loggitylog.org'] ).to eq true
     end
 

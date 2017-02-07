@@ -7,7 +7,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'simp_options::ldap::master'
-      @description = %Q{This is the LDAP master in URI form (ldap://server).}
+      @description = %Q{This is the LDAP master in URI form (ldap://server or ldaps:://server).}
     end
 
     def recommended_value
@@ -24,8 +24,8 @@ module Simp::Cli::Config
 
     def validate item
       result = false
-      if ( item =~ %r{^ldap://.+} ) ? true : false
-        i = item.sub( %r{^ldap://}, '' )
+      if ( ( item =~ %r{^ldap[s]*://.+} ) ? true : false )
+        i = item.sub( %r{^ldap[s]*://}, '' )
         result = ( Simp::Cli::Config::Utils.validate_hostname( i ) ||
                    Simp::Cli::Config::Utils.validate_fqdn( i )     ||
                    Simp::Cli::Config::Utils.validate_ip( i ) )

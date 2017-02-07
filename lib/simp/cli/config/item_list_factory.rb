@@ -282,6 +282,8 @@ class Simp::Cli::Config::ItemListFactory
           - AddYumServerClassToServerAction
          false:
           - SimpYumServers
+          - SimpYumOsUpdateUrl
+          - SimpYumSimpUpdateUrl
           - SimpYumEnableOsRepos           SKIPQUERY SILENT # default is correct
           - SimpYumEnableSimpRepos         SKIPQUERY SILENT # default is correct
           - EnableOsAndSimpYumReposAction

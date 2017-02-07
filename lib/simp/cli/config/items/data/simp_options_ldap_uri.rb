@@ -8,7 +8,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'simp_options::ldap::uri'
-      @description = %Q{The list of OpenLDAP servers in URI form (ldap://server).}
+      @description = %Q{The list of OpenLDAP servers in URI form (ldap://server or ldaps:://server).}
     end
 
     def recommended_value
@@ -25,12 +25,14 @@ module Simp::Cli::Config
 
 
     def validate_item item
-      ( item =~ %r{^ldap://.+} ) ? true : false &&
-      (
-        Simp::Cli::Config::Utils.validate_hostname( item ) ||
-        Simp::Cli::Config::Utils.validate_fqdn( item )     ||
-        Simp::Cli::Config::Utils.validate_ip( item )
-      )
+      result = false
+      if ( ( item =~ %r{^ldap[s]*://.+} ) ? true : false )
+        i = item.sub( %r{^ldap[s]*://}, '' )
+        result = ( Simp::Cli::Config::Utils.validate_hostname( i ) ||
+                   Simp::Cli::Config::Utils.validate_fqdn( i )     ||
+                   Simp::Cli::Config::Utils.validate_ip( i ) )
+      end
+      result
     end
 
     def not_valid_message

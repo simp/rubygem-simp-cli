@@ -27,6 +27,8 @@ def generate_simp_input_accepting_defaults
     "\n"                          << # Press enter to continue
     "\n"                          << # set production env to simp
     "1.2.3.6\n"                   << # external YUM servers (assuming no simp_filesystem.repo)
+    "http://os/path\n"            << # YUM OS update url
+    "http://simp/path\n"          << # YUM SIMP update url
     "\n"                          << # SIMP is LDAP server
     "\n"                          << # LDAP base DN
     "\n"                          << # don't auto-generate a password
@@ -58,6 +60,8 @@ def generate_simp_input_setting_values(scenario = 'simp-lite')
     "no\n"                                    << # don't set the GRUB password
     "no\n"                                    << # don't set production env to simp
     "1.2.3.6\n"                               << # external YUM servers (assuming no simp_filesystem.repo)
+    "http://os/path\n"                        << # YUM OS update url
+    "http://simp/path\n"                      << # YUM SIMP update url
     "no\n"                                    << # SIMP is not LDAP server
     "dc=test,dc=local\n"                      << # LDAP base DN
     "cn=hostAuth,ou=Hosts,dc=test,dc=local\n" << # LDAP bind DN
@@ -96,6 +100,8 @@ def generate_poss_input_setting_values
     "no\n"                << # don't set the GRUB password
     "no\n"                << # don't set production env to simp
     "1.2.3.4 1.2.3.5\n"   << # external YUM servers (assuming no simp_filesystem.repo)
+    "http://os/path\n"    << # YUM OS update url
+    "http://simp/path\n"  << # YUM SIMP update url
     "no\n"                << # don't use LDAP
     "no\n"                << # use SSSD
     "1.2.3.11\n"          << # log servers
@@ -248,6 +254,8 @@ describe Simp::Cli::Commands::Config do
        input_string = ''
        input_string << "simp-lite\n"          << # 'simp-lite' scenario
                  "1.2.3.6\n"                  << # external YUM servers (assuming no simp_filesystem.repo)
+                 "http://os/path\n"           << # YUM OS update url
+                 "http://simp/path\n"         << # YUM SIMP update url
                  "\n"                         << # don't auto-generate LDAP root password
                  "iTXA8O6yCoDMotMGTeHd7IGI\n" << # LDAP root password
                  "iTXA8O6yCoDMotMGTeHd7IGI\n"    # confirm LDAP root password

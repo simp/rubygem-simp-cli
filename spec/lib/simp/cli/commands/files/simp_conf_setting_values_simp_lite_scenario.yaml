@@ -14,8 +14,10 @@ puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::serve
 simp::runlevel: 3
 simp::yum::enable_os_repos: true
 simp::yum::enable_simp_repos: true
+simp::yum::os_update_url: "http://os/path"
 simp::yum::servers:
   - "1.2.3.6"
+simp::yum::simp_update_url: "http://simp/path"
 simp_options::dns::search:
   - test.local
 simp_options::dns::servers:
