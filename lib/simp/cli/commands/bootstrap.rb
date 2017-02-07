@@ -35,7 +35,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
   # Ensure the puppetserver is running ca on the specified port.
   # Used ensure the puppetserver service is running.
   def self.ensure_running(port = nil)
-    port ||= ::Utils.puppet_info[:config]['ca_port']
+    port ||= ::Utils.puppet_info[:config]['masterport']
 
     begin
       running = (%x{curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/`hostname`.pem --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
@@ -50,7 +50,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
             running = (%x{curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/`hostname`.pem --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
             stages.each{ |x|
               $stdout.flush
-              print "Waiting for Puppet Server to Start  " + x + "\r"
+              print "Waiting for Puppet Server to Start, on port #{port}  " + x + "\r"
               sleep(rest)
             }
           end

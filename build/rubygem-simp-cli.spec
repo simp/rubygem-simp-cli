@@ -97,6 +97,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Feb 07 2017 Nick Markowski <nmarkowski@keywcorp.com> - 1.0.24-0
+- Bootstrap now curls the puppetserver on the masterport (not the ca_port)
+  to check if the puppetserver is running.
+
 * Mon Dec 05 2016 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.24-0
 - Suppress `--pluginsync` unless Puppet version is `3.x`
 
