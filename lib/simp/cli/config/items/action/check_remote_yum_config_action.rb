@@ -25,31 +25,40 @@ then set SIMP server configuration appropriately.  This must be done
 prior to 'simp bootstrap', or the boostrap will fail.
 
 Once you have successfully configured YUM and verified that
-'repoquery -i simp' returns information for the simp package that
-has both the appropriate package version for this release and 
-the correct repository, you can remove this file.
+'repoquery -i kernel' returns the correct OS repository and
+'repoquery -i simp' returns the correct SIMP repository, you can 
+remove this file.
 DOC
    end
 
     def apply
-      # TODO run 'repoquery-i simp', puts the results
-      # if returns nothing, repo is definitely not set up
-      # if returns something, is this sufficient to verify?
+      @applied_status = :failed
 
-      # issue a warning
-      warn( "\nWARNING: #{@warning_message_brief}", [:YELLOW] )
+      # If repoquery returns nothing, a repo is definitely not set up.
+      # If it returns something, we are going to ASSUME the repo is set
+      # up, but we have no way to verify that the listed repository
+      # is the intended repository.
+      result = execute('repoquery -i kernel | grep ^Repository')
+      result = result && execute('repoquery -i simp | grep ^Repository')
 
-      # create file that will prevent bootstrap from running until problem is
-      # fixed
-      FileUtils.mkdir_p(File.expand_path(File.dirname(@warning_file)))
-      File.open(@warning_file, 'w') do |file|
-        file.write @warning_message
+      if result
+        @applied_status = :succeeded
+      else
+        # issue a warning
+        warn( "\nWARNING: #{@warning_message_brief}", [:YELLOW] )
+
+        # create file that will prevent bootstrap from running until problem
+        # is fixed
+        FileUtils.mkdir_p(File.expand_path(File.dirname(@warning_file)))
+        File.open(@warning_file, 'w') do |file|
+          file.write @warning_message
+        end
+        @applied_status = :failed
       end
-      @applied_status = :deferred
     end
 
     def apply_summary
-      if @applied_status == :deferred
+      if @applied_status == :failed
       %Q{Your YUM configuration may be incomplete.  Verify you have set up system (OS)
     updates and SIMP repositories before running 'simp bootstrap'.}
       else
