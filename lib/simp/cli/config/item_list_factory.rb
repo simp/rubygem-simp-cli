@@ -309,6 +309,7 @@ class Simp::Cli::Config::ItemListFactory
               - SimpOptionsLdapBindDn
               - SimpOptionsLdapBindPw      NEVERGENERATE
               - SimpOptionsLdapBindHash    SILENT #never queries
+              - SimpOptionsLdapSyncDn
               - SimpOptionsLdapSyncPw      NEVERGENERATE
               - SimpOptionsLdapSyncHash    SILENT # never queries
               - SimpOptionsLdapMaster

@@ -67,6 +67,7 @@ def generate_simp_input_setting_values(scenario = 'simp-lite')
     "cn=hostAuth,ou=Hosts,dc=test,dc=local\n" << # LDAP bind DN
     "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm\n"      << # LDAP bind password
     "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm\n"      << # confirm LDAP bind password
+    "cn=LDAPSync,ou=Hosts,dc=test,dc=local\n" << # LDAP sync DN
     "MCMD3u-iTXA8O6yCoDMotMGPTeHd7IGI\n"      << # LDAP sync password
     "MCMD3u-iTXA8O6yCoDMotMGPTeHd7IGI\n"      << # confirm LDAP sync password
     "ldap://puppet.test.local\n"              << # LDAP root master URI
