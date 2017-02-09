@@ -1,9 +1,13 @@
 module Simp::Cli::Commands; end
 
+require 'simp/cli/config/items/action/set_production_to_simp_action'
+
 class Simp::Cli::Commands::Bootstrap < Simp::Cli
   require 'pty'
   require 'timeout'
   require 'facter'
+  require File.expand_path( '../defaults', File.dirname(__FILE__) )
+  BOOTSTRAP_LOG = File.join(SIMP_CLI_HOME, 'simp_bootstrap.log')
 
   @verbose = false
   @track = true
@@ -13,7 +17,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     opts.separator "bootstrapping it. This should be run after 'simp config' has applied a new"
     opts.separator "system configuration."
     opts.separator ""
-    opts.separator "Logging information about the run is written to ~/.simp/simp_bootstrap.log"
+    opts.separator "Logging information about the run is written to #{BOOTSTRAP_LOG}"
     opts.separator ""
     opts.separator "OPTIONS:\n"
 
@@ -121,34 +125,31 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     super
     return if @help_requested
 
+    if File.exist?(Simp::Cli::BOOTSTRAP_START_LOCK_FILE)
+      fail("Bootstrap cannot proceed until problem identified in\n" +
+        "#{Simp::Cli::BOOTSTRAP_START_LOCK_FILE} is solved and that file is removed.")
+    end
+
     bootstrap_start_time = Time.now
 
-    # Set us up to use the SIMP environment. Be careful to preserve the
-    # existing 'production' environment if one exists.
+    # Set us up to use the SIMP environment, if this has not already been done.
+    # (1) Be careful to preserve the existing primary, 'production' environment,
+    #     if one exists.
+    # (2) Create links to production in both the primary and secondary environment
+    #     paths.
     environment_path = ::Utils.puppet_info[:simp_environment_path]
 
     fail("Could not find the simp environment path at #{environment_path}") unless File.directory?(environment_path)
 
-    Dir.chdir(File.dirname(environment_path)) do
-      File.directory?('simp')
-
-      if File.exist?('production')
-        if File.symlink?('production')
-          unless File.readlink('production') == 'simp'
-            FileUtils.mv('production',"pre_simp_production_#{bootstrap_start_time.to_i}")
-          end
-        else
-            FileUtils.mv('production',"pre_simp_production_#{bootstrap_start_time.to_i}")
-        end
-      end
-
-      FileUtils.ln_s('simp','production') unless File.exist?('production')
-    end
+    item = Simp::Cli::Config::Item::SetProductionToSimpAction.new
+    item.start_time = bootstrap_start_time
+    item.apply
+    fail ("Could not set 'simp' to production environment") unless item.applied_status == :succeeded
 
     linecounts = Array.new
 
     # Open log file
-    logfilepath = File.expand_path('~/.simp/simp_bootstrap.log')
+    logfilepath = File.expand_path(BOOTSTRAP_LOG)
     FileUtils.mkpath(File.dirname(logfilepath)) unless File.exists?(logfilepath)
     @logfile = File.open(logfilepath, 'w')
 

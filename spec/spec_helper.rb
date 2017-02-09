@@ -17,27 +17,9 @@
 
 require 'simplecov'
 SimpleCov.start do
-  add_filter "/spec/"  # don't count coverage of test files!
+  add_filter "/spec/" # don't count coverage of test files!
+  add_filter "/ext/"  # don't count coverage of highline library included in the rpm
 end
-
-PUPPET_CONFIG_AIO = <<-EOM
-codedir = /etc/puppetlabs/code
-confdir = /etc/puppetlabs/puppet
-modulepath = /etc/puppetlabs/code/environments/production/modules
-EOM
-
-PUPPET_CONFIG_FOSS = <<-EOM
-confdir = /etc/puppet
-modulepath = /etc/puppet/environments/production/modules
-EOM
-
-PUPPET_CONFIG_PE = PUPPET_CONFIG_AIO
-
-PUPPET_INFO = {
-  'aio' => PUPPET_CONFIG_AIO,
-  'foss' => PUPPET_CONFIG_FOSS,
-  'pe' => PUPPET_CONFIG_PE,
-}
 
 RSpec.configure do |config|
 
@@ -64,25 +46,6 @@ RSpec.configure do |config|
     # a real object. This is generally recommended, and will default to
     # `true` in RSpec 4.
     mocks.verify_partial_doubles = true
-  end
-
-  # Make sure that we get the appropriate defaults
-  config.before(:each) do
-    if defined?(puppet_version)
-      $top_level_mock_puppet_config = PUPPET_INFO[puppet_version]
-    else
-      $top_level_mock_puppet_config = PUPPET_INFO['aio']
-    end
-
-    module Utils
-      class PuppetInfo
-        def get_config
-          return $top_level_mock_puppet_config.lines
-        end
-      end
-    end
-
-    allow(Utils).to receive(:puppet_info).and_return(Utils::PuppetInfo.new.system_puppet_info)
   end
 
   # Useless backtrace noise

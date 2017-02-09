@@ -44,8 +44,7 @@ Gem::Specification.new do |s|
   ### dependencies will not be included in the .gemspec dependencies:
   #### ------------
   if !ENV.fetch( 'SIMP_RPM_BUILD', false )
-    s.add_runtime_dependency 'puppet',   '~> 3'
-    s.add_runtime_dependency 'facter',   '~> 2'
+    s.add_runtime_dependency 'puppet',   '~> 4'
   end
   #### ------------
 

@@ -1,9 +1,23 @@
 require 'simp/cli/commands/passgen'
+require 'simp/cli/lib/utils'
 require 'spec_helper'
 
 
 describe Simp::Cli::Commands::Passgen do
   describe ".run" do
+    before :each do
+      @tmp_dir   = Dir.mktmpdir(File.basename(__FILE__) )
+      allow(::Utils).to receive(:puppet_info).and_return( {
+        :config => {
+          'codedir' => @tmp_dir,
+          'confdir' => @tmp_dir
+        },
+        :environment_path => File.join(@tmp_dir, 'environments'),
+        :simp_environment_path => File.join(@tmp_dir, 'environments', 'simp'),
+        :fake_ca_path => File.join(@tmp_dir, 'environments', 'simp', 'FakeCA')
+      } )
+    end
+
     after :each do
       Simp::Cli::Commands::Passgen.reset_options
     end

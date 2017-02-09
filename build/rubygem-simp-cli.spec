@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 1.0.24
+%global cli_version 2.0.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -97,9 +97,12 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Tue Feb 07 2017 Nick Markowski <nmarkowski@keywcorp.com> - 1.0.24-0
+* Tue Feb 07 2017 Nick Markowski <nmarkowski@keywcorp.com> - 2.0.0
 - Bootstrap now curls the puppetserver on the masterport (not the ca_port)
   to check if the puppetserver is running.
+
+* Thu Jan 12 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 2.0.0
+- Rework for SIMP 6
 
 * Mon Dec 05 2016 Chris Tessmer <chris.tessmer@onyxpoint.com> - 1.0.24-0
 - Suppress `--pluginsync` unless Puppet version is `3.x`

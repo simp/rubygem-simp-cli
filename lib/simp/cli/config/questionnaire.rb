@@ -1,9 +1,5 @@
-module Simp; end
-class Simp::Cli; end
-module Simp::Cli::Config; end
-
-require File.expand_path( '../commands/config', File.dirname(__FILE__) )
-require File.expand_path( 'utils', File.dirname(__FILE__) )
+require File.expand_path( 'items', File.dirname(__FILE__) )
+require File.expand_path( 'logging', File.dirname(__FILE__) )
 
 # Builds a SIMP configuration profile based on an Array of Config::Items
 #
@@ -11,6 +7,8 @@ require File.expand_path( 'utils', File.dirname(__FILE__) )
 # by default, but can be automated.
 #
 class Simp::Cli::Config::Questionnaire
+
+  include Simp::Cli::Config::Logging
 
   INTERACTIVE           = 0
   NONINTERACTIVE        = 1
@@ -83,6 +81,6 @@ class Simp::Cli::Config::Questionnaire
   def print_invalid_item_error item
     error =  "ERROR: '#{item.value}' is not a valid value for #{item.key}"
     error += "\n#{item.not_valid_message}" if item.not_valid_message
-    say "<%= color(%q{#{error}}, RED) %>\n"
+    logger.error(error, [:RED])
   end
 end

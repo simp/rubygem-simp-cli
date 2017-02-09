@@ -1,0 +1,62 @@
+#========================================================================
+# simp config answers
+#
+# Generated for simp-lite scenario on 2017-01-13 11:42:03
+# using simp-cli version 2.0.0
+#------------------------------------------------------------------------
+# You can use these answers to quickly configure subsequent
+# simp installations by running the command:
+#
+#   simp config -A /PATH/TO/THIS/FILE
+#
+# simp config will prompt for any missing items.
+#
+# NOTE: All YAML keys that begin with 'cli::' are used
+# by simp config, internally, and are not Puppet hieradata.
+#========================================================================
+---
+# === cli::network::hostname ===
+# The FQDN of the system.
+cli::network::hostname: myhost.test.local
+
+# === cli::simp::scenario ===
+# SIMP scenario
+#
+# 'simp'      = Settings for a full SIMP system. Both the SIMP server
+#               (this host) and all clients will be running with
+#               all security features enabled.
+# 'simp-lite' = Settings for a SIMP system in which some security features
+#               are disabled for SIMP clients.  The SIMP server will
+#               be running with all security features enabled.
+# 'poss'      = Settings for a SIMP system in which all security features
+#               for the SIMP clients are disabled.  The SIMP server will
+#               be running with all security features enabled.
+#
+cli::simp::scenario: simp-lite
+
+# === simp::runlevel ===
+# The default system runlevel (1-5).
+simp::runlevel: 2
+
+# === simp_options::fips ===
+# Prepare system to use FIPS mode.
+#
+# simp_options::fips enforces strict compliance with FIPS-140-2.  All core SIMP modules
+# can support this configuration. Enabling simp_options::fips here will enable
+# FIPS on this puppet environment.
+#
+# IMPORTANT:
+# (1) Be sure you know the security tradeoffs of FIPS-140-2 compliance.
+#     FIPS mode disables the use of MD5 and may require weaker ciphers or key
+#     lengths than your security policies allow.
+# (2) If the system is currently in FIPS mode and you set this option to false,
+#     the system will still work.  The reverse is not necessarily true.  See
+#     SIMP documentation for instructions on how to safely convert a non-FIPS
+#     system to a FIPS system.
+#
+simp_options::fips: false
+
+# === simp_options::puppet::server ===
+# The Hostname or FQDN of the Puppet server.
+simp_options::puppet::server: puppet.domain.tld
+

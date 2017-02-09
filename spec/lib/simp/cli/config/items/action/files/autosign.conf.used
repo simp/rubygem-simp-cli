@@ -1,0 +1,5 @@
+# Some custom comments
+puppet.fake.domain
+server1.fake.domain
+server2.fake.domain
+

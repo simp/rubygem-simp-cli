@@ -1,0 +1,44 @@
+---
+cli::is_ldap_server: true
+cli::network::dhcp: static
+cli::network::gateway: "1.2.3.1"
+cli::network::hostname: puppet.test.local
+cli::network::interface: enp0s3
+cli::network::ipaddress: "1.2.3.4"
+cli::network::netmask: "255.255.255.0"
+cli::network::set_up_nic: true
+cli::set_grub_password: true
+cli::set_production_to_simp: true
+cli::simp::scenario: simp
+grub::password: "$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX."
+puppetdb::master::config::puppetdb_port: 8139
+puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
+simp::runlevel: 3
+simp::yum::enable_os_repos: true
+simp::yum::enable_simp_repos: true
+simp::yum::os_update_url: "http://os/path"
+simp::yum::servers:
+  - "1.2.3.6"
+simp::yum::simp_update_url: "http://simp/path"
+simp_openldap::server::conf::rootpw: "{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL"
+simp_options::dns::search:
+  - test.local
+simp_options::dns::servers:
+  - "1.2.3.10"
+simp_options::fips: false
+simp_options::ldap: true
+simp_options::ldap::base_dn: "dc=test,dc=local"
+simp_options::ldap::bind_hash: "{SSHA}tx9ennniDQnmx83gPjCqhy6pknR89QsD"
+simp_options::ldap::bind_pw: "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm"
+simp_options::ldap::sync_hash: "{SSHA}Y0aQ6WWCriBQGXxlEeRNdWZsX8ey3LDz"
+simp_options::ldap::sync_pw: "6Pe4*3oW0Rw.VXx2BbdvfnU2bv9x*%CB"
+simp_options::ntpd::servers: []
+simp_options::puppet::ca: puppet.test.local
+simp_options::puppet::ca_port: 8141
+simp_options::puppet::server: puppet.test.local
+simp_options::sssd: true
+simp_options::syslog::log_servers: []
+simp_options::trusted_nets:
+  - "1.2.3.0/24"
+sssd::domains:
+  - LDAP
