@@ -97,6 +97,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Feb 07 2017 Nick Markowski <nmarkowski@keywcorp.com> - 2.0.0
+- Bootstrap now curls the puppetserver on the masterport (not the ca_port)
+  to check if the puppetserver is running.
+
 * Thu Jan 12 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 2.0.0
 - Rework for SIMP 6
 
