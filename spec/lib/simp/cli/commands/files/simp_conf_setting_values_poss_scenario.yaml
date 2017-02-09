@@ -1,0 +1,38 @@
+---
+cli::network::gateway: "1.2.3.1"
+cli::network::hostname: simp.test.local
+cli::network::interface: enp0s3
+cli::network::ipaddress: "1.2.3.4"
+cli::network::netmask: "255.255.255.0"
+cli::network::set_up_nic: false
+cli::set_grub_password: false
+cli::set_production_to_simp: false
+cli::simp::scenario: poss
+puppetdb::master::config::puppetdb_port: 8139
+puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
+simp::runlevel: 3
+simp::yum::enable_os_repos: true
+simp::yum::enable_simp_repos: true
+simp::yum::os_update_url: "http://os/path"
+simp::yum::servers:
+  - 1.2.3.4
+  - 1.2.3.5
+simp::yum::simp_update_url: "http://simp/path"
+simp_options::dns::search:
+  - test.local
+simp_options::dns::servers:
+  - "1.2.3.10"
+simp_options::fips: false
+simp_options::ldap: false
+simp_options::ntpd::servers:
+  - time-a.nist.gov
+simp_options::puppet::ca: simp.test.local
+simp_options::puppet::ca_port: 8141
+simp_options::puppet::server: simp.test.local
+simp_options::sssd: false
+simp_options::syslog::failover_log_servers:
+  - "1.2.3.12"
+simp_options::syslog::log_servers:
+  - "1.2.3.11"
+simp_options::trusted_nets:
+  - "1.2.0.0/16"

@@ -1,8 +1,8 @@
 module Simp; end
 class Simp::Cli; end
-module Simp::Cli::Config
-  class PasswordError < StandardError; end
-end
+module Simp::Cli::Config; end
+
+require File.expand_path( 'errors', File.dirname(__FILE__) )
 
 class Simp::Cli::Config::Utils
   DEFAULT_PASSWORD_LENGTH = 32
@@ -44,7 +44,7 @@ class Simp::Cli::Config::Utils
       # a brute-force regexp that validates all possible valid netmasks
       nums = '(128|192|224|240|248|252|254)'
       znums = '(0|128|192|224|240|248|252|254)'
-      regex = /^((#{nums}\.0\.0\.0)|(255\.#{znums}\.0\.0)|(255\.255\.#{znums}\.0)|(255\.255\.255\.#{znums}))$/i
+      regex = /^((#{nums}\.0\.0\.0)|(255\.#{znums}\.0\.0)|(255\.255\.#{znums}\.0)|(255\.255\.255\.#{znums})|(255\.255\.255\.255))$/i
       x =~ regex ? true: false
     end
 
@@ -106,25 +106,6 @@ class Simp::Cli::Config::Utils
 
     def validate_openldap_hash( x )
       (x =~ %r@\{SSHA\}[A-Za-z0-9=+/]+@ ) ? true : false
-    end
-
-
-    def generate_certificates(
-          hostnames,
-          ca_dir = ::Utils.puppet_info[:fake_ca_path]
-        )
-
-      result = true
-      Dir.chdir( ca_dir ) do
-        File.open('togen', 'w'){|file| hostnames.each{ |host| file.puts host }}
-
-        # NOTE: script must exist in ca_dir
-        result = system('./gencerts_nopass.sh auto') && result
-
-        # blank file so subsequent runs don't re-key our hosts
-        File.open('togen', 'w'){ |file| file.truncate(0) }
-      end
-      result
     end
   end
 end

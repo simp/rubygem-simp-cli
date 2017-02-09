@@ -1,5 +1,6 @@
-module Simp::Cli::Commands; end
+require File.expand_path( '../../cli', File.dirname(__FILE__) )
 
+module Simp::Cli::Commands; end
 class Simp::Cli::Commands::Passgen < Simp::Cli
   require 'fileutils'
 
@@ -67,7 +68,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
         end
       end
     rescue => err
-      raise "Error occured while accessing '#{@target_dir}':\n  Causing Error: #{err}"
+      raise "Error occurred while accessing '#{@target_dir}':\n  Causing Error: #{err}"
     end
 
     if @show_list

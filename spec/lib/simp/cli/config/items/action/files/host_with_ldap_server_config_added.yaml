@@ -1,0 +1,21 @@
+---
+# some comment
+simp_apache::conf::ssl::trusted_nets: "%{alias('simp_options::trusted_nets')}"
+simp_apache::ssl::sslverifyclient: 'none'
+simp::yum::enable_simp_repos: false
+simp::yum::enable_os_repos: false
+pupmod::enable_puppet_master: true
+puppetdb::master::config::puppet_service_name: 'puppetserver'
+puppetdb::globals::version: 'latest'
+puppetdb::master::config::restart_puppet: false
+
+# === simp_openldap::server::conf::rootpw ===
+# The LDAP Root password hash.
+# 
+# When set via 'simp config', it is generated from the password
+# entered on the command line.
+simp_openldap::server::conf::rootpw: "{SSHA}deadbeefDEADBEEFdeadbeefDEADBEEF"
+
+classes :
+  - 'simp::server'
+  - 'simp::puppetdb'

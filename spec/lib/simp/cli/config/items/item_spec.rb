@@ -1,0 +1,82 @@
+require 'simp/cli/config/items/item'
+require 'rspec/its'
+require 'spec_helper'
+
+describe Simp::Cli::Config::Item do
+  before :each do
+    @ci = Simp::Cli::Config::Item.new
+  end
+
+  describe "#initialize" do
+    it "has no value when initialized" do
+      expect( @ci.value ).to eq nil
+    end
+
+    it "has nil values when initialized" do
+      expect( @ci.os_value ).to be_nil
+    end
+
+    it "has nil applied_status when initialized" do
+      expect( @ci.applied_status ).to be_nil
+    end
+
+    it "has nil applied_time when initialized" do
+      expect( @ci.applied_time ).to be_nil
+    end
+
+  end
+
+  describe '#to_yaml_s' do
+    it 'raises a Simp::Cli::Config::InternalError if @key is empty' do
+      @ci.key = nil
+      expect{ @ci.to_yaml_s }.to raise_error( Simp::Cli::Config::InternalError )
+    end
+
+    it 'uses FIXME message as description if description is not set' do
+      @ci.key = 'mykey'
+      expect( @ci.to_yaml_s ).to match(/FIXME/)
+    end
+
+    it 'returns nil instead of YAML key/value if @skip_yaml=true' do
+      @ci.key = 'mykey'
+      @ci.value = 'myvalue'
+      @ci.skip_yaml = true
+      expect( @ci.to_yaml_s ).to eq(nil)
+    end
+  end
+
+  describe "#print_summary" do
+    it "raises Simp::Cli::Config::InternalError on nil @key" do
+      @ci.key = nil
+      expect{ @ci.print_summary }.to raise_error( Simp::Cli::Config::InternalError )
+    end
+
+    it "raises a Simp::Cli::Config::InternalError on empty @key" do
+      @ci.key = ""
+      expect{ @ci.print_summary }.to raise_error( Simp::Cli::Config::InternalError )
+    end
+  end
+
+  describe "#apply_summary" do
+    it "returns nil by default" do
+      expect( @ci.apply_summary ).to be_nil
+    end
+  end
+
+  describe "#execute" do
+    it 'returns true when command succeeeds' do
+      command = "ls #{__FILE__}"
+      expect( @ci.execute(command) ).to eq true
+    end
+
+    it 'returns false when command fails and ignore_failure is false' do
+      command = 'ls /some/missing/path1 /some/missing/path2'
+      expect( @ci.execute(command) ).to eq false
+    end
+
+    it 'returns true when command fails and ignore_failure is true' do
+      command = 'ls /some/missing/path1 /some/missing/path2'
+      expect( @ci.execute(command, true) ).to eq true
+    end
+  end
+end
