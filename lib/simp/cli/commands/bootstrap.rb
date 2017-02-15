@@ -43,7 +43,6 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     begin
       running = (%x{curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/`hostname`.pem --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
-      puts "curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/#{`hostname`}.pem --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/#{`hostname`}.pem -k -H 'Accept: s' https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1"
       unless running
         system('puppet resource service puppetserver ensure="running" enable=true > /dev/null 2>&1 &')
         stages = %w{. o O @ *}
@@ -230,6 +229,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     # From this point on, run puppet without specifying the masterport since
     # puppetserver is configured.
+    puts
     puts "*** Running Puppet Finalization ***"
     puts
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay"
