@@ -236,11 +236,14 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     if puppet_major_version == '3'
       pupcmd += " --pluginsync"
     end
-    # First tagless run.
-    track_output("#{pupcmd}")
-    # Final run.  It has been observed that not all SIMP resources are idempontent
-    # after a single run.  For now, this is an essential second pass.
-    track_output("#{pupcmd}")
+    # This is fugly, but until we devise an intelligent way to determine when your system
+    # is 'bootstrapped', we're going to run puppet in a loop.
+    #
+    i = 0
+    while(i < 4)
+      track_output("#{pupcmd}")
+      i = i + 1
+    end
 
     # Clean up the leftover puppetserver process (if any)
     begin
