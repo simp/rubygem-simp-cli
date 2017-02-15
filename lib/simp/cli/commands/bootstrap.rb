@@ -39,10 +39,11 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
   # Ensure the puppetserver is running ca on the specified port.
   # Used ensure the puppetserver service is running.
   def self.ensure_running(port = nil)
-    port ||= ::Utils.puppet_info[:config]['masterport']
+    port ||= `puppet config print masterport`.chomp
 
     begin
       running = (%x{curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/`hostname`.pem --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H "Accept: s" https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1} =~ /CRL/)
+      puts "curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/#{`hostname`}.pem --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/#{`hostname`}.pem -k -H 'Accept: s' https://localhost:#{port}/production/certificate_revocation_list/ca 2>&1"
       unless running
         system('puppet resource service puppetserver ensure="running" enable=true > /dev/null 2>&1 &')
         stages = %w{. o O @ *}
@@ -153,21 +154,6 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     FileUtils.mkpath(File.dirname(logfilepath)) unless File.exists?(logfilepath)
     @logfile = File.open(logfilepath, 'w')
 
-    puppet_major_version = `puppet --version`.chomp.split('.').first
-    # Define the puppet command call and the run command options
-    pupcmd = 'puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150'
-    if puppet_major_version == '3'
-      pupcmd += " --pluginsync"
-    end
-
-    pupruns = [
-      'pki,stunnel,concat',
-      'firstrun,concat',
-      'rsync,concat,apache,iptables',
-      'user',
-      'group'
-    ]
-
     # Print intro
     system('clear')
     puts
@@ -208,6 +194,26 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     puts
 
+    puppet_major_version = `puppet --version`.chomp.split('.').first
+    # Define the puppet command call and the run command options
+    pupcmd = 'puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150'
+    if puppet_major_version == '3'
+      pupcmd += " --pluginsync"
+    end
+
+    # The final tagged run is pupmod, standalone.  It is isolated to mitigate b0rked
+    # puppet runs caused by the inevitable restart of the puppetserver service during
+    # its application to the system.
+    pupruns = [
+      'pki,stunnel,concat',
+      'firstrun,concat',
+      'rsync,concat,apache,iptables',
+      'user',
+      'group',
+      'pupmod'
+    ]
+
+    # Begin tagged runs, against 8150.
     puts "Beginning Puppet agent runs ..."
     pupruns.each do |puprun|
       puts "... with tag#{puprun.include?(',') ? 's' : ''} '#{puprun}'"
@@ -222,48 +228,19 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       system("fixfiles -f relabel >> #{@logfile.path} 2>&1")
     end
 
-    puts "*** Running Puppet Finalization ***"
-    puts
-
-    track_output("#{pupcmd}",'8150')
-
-    # We need to restart the puppetserver process due to the way it's started
-    # using systemd
-    %x{puppet resource service puppetserver ensure=stopped &>/dev/null}
-    %x{puppet resource service puppetserver ensure=running &>/dev/null}
-
     # From this point on, run puppet without specifying the masterport since
     # puppetserver is configured.
+    puts "*** Running Puppet Finalization ***"
+    puts
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay"
     if puppet_major_version == '3'
       pupcmd += " --pluginsync"
     end
-
-    # Run puppet agent up to 3X to get slapd running (unless it already is)
-    # If this fails, LDAP is probably not configured right
-    i = 0
-    while (i < 3) && !system('/bin/ps -C slapd >& /dev/null') do
-      # No longer running puppet against 8150.
-      track_output("#{pupcmd}")
-      i = i + 1
-    end
-    if (i == 3) && $use_ldap
-      puts "   \033[1mWarning\033[0m: It does not look like LDAP was properly configured to start."
-      puts "   Please check your configuration."
-    else
-      # At this point, we should be connected to LDAP properly.
-      # Run puppet up to 3 additional times if we can't verify that we're actually connected!
-      j = 0
-      while (j < 3) && !system('getent group administrators >& /dev/null') do
-        track_output("#{pupcmd}")
-        j = j + 1
-      end
-      if j == 3
-        puts "   \033[1mWarning\033[0m: Could not find the administrators group."
-        puts "   Please check your configuration."
-      end
-      puts "Puppet Finalization - Done!"
-    end
+    # First tagless run.
+    track_output("#{pupcmd}")
+    # Final run.  It has been observed that not all SIMP resources are idempontent
+    # after a single run.  For now, this is an essential second pass.
+    track_output("#{pupcmd}")
 
     # Clean up the leftover puppetserver process (if any)
     begin
