@@ -236,13 +236,11 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     if puppet_major_version == '3'
       pupcmd += " --pluginsync"
     end
+
     # This is fugly, but until we devise an intelligent way to determine when your system
     # is 'bootstrapped', we're going to run puppet in a loop.
-    #
-    i = 0
-    while(i < 4)
+    (1..4).each do
       track_output("#{pupcmd}")
-      i = i + 1
     end
 
     # Clean up the leftover puppetserver process (if any)
