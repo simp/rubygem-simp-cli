@@ -200,46 +200,29 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       pupcmd += " --pluginsync"
     end
 
-    # The final tagged run is pupmod, standalone.  It is isolated to mitigate b0rked
-    # puppet runs caused by the inevitable restart of the puppetserver service during
-    # its application to the system.
-    pupruns = [
-      'pki,stunnel,concat',
-      'firstrun,concat',
-      'rsync,concat,apache,iptables',
-      'user',
-      'group',
-      'pupmod'
-    ]
-
-    # Begin tagged runs, against 8150.
-    puts "Beginning Puppet agent runs ..."
-    pupruns.each do |puprun|
-      puts "... with tag#{puprun.include?(',') ? 's' : ''} '#{puprun}'"
-      linecounts << track_output("#{pupcmd} --tags #{puprun} 2> /dev/null", '8150')
-    end
-
+    # Firstrun is tagged and run against the default puppetserver port, 8150.
+    # This run will configure puppetserver and puppetdb; all subsequent runs
+    # will run against the conifgured masterport.
+    puts "Running puppet agent, with tags pupmod,simp\n"
+    linecounts << track_output("#{pupcmd} --tags pupmod,simp 2> /dev/null", '8150')
     puts
 
+    # If selinux is enabled, relabel the filesystem.
     if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? && (Facter.value(:selinux_current_mode) != "disabled")
-      puts 'Relabeling filesystem for selinux...'
-      @logfile.puts('Relabeling filesystem for selinux.')
+      puts "Relabeling filesystem for selinux...\n"
+      @logfile.puts("Relabeling filesystem for selinux.\n")
       system("fixfiles -f relabel >> #{@logfile.path} 2>&1")
     end
 
-    # From this point on, run puppet without specifying the masterport since
-    # puppetserver is configured.
-    puts
-    puts "*** Running Puppet Finalization ***"
-    puts
+    # SIMP is not single-run idempotent.  Until it is, run puppet twice.
+    puts "\nRunning puppet without tags"
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay"
     if puppet_major_version == '3'
       pupcmd += " --pluginsync"
     end
-
     # This is fugly, but until we devise an intelligent way to determine when your system
     # is 'bootstrapped', we're going to run puppet in a loop.
-    (1..4).each do
+    (0..1).each do
       track_output("#{pupcmd}")
     end
 

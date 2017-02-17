@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 2.0.0
+%global cli_version 2.0.1
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -97,6 +97,14 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Fri Feb 17 2017 Nick Markowski <nmarkowski@keywcorp.com> - 2.0.1
+- First round of RC bootstrap fixes.
+- There is now only one tagged run, simp + pupmod. The puppetserver
+  is fully configured at the end of the run, clearing up all
+  messy restarts of the service during the rest of the bootstrap.
+- For now, all other base modules are two run idempotent, so tagless
+  runs have been limited to two in number.
+
 * Wed Feb 15 2017 Nick Markowski <nmarkowski@keywcorp.com> - 2.0.0
 - Modified bootstrap to include a pupmod tag, and optimized
   it for SIMP-6.
