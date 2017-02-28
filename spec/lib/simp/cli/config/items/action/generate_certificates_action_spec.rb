@@ -26,7 +26,10 @@ describe Simp::Cli::Config::Item::GenerateCertificatesAction do
                     }
         FileUtils.mkdir @tmp_dirs.values
         src_dir   = File.join(@files_dir,'FakeCA')
-        FileUtils.cp_r( Dir["#{src_dir}/*"], @tmp_dirs[:fake_ca] )
+        FileUtils.cp( File.join(src_dir, "cacertkey"), @tmp_dirs[:fake_ca] )
+        # in case we do not have exec privileges in /tmp, use a link instead
+        FileUtils.ln_s( File.join(src_dir, "gencerts_nopass.sh"), 
+          File.join(@tmp_dirs[:fake_ca], "gencerts_nopass.sh") )
 
         @ci.dirs   = @tmp_dirs
       end

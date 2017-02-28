@@ -54,6 +54,23 @@ module Simp::Cli::Config
       result = show_wait_spinner {
         execute(cmd)
       }
+
+      if bootproto == 'dhcp'
+        # The 'puppet apply' shutdown and then started the interface,
+        # which should have resulted in the IP address being retrieved
+        # via DHCP. This renders our networking facts obsolete.  So,
+        # clear them out to ensure the latest facts will be used.
+        Facter.clear
+
+        # Make sure we have gotten an IP for this machine, or the
+        # rest of the configuration can't be done
+        ipaddr = Facter.value("ipaddress_#{@interface}")
+        if ipaddr.nil? or ipaddr.empty?
+          error("Failed to obtain IP address for #{@interface} from DHCP", [:RED])
+          result = false
+        end
+      end
+
       @applied_status = :succeeded if result
     end
 

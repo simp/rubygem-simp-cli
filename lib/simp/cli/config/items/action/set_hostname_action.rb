@@ -14,42 +14,44 @@ module Simp::Cli::Config
 
     def apply
       @applied_status = :failed
-
       @fqdn     = get_item( 'cli::network::hostname' ).value
-      # TODO: should we use this shortname instead of fqdn?
-      hostname = @fqdn.split('.').first
 
-      # copy/pasta'd logic from old simp config
       # TODO: replace this with 'puppet apply' + network::global
       debug( 'Updating hostname' )
-
       success = execute("hostname #{@fqdn}")
 
-      debug( 'Updating /etc/sysconfig/network' )
       if (success)
+        debug( 'Updating /etc/sysconfig/network' )
         # only sed error is if file does not exist
         success = success && execute("sed -i '/HOSTNAME/d' /etc/sysconfig/network")
-      end
-
-      if (success)
         success = success && execute("echo HOSTNAME=#{@fqdn} >> /etc/sysconfig/network")
       end
 
-      # For EL 7 / systemd
-      if success && File.exist?('/etc/hostname')
+      if (success)
         debug( 'Updating /etc/hostname' )
         begin
           File.open('/etc/hostname','w'){|fh| fh.puts(@fqdn)}
         rescue Errno::EACCES
           success = false
         end
-
-        if success
-          # hostnamectl is required to persist the change under systemd
-          success = success && execute("hostnamectl --static --pretty set-hostname #{@fqdn}")
-        end
       end
 
+      if success
+        # restart the interface to pick up any domain changes associated
+        # with the new hostname
+        # NOTE:  This operation is really for the DCHP configuration case
+        # in which we have already configured the network, but it doesn't
+        # hurt to restart the interface for the static configuration case,
+        # as well.
+        interface = get_item( 'cli::network::interface' ).value
+        debug( "Restarting #{interface} interface to update domain info" )
+        show_wait_spinner {
+          success = success && execute("/sbin/ifdown #{interface}; /sbin/ifup #{interface} && wait && sleep 10")
+        }
+
+        # clear out any old networking-related facts
+        Facter.clear
+      end
       @applied_status = :succeeded if (success)
     end
 

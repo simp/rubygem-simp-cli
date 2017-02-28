@@ -2,7 +2,7 @@
 # SIMP global configuration
 #
 # Generated for simp-lite scenario on 2017-01-13 11:42:03
-# using simp-cli version 2.0.0
+# using simp-cli version 2.0.1
 #========================================================================
 ---
 # === simp::runlevel ===
