@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 2.0.0
+%global cli_version 2.0.1
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -97,6 +97,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Feb 28 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 2.0.1
+- Fix broken dhcp network configuration in simp config
+
 * Wed Feb 15 2017 Nick Markowski <nmarkowski@keywcorp.com> - 2.0.0
 - Modified bootstrap to include a pupmod tag, and optimized
   it for SIMP-6.

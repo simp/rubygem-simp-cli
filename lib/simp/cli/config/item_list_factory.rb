@@ -223,6 +223,7 @@ class Simp::Cli::Config::ItemListFactory
          - CliNetworkDHCP:
             static:                # gather info first, then configure network
              - CliNetworkHostname
+             - SetHostnameAction      # apply this before DNS Items
              - CliNetworkIPAddress
              - CliNetworkNetmask
              - CliNetworkGateway
@@ -231,7 +232,8 @@ class Simp::Cli::Config::ItemListFactory
              - ConfigureNetworkAction
             dhcp:                  # (minimally) configure network, then get info (silently)
              - ConfigureNetworkAction
-             - CliNetworkHostname      SKIPQUERY SILENT
+             - CliNetworkHostname
+             - SetHostnameAction       # apply this before DNS Items
              - CliNetworkIPAddress     SKIPQUERY SILENT
              - CliNetworkNetmask       SKIPQUERY SILENT
              - CliNetworkGateway       SKIPQUERY SILENT
@@ -244,7 +246,6 @@ class Simp::Cli::Config::ItemListFactory
           - CliNetworkGateway
           - SimpOptionsDNSServers
           - SimpOptionsDNSSearch
-      - SetHostnameAction
       - SimpOptionsTrustedNets
       - SimpOptionsNTPServers
 
