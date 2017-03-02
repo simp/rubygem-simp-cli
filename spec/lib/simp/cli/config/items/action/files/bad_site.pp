@@ -15,7 +15,7 @@ Exec {
 #
 # Set this variable to make use of the different class sets in heiradata/simp:
 #   * `simp` - compliant and secure
-#   * `simp-lite` - makes use of many of our modules, but doesn't apply
+#   * `simp_lite` - makes use of many of our modules, but doesn't apply
 #        any prohibitive security or compliance features
 #   * `poss` or any other setting - don't include any classes by default
 #OOPS commented out

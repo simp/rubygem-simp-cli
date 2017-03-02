@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 2.0.1
+%global cli_version 3.0.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -97,6 +97,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Mar 02 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 3.0.0
+- Update to current list of simp scenarios.  simp-lite is now simp_lite.
+
 * Tue Feb 28 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 2.0.1
 - Fix broken dhcp network configuration in simp config
 

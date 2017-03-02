@@ -51,8 +51,8 @@ describe Simp::Cli::Config::Item::CliSimpScenario do
       expect( @ci.validate('simp') ).to eq true
     end
 
-    it "validates 'simp-lite'" do
-      expect( @ci.validate('simp-lite') ).to eq true
+    it "validates 'simp_lite'" do
+      expect( @ci.validate('simp_lite') ).to eq true
     end
 
     it "validates 'poss'" do

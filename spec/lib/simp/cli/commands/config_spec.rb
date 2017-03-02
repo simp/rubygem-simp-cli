@@ -39,14 +39,14 @@ def generate_simp_input_accepting_defaults
   input_io
 end
 
-# Create StringIO corresponding to user input for the simp-lite
+# Create StringIO corresponding to user input for the simp_lite
 # scenario in which the most values are set to user-provided values.
 # Exercises LDAP-enabled, but non-LDAP server logic.
 # FIXME:  This input is INCORRECT if /etc/yum.repos.d/simp_filesystem.repo exists.
-def generate_simp_input_setting_values(scenario = 'simp-lite')
+def generate_simp_input_setting_values(scenario = 'simp_lite')
   input_io = StringIO.new
   input_io                                    <<
-    "simp-lite\n"                             << # 'simp-lite' scenario
+    "simp_lite\n"                             << # 'simp_lite' scenario
     "\n"                                      << # use suggested interface, as has to be a valid one
     "no\n"                                    << # don't activate the interface
     "simp.test.local\n"                       << # FQDN of this system
@@ -210,9 +210,9 @@ describe Simp::Cli::Commands::Config do
        expect( actual_simp_conf ).to eq expected
      end
 
-     it "creates valid output yaml files for 'simp-lite' scenario, interactively setting values" do
+     it "creates valid output yaml files for 'simp_lite' scenario, interactively setting values" do
        skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
-       @input.reopen(generate_simp_input_setting_values('simp-lite'))
+       @input.reopen(generate_simp_input_setting_values('simp_lite'))
        begin
          Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
            '-p', @puppet_system_file, '-l', @log_file])
@@ -252,7 +252,7 @@ describe Simp::Cli::Commands::Config do
        skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
 
        input_string = ''
-       input_string << "simp-lite\n"          << # 'simp-lite' scenario
+       input_string << "simp_lite\n"          << # 'simp_lite' scenario
                  "1.2.3.6\n"                  << # external YUM servers (assuming no simp_filesystem.repo)
                  "http://os/path\n"           << # YUM OS update url
                  "http://simp/path\n"         << # YUM SIMP update url
