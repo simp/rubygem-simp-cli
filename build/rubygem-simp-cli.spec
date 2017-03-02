@@ -98,12 +98,22 @@ EOM
 
 %changelog
 * Fri Feb 17 2017 Nick Markowski <nmarkowski@keywcorp.com> - 2.0.1
-- First round of RC bootstrap fixes.
-- There is now only one tagged run, simp + pupmod. The puppetserver
-  is fully configured at the end of the run, clearing up all
-  messy restarts of the service during the rest of the bootstrap.
-- For now, all other base modules are two run idempotent, so tagless
-  runs have been limited to two in number.
+- Updated simp bootstrap for SIMP-6:
+-  There is now only one tagged run, simp + pupmod. The puppetserver
+   is fully configured at the end of the run, clearing up all
+   messy restarts of the service during the rest of the bootstrap.
+-  For now, all other base modules are two run idempotent, so tagless
+   runs have been limited to two in number.
+-  Now re-runable. All modified files are backed up.
+-  By default, users are prompted to keep or remove puppetserver certs.
+   Added a toggle flag so users can run bootstrap without interraction.
+-  More verbose output, including debug mode.  Text is organized and
+   colorized.
+-  Bootstrap log now timestamped.
+-  Introduced a safe mode to ignore interrupts, toggle with --unsafe.
+-  Added in general error handling.
+-  Removed puppet 3 cruft.
+-  Tracking is fabulous.
 
 * Wed Feb 15 2017 Nick Markowski <nmarkowski@keywcorp.com> - 2.0.0
 - Modified bootstrap to include a pupmod tag, and optimized

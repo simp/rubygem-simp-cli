@@ -9,8 +9,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
   require 'timeout'
   require 'facter'
   require File.expand_path( '../defaults', File.dirname(__FILE__) )
-  require File.expand_path( '../lib/track_output', File.dirname(__FILE__) )
-  BOOTSTRAP_LOG = File.join(SIMP_CLI_HOME, "simp_bootstrap.log.#{Time.now.strftime('%Y%m%dT%H%M%S')}.log")
+  BOOTSTRAP_LOG = File.join(SIMP_CLI_HOME, "simp_bootstrap.log.#{Time.now.strftime('%Y%m%dT%H%M%S')}")
   HighLine.colorize_strings
 
   @verbose = false
@@ -45,7 +44,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       @track = t
     end
 
-    opts.on("-u", "--unsafe", "Run bootstrap in 'unsafe' mode.  Interrupts are NOT captured and ignored. Default is SAFE.") do |u|
+    opts.on("-u", "--unsafe", "Run bootstrap in 'unsafe' mode.  Interrupts are NOT captured",
+                              "and ignored. Useful for debugging. Default is SAFE.") do |u|
       @unsafe = u
     end
 
@@ -91,37 +91,40 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     # Print intro
     system('clear')
-    say ("<%= color('=== Starting SIMP Bootstrap ===', :yellow) %>")
+    say "=== Starting SIMP Bootstrap ===".yellow
 
     # Set an interrupt trap if safe mode is enabled
     say "> The log can be found at '#{@logfile.path}'\n"
     if not @unsafe
-      Signal.trap("INT") { say "<%= color('Safe mode enabled, ignoring interrupt', :magenta) %>"}
-      say "> INFO: SAFE mode enabled" if @verbose
+      signals = ["INT","HUP","USR1","USR2"]
+      signals.each do |sig|
+        Signal.trap(sig) { say 'Safe mode enabled, ignoring interrupt'.magenta }
+      end
+      say "> Interrupts will be captured and ignored to ensure bootstrap integrity.".magenta.bold
     else
-      say "> INFO: SAFE mode disabled" if @verbose
+      say "> WARNING: Any interrupts may cause system instability.".red.bold
     end
 
 
     # Kill all puppet processes and stop specific services
-    say "> <%= color('Killing all Puppet processes', :cyan) %>"
+    say "> Killing all Puppet processes".cyan
     system("pkill -9 -f puppet >& /dev/null")
     system('pkill -f pserver_tmp')
     system("puppet resource service puppetserver ensure=stopped >& /dev/null")
 
     # Kill the connection with puppetdb
-    say "> <%= color('Killing connection to PuppetDB', :cyan) %>"
+    say "> Killing connection to PuppetDB".cyan
     system("puppet resource service puppetdb ensure=stopped >& /dev/null")
     confdir = ::Utils.puppet_info[:config]['confdir']
     if File.exists?("#{confdir}/routes.yaml")
       system("rm -f #{confdir}/routes.yaml")
-      say "> INFO: <%= color('Successfully removed #{confdir}/routes.yaml', :green) %>" if @verbose
+      say "> DEBUG: Successfully removed #{confdir}/routes.yaml".green if @verbose
     else
-      say "> INFO: Did not find #{confdir}/routes.yaml, not removing" if @verbose
+      say "> DEBUG: Did not find #{confdir}/routes.yaml, not removing" if @verbose
     end
     system('puppet config set --section master storeconfigs false')
     system('puppet config set --section main storeconfigs false')
-    say "> INFO: <%= color('Successfully set storeconfigs=false in #{confdir}/puppet.conf', :green) %>" if @verbose
+    say "> DEBUG: Successfully set storeconfigs=false in #{confdir}/puppet.conf".green if @verbose
 
     # Figure out what to do with puppetserer certs
     rm_certs = false
@@ -135,7 +138,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     ssldir = ::Utils.puppet_info[:config]['ssldir']
     if rm_certs
       FileUtils.rm_rf(Dir.glob(File.join(ssldir,'*')))
-      say "> <%= color('Successfully removed #{ssldir}/*', :green) %>"
+      say "> Successfully removed #{ssldir}/*".green
     else
       say "> Keeping current puppetserver certificates, in #{ssldir}"
     end
@@ -143,10 +146,10 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     # Remove the run directory
     rundir = ::Utils.puppet_info[:config]['rundir']
     FileUtils.rm_f(Dir.glob(File.join(rundir,'*')))
-    say "> <%= color('Successfully removed #{rundir}/*', :green) %>"
+    say "> Successfully removed #{rundir}/*".green
 
     # Get the puppetserver configured to listen on port 8150.
-    say "> <%=color('Configuring puppetserver to listen on port 8150', :cyan) %>"
+    say "> Configuring puppetserver to listen on port 8150".cyan
     begin
 
       # Back everything up.
@@ -156,7 +159,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
         conf_files.each do |f|
           if File.exists?(f)
             system(%{cp #{f} #{f}.BAK})
-            say "> <%= color('Sucessfully backed up #{f} to #{f}.BAK', :green) %>"
+            say "> Sucessfully backed up #{f} to #{f}.BAK".green
           end
         end
       else
@@ -168,7 +171,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       FileUtils.mkdir_p(server_conf_tmp)
       FileUtils.chown('puppet','puppet',server_conf_tmp)
       system(%{puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver' match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m -Djava.io.tmpdir=#{server_conf_tmp}"' 2>&1 > /dev/null})
-      say "> <%= color('Sucessfully wrote java tmpdir to /etc/sysconfig/puppetserver', :green) %>"
+      say "> Sucessfully wrote java tmpdir to /etc/sysconfig/puppetserver".green
 
       # Slap minimalistic conf files in place to get puppetserver off of the ground.
       system(%{cat > #{puppetserver_dir}/webserver.conf <<-EOM
@@ -180,7 +183,7 @@ webserver: {
 }
 EOM
 })
-      say "> <%= color('Sucessfully wrote webserver.conf to #{puppetserver_dir}/webserver.conf', :green) %>"
+      say "> Sucessfully wrote webserver.conf to #{puppetserver_dir}/webserver.conf".green
       system(%{cat > #{puppetserver_dir}/web-routes.conf <<-EOM
 web-router-service: {
     "puppetlabs.services.ca.certificate-authority-service/certificate-authority-service": "/puppet-ca"
@@ -191,7 +194,7 @@ web-router-service: {
 }
 EOM
 })
-      say "> <%= color('Sucessfully wrote web-routes.conf to #{puppetserver_dir}/web-routes.conf', :green) %>"
+      say "> Sucessfully wrote web-routes.conf to #{puppetserver_dir}/web-routes.conf".green
     rescue => error
       fail( "Failed to configure the puppetserver, with error #{error.message}" )
     end
@@ -199,7 +202,7 @@ EOM
     # Firstrun is tagged and run against the bootstrap puppetserver port, 8150.
     # This run will configure puppetserver and puppetdb; all subsequent runs
     # will run against the conifgured masterport.
-    say "> <%= color('Running puppet agent, with --tags pupmod,simp', :cyan) %>"
+    say "> Running puppet agent, with --tags pupmod,simp".cyan
     pupcmd = 'puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150'
     # Firstrun is tagged and run against the bootstrap puppetserver port, 8150.
     linecounts << track_output("#{pupcmd} --tags pupmod,simp 2> /dev/null", '8150')
@@ -207,13 +210,13 @@ EOM
     # If selinux is enabled, relabel the filesystem.
     FileUtils.touch('/.autorelabel')
     if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? && (Facter.value(:selinux_current_mode) != "disabled")
-      say "> <%= color('Relabeling filesystem for selinux.', :cyan) %>"
+      say "> Relabeling filesystem for selinux".cyan
       @logfile.puts("Relabeling filesystem for selinux.\n")
       system("fixfiles -f relabel 2>&1 | tee -a #{@logfile.path}")
     end
 
     # SIMP is not single-run idempotent.  Until it is, run puppet twice.
-    say "> <%= color('Running puppet without tags', :cyan) %>"
+    say "> Running puppet without tags".cyan
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay"
     # This is fugly, but until we devise an intelligent way to determine when your system
     # is 'bootstrapped', we're going to run puppet in a loop.
@@ -225,22 +228,118 @@ EOM
     begin
       pserver_proc = %x{netstat -tlpn}.split("\n").select{|x| x =~ /\d:8150/}
       unless pserver_proc.empty?
-        pserver_pid = pserver_proc.first.split.last.split('/').first.to_i
-        Process.kill('KILL',pserver_pid)
+        pserver_port = %x{puppet config print masterport}
+        # By this point, bootstrap has applied config settings to puppetserver.
+        # Don't kill puppetserver if it's configured it to listen on 8150.
+        unless (pserver_port == '8150')
+          pserver_pid = pserver_proc.first.split.last.split('/').first.to_i
+          Process.kill('KILL',pserver_pid)
+        end
       end
     rescue Exception => e
       say e
-      say "> <%= color('The Puppet Server process running on port 8150 could not be killed. Please check your configuration!', :magenta) %>"
+      say "> The bootstrap puppetserver process running on port 8150 could not be killed. Please check your configuration!".magenta
     end
 
     # Print closing banner
-    say "> <%= color('SIMP Bootstrap Complete!', :yellow) %>"
+    say "> SIMP Bootstrap Complete!".yellow
     say "> Duration of complete bootstrap: #{Time.now - bootstrap_start_time} seconds"
     if !system('ps -C httpd > /dev/null 2>&1') && (linecounts.include?(-1) || (linecounts.uniq.length < linecounts.length))
-      say "> <%= color('Warning: Primitive checks indicate there may have been issues.', :magenta) %>"
+      say "> Warning: Primitive checks indicate there may have been issues".magenta
     end
-    say "> <%= color('Check #{@logfile.path} for details', :yellow) %>"
-    say "> <%= color('Please run `puppet agent -t` by hand to test your configuration.', :yellow) %>"
-    say "> <%= color('You should reboot your system to ensure consistency', :magenta) %>"
+    say "> Check #{@logfile.path} for details".yellow
+    say "> Please run `puppet agent -t` by hand to test your configuration".yellow
+    say "> You should reboot your system to ensure consistency".magenta
   end
+
+  # Ensure the puppetserver is running ca on the specified port.
+  # Used ensure the puppetserver service is running.
+  def self.ensure_running(port = nil)
+    port ||= `puppet config print masterport`.chomp
+
+    begin
+      say "> Waiting for puppetserver to accept connections on port #{port}".cyan
+      curl_cmd = "curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/`hostname`.pem --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H \"Accept: s\" https://localhost:#{port}/production/certificate_revocation_list/ca"
+      say "> DEBUG: #{curl_cmd}" if @verbose
+      running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
+      unless running
+        system('puppet resource service puppetserver ensure="running" enable=true > /dev/null 2>&1 &')
+        stages = ["\\",'|','/','-']
+        rest = 0.1
+        timeout = 5
+        Timeout::timeout(timeout*60) {
+          while not running do
+            running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
+            stages.each{ |x|
+              $stdout.flush
+              print "> #{x}\r"
+              sleep(rest)
+            }
+          end
+        }
+        $stdout.flush
+      end
+    rescue Timeout::Error
+      fail("The Puppet Server did not start within #{timeout} minutes. Please start puppetserver by hand and inspect any issues.")
+    end
+  end
+
+  # Track a running process by following its STDOUT output
+  # Prints a '#' for each line of output
+  # returns -1 if error occured, otherwise the line count if PTY.spawn succeeded
+  def self.track_output(command, port = nil)
+    say "> DEBUG: #{command}" if @verbose
+    ensure_running(port)
+    successful = true
+
+    @logfile.print '#' * 80
+    @logfile.puts("\nStarting #{command}\n")
+
+    start_time = Time.now
+    linecount = 0
+    col = ['green','red','yellow','blue','magenta','cyan']
+
+    if @track
+      say "> Track => ".cyan
+      begin
+        ::PTY.spawn("#{command}") do |read, write, pid|
+          begin
+            read.each do |line|
+              print ("#".send(col.first))
+              col.rotate!
+              @logfile.puts(line)
+              linecount += 1
+            end
+          rescue Errno::EIO
+          end
+        end
+      rescue PTY::ChildExited => e
+        print '!!!'
+        @logfile.puts("Child exited unexpectedly:\n\t#{e.message}")
+        successful = false
+      rescue
+        # If we don't have a PTY, just run the command.
+        @logfile.puts "Running without a PTY!"
+        output = %x{#{command}}
+        @logfile.puts output
+        linecount = output.split("\n").length
+        successful = false if $? != 0
+      end
+    else # don't track
+      say "> Running, please wait ... "
+      $stdout.flush
+      output = %x{#{command}}
+      @logfile.puts output
+      linecount = output.split("\n").length
+      successful = false if $? != 0
+    end
+    puts
+    @logfile.puts("\n#{command} - Done!")
+    end_time = Time.now
+    say "> DEBUG: Duration of Puppet run: #{end_time - start_time} seconds" if @verbose
+    @logfile.puts("Duration of Puppet run: #{end_time - start_time} seconds")
+
+    return successful ? linecount : -1
+  end
+
 end
