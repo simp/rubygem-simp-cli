@@ -36,8 +36,14 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       @verbose = v
     end
 
-    opts.on("-r", "--[no-]remove_certs", "Remove the existing puppetserver certificates. Default is KEEP.") do |r|
-      @remove_certs = r
+    opts.on("-k", "--[no-]kill_agent", "Ignore the status of agent_catalog_run_lockfile, and",
+                                             "force kill active puppet agents at the beginning of",
+                                             "bootstrap") do |k|
+      @kill_agent = k
+    end
+
+    opts.on("-r", "--[no-]remove_ssldir", "Remove the existing puppet ssldir. Default is KEEP.") do |r|
+      @remove_ssldir = r
     end
 
     opts.on("-t", "--[no-]track", "Enables/disables the tracker. Default is enabled.") do |t|
@@ -91,90 +97,116 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     # Print intro
     system('clear')
-    say "=== Starting SIMP Bootstrap ===".yellow
+    say "=== Starting SIMP Bootstrap ===".yellow.bold
 
     # Set an interrupt trap if safe mode is enabled
     say "> The log can be found at '#{@logfile.path}'\n"
     if not @unsafe
       signals = ["INT","HUP","USR1","USR2"]
       signals.each do |sig|
-        Signal.trap(sig) { say 'Safe mode enabled, ignoring interrupt'.magenta }
+        Signal.trap(sig) { say "\nSafe mode enabled, ignoring interrupt".magenta }
       end
       say "> Interrupts will be captured and ignored to ensure bootstrap integrity.".magenta.bold
     else
       say "> WARNING: Any interrupts may cause system instability.".red.bold
     end
 
-
-    # Kill all puppet processes and stop specific services
-    say "> Killing all Puppet processes".cyan
-    system("pkill -9 -f puppet >& /dev/null")
-    system('pkill -f pserver_tmp')
-    system("puppet resource service puppetserver ensure=stopped >& /dev/null")
-
-    # Kill the connection with puppetdb
-    say "> Killing connection to PuppetDB".cyan
-    system("puppet resource service puppetdb ensure=stopped >& /dev/null")
-    confdir = ::Utils.puppet_info[:config]['confdir']
-    if File.exists?("#{confdir}/routes.yaml")
-      system("rm -f #{confdir}/routes.yaml")
-      say "> DEBUG: Successfully removed #{confdir}/routes.yaml".green if @verbose
-    else
-      say "> DEBUG: Did not find #{confdir}/routes.yaml, not removing" if @verbose
-    end
-    system('puppet config set --section master storeconfigs false')
-    system('puppet config set --section main storeconfigs false')
-    say "> DEBUG: Successfully set storeconfigs=false in #{confdir}/puppet.conf".green if @verbose
-
-    # Figure out what to do with puppetserer certs
-    rm_certs = false
-    if @remove_certs then
-      rm_certs = true
-    # If remove_certs is not true OR false, it is nil and should be prompted for.
-    elsif not @remove_certs == false
-      rm_ask = ask("> Do you wish to keep existing puppetserver certificates? (yes|no) ") { |q| q.validate = /(yes)|(no)/i }
-      rm_certs = true if rm_ask == 'no'
-    end
-    ssldir = ::Utils.puppet_info[:config]['ssldir']
-    if rm_certs
-      FileUtils.rm_rf(Dir.glob(File.join(ssldir,'*')))
-      say "> Successfully removed #{ssldir}/*".green
-    else
-      say "> Keeping current puppetserver certificates, in #{ssldir}"
-    end
-
-    # Remove the run directory
-    rundir = ::Utils.puppet_info[:config]['rundir']
-    FileUtils.rm_f(Dir.glob(File.join(rundir,'*')))
-    say "> Successfully removed #{rundir}/*".green
-
-    # Get the puppetserver configured to listen on port 8150.
-    say "> Configuring puppetserver to listen on port 8150".cyan
-    begin
-
-      # Back everything up.
-      puppetserver_dir = '/etc/puppetlabs/puppetserver/conf.d'
-      if File.directory?(puppetserver_dir)
-        conf_files = ["#{puppetserver_dir}/webserver.conf", "#{puppetserver_dir}/web-routes.conf", '/etc/sysconfig/puppetserver']
-        conf_files.each do |f|
-          if File.exists?(f)
-            system(%{cp #{f} #{f}.BAK})
-            say "> Sucessfully backed up #{f} to #{f}.BAK".green
-          end
+    # Check if a puppet agent is currently running
+    # Note: Killing a puppet agent (that started via cron) will release the lock it has on
+    # /var/puppetagent_cron.lock
+    if not @kill_agent then
+      if File.exists?(::Utils.puppet_info[:config]['agent_catalog_run_lockfile'])
+        say "> Detected running puppet agent process".magenta
+        if not @kill_agent == false
+          pkill_ask = ask ("> Do you wish to kill it? (yes|no) ".yellow) { |q| q.validate = /(yes)|(no)/i}
+          pkill_ask = false if pkill_ask.downcase == 'no'
+        end
+        if pkill_ask == false or @kill_agent == false
+          say "> Not killing active puppet agent process(es)".magenta
+          say "> You will need to resolve all running agent processes before continuing".magenta
+          exit 1
         end
       else
-        fail( "Could not find directory #{puppetserver_dir}" )
+        say "> Did not detect any active puppet agents"
+      end
+    end
+
+    # Grab a lock on puppetagent cron so it does not esplode bootstrap.
+    File.open("/var/puppetagent_cron.lock", File::RDWR|File::CREAT, 0644) {|f|
+      f.flock(File::LOCK_EX)
+
+      # Kill all puppet processes and stop specific services
+      say "> Killing all Puppet processes".cyan
+      system("pkill -9 -f puppet >& /dev/null")
+      system('pkill -f pserver_tmp')
+      system("puppet resource service puppetserver ensure=stopped >& /dev/null")
+
+      # Kill the connection with puppetdb
+      say "> Killing connection to PuppetDB".cyan
+      system("puppet resource service puppetdb ensure=stopped >& /dev/null")
+      confdir = ::Utils.puppet_info[:config]['confdir']
+      if File.exists?("#{confdir}/routes.yaml")
+        system("rm -f #{confdir}/routes.yaml")
+        say "> DEBUG: Successfully removed #{confdir}/routes.yaml".green if @verbose
+      else
+        say "> DEBUG: Did not find #{confdir}/routes.yaml, not removing" if @verbose
+      end
+      system('puppet config set --section master storeconfigs false')
+      system('puppet config set --section main storeconfigs false')
+      say "> DEBUG: Successfully set storeconfigs=false in #{confdir}/puppet.conf".green if @verbose
+
+      # Figure out what to do with the puppet ssldir
+      rm_ssldir = false
+      if @remove_ssldir then
+        rm_ssldir = true
+      # If remove_ssldir is not true OR false, it is nil and should be prompted for.
+      elsif not @remove_ssldir == false
+        say "> Removing the contents of the puppet ssldir will ensure consistency, but"
+        say ">   may not be desireable.  If removed, puppetserver certificates will be"
+        say ">   removed and re-generated."
+        rm_ask = ask("> Do you wish to remove the existing ssldir? (yes|no) ".yellow) { |q| q.validate = /(yes)|(no)/i }
+        rm_ssldir = true if rm_ask.downcase == 'yes'
+      end
+      ssldir = ::Utils.puppet_info[:config]['ssldir']
+      if rm_ssldir
+        FileUtils.rm_rf(Dir.glob(File.join(ssldir,'*')))
+        say "> Successfully removed #{ssldir}/*".green
+      else
+        say "> Keeping current puppetserver certificates, in #{ssldir}".green
       end
 
-      # Run in a temporary cache space.
-      server_conf_tmp = "#{::Utils.puppet_info[:config]['vardir']}/pserver_tmp"
-      FileUtils.mkdir_p(server_conf_tmp)
-      FileUtils.chown('puppet','puppet',server_conf_tmp)
-      system(%{puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver' match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m -Djava.io.tmpdir=#{server_conf_tmp}"' 2>&1 > /dev/null})
-      say "> Sucessfully wrote java tmpdir to /etc/sysconfig/puppetserver".green
+      # Remove the run directory
+      rundir = ::Utils.puppet_info[:config]['rundir']
+      FileUtils.rm_f(Dir.glob(File.join(rundir,'*')))
+      say "> Successfully removed #{rundir}/*".green
 
-      # Slap minimalistic conf files in place to get puppetserver off of the ground.
-      system(%{cat > #{puppetserver_dir}/webserver.conf <<-EOM
+      # Get the puppetserver configured to listen on port 8150.
+      say "> Configuring puppetserver to listen on port 8150".cyan
+      begin
+
+        # Back everything up.
+        puppetserver_dir = '/etc/puppetlabs/puppetserver/conf.d'
+        if File.directory?(puppetserver_dir)
+          conf_files = ["#{puppetserver_dir}/webserver.conf", "#{puppetserver_dir}/web-routes.conf", '/etc/sysconfig/puppetserver']
+          conf_files.each do |f|
+            if File.exists?(f)
+              system(%{cp #{f} #{f}.BAK})
+              say "> Sucessfully backed up #{f} to #{f}.BAK".green
+            end
+          end
+        else
+          fail( "Could not find directory #{puppetserver_dir}" )
+        end
+
+        # Run in a temporary cache space.
+        server_conf_tmp = "#{::Utils.puppet_info[:config]['vardir']}/pserver_tmp"
+        FileUtils.mkdir_p(server_conf_tmp)
+        FileUtils.chown('puppet','puppet',server_conf_tmp)
+        system(%{puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver' match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m -Djava.io.tmpdir=#{server_conf_tmp}"' 2>&1 > /dev/null})
+        say "> Sucessfully wrote java tmpdir to /etc/sysconfig/puppetserver".green
+
+        # Slap minimalistic conf files in place to get puppetserver off of the ground.
+        system(%{cat > #{puppetserver_dir}/webserver.conf <<-EOM
 webserver: {
     access-log-config: /etc/puppetlabs/puppetserver/request-logging.xml
     client-auth: want
@@ -183,8 +215,8 @@ webserver: {
 }
 EOM
 })
-      say "> Sucessfully wrote webserver.conf to #{puppetserver_dir}/webserver.conf".green
-      system(%{cat > #{puppetserver_dir}/web-routes.conf <<-EOM
+        say "> Sucessfully wrote webserver.conf to #{puppetserver_dir}/webserver.conf".green
+        system(%{cat > #{puppetserver_dir}/web-routes.conf <<-EOM
 web-router-service: {
     "puppetlabs.services.ca.certificate-authority-service/certificate-authority-service": "/puppet-ca"
     "puppetlabs.services.master.master-service/master-service": "/puppet"
@@ -194,62 +226,66 @@ web-router-service: {
 }
 EOM
 })
-      say "> Sucessfully wrote web-routes.conf to #{puppetserver_dir}/web-routes.conf".green
-    rescue => error
-      fail( "Failed to configure the puppetserver, with error #{error.message}" )
-    end
-
-    # Firstrun is tagged and run against the bootstrap puppetserver port, 8150.
-    # This run will configure puppetserver and puppetdb; all subsequent runs
-    # will run against the conifgured masterport.
-    say "> Running puppet agent, with --tags pupmod,simp".cyan
-    pupcmd = 'puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150'
-    # Firstrun is tagged and run against the bootstrap puppetserver port, 8150.
-    linecounts << track_output("#{pupcmd} --tags pupmod,simp 2> /dev/null", '8150')
-
-    # If selinux is enabled, relabel the filesystem.
-    FileUtils.touch('/.autorelabel')
-    if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? && (Facter.value(:selinux_current_mode) != "disabled")
-      say "> Relabeling filesystem for selinux".cyan
-      @logfile.puts("Relabeling filesystem for selinux.\n")
-      system("fixfiles -f relabel 2>&1 | tee -a #{@logfile.path}")
-    end
-
-    # SIMP is not single-run idempotent.  Until it is, run puppet twice.
-    say "> Running puppet without tags".cyan
-    pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay"
-    # This is fugly, but until we devise an intelligent way to determine when your system
-    # is 'bootstrapped', we're going to run puppet in a loop.
-    (0..1).each do
-      track_output("#{pupcmd}")
-    end
-
-    # Clean up the leftover puppetserver process (if any)
-    begin
-      pserver_proc = %x{netstat -tlpn}.split("\n").select{|x| x =~ /\d:8150/}
-      unless pserver_proc.empty?
-        pserver_port = %x{puppet config print masterport}
-        # By this point, bootstrap has applied config settings to puppetserver.
-        # Don't kill puppetserver if it's configured it to listen on 8150.
-        unless (pserver_port == '8150')
-          pserver_pid = pserver_proc.first.split.last.split('/').first.to_i
-          Process.kill('KILL',pserver_pid)
-        end
+        say "> Sucessfully wrote web-routes.conf to #{puppetserver_dir}/web-routes.conf".green
+      rescue => error
+        fail( "Failed to configure the puppetserver, with error #{error.message}" )
       end
-    rescue Exception => e
-      say e
-      say "> The bootstrap puppetserver process running on port 8150 could not be killed. Please check your configuration!".magenta
-    end
 
-    # Print closing banner
-    say "> SIMP Bootstrap Complete!".yellow
-    say "> Duration of complete bootstrap: #{Time.now - bootstrap_start_time} seconds"
-    if !system('ps -C httpd > /dev/null 2>&1') && (linecounts.include?(-1) || (linecounts.uniq.length < linecounts.length))
-      say "> Warning: Primitive checks indicate there may have been issues".magenta
-    end
-    say "> Check #{@logfile.path} for details".yellow
-    say "> Please run `puppet agent -t` by hand to test your configuration".yellow
-    say "> You should reboot your system to ensure consistency".magenta
+      # Firstrun is tagged and run against the bootstrap puppetserver port, 8150.
+      # This run will configure puppetserver and puppetdb; all subsequent runs
+      # will run against the conifgured masterport.
+      say "> Running puppet agent, with --tags pupmod,simp".cyan
+      pupcmd = 'puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay --masterport=8150 --ca_port=8150'
+      # Firstrun is tagged and run against the bootstrap puppetserver port, 8150.
+      linecounts << track_output("#{pupcmd} --tags pupmod,simp 2> /dev/null", '8150')
+
+      # If selinux is enabled, relabel the filesystem.
+      FileUtils.touch('/.autorelabel')
+      if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? && (Facter.value(:selinux_current_mode) != "disabled")
+        say "> Relabeling filesystem for selinux".cyan
+        @logfile.puts("Relabeling filesystem for selinux.\n")
+        system("fixfiles -f relabel 2>&1 | tee -a #{@logfile.path}")
+      end
+
+      # SIMP is not single-run idempotent.  Until it is, run puppet twice.
+      say "> Running puppet without tags".cyan
+      pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay"
+      # This is fugly, but until we devise an intelligent way to determine when your system
+      # is 'bootstrapped', we're going to run puppet in a loop.
+      (0..1).each do
+        track_output("#{pupcmd}")
+      end
+
+      # Clean up the leftover puppetserver process (if any)
+      begin
+        pserver_proc = %x{netstat -tlpn}.split("\n").select{|x| x =~ /\d:8150/}
+        unless pserver_proc.empty?
+          pserver_port = %x{puppet config print masterport}
+          # By this point, bootstrap has applied config settings to puppetserver.
+          # Don't kill puppetserver if it's configured it to listen on 8150.
+          unless (pserver_port == '8150')
+            pserver_pid = pserver_proc.first.split.last.split('/').first.to_i
+            Process.kill('KILL',pserver_pid)
+          end
+        end
+      rescue Exception => e
+        say e
+        say "> The bootstrap puppetserver process running on port 8150 could not be killed. Please check your configuration!".magenta
+      end
+
+      # Print closing banner
+      say "> SIMP Bootstrap Complete!".yellow
+      say "> Duration of complete bootstrap: #{Time.now - bootstrap_start_time} seconds"
+      if !system('ps -C httpd > /dev/null 2>&1') && (linecounts.include?(-1) || (linecounts.uniq.length < linecounts.length))
+        say "> Warning: Primitive checks indicate there may have been issues".magenta
+      end
+      say "> Check #{@logfile.path} for details".yellow
+      say "> Please run `puppet agent -t` by hand to test your configuration".yellow
+      say "> You should reboot your system to ensure consistency".magenta
+
+      # Un-lock the puppetagent cron
+      f.flock(File::LOCK_UN)
+    }
   end
 
   # Ensure the puppetserver is running ca on the specified port.
