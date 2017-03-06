@@ -10,9 +10,7 @@ describe Simp::Cli::Config::Item::CliNetworkDHCP do
   describe "#validate" do
     it "validates dhcp/static" do
       expect( @ci.validate('dhcp') ).to eq true
-      expect( @ci.validate('DHCP') ).to eq true
       expect( @ci.validate('static') ).to eq true
-      expect( @ci.validate('STATIC') ).to eq true
     end
 
     it "doesn't validate other things" do
