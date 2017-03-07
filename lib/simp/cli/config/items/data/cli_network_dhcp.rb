@@ -16,7 +16,7 @@ module Simp::Cli::Config
     end
 
     def validate( x )
-      return ['dhcp', 'static' ].include?( x.to_s.downcase )
+      return ['dhcp', 'static' ].include?( x.to_s )
     end
 
     def not_valid_message
