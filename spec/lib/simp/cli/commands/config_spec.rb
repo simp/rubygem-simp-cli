@@ -322,8 +322,8 @@ describe Simp::Cli::Commands::Config do
        skip_msg = '(Skipping apply[**user is not root**])'
        expected_lines = [
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set $simp_scenario in simp environment's site.pp",
-         "#{fmt_begin}#{skip_msg}#{fmt_end} Configure a network interface",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set hostname",
+         "#{fmt_begin}#{skip_msg}#{fmt_end} Configure a network interface",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set GRUB password",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set default Puppet environment to 'simp'",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set up Puppet autosign",
@@ -370,8 +370,8 @@ describe Simp::Cli::Commands::Config do
 
        expected_lines = [
          %r{Setting of \$simp_scenario in the simp environment's site.pp skipped}m,
-         %r{Configuration of a network interface skipped}m,
          %r{Setting of hostname skipped}m,
+         %r{Configuration of a network interface skipped}m,
          %r{Setting of GRUB password skipped}m,
          %r{Setting 'simp' to the Puppet default environment skipped}m,
          %r{Setup of autosign in #{@tmp_dir}/autosign.conf skipped}m,

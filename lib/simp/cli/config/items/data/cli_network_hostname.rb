@@ -18,7 +18,19 @@ module Simp::Cli::Config
     end
 
     def recommended_value
-      validate( os_value ) ? os_value : 'puppet.change.me'
+      # FIXME The 'fqdn' fact used for the os_value is not very sophisticated.
+      # Specifically, it doesn't tell us the network hostname associated
+      # with a DHCP-retrieved IP address. We attempt to get that information
+      # here, so we can present the user with a better recommended value.
+      # NOTE: `hostname -A` can return a list of hostnames.  Since we have
+      # have no way of determining the most appropriate list entry, we
+      # arbitrarily select the first entry.
+      network_hostname = `hostname -A 2>/dev/null`.split[0]
+      if network_hostname and validate( network_hostname ) 
+        network_hostname
+      else
+        validate( os_value ) ? os_value : 'puppet.change.me'
+      end
     end
   end
 end
