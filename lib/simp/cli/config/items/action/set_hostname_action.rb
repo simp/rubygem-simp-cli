@@ -36,13 +36,9 @@ module Simp::Cli::Config
         end
       end
 
-      if success
+      if success && ( get_item( 'cli::network::dhcp' ).value == 'dhcp' )
         # restart the interface to pick up any domain changes associated
-        # with the new hostname
-        # NOTE:  This operation is really for the DCHP configuration case
-        # in which we have already configured the network, but it doesn't
-        # hurt to restart the interface for the static configuration case,
-        # as well.
+        # with the new hostname, if the interface is configured via DHCP
         interface = get_item( 'cli::network::interface' ).value
         debug( "Restarting #{interface} interface to update domain info" )
         show_wait_spinner {

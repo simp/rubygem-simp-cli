@@ -17,10 +17,10 @@ module Simp::Cli::Config
       ci  = {}
       cmd = nil
 
-      dhcp      = get_item( 'cli::network::dhcp'        ).value
+      dhcp      = get_item( 'cli::network::dhcp' ).value
       # BOOTPROTO=none is valid to spec; BOOTPROTO=static isn't
       bootproto = (dhcp == 'static') ? 'none' : dhcp
-      @interface = get_item( 'cli::network::interface'   ).value
+      @interface = get_item( 'cli::network::interface' ).value
 
       # apply the interface using the SIMP classes
       # NOTE: the "FACTER_ipaddress=XXX" helps puppet avoid a fatal error that
