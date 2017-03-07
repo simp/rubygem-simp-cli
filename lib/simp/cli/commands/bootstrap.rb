@@ -111,39 +111,49 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       say "> WARNING: Any interrupts may cause system instability.".red.bold
     end
 
-    # Check if a puppet agent is currently running
+    # Determine if a puppet agent is running, and what to do with it.
     # Note: Killing a puppet agent (that started via cron) will release the lock it has on
-    # /var/puppetagent_cron.lock
-    if not @kill_agent then
+    # /var/lock/puppetagent_cron
+    _kill_agent = false
+    if @kill_agent
+      _kill_agent = true
+    else
       if File.exists?(::Utils.puppet_info[:config]['agent_catalog_run_lockfile'])
-        say "> Detected running puppet agent process".magenta
+        say "> Detected agent lock file, #{::Utils.puppet_info[:config]['agent_catalog_run_lockfile']}".magenta
+        # If kill agent is not true or false, prompt
         if not @kill_agent == false
-          pkill_ask = ask ("> Do you wish to kill it? (yes|no) ".yellow) { |q| q.validate = /(yes)|(no)/i}
-          pkill_ask = false if pkill_ask.downcase == 'no'
+          kill_ask = ask ("> Do you wish to remove the agent lock and forcibly kill currently running agents? (yes|no) ".yellow) { |q| q.validate = /(yes)|(no)/i}
+          _kill_agent = true if kill_ask.downcase == 'yes'
         end
-        if pkill_ask == false or @kill_agent == false
-          say "> Not killing active puppet agent process(es)".magenta
-          say "> You will need to resolve all running agent processes before continuing".magenta
+        # If the user does not intend to forcibly kill running agents but an agent
+        # is running, warn them and don't continue.
+        if _kill_agent == false
+          say "> Not removing lock or killing active puppet agent process(es)".magenta
+          say "> You will need to resolve all locks and running agent processes before continuing".magenta
           exit 1
         end
       else
-        say "> Did not detect any active puppet agents"
+        say "> Did not detect agent lock file"
       end
+    end
+    if _kill_agent
+      say "> Killing puppet agents".cyan
+      system("pkill -9 -f 'puppet agent' >& /dev/null")
+      system("puppet resource service puppet ensure=stopped >& /dev/null")
+      system("rm -f #{::Utils.puppet_info[:config]['agent_catalog_run_lockfile']}")
+      say "> Successfully removed agent lock file #{::Utils.puppet_info[:config]['agent_catalog_run_lockfile']}".green
     end
 
     # Grab a lock on puppetagent cron so it does not esplode bootstrap.
-    File.open("/var/puppetagent_cron.lock", File::RDWR|File::CREAT, 0644) {|f|
+    # Flock will release this lock if the bootstrap process is interrupted
+    # or killed.
+    File.open("/var/lock/puppetagent_cron", File::RDWR|File::CREAT, 0644) {|f|
       f.flock(File::LOCK_EX)
 
-      # Kill all puppet processes and stop specific services
-      say "> Killing all Puppet processes".cyan
-      system("pkill -9 -f puppet >& /dev/null")
-      system('pkill -f pserver_tmp')
-      system("puppet resource service puppetserver ensure=stopped >& /dev/null")
-
-      # Kill the connection with puppetdb
-      say "> Killing connection to PuppetDB".cyan
+      # Kill the connection with puppetdb before killing the puppetserver
+      say "> Killing connection to puppetdb".cyan
       system("puppet resource service puppetdb ensure=stopped >& /dev/null")
+      system("pkill -9 -f puppetdb")
       confdir = ::Utils.puppet_info[:config]['confdir']
       if File.exists?("#{confdir}/routes.yaml")
         system("rm -f #{confdir}/routes.yaml")
@@ -154,6 +164,12 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       system('puppet config set --section master storeconfigs false')
       system('puppet config set --section main storeconfigs false')
       say "> DEBUG: Successfully set storeconfigs=false in #{confdir}/puppet.conf".green if @verbose
+
+      # Kill all puppet processes and stop specific services
+      say "> Killing all remaining puppet processes".cyan
+      system("puppet resource service puppetserver ensure=stopped >& /dev/null")
+      system("pkill -9 -f puppet >& /dev/null")
+      system('pkill -f pserver_tmp')
 
       # Figure out what to do with the puppet ssldir
       rm_ssldir = false

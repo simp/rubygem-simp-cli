@@ -111,6 +111,8 @@ EOM
    of bootstrap
 -  By default, users are prompted to keep or remove puppetserver certs.
    Added a toggle flag so users can run bootstrap without interraction.
+-  If puppetserver is configured to listen on 8150, the process is
+   no longer killed at the end of bootstrap.
 -  More verbose output, including debug mode.  Text is organized and
    colorized.
 -  Bootstrap log now timestamped.
