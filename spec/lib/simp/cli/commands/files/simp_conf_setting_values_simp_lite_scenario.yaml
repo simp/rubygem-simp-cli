@@ -8,7 +8,7 @@ cli::network::netmask: "255.255.255.0"
 cli::network::set_up_nic: false
 cli::set_grub_password: false
 cli::set_production_to_simp: false
-cli::simp::scenario: simp-lite
+cli::simp::scenario: simp_lite
 puppetdb::master::config::puppetdb_port: 8139
 puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 3
