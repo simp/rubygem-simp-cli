@@ -105,12 +105,13 @@ EOM
 -  For now, all other base modules are two run idempotent, so tagless
    runs have been limited to two in number.
 -  Now re-runable. All modified files are backed up.
--  Created a lock for puppetagent_cron to ensure the cron job does
-   not kick off during bootstrap.
--  Prompt users for action if a puppet agent is running at the start
-   of bootstrap
+-  Lock out the puppet agent to ensure the cron job does not kick
+   off during bootstrap.
+-  Wait for running puppet agents to complete before bootstrapping;
+   users can optionally specify --kill_agent.
 -  By default, users are prompted to keep or remove puppetserver certs.
-   Added a toggle flag so users can run bootstrap without interraction.
+   Added --[no]-remove_ssldir so users can run bootstrap without
+   interraction.
 -  If puppetserver is configured to listen on 8150, the process is
    no longer killed at the end of bootstrap.
 -  More verbose output, including debug mode.  Text is organized and
