@@ -12,7 +12,7 @@ module Simp::Cli::Config
 'simp'      = Settings for a full SIMP system. Both the SIMP server
               (this host) and all clients will be running with
               all security features enabled.
-'simp-lite' = Settings for a SIMP system in which some security features
+'simp_lite' = Settings for a SIMP system in which some security features
               are disabled for SIMP clients.  The SIMP server will
               be running with all security features enabled.
 'poss'      = Settings for a SIMP system in which all security features
@@ -43,11 +43,11 @@ module Simp::Cli::Config
     end
 
     def validate( x )
-      ['simp', 'simp-lite', 'poss'].include?(x)
+      ['simp', 'simp_lite', 'poss'].include?(x)
     end
 
     def not_valid_message
-      'Must be "simp", "simp-lite", or "poss"'
+      'Must be "simp", "simp_lite", or "poss"'
     end
   end
 end

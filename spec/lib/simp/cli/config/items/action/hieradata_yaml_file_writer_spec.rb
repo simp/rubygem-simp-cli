@@ -43,7 +43,7 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
 
     it 'prints parseable yaml' do
       item = Simp::Cli::Config::Item::CliSimpScenario.new
-      item.value = 'simp-lite'
+      item.value = 'simp_lite'
       @ci.config_items[item.key] = item
 
       io = StringIO.new
@@ -63,7 +63,7 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
     before :each do
       # pre-populate answers list with 3 hieradata items and two non-hieradata items
       item       = Simp::Cli::Config::Item::CliSimpScenario.new
-      item.value = 'simp-lite'
+      item.value = 'simp_lite'
       @ci.config_items[item.key] = item
 
       item       = Simp::Cli::Config::Item::SimpOptionsPuppetServer.new
@@ -97,6 +97,10 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
       @ci.apply
       actual_content = IO.read( @tmp_file )
       expected_content = IO.read(File.join(@files_dir, 'hieradata_yaml_file_writer.yaml'))
+      # fix version
+      expected_content.gsub!(/using simp-cli version ([0-9.])+/,
+        "using simp-cli version #{Simp::Cli::VERSION}")
+
       expect( actual_content).to eq expected_content
     end
 
@@ -113,6 +117,10 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
       expect( File.exists?( @tmp_file ) ).to be true
       actual_content = IO.read( @tmp_file )
       expected_content = IO.read(File.join(@files_dir, 'hieradata_yaml_file_writer.yaml'))
+      # fix version
+      expected_content.gsub!(/using simp-cli version ([0-9.])+/,
+        "using simp-cli version #{Simp::Cli::VERSION}")
+
       expect( actual_content).to eq expected_content
       expect( @ci.applied_status ).to eq :succeeded
     end

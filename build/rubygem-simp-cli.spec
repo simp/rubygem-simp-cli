@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 2.1.0
+%global cli_version 3.0.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -97,7 +97,7 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Tue Mar 07 2017 Nick Markowski <nmarkowski@keywcorp.com> - 2.1.0
+* Tue Mar 07 2017 Nick Markowski <nmarkowski@keywcorp.com> - 3.0.0
 - Updated simp bootstrap for SIMP-6:
 -  There is now only one tagged run, simp + pupmod. The puppetserver
    is fully configured at the end of the run, clearing up all
@@ -121,6 +121,9 @@ EOM
 -  Added in general error handling.
 -  Removed puppet 3 cruft.
 -  Tracking is fabulous.
+
+* Thu Mar 02 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 3.0.0
+- Update to current list of simp scenarios.  simp-lite is now simp_lite.
 
 * Tue Feb 28 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 2.0.1
 - Fix broken dhcp network configuration in simp config

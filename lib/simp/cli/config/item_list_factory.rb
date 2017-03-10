@@ -33,7 +33,7 @@ class Simp::Cli::Config::ItemListFactory
 
     if items_yaml.nil?
       case @answers_hash.fetch('cli::simp::scenario')
-      when 'simp', 'simp-lite'
+      when 'simp', 'simp_lite'
         items_yaml  = create_simp_item_factory_yaml(false)
       when 'poss'
         items_yaml  = create_simp_item_factory_yaml(true)
@@ -171,7 +171,7 @@ class Simp::Cli::Config::ItemListFactory
       # prepend additional Items to the queue, depending on the answer.
       #
       # This YAML describes the Item structure appropriate for 'simp'
-      # 'simp-lite', and 'poss' scenarios.  The format is:
+      # 'simp_lite', and 'poss' scenarios.  The format is:
       #
       # - ItemA
       # - ItemB
