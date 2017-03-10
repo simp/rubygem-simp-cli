@@ -535,14 +535,14 @@ EOM
   def self.log_and_say(message, options, console_prefix, log_to_console = true)
     log_prefix = Time.now.strftime('%Y-%m-%d %H:%M:%S') + ': '
     message.split("\n").each do |line|
-      @logfile.puts "#{log_prefix}#{message}"
+      @logfile.puts "#{log_prefix}#{line}"
       @logfile.flush
 
       if log_to_console
         if options.nil?
-          say "#{console_prefix}#{message}"
+          say "#{console_prefix}#{line}"
         else
-          eval("say \"#{console_prefix}#{message}\".#{options}")
+          eval("say \"#{console_prefix}#{line}\".#{options}")
         end
       end
     end
