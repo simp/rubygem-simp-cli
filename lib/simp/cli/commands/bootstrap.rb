@@ -115,8 +115,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     # - Create a unique lockfile, we want to preserve the lock on cron and manual
     #   puppet runs during bootstrap.
     agent_lockfile = "#{File.dirname(::Utils.puppet_info[:config]['agent_disabled_lockfile'])}/bootstrap.lock"
-    pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose" + 
-      " --no-splay --agent_disabled_lockfile=#{agent_lockfile}" + 
+    pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose" +
+      " --no-splay --agent_disabled_lockfile=#{agent_lockfile}" +
       " --masterport=8150 --ca_port=8150"
 
     info('Running puppet agent, with --tags pupmod,simp', 'cyan')
@@ -195,7 +195,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       FileUtils.mkdir_p(server_conf_tmp)
       FileUtils.chown('puppet','puppet',server_conf_tmp)
       command = "puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver'" +
-        %Q{ match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m} + 
+        %Q{ match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m} +
         %Q{ -Djava.io.tmpdir=#{server_conf_tmp}"' 2>&1 > /dev/null}
       execute(command)
       info("Successfully configured /etc/sysconfig/puppetserver to use a temporary cache", 'green')
@@ -247,7 +247,7 @@ EOM
 #that no longer exists, as that is clearly no longer a problem
     rescue Exception => e
       warn(e.message)
-      warn("The bootstrap puppetserver process running on port 8150 could not be killed." + 
+      warn("The bootstrap puppetserver process running on port 8150 could not be killed." +
         "\n Please check your configuration!", 'magenta')
     end
   end
@@ -273,22 +273,15 @@ EOM
         info('  Otherwise, you can wait for the lock to release or manually stop the running agent')
         stages = ["\\",'|','/','-']
         rest = 0.1
-        timeout = 5
-        begin
-          Timeout::timeout(timeout*60) {
-            while run_locked do
-              run_locked = File.exists?(agent_run_lockfile)
-              stages.each{ |x|
-                $stdout.flush
-                print "> #{x}\r"
-                sleep(rest)
-              }
-            end
+        while run_locked do
+          run_locked = File.exists?(agent_run_lockfile)
+          stages.each{ |x|
+            $stdout.flush
+            print "> #{x}\r"
+            sleep(rest)
           }
-          $stdout.flush
-        rescue Timeout::Error
-          fail("The puppet agent did not stop within #{timeout} minutes. Please stop puppetserver by hand and inspect any issues.")
         end
+        $stdout.flush
       else
         debug('Did not detect a running puppet agent')
       end
@@ -342,7 +335,7 @@ EOM
 
     begin
       info("Waiting for puppetserver to accept connections on port #{port}", 'cyan')
-      curl_cmd = "curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/`hostname`.pem" + 
+      curl_cmd = "curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/`hostname`.pem" +
         " --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H" +
         " \"Accept: s\" https://localhost:#{port}/production/certificate_revocation_list/ca"
       debug(curl_cmd)
@@ -372,7 +365,7 @@ EOM
   # If selinux is enabled, relabel the filesystem.
   def self.fix_file_contexts
     FileUtils.touch('/.autorelabel')
-    if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? && 
+    if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? &&
         (Facter.value(:selinux_current_mode) != 'disabled')
       info('Relabeling filesystem for selinux (this may take a while...)', 'cyan')
       # This is silly, but there does not seem to be a way to get fixfiles
@@ -429,7 +422,7 @@ EOM
   # Lifted from
   # http://stackoverflow.com/questions/10262235/printing-an-ascii-spinning-cursor-in-the-console
   #
-  # FIXME:  This is a duplicate of code in simp/cli/config/items/item.rb. 
+  # FIXME:  This is a duplicate of code in simp/cli/config/items/item.rb.
   # Need to share that code.
   def self.show_wait_spinner(frames_per_second=5)
     chars = %w[| / - \\]
@@ -513,7 +506,7 @@ EOM
 
   # helper methods for logging
   # TODO Refactor to use simp config logging
-   
+
   # Debug logs only go to the console when verbose option specified,
   # but always go to the log file (which is expected to contain details)
   def self.debug(message, options=nil, console_prefix='>DEBUG: ')
