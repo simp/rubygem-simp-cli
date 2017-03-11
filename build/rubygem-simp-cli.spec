@@ -97,6 +97,31 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Mar 07 2017 Nick Markowski <nmarkowski@keywcorp.com> - 3.0.0
+- Updated simp bootstrap for SIMP-6:
+-  There is now only one tagged run, simp + pupmod. The puppetserver
+   is fully configured at the end of the run, clearing up all
+   messy restarts of the service during the rest of the bootstrap.
+-  For now, all other base modules are two run idempotent, so tagless
+   runs have been limited to two in number.
+-  Now re-runable. All modified files are backed up.
+-  Lock out the puppet agent to ensure the cron job does not kick
+   off during bootstrap.
+-  Wait for running puppet agents to complete before bootstrapping;
+   users can optionally specify --kill_agent.
+-  By default, users are prompted to keep or remove puppetserver certs.
+   Added --[no]-remove_ssldir so users can run bootstrap without
+   interraction.
+-  If puppetserver is configured to listen on 8150, the process is
+   no longer killed at the end of bootstrap.
+-  More verbose output, including debug mode.  Text is organized and
+   colorized.
+-  Bootstrap log now timestamped.
+-  Introduced a safe mode to ignore interrupts, toggle with --unsafe.
+-  Added in general error handling.
+-  Removed puppet 3 cruft.
+-  Tracking is fabulous.
+
 * Thu Mar 02 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 3.0.0
 - Update to current list of simp scenarios.  simp-lite is now simp_lite.
 
