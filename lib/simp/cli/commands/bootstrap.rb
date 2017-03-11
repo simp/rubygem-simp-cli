@@ -35,8 +35,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     opts.separator "to apply all other core modules.\n\n"
     opts.separator "By default, this tool will prompt to keep or remove existing puppetserver"
     opts.separator "certificates. To skip the prompt, see --[no]-remove_ssldir.\n\n"
-    opts.separator "This utility can be run more than once, but is it not recommended."
-    opts.separator "Note what options are available before re-running.\n\n"
+    opts.separator "This utility can be run more than once. Note what options are available"
+    opts.separator "before re-running.\n\n"
     opts.separator "Logging information about the run is written to #{SIMP_CLI_HOME}/simp_bootstrap.log.*"
     opts.separator "Prior to modification, config files are backed up to #{SIMP_CLI_HOME}/simp_bootstrap.backup.*\n\n"
     opts.separator "OPTIONS:\n"
@@ -253,8 +253,6 @@ EOM
   end
 
   # Ensure puppet agent is stopped and disabled
-  # fail if we are configured to wait for the agent to stop and the agent
-  # does not stop in a timely fashion
   def self.ensure_puppet_agent_stopped
     agent_run_lockfile = ::Utils.puppet_info[:config]['agent_catalog_run_lockfile']
     if @kill_agent
@@ -509,7 +507,7 @@ EOM
 
   # Debug logs only go to the console when verbose option specified,
   # but always go to the log file (which is expected to contain details)
-  def self.debug(message, options=nil, console_prefix='>DEBUG: ')
+  def self.debug(message, options=nil, console_prefix='> DEBUG: ')
     log_and_say("#{message}", options, console_prefix, @verbose)
   end
 
