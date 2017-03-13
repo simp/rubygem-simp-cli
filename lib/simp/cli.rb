@@ -4,6 +4,7 @@ require 'optparse'
 
 require 'simp/cli/version'
 require 'simp/cli/lib/utils'
+require 'simp/cli/lib/libkv'
 
 # load each command
 commands_path = File.expand_path( 'cli/commands/*.rb', File.dirname(__FILE__) )
@@ -34,7 +35,7 @@ class Simp::Cli
   end
 
   def self.run(args)
-    @opt_parser.parse!(args)
+     @opt_parser.parse!(args)
   end
 
   private

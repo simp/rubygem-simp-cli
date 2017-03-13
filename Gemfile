@@ -47,7 +47,7 @@ group :development do
   # enhanced REPL + debugging environment
   gem 'pry'
   gem 'pry-doc'
-
+  gem 'pry-byebug'
   # Automatically test changes
   gem 'guard'
   gem 'guard-shell'

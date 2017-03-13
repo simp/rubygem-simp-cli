@@ -143,8 +143,39 @@ module Utils
     end
     value
   end
-
   def valid_ip?(value)
     value.to_s =~ /^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
   end
+  def load_code_from_puppet(modulename, loaderpaths)
+    paths = [
+      "modules/#{modulename}/lib",
+      "#{::Utils.puppet_info[:environment_path]}/modules/#{modulename}/lib",
+      "/opt/puppetlabs/puppet/cache/lib",
+      "/usr/share/simp/modules/#{modulename}/lib",
+    ] + $LOAD_PATH
+    found_code = false
+    code = Object.new()
+    loader_filename = ""
+    paths.each do |path|
+      if (Dir.exists?(path))
+          loaderpaths.each do |loader|
+            loader_filename = "#{path}/#{loader}"
+            if (File.exists?(loader_filename))
+              found_code = true
+              code.instance_eval(File.read(loader_filename), loader_filename)
+              break
+            end
+          end
+          if (found_code)
+            break
+          end
+      end
+    end
+    if (found_code)
+      return code, loader_filename
+    else
+      return nil, ""
+    end
+  end
+
 end

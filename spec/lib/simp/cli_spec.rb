@@ -19,6 +19,7 @@ describe "Simp::Cli" do
                  "    - bootstrap\n" +
                  "    - config\n" +
                  "    - doc\n" +
+		 "    - kv\n" +
                  "    - passgen\n" +
                  "    - version\n" +
                  "    - help [command]\n\n"
