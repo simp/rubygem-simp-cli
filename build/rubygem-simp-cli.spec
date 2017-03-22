@@ -97,6 +97,16 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Mar 23 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 3.0.1
+- simp passgen updates:
+  - Fixed bug that prevented removal of passwords by simp passgen
+    (call to non-existent show_password()) 
+  - Updated simp passgen operation to reflect environments
+  - Added simp passgen command-line option to specify whether the
+    user will be prompted for backup operations when a password is
+    set.
+  - Added spec tests.
+
 * Tue Mar 07 2017 Nick Markowski <nmarkowski@keywcorp.com> - 3.0.0
 - Updated simp bootstrap for SIMP-6:
 -  There is now only one tagged run, simp + pupmod. The puppetserver
