@@ -106,6 +106,8 @@ EOM
     user will be prompted for backup operations when a password is
     set.
   - Added spec tests.
+- simp config updates:
+  - Adjust spacing of logged output
 
 * Tue Mar 07 2017 Nick Markowski <nmarkowski@keywcorp.com> - 3.0.0
 - Updated simp bootstrap for SIMP-6:

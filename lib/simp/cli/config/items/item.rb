@@ -121,7 +121,7 @@ module Simp::Cli::Config
     # --------------------------------------------------------------------------
     # print a pretty banner to describe an item
     def print_banner
-      info( "=== #{@key} ===", [:CYAN, :BOLD])
+      info( "\n=== #{@key} ===", [:CYAN, :BOLD])
       info( description, [:CYAN] )
       # inspect is a work around for Ruby 1.8.7 Array.to_s garbage
       info( "    - os value:          #{os_value.inspect}", [:CYAN] )          if os_value
