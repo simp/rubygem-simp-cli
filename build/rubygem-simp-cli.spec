@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 3.0.0
+%global cli_version 3.0.1
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -100,7 +100,7 @@ EOM
 * Thu Mar 23 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 3.0.1
 - simp passgen updates:
   - Fixed bug that prevented removal of passwords by simp passgen
-    (call to non-existent show_password()) 
+    (call to non-existent show_password())
   - Updated simp passgen operation to reflect environments
   - Added simp passgen command-line option to specify whether the
     user will be prompted for backup operations when a password is
