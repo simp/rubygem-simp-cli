@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 3.0.0
+%global cli_version 3.0.1
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -97,6 +97,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Fri Mar 24 2017  Liz Nemsick <lnemsick.simp@gmail.com> - 3.0.1
+- Adjust spacing of logged output
+
 * Tue Mar 07 2017 Nick Markowski <nmarkowski@keywcorp.com> - 3.0.0
 - Updated simp bootstrap for SIMP-6:
 -  There is now only one tagged run, simp + pupmod. The puppetserver
