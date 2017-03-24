@@ -1,0 +1,29 @@
+# ==== LDAP actions and related configuration ====
+- SimpOptionsLdap %ldap_query_options%:
+   true:
+    - SimpOptionsSSSD %sssd_query_options%
+    - SssdDomains                    SKIPQUERY SILENT  # default is correct
+    - CliIsLdapServer:
+       true:
+        - SimpOptionsLdapBaseDn      SKIPQUERY SILENT       # default is correct
+        - SimpOptionsLdapBindPw      GENERATENOQUERY SILENT # automatically generate
+        - SimpOptionsLdapBindHash    SILENT                 # never queries
+        - SimpOptionsLdapSyncPw      GENERATENOQUERY SILENT # automatically generate
+        - SimpOptionsLdapSyncHash    SILENT                 # never queries
+        - SimpOpenldapServerConfRootpw
+        - AddLdapServerClassToServerAction
+        - SetServerLdapServerConfigAction
+       false:
+        - SimpOptionsLdapBaseDn
+        - SimpOptionsLdapBindDn
+        - SimpOptionsLdapBindPw      NEVERGENERATE
+        - SimpOptionsLdapBindHash    SILENT #never queries
+        - SimpOptionsLdapSyncDn
+        - SimpOptionsLdapSyncPw      NEVERGENERATE
+        - SimpOptionsLdapSyncHash    SILENT # never queries
+        - SimpOptionsLdapMaster
+        - SimpOptionsLdapUri
+   false:
+     - SimpOptionsSSSD:
+        true:
+         - SssdDomains

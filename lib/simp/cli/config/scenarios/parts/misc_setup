@@ -1,0 +1,6 @@
+# ==== Miscellaneous actions and configuration ====
+- SimpOptionsSyslogLogServers
+- CliLogServersSpecified             SKIPQUERY SILENT: # don't ever prompt, just discover current value
+   true:
+    - SimpOptionsSyslogFailoverLogServers
+- GenerateCertificatesAction   # needed for SIMP server independent of scenario

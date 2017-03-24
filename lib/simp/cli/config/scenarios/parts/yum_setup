@@ -1,0 +1,14 @@
+# ==== YUM actions and related configuration ====
+- CliHasLocalYumRepos                SKIPQUERY SILENT: # don't ever prompt, just discover current value
+   true:
+    - SimpYumServers                 SKIPQUERY SILENT # default is correct
+    - UpdateOsYumRepositoriesAction
+    - AddYumServerClassToServerAction
+   false:
+    - SimpYumServers
+    - SimpYumOsUpdateUrl
+    - SimpYumSimpUpdateUrl
+    - SimpYumEnableOsRepos           SKIPQUERY SILENT # default is correct
+    - SimpYumEnableSimpRepos         SKIPQUERY SILENT # default is correct
+    - EnableOsAndSimpYumReposAction
+    - CheckRemoteYumConfigAction

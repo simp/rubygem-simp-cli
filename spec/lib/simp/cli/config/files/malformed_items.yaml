@@ -1,0 +1,8 @@
+# This is a malformed YAML file
+---
+name: malformed
+description: 'Missing colon after includes key'
+includes
+- initial_actions
+- network_setup
+- puppet_setup

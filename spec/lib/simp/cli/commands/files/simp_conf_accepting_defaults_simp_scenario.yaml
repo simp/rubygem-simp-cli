@@ -26,7 +26,6 @@ simp_options::dns::search:
 simp_options::dns::servers:
   - "1.2.3.10"
 simp_options::fips: false
-simp_options::ldap: true
 simp_options::ldap::base_dn: "dc=test,dc=local"
 simp_options::ldap::bind_hash: "{SSHA}tx9ennniDQnmx83gPjCqhy6pknR89QsD"
 simp_options::ldap::bind_pw: "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm"
@@ -36,9 +35,9 @@ simp_options::ntpd::servers: []
 simp_options::puppet::ca: puppet.test.local
 simp_options::puppet::ca_port: 8141
 simp_options::puppet::server: puppet.test.local
-simp_options::sssd: true
 simp_options::syslog::log_servers: []
 simp_options::trusted_nets:
   - "1.2.3.0/24"
 sssd::domains:
   - LDAP
+svckill::mode: warning

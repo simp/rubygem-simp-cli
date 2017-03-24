@@ -25,7 +25,6 @@ simp_options::dns::search:
 simp_options::dns::servers:
   - "1.2.3.10"
 simp_options::fips: false
-simp_options::ldap: true
 simp_options::ldap::base_dn: "dc=test,dc=local"
 simp_options::ldap::bind_dn: "cn=hostAuth,ou=Hosts,%{hiera('simp_options::ldap::base_dn')}"
 simp_options::ldap::bind_hash: "{SSHA}tx9ennniDQnmx83gPjCqhy6pknR89QsD"

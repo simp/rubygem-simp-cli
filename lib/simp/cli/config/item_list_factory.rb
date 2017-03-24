@@ -1,5 +1,6 @@
 require File.expand_path( 'items', File.dirname(__FILE__) )
 require File.expand_path( 'logging', File.dirname(__FILE__) )
+require File.expand_path( 'items_yaml_generator', File.dirname(__FILE__) )
 
 module Simp; end
 class Simp::Cli; end
@@ -32,14 +33,8 @@ class Simp::Cli::Config::ItemListFactory
     Dir.glob( rb_files ).sort_by(&:to_s).each { |file| require file }
 
     if items_yaml.nil?
-      case @answers_hash.fetch('cli::simp::scenario')
-      when 'simp', 'simp_lite'
-        items_yaml  = create_simp_item_factory_yaml(false)
-      when 'poss'
-        items_yaml  = create_simp_item_factory_yaml(true)
-      else
-        raise "ERROR:  Unsupported scenario '#{@answers_hash['cli::simp::scenario']}'"
-      end
+      scenario = @answers_hash.fetch('cli::simp::scenario')
+      items_yaml = Simp::Cli::Config::ItemsYamlGenerator.new(scenario).generate_yaml
     end
 
     begin
@@ -51,6 +46,14 @@ class Simp::Cli::Config::ItemListFactory
       $stderr.puts '<'*80
       raise 'Internal error:  invalid Items list YAML'
     end
+
+    # add file writers needed by all scenarios
+    items <<  "HieradataYAMLFileWriter FILE=#{ @options.fetch( :puppet_system_file, '/dev/null') }"
+
+    # Note: This is this file writer is the ONLY action that can be run as non-root user,
+    #  as all it does is create a file that is not within the Puppet environment.
+    items << "AnswersYAMLFileWriter   FILE=#{ @options.fetch( :answers_output_file, '/dev/null') } USERAPPLY DRYRUNAPPLY"
+
     item_queue = build_item_queue( [], items )
     item_queue
   end
@@ -155,182 +158,6 @@ class Simp::Cli::Config::ItemListFactory
       writer.sort_output      = false
       writer
     end
-  end
-
-  # create SIMP-specific Item tree represented in YAML
-  # explicit_query_required = Whether to query for items not in the answers file
-  # for which the defaults should not be silently used.
-  def create_simp_item_factory_yaml(explicit_query_required)
-    if (explicit_query_required)
-      query_options = '' 
-    else
-      query_options = 'SKIPQUERY SILENT'
-    end
-    <<-EOF.gsub(/^ {6}/,'')
-      # The Config::Item list is really a conditional tree.  Some Items can
-      # prepend additional Items to the queue, depending on the answer.
-      #
-      # This YAML describes the Item structure appropriate for 'simp'
-      # 'simp_lite', and 'poss' scenarios.  The format is:
-      #
-      # - ItemA
-      # - ItemB
-      #   answer1:
-      #     - ItemC
-      #     - ItemD
-      #   answer2:
-      #     - ItemE
-      #     - ItemF
-      # - ItemG
-      #
-      # modifers:
-      #   FILE=value   = set the Item's .file to value
-      #   DRYRUNAPPLY  = make sure this Item's apply() is called when the 
-      #                 :dry_run option is selected; (Normally an Item's
-      #                 .skip_apply is set to prevent the apply() from running
-      #                 when :dry_run is selected.)
-      #   NOAPPLY      = set the Item's .skip_apply ; Item.apply() will do nothing
-      #   USERAPPLY    = execute Item's apply() even when running non-privileged
-      #   SILENT       = set the Item's .silent ; suppresses stdout console/log output;
-      #                  This option is best used in conjuction with SKIPQUERY for
-      #                  Items for which no user interaction is required (i.e., 
-      #                  Items for which internal logic can be used to figure
-      #                  out their correct values).
-      #   SKIPQUERY    = set the Item's .skip_query ; Item will use default_value
-      #   NOYAML       = set the Item's .skip_yaml ; no YAML for Item will be written
-      #   GENERATENOQUERY = set the PasswordItem's .generate_option to :generate_no_query
-      #   NEVERGENERATE   = set the PasswordItem's .generate_option to :never_generate
-      #
-      #
-      # WARNING:  Order matters, as some Items require settings from other Items.
-      #           For example, several Items require cli::network::hostname, which is
-      #           set by CliNetworkHostname.
-      ---
-      # ==== Initial actions ====
-      - CliIsSimpEnvironmentInstalled  SKIPQUERY SILENT: # don't ever prompt, just discover current value
-         false:
-          - CopySimpToEnvironmentsAction  # Can't do our config, if this hasn't happened
-      - CliSimpScenario SKIPQUERY SILENT # don't prompt; this value should already set
-      - SetSiteScenarioAction
-      - SimpOptionsFips SKIPQUERY SILENT: # don't ever prompt, just discover current setting
-         true:
-          - SetPuppetDigestAlgorithmAction # digest algorithm affects any puppet actions, so do it first!
-
-      # ==== Network ====
-      - CliNetworkInterface
-      - CliSetUpNIC:  # Network info gathered and/or set here is needed by many Items
-         true:
-         - CliNetworkDHCP:
-            static:                # gather info first, then configure network
-             - CliNetworkHostname
-             - SetHostnameAction      # apply this before DNS Items
-             - CliNetworkIPAddress
-             - CliNetworkNetmask
-             - CliNetworkGateway
-             - SimpOptionsDNSServers
-             - SimpOptionsDNSSearch
-             - ConfigureNetworkAction
-            dhcp:                  # (minimally) configure network, then get info (silently)
-             - ConfigureNetworkAction
-             - CliNetworkHostname
-             - SetHostnameAction       # apply this before DNS Items
-             - CliNetworkIPAddress     SKIPQUERY SILENT
-             - CliNetworkNetmask       SKIPQUERY SILENT
-             - CliNetworkGateway       SKIPQUERY SILENT
-             - SimpOptionsDNSServers   SKIPQUERY SILENT
-             - SimpOptionsDNSSearch    SKIPQUERY SILENT
-         false:                    # don't configure network (but ask for info)
-          - CliNetworkHostname
-          - CliNetworkIPAddress
-          - CliNetworkNetmask
-          - CliNetworkGateway
-          - SimpOptionsDNSServers
-          - SimpOptionsDNSSearch
-      - SimpOptionsTrustedNets
-      - SimpOptionsNTPServers
-
-      # ==== General actions and related configuration ====
-      - CliSetGrubPassword:
-         true:
-          - GrubPassword
-          - SetGrubPasswordAction
-      - SimpRunLevel                   SKIPQUERY SILENT # this is needed for compliance mapping
-
-      # ==== Puppet actions and related configuration ====
-      - CliSetProductionToSimp:
-         true:
-          - SetProductionToSimpAction
-      - SimpOptionsPuppetServer            SKIPQUERY SILENT # default is correct
-      - CliPuppetServerIP                  SKIPQUERY SILENT # don't ever prompt, just discover current value
-      - SimpOptionsPuppetCA                SKIPQUERY SILENT # default is correct
-      - SimpOptionsPuppetCAPort            SKIPQUERY SILENT # default is correct
-      - PuppetDBMasterConfigPuppetDBServer SKIPQUERY SILENT # default is correct
-      - PuppetDBMasterConfigPuppetDBPort   SKIPQUERY SILENT # default is correct
-      - SetUpPuppetAutosignAction
-      - UpdatePuppetConfAction
-      - AddPuppetHostsEntryAction
-      # Move the hieradata/hosts/puppet.your.domain.yaml template to
-      # hieradata/hosts/<host>.yaml file (as appropriate) before
-      # dealing with any features that modify that file
-      - CreateSimpServerFqdnYamlAction
-      - SetServerPuppetDBMasterConfigAction
-
-      # ==== YUM actions and related configuration ====
-      - CliHasLocalYumRepos                SKIPQUERY SILENT: # don't ever prompt, just discover current value
-         true:
-          - SimpYumServers                 SKIPQUERY SILENT # default is correct
-          - UpdateOsYumRepositoriesAction
-          - AddYumServerClassToServerAction
-         false:
-          - SimpYumServers
-          - SimpYumOsUpdateUrl
-          - SimpYumSimpUpdateUrl
-          - SimpYumEnableOsRepos           SKIPQUERY SILENT # default is correct
-          - SimpYumEnableSimpRepos         SKIPQUERY SILENT # default is correct
-          - EnableOsAndSimpYumReposAction
-          - CheckRemoteYumConfigAction
-
-      # ==== Remaining global catalysts and their actions ===
-      - SimpOptionsLdap                    #{query_options}: # make sure to query if not set in scenario
-         true:
-          - SimpOptionsSSSD                SKIPQUERY SILENT  # default is correct
-          - SssdDomains                    SKIPQUERY SILENT  # default is correct
-          - CliIsLdapServer:
-             true:
-              - SimpOptionsLdapBaseDn      SKIPQUERY SILENT       # default is correct
-              - SimpOptionsLdapBindPw      GENERATENOQUERY SILENT # automatically generate
-              - SimpOptionsLdapBindHash    SILENT                 # never queries 
-              - SimpOptionsLdapSyncPw      GENERATENOQUERY SILENT # automatically generate
-              - SimpOptionsLdapSyncHash    SILENT                 # never queries
-              - SimpOpenldapServerConfRootpw
-              - AddLdapServerClassToServerAction
-              - SetServerLdapServerConfigAction
-             false:
-              - SimpOptionsLdapBaseDn
-              - SimpOptionsLdapBindDn
-              - SimpOptionsLdapBindPw      NEVERGENERATE
-              - SimpOptionsLdapBindHash    SILENT #never queries
-              - SimpOptionsLdapSyncDn
-              - SimpOptionsLdapSyncPw      NEVERGENERATE
-              - SimpOptionsLdapSyncHash    SILENT # never queries
-              - SimpOptionsLdapMaster
-              - SimpOptionsLdapUri
-         false:
-           - SimpOptionsSSSD:
-              true:
-               - SssdDomains
-      - SimpOptionsSyslogLogServers
-      - CliLogServersSpecified             SKIPQUERY SILENT: # don't ever prompt, just discover current value
-         true:
-          - SimpOptionsSyslogFailoverLogServers
-      - GenerateCertificatesAction   # needed for SIMP server independent of scenario
-
-      # ==== Writers ====
-      - HieradataYAMLFileWriter FILE=#{ @options.fetch( :puppet_system_file, '/dev/null') }
-      # This is the ONLY action that can be run as non-root user, as all it
-      # does is create a file that is not within the Puppet environment.
-      - AnswersYAMLFileWriter   FILE=#{ @options.fetch( :answers_output_file, '/dev/null') } USERAPPLY DRYRUNAPPLY
-    EOF
   end
 
   def print_warning error
