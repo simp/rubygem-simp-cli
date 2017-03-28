@@ -42,7 +42,6 @@ class Simp::Cli::Config::ItemsYamlGenerator
 
   def load_scenario_items_yaml
     scenario_items_file = File.join(@scenarios_dir, "#{@scenario}_items.yaml")
-puts scenario_items_file
     if File.exist?(scenario_items_file)
       scenario_yaml  = IO.read(scenario_items_file)
     else

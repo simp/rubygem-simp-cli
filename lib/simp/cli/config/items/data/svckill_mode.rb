@@ -7,8 +7,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'svckill::mode'
-      @description = %Q{
-Strategy svckill should use when it encounters undeclared services
+      @description = %Q{Strategy svckill should use when it encounters undeclared services
 
 'enforcing' = Shut down and disable all services not listed in your
               manifests or the exclusion file
