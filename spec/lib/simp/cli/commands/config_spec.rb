@@ -34,7 +34,8 @@ def generate_simp_input_accepting_defaults
     "\n"                          << # don't auto-generate a password
     "iTXA8O6yCoDMotMGPTeHd7IGI\n" << # LDAP root password
     "iTXA8O6yCoDMotMGPTeHd7IGI\n" << # confirm LDAP root password
-    "\n"                             # log servers
+    "\n"                          << # log servers
+    "\n"                             # svckill warning mode
   input_io.rewind
   input_io
 end
@@ -43,7 +44,7 @@ end
 # scenario in which the most values are set to user-provided values.
 # Exercises LDAP-enabled, but non-LDAP server logic.
 # FIXME:  This input is INCORRECT if /etc/yum.repos.d/simp_filesystem.repo exists.
-def generate_simp_input_setting_values(scenario = 'simp_lite')
+def generate_simp_lite_input_setting_values
   input_io = StringIO.new
   input_io                                    <<
     "simp_lite\n"                             << # 'simp_lite' scenario
@@ -212,7 +213,7 @@ describe Simp::Cli::Commands::Config do
 
      it "creates valid output yaml files for 'simp_lite' scenario, interactively setting values" do
        skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
-       @input.reopen(generate_simp_input_setting_values('simp_lite'))
+       @input.reopen(generate_simp_lite_input_setting_values)
        begin
          Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
            '-p', @puppet_system_file, '-l', @log_file])

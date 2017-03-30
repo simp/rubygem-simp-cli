@@ -7,6 +7,8 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'cli::simp::scenario'
+#TODO Generate description and validation based on available
+# scenarios/*_items.yaml
       @description = %Q{SIMP scenario
 
 'simp'      = Settings for a full SIMP system. Both the SIMP server

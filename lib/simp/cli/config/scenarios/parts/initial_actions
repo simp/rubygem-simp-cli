@@ -1,0 +1,10 @@
+# ==== Initial actions ====
+# These actions MUST be first
+- CliIsSimpEnvironmentInstalled  SKIPQUERY SILENT: # don't ever prompt, just discover current value
+   false:
+    - CopySimpToEnvironmentsAction  # Can't do our config, if this hasn't happened
+- CliSimpScenario SKIPQUERY SILENT # don't ever prompt; this value must already be set
+- SetSiteScenarioAction
+- SimpOptionsFips SKIPQUERY SILENT: # don't ever prompt, just discover current setting
+   true:
+    - SetPuppetDigestAlgorithmAction # digest algorithm affects any puppet actions, so do it first!

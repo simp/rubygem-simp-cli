@@ -97,6 +97,13 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon Mar 27 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
+- simp config updates:
+  - Add query for svckill::mode to simp scenario
+  - Refactored generation of scenario configuration YAML, to
+    support, more readily, the different configuration requirements
+    of each scenario.
+
 * Thu Mar 23 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
 - simp passgen updates:
   - Fixed bug that prevented removal of passwords by simp passgen

@@ -1,0 +1,32 @@
+# ==== Network actions and configuration ====
+- CliNetworkInterface
+- CliSetUpNIC:  # Network info gathered and/or set here is needed by many Items
+   true:
+   - CliNetworkDHCP:
+      static:                # gather info first, then configure network
+       - CliNetworkHostname
+       - SetHostnameAction      # apply this before DNS Items
+       - CliNetworkIPAddress
+       - CliNetworkNetmask
+       - CliNetworkGateway
+       - SimpOptionsDNSServers
+       - SimpOptionsDNSSearch
+       - ConfigureNetworkAction
+      dhcp:                  # (minimally) configure network, then get info (silently)
+       - ConfigureNetworkAction
+       - CliNetworkHostname
+       - SetHostnameAction       # apply this before DNS Items
+       - CliNetworkIPAddress     SKIPQUERY SILENT
+       - CliNetworkNetmask       SKIPQUERY SILENT
+       - CliNetworkGateway       SKIPQUERY SILENT
+       - SimpOptionsDNSServers   SKIPQUERY SILENT
+       - SimpOptionsDNSSearch    SKIPQUERY SILENT
+   false:                    # don't configure network (but ask for info)
+    - CliNetworkHostname
+    - CliNetworkIPAddress
+    - CliNetworkNetmask
+    - CliNetworkGateway
+    - SimpOptionsDNSServers
+    - SimpOptionsDNSSearch
+- SimpOptionsTrustedNets
+- SimpOptionsNTPServers
