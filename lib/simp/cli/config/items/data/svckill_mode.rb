@@ -7,7 +7,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'svckill::mode'
-      @description = %Q{Strategy svckill should use when it encounters undeclared services
+      @description = %Q{Strategy svckill should use when it encounters undeclared services.
 
 'enforcing' = Shut down and disable all services not listed in your
               manifests or the exclusion file
@@ -35,7 +35,7 @@ svckill::ignore_files.}
     end
 
     def recommended_value
-      # We recommend 'warning' instead of 'enforcing', because 'warning' is not 
+      # We recommend 'warning' instead of 'enforcing', because 'warning' is not
       # destructive, should the user fail to declare their services. Issuing a
       # 'warning' gives the user time to figure out what services they need to
       # declare, without rendering their system unusable.
@@ -46,9 +46,9 @@ svckill::ignore_files.}
       result = false
       if x == 'warning'
         result = true
-        info( @warning_msgs[:warning], [:RED] )
+        info( @warning_msgs[:warning], [:YELLOW] )
         pause(:info)
-      elsif x == 'enforcing' 
+      elsif x == 'enforcing'
         result = true
         info( @warning_msgs[:enforcing], [:RED] )
         pause(:info)

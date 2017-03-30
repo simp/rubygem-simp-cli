@@ -279,7 +279,7 @@ module Simp::Cli::Config
       err_pipe_r.close
 
       return true if ignore_failure
-      
+
       if exitstatus == 0
         return true
       else

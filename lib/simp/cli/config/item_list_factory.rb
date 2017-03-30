@@ -105,7 +105,7 @@ class Simp::Cli::Config::ItemListFactory
     end
     #  ...based on cli options
     if (@options.fetch( :dry_run, false ) and !dry_run_apply)
-      item.skip_apply = true 
+      item.skip_apply = true
       item.skip_apply_reason = '[**dry run**]'
     end
     item.start_time = @options.fetch( :start_time, Time.now )

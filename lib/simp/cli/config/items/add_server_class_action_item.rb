@@ -8,7 +8,7 @@ module Simp::Cli::Config
   # Derived class must set @key and @class_to_add
   class AddServerClassActionItem < ActionItem
     attr_accessor :dir
-  
+
     def initialize
       super
       @dir          = File.join(::Utils.puppet_info[:simp_environment_path], 'hieradata', 'hosts')

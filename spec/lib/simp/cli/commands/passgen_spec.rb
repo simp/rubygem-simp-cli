@@ -3,14 +3,14 @@ require 'simp/cli/lib/utils'
 require 'spec_helper'
 
 
-def validate_set_and_backup(args, expected_output, expected_password_files, 
+def validate_set_and_backup(args, expected_output, expected_password_files,
     expected_passwords)
   expect { Simp::Cli::Commands::Passgen.run(args) }.to output(expected_output).to_stdout
 
   expected_password_files.each do |file|
     expect(File.exist?(file)).to eq true
   end
- 
+
   actual_passwords = []
   expected_password_files.each do |file|
     actual_passwords << IO.read(file).chomp
@@ -164,7 +164,7 @@ Name: production_name3
 
 EOM
         expect { Simp::Cli::Commands::Passgen.run(['--name', 'production_name2,production_name3']) }.to output(expected_output).to_stdout
-      end 
+      end
 
       it 'shows current and previous passwords for specified names of specified environment' do
         password_dir = File.join(@password_env_dir, 'env1', 'simp_autofiles', 'gen_passwd')
@@ -182,7 +182,7 @@ Name: env1_name1
 
 EOM
         expect { Simp::Cli::Commands::Passgen.run(['-e', 'env1', '-n', 'env1_name1']) }.to output(expected_output).to_stdout
-      end 
+      end
 
       it 'fails when no names specified' do
         expect { Simp::Cli::Commands::Passgen.run(['-n']) }.to raise_error(OptionParser::MissingArgument)
@@ -190,7 +190,7 @@ EOM
 
       it 'fails when invalid name specified' do
         expect { Simp::Cli::Commands::Passgen.run(['-n', 'oops']) }.to raise_error(
-          OptionParser::ParseError, 
+          OptionParser::ParseError,
           /Invalid name 'oops' selected.\n\nValid names: production_name1, production_name2, production_name3/)
       end
 
@@ -230,7 +230,7 @@ EOM
         @name4_backup_file = File.join(@env1_password_dir, 'env1_name4.last')
         File.open(@name4_backup_file, 'w') { |file| file.puts "env1_name4_backup_password" }
       end
-      
+
       context 'with default environment' do
         context 'with backups' do
           let(:expected_passwords) { [
@@ -241,7 +241,7 @@ EOM
             'production_name3_password',       # unchanged
             'production_name3_backup_password' # unchanged
           ] }
-          
+
           let(:expected_password_files) { [
             @name1_file,
             @name1_backup_file,
@@ -285,7 +285,7 @@ EOM
             'production_name3_password',
             'production_name3_backup_password'
           ] }
-          
+
           let(:expected_password_files) { [
             @name1_file,
             @name1_backup_file,
@@ -352,7 +352,7 @@ EOM
             'new_password',
             'env1_name4_password'
           ] }
-          
+
           let(:expected_password_files) { [
             @name4_file,
             @name4_backup_file
@@ -385,7 +385,7 @@ EOM
             'new_password',
             'env1_name4_backup_password'
           ] }
-          
+
           let(:expected_password_files) { [
             @name4_file,
             @name4_backup_file
@@ -567,14 +567,14 @@ EOM
           expect(File.exist?(@name4_backup_file)).to eq false
         end
       end
-       
+
       it 'fails when no names specified' do
         expect { Simp::Cli::Commands::Passgen.run(['-r']) }.to raise_error(OptionParser::MissingArgument)
       end
 
       it 'fails when invalid names specified' do
         expect { Simp::Cli::Commands::Passgen.run(['-r', 'production_name1,oops,production_name2']) }.to raise_error(
-          OptionParser::ParseError, 
+          OptionParser::ParseError,
           /Invalid name 'oops' selected.\n\nValid names: production_name1, production_name2/)
       end
 

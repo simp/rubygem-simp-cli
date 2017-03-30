@@ -1,14 +1,13 @@
-require 'simp/cli/config/items/action/enable_os_and_simp_yum_repos_action'
+require 'simp/cli/config/items/action/disallow_simp_user_action'
 require 'simp/cli/config/items/data/cli_network_hostname'
-require 'simp/cli/config/items/data/simp_yum_enable_simp_repos'
-require 'simp/cli/config/items/data/simp_yum_enable_os_repos'
+require 'simp/cli/config/items/data/simp_server_allow_simp_user'
 require 'rspec/its'
 require_relative '../spec_helper'
 require 'fileutils'
 
-describe Simp::Cli::Config::Item::EnableOsAndSimpYumReposAction do
+describe Simp::Cli::Config::Item::DisallowSimpUserAction do
   before :each do
-    @ci        = Simp::Cli::Config::Item::EnableOsAndSimpYumReposAction.new
+    @ci        = Simp::Cli::Config::Item::DisallowSimpUserAction.new
     @ci.silent = true
   end
 
@@ -24,12 +23,8 @@ describe Simp::Cli::Config::Item::EnableOsAndSimpYumReposAction do
       item.value  = @fqdn
       @ci.config_items[item.key] = item
 
-      item = Simp::Cli::Config::Item::SimpYumEnableOsRepos.new
-      item.value  = true
-      @ci.config_items[item.key] = item
-
-      item = Simp::Cli::Config::Item::SimpYumEnableSimpRepos.new
-      item.value  = true
+      item = Simp::Cli::Config::Item::SimpServerAllowSimpUser.new
+      item.value  = false
       @ci.config_items[item.key] = item
     end
 
@@ -37,25 +32,25 @@ describe Simp::Cli::Config::Item::EnableOsAndSimpYumReposAction do
       FileUtils.remove_entry_secure @tmp_dir
     end
 
-    it "adds enable_os_repos and enable_simp_repos to <host>.yaml" do
-      file = File.join(@files_dir, 'host_without_enable_repos.yaml')
+    it "adds simp::server::allow_simp_user to <host>.yaml" do
+      file = File.join(@files_dir, 'host_without_allow_simp_user.yaml')
       FileUtils.copy_file file, @tmp_yaml_file
 
       @ci.apply
       expect( @ci.applied_status ).to eq :succeeded
-      expected = File.join(@files_dir, 'host_with_enable_repos_added.yaml')
+      expected = File.join(@files_dir, 'host_with_allow_simp_user_added.yaml')
       expected_content = IO.read(expected)
       actual_content = IO.read(@tmp_yaml_file)
       expect( actual_content).to eq expected_content
     end
 
-    it 'replaces enable_os_repos and enable_simp_repos in <host>.yaml' do
+    it 'replaces simp::server::allow_simp_user in <host>.yaml' do
       file = File.join( @files_dir,'puppet.your.domain.yaml')
       FileUtils.copy_file file, @tmp_yaml_file
 
       @ci.apply
       expect( @ci.applied_status ).to eq :succeeded
-      expected = File.join(@files_dir, 'host_with_enable_repos_replaced.yaml')
+      expected = File.join(@files_dir, 'host_with_allow_simp_user_replaced.yaml')
       expected_content = IO.read(expected)
       actual_content = IO.read(@tmp_yaml_file)
       expect( actual_content).to eq expected_content
@@ -69,26 +64,17 @@ describe Simp::Cli::Config::Item::EnableOsAndSimpYumReposAction do
     it "fails when cli::network::hostname item does not exist" do
       @ci.config_items.delete('cli::network::hostname')
       expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::EnableOsAndSimpYumReposAction' +
+        'Internal error: Simp::Cli::Config::Item::DisallowSimpUserAction' +
         ' could not find cli::network::hostname' )
     end
 
-    it "fails when simp::yum::enable_os_repos item does not exist" do
-      @ci.config_items.delete('simp::yum::enable_os_repos')
+    it "fails when simp::server::allow_simp_user item does not exist" do
+      @ci.config_items.delete('simp::server::allow_simp_user')
       file = File.join( @files_dir,'puppet.your.domain.yaml')
       FileUtils.copy_file file, @tmp_yaml_file
       expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::EnableOsAndSimpYumReposAction' +
-        ' could not find simp::yum::enable_os_repos' )
-    end
-
-    it "fails when simp::yum::enable_simp_repos item does not exist" do
-      @ci.config_items.delete('simp::yum::enable_simp_repos')
-      file = File.join( @files_dir,'puppet.your.domain.yaml')
-      FileUtils.copy_file file, @tmp_yaml_file
-      expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::EnableOsAndSimpYumReposAction' +
-        ' could not find simp::yum::enable_simp_repos' )
+        'Internal error: Simp::Cli::Config::Item::DisallowSimpUserAction' +
+        ' could not find simp::server::allow_simp_user' )
     end
 
     it_behaves_like "an Item that doesn't output YAML"

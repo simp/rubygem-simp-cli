@@ -8,7 +8,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'simp::yum::os_update_url'
-      @description = 'Full URL to a YUM repo for Operating System packages'
+      @description = 'Full URL to a YUM repo for Operating System packages.'
     end
 
     def validate item

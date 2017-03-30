@@ -25,3 +25,4 @@ includes:
   # to use the default
   - sssd_query_options: 'SKIPQUERY SILENT'
 - misc_setup
+- user_setup

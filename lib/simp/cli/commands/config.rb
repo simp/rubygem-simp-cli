@@ -14,7 +14,7 @@ module Simp::Cli::Commands; end
 
 # Handle CLI interactions for "simp config"
 class Simp::Cli::Commands::Config  < Simp::Cli
- 
+
   include Simp::Cli::Config::Logging
 
   DEFAULT_ANSWERS_OUTFILE = File.join(SIMP_CLI_HOME, 'simp_conf.yaml')
@@ -195,7 +195,7 @@ EOM
         end
 
         if @options.fetch( :autoaccept_safety_save, false )
-          logger.warn( 
+          logger.warn(
               "Automatically resuming these answers because ", [color],
               "--accept-safety-save", [color,:BOLD],
               " is active.\n", [color])
@@ -278,7 +278,7 @@ EOM
     cli_answers = {}
     cli_answers  = Hash[ args.map{ |x| x.split '=' } ]
 
-    # Retrieve partial set of answers from a previous interrupted session   
+    # Retrieve partial set of answers from a previous interrupted session
     interrupted_session_answers = saved_session
 
     # Retrieve set of answers from an input answers file

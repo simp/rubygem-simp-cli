@@ -110,7 +110,7 @@ describe Simp::Cli::Config::Item::CreateSimpServerFqdnYamlAction do
     it "raises exception when 'cli::network::hostname' config does not exist" do
       @ci.config_items.delete('cli::network::hostname')
       expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::CreateSimpServerFqdnYamlAction' + 
+        'Internal error: Simp::Cli::Config::Item::CreateSimpServerFqdnYamlAction' +
         ' could not find cli::network::hostname' )
     end
   end

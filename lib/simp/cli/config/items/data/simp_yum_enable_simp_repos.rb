@@ -8,11 +8,11 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'simp::yum::enable_simp_repos'
-      @description = 'Whether to enable remote SIMP YUM repositories'
+      @description = 'Whether to enable remote SIMP YUM repositories.'
       @data_type   = :server_hiera
     end
 
-    # This action is only used when we want to enable remote 
+    # This action is only used when we want to enable remote
     # YUM repos, so the default is 'yes'
     def recommended_value
       'yes'

@@ -67,14 +67,14 @@ describe Simp::Cli::Config::Logging do
 
     context 'when included Logging module used in a class method' do
       it 'logs formatted and unformatted ERROR and above messages to console and log file, respectively' do
-        MyLogTesterA.use_logger 
+        MyLogTesterA.use_logger
 
         expected_formatted_output = <<EOM
 MyLogTesterA: this is a message that does not end in a newline when sent to the console... MyLogTesterA: continuation first line
 MyLogTesterA: this is a\e[31m message\e[0m that does not end in a newline when sent to the console... MyLogTesterA: continuation second line
 EOM
         expect( @output.string ).to eq expected_formatted_output
-        
+
         expected_file_output = <<EOM
 MyLogTesterA: this is a message that does not end in a newline when sent to the console... 
 MyLogTesterA: continuation first line
@@ -115,7 +115,7 @@ EOM
 
     context 'when included Logging module used in a class method' do
       it 'logs formatted and unformatted DEBUG and above messages to console and log file, respectively' do
-        MyLogTesterA.use_logger 
+        MyLogTesterA.use_logger
 
         expected_formatted_output = <<EOM
 MyLogTesterA: this is an unformatted debug message
@@ -125,7 +125,7 @@ MyLogTesterA: this is a message that does not end in a newline when sent to the 
 MyLogTesterA: this is a\e[31m message\e[0m that does not end in a newline when sent to the console... MyLogTesterA: continuation second line
 EOM
         expect( @output.string ).to eq expected_formatted_output
-        
+
         expected_file_output = <<EOM
 MyLogTesterA: this is an unformatted debug message
 MyLogTesterA: this is a single-part, formatted text message

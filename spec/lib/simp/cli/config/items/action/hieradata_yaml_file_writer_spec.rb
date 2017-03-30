@@ -107,7 +107,7 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
     it 'backs up an existing file before writing' do
       old_content = "---\nkey1:value\n"
       File.open(@tmp_file, 'w') { |file| file.write(old_content) }
-      
+
       @ci.apply
       backup_file = "#{@tmp_file}.20170113T114203"
       expect( File.exists?( backup_file ) ).to be true

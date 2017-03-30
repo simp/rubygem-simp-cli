@@ -26,7 +26,7 @@ module Simp::Cli::Config
       # have no way of determining the most appropriate list entry, we
       # arbitrarily select the first entry.
       network_hostname = `hostname -A 2>/dev/null`.split[0]
-      if network_hostname and validate( network_hostname ) 
+      if network_hostname and validate( network_hostname )
         network_hostname
       else
         validate( os_value ) ? os_value : 'puppet.change.me'

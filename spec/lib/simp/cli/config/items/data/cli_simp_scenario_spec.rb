@@ -16,7 +16,7 @@ describe Simp::Cli::Config::Item::CliSimpScenario do
 
   context '#os_value' do
     let(:env_files_dir) { File.join(File.dirname(__FILE__), '..', '..', '..', 'commands', 'files') }
-    
+
     before :each do
       @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
 

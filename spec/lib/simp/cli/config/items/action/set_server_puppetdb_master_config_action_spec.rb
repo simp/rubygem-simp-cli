@@ -69,7 +69,7 @@ describe Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction do
     it "fails when cli::network::hostname item does not exist" do
       @ci.config_items.delete('cli::network::hostname')
       expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction' + 
+        'Internal error: Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction' +
         ' could not find cli::network::hostname' )
     end
 
@@ -78,7 +78,7 @@ describe Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction do
       file = File.join( @files_dir,'puppet.your.domain.yaml')
       FileUtils.copy_file file, @tmp_yaml_file
       expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction' + 
+        'Internal error: Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction' +
         ' could not find puppetdb::master::config::puppetdb_server' )
     end
 
@@ -87,7 +87,7 @@ describe Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction do
       file = File.join( @files_dir,'puppet.your.domain.yaml')
       FileUtils.copy_file file, @tmp_yaml_file
       expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction' + 
+        'Internal error: Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction' +
         ' could not find puppetdb::master::config::puppetdb_port' )
     end
   end

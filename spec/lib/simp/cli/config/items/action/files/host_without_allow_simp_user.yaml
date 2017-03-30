@@ -10,6 +10,5 @@ puppetdb::globals::version: 'latest'
 puppetdb::master::config::restart_puppet: false
 
 classes :
-  - 'simp::server::rsync_shares'
   - 'simp::server'
   - 'simp::puppetdb'
