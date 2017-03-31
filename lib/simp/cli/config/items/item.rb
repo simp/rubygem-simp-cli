@@ -28,14 +28,17 @@ module Simp::Cli::Config
       @key               = key           # answers file key for the config Item
       @value             = nil           # value (decided by user)
       @description       = description   # A text description of the Item
-      @data_type         = :global_hiera # :internal     = used within simp config,
+      @data_type         = :global_hiera # :internal     = parameter used within simp config,
                                          #                 but not persisted anywhere
-                                         # :cli_params   = persisted to answers YAML
+                                         # :cli_params   = parameter persisted to answers YAML
                                          #                 file for use by simp config
-                                         # :global_hiera = persisted to hieradata YAML
+                                         # :global_hiera = parameter persisted to hieradata YAML
                                          #                 file for use by SIMP clients
                                          #                 and server
-                                         # :server_hiera = persisted to hieradata YAML
+                                         # :global_class = class added to class list in
+                                         #                 hieradata YAML file for use
+                                         #                 by SIMP clients and server
+                                         # :server_hiera = parameter persisted to hieradata YAML
                                          #                 file for use by SIMP server
       @fact              = nil           # Facter fact to query OS value
 

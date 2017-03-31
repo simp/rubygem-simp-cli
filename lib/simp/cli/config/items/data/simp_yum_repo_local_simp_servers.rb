@@ -1,24 +1,27 @@
 require File.expand_path( '../list_item', File.dirname(__FILE__) )
+require File.expand_path( '../../utils', File.dirname(__FILE__) )
+
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
-  class Item::SimpYumServers < ListItem
+  class Item::SimpYumRepoLocalSimpServers < ListItem
     def initialize
       super
-      @key         = 'simp::yum::servers'
-      @description = %Q{The YUM server(s) for OS and SIMP packages.}
+      @key         = 'simp::yum::repo::local_simp::servers'
+      @description = %Q{The YUM server(s) for SIMP-managed, SIMP and
+SIMP dependency packages.}
     end
 
     def recommended_value
-      if get_item( 'cli::has_local_yum_repos' ).value
+      if get_item( 'cli::has_simp_filesystem_yum_repo' ).value
         # Assume this is a normal ISO install for which this SIMP server
         # is both the puppet master and a YUM server.
         ["%{hiera('simp_options::puppet::server')}"]
       else
         # RPM or R10K install for which we have no idea where YUM repos are
         # located
-        []
+        ['FIXME']
       end
     end
 

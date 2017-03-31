@@ -26,9 +26,7 @@ def generate_simp_input_accepting_defaults
     "\n"                          << # auto-generate GRUB password
     "\n"                          << # Press enter to continue
     "\n"                          << # set production env to simp
-    "1.2.3.6\n"                   << # external YUM servers (assuming no simp_filesystem.repo)
-    "http://os/path\n"            << # YUM OS update url
-    "http://simp/path\n"          << # YUM SIMP update url
+    "\n"                          << # use internet SIMP repos
     "\n"                          << # SIMP is LDAP server
     "\n"                          << # LDAP base DN
     "\n"                          << # don't auto-generate a password
@@ -60,9 +58,7 @@ def generate_simp_lite_input_setting_values
     "time-a.nist.gov\n"                       << # NTP time servers
     "no\n"                                    << # don't set the GRUB password
     "no\n"                                    << # don't set production env to simp
-    "1.2.3.6\n"                               << # external YUM servers (assuming no simp_filesystem.repo)
-    "http://os/path\n"                        << # YUM OS update url
-    "http://simp/path\n"                      << # YUM SIMP update url
+    "no\n"                                    << # don't use internet SIMP repos
     "no\n"                                    << # SIMP is not LDAP server
     "dc=test,dc=local\n"                      << # LDAP base DN
     "cn=hostAuth,ou=Hosts,dc=test,dc=local\n" << # LDAP bind DN
@@ -100,9 +96,7 @@ def generate_poss_input_setting_values
     "time-a.nist.gov\n"   << # NTP time servers
     "no\n"                << # don't set the GRUB password
     "no\n"                << # don't set production env to simp
-    "1.2.3.4 1.2.3.5\n"   << # external YUM servers (assuming no simp_filesystem.repo)
-    "http://os/path\n"    << # YUM OS update url
-    "http://simp/path\n"  << # YUM SIMP update url
+    "no\n"                << # don't use internet SIMP repos
     "no\n"                << # don't use LDAP
     "no\n"                << # use SSSD
     "1.2.3.11\n"          << # log servers
@@ -254,9 +248,6 @@ describe Simp::Cli::Commands::Config do
 
        input_string = ''
        input_string << "simp_lite\n"          << # 'simp_lite' scenario
-                 "1.2.3.6\n"                  << # external YUM servers (assuming no simp_filesystem.repo)
-                 "http://os/path\n"           << # YUM OS update url
-                 "http://simp/path\n"         << # YUM SIMP update url
                  "\n"                         << # don't auto-generate LDAP root password
                  "iTXA8O6yCoDMotMGTeHd7IGI\n" << # LDAP root password
                  "iTXA8O6yCoDMotMGTeHd7IGI\n"    # confirm LDAP root password
@@ -332,8 +323,7 @@ describe Simp::Cli::Commands::Config do
          "#{fmt_begin}#{skip_msg}#{fmt_end} Ensure Puppet server /etc/hosts entry exists",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Create SIMP server <host>.yaml from template",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set PuppetDB master server & port in SIMP server <host>.yaml",
-         "#{fmt_begin}#{skip_msg}#{fmt_end} Enable remote YUM repos in SIMP server <host>.yaml",
-         "#{fmt_begin}#{skip_msg}#{fmt_end} Check remote YUM configuration",
+         "#{fmt_begin}#{skip_msg}#{fmt_end} Add simp::yum::repo::internet_simp_server class to SIMP server <host>.yaml",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Add simp::server::ldap class to SIMP server <host>.yaml",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set LDAP Root password hash in SIMP server <host>.yaml",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Generate interim certificates for SIMP server",
@@ -382,8 +372,7 @@ describe Simp::Cli::Commands::Config do
          %r{Update to /etc/hosts to ensure puppet server entries exist skipped}m,
          %r{Creation of SIMP server <host>.yaml skipped}m,
          %r{Setting of PuppetDB master server & port in SIMP server <host>.yaml skipped}m,
-         %r{Enabling of remote system .OS. and SIMP YUM repositories in SIMP server <host>.yaml}m,
-         %r{Checking of remote YUM configuration skipped}m,
+         %r{Addition of simp::yum::repo::internet_simp_server to SIMP server <host>.yaml class list skipped}m,
          %r{Addition of simp::server::ldap to SIMP server <host>.yaml class list skipped}m,
          %r{Setting of LDAP Root password hash in SIMP server <host>.yaml skipped}m,
          %r{Interim certificate generation for SIMP server skipped}m,

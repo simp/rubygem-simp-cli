@@ -31,14 +31,26 @@ module Simp::Cli::Config
       iostream.puts "# using simp-cli version #{Simp::Cli::VERSION}"
       iostream.puts "#" + '='*72
       iostream.puts "---"
+      global_classes = []
       answers.sort.to_h.each do |k,v|
-        if v.data_type and (v.data_type == :global_hiera )
-          if yaml = v.to_yaml_s  # filter out nil results for items whose YAML is suppressed
-            # get rid of trailing whitespace
-            yaml.split("\n").each { |line| iostream.puts line.rstrip }
-            iostream.puts
+        if v.data_type
+          if v.data_type == :global_hiera
+            if yaml = v.to_yaml_s  # filter out nil results for items whose YAML is suppressed
+              # get rid of trailing whitespace
+              yaml.split("\n").each { |line| iostream.puts line.rstrip }
+              iostream.puts
+            end
+          elsif v.data_type == :global_class
+            # gather up the classes to be added to a  'classes' sequence at the end of the file
+            global_classes << v.key
           end
         end
+      end
+
+      unless global_classes.empty?
+        iostream.puts
+        iostream.puts 'classes:'
+        global_classes.each { |global_class| iostream.puts "  - #{global_class}" }
       end
     end
 

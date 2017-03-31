@@ -125,6 +125,27 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
       expect( @ci.applied_status ).to eq :succeeded
     end
 
+    it 'writes out a classes array when :global_class Items exist' do
+      item = Simp::Cli::Config::Item::SimpYumRepoInternetSimpDependenciesClass.new
+      @ci.config_items[item.key] = item
+
+      item = Simp::Cli::Config::Item::SimpYumRepoLocalOsUpdatesClass.new
+      @ci.config_items[item.key] = item
+
+      item = Simp::Cli::Config::Item::SimpYumRepoLocalSimpClass.new
+      @ci.config_items[item.key] = item
+
+      @ci.apply
+
+      actual_content = IO.read( @tmp_file )
+      expected_content = IO.read(File.join(@files_dir, 'hieradata_yaml_file_writer_with_classes.yaml'))
+      # fix version
+      expected_content.gsub!(/using simp-cli version ([0-9.])+/,
+        "using simp-cli version #{Simp::Cli::VERSION}")
+
+      expect( actual_content).to eq expected_content
+    end
+
     it "fails when it can't set group ownership" do
       @ci.group = 'root'
       @ci.silent = false

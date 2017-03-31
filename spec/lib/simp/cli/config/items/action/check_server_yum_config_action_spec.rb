@@ -1,9 +1,9 @@
-require 'simp/cli/config/items/action/check_remote_yum_config_action'
+require 'simp/cli/config/items/action/check_server_yum_config_action'
 require_relative '../spec_helper'
 
-describe Simp::Cli::Config::Item::CheckRemoteYumConfigAction do
+describe Simp::Cli::Config::Item::CheckServerYumConfigAction do
   before :each do
-    @ci        = Simp::Cli::Config::Item::CheckRemoteYumConfigAction.new
+    @ci        = Simp::Cli::Config::Item::CheckServerYumConfigAction.new
     @ci.silent = true # uncomment out this line to see log message
   end
 
@@ -18,9 +18,10 @@ describe Simp::Cli::Config::Item::CheckRemoteYumConfigAction do
       FileUtils.remove_entry_secure @tmp_dir
     end
 
-    it "succeeds when both repos are found by repoquery" do
+    it "succeeds when all repos are found by repoquery" do
       allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(true)
       allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(true)
+      allow(@ci).to receive(:execute).with('repoquery -i puppet-agent | grep ^Repository').and_return(true)
       @ci.apply
       expect( @ci.applied_status ).to eq :succeeded
     end
@@ -28,20 +29,32 @@ describe Simp::Cli::Config::Item::CheckRemoteYumConfigAction do
     it "writes warning file when OS repo is not found by repoquery" do
       allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(false)
       allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(true)
+      allow(@ci).to receive(:execute).with('repoquery -i puppet-agent | grep ^Repository').and_return(true)
       @ci.apply
       expect( @ci.applied_status ).to eq :failed
       expect( File.exist?(@warning_file) ).to eq true
       actual_message = IO.read(@warning_file)
       expect( actual_message).to eq @ci.warning_message
       expected_summary =
-        "Your YUM configuration may be incomplete.  Verify you have set up system (OS)\n" +
-        "    updates and SIMP repositories before running 'simp bootstrap'."
+        "Your SIMP server's YUM configuration may be incomplete.  Verify you have set up\n" +
+        "\tOS updates, SIMP and SIMP dependencies repositories before running\n" + 
+        "\t'simp bootstrap'."
       expect( @ci.apply_summary ).to eq expected_summary
     end
 
     it "writes warning file when SIMP repo is not found by repoquery" do
       allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(true)
       allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(false)
+      allow(@ci).to receive(:execute).with('repoquery -i puppet-agent | grep ^Repository').and_return(true)
+      @ci.apply
+      expect( @ci.applied_status ).to eq :failed
+      expect( File.exist?(@warning_file) ).to eq true
+    end
+
+    it "writes warning file when SIMP dependencies repo is not found by repoquery" do
+      allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(true)
+      allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(true)
+      allow(@ci).to receive(:execute).with('repoquery -i puppet-agent | grep ^Repository').and_return(false)
       @ci.apply
       expect( @ci.applied_status ).to eq :failed
       expect( File.exist?(@warning_file) ).to eq true
@@ -50,6 +63,7 @@ describe Simp::Cli::Config::Item::CheckRemoteYumConfigAction do
     it 'appends to warning file' do
       allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(true)
       allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(false)
+      allow(@ci).to receive(:execute).with('repoquery -i puppet-agent | grep ^Repository').and_return(false)
       FileUtils.mkdir_p(File.dirname(@warning_file))
       other_warning = "SOME OTHER WARNING"
       File.open(@warning_file, 'w') {|f| f.puts other_warning }
@@ -62,7 +76,7 @@ describe Simp::Cli::Config::Item::CheckRemoteYumConfigAction do
 
   describe "#apply_summary" do
     it 'reports unattempted status when #apply not called' do
-      expect(@ci.apply_summary).to eq 'Checking of remote YUM configuration unattempted'
+      expect(@ci.apply_summary).to eq "Checking of SIMP server's YUM configuration unattempted"
     end
   end
 

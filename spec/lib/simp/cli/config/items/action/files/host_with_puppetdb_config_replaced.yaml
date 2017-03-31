@@ -2,8 +2,8 @@
 # some comment
 simp_apache::conf::ssl::trusted_nets: "%{alias('simp_options::trusted_nets')}"
 simp_apache::ssl::sslverifyclient: 'none'
-simp::yum::enable_simp_repos: false
-simp::yum::enable_os_repos: false
+simp::yum::repo::local_os_updates::enable_repo: false
+simp::yum::repo::local_simp::enable_repo: false
 pupmod::enable_puppet_master: true
 puppetdb::master::config::puppet_service_name: 'puppetserver'
 puppetdb::globals::version: 'latest'

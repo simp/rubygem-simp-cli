@@ -10,17 +10,12 @@ cli::network::set_up_nic: true
 cli::set_grub_password: true
 cli::set_production_to_simp: true
 cli::simp::scenario: simp_lite
+cli::use_internet_simp_yum_repos: true
 grub::password: "$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX."
 puppetdb::master::config::puppetdb_port: 8139
 puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 4
 simp::server::allow_simp_user: false
-simp::yum::enable_os_repos: true
-simp::yum::enable_simp_repos: true
-simp::yum::os_update_url: "http://os/path"
-simp::yum::servers:
-  - "1.2.3.6"
-simp::yum::simp_update_url: "http://simp/path"
 simp_openldap::server::conf::rootpw: "{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL"
 simp_options::dns::search:
   - test.local
