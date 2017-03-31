@@ -6,13 +6,14 @@ pupmod::enable_puppet_master: true
 puppetdb::master::config::puppet_service_name: 'puppetserver'
 puppetdb::globals::version: 'latest'
 puppetdb::master::config::restart_puppet: false
+simp::server::allow_simp_user: true
 
 # === simp::yum::enable_os_repos ===
-# Whether to enable remote system (OS) YUM repositories
+# Whether to enable remote system (OS) YUM repositories.
 simp::yum::enable_os_repos: true
 
 # === simp::yum::enable_simp_repos ===
-# Whether to enable remote SIMP YUM repositories
+# Whether to enable remote SIMP YUM repositories.
 simp::yum::enable_simp_repos: true
 
 classes :

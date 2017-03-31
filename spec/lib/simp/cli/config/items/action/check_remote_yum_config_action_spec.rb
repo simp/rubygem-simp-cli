@@ -33,7 +33,7 @@ describe Simp::Cli::Config::Item::CheckRemoteYumConfigAction do
       expect( File.exist?(@warning_file) ).to eq true
       actual_message = IO.read(@warning_file)
       expect( actual_message).to eq @ci.warning_message
-      expected_summary = 
+      expected_summary =
         "Your YUM configuration may be incomplete.  Verify you have set up system (OS)\n" +
         "    updates and SIMP repositories before running 'simp bootstrap'."
       expect( @ci.apply_summary ).to eq expected_summary
@@ -46,11 +46,23 @@ describe Simp::Cli::Config::Item::CheckRemoteYumConfigAction do
       expect( @ci.applied_status ).to eq :failed
       expect( File.exist?(@warning_file) ).to eq true
     end
+
+    it 'appends to warning file' do
+      allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(true)
+      allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(false)
+      FileUtils.mkdir_p(File.dirname(@warning_file))
+      other_warning = "SOME OTHER WARNING"
+      File.open(@warning_file, 'w') {|f| f.puts other_warning }
+      @ci.apply
+      actual_message = IO.read(@warning_file)
+      expected_message = other_warning + "\n" + @ci.warning_message
+      expect( actual_message).to eq other_warning + "\n" + @ci.warning_message
+    end
   end
 
   describe "#apply_summary" do
     it 'reports unattempted status when #apply not called' do
-      expect(@ci.apply_summary).to eq 'Checking remote YUM configuration unattempted'
+      expect(@ci.apply_summary).to eq 'Checking of remote YUM configuration unattempted'
     end
   end
 

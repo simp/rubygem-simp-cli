@@ -9,7 +9,7 @@ module Simp::Cli::Config
   # unique and @hiera_to_add is an array of hiera keys
   class SetServerHieradataActionItem < ActionItem
     attr_accessor :dir
-  
+
     def initialize
       super
       @dir          = File.join(::Utils.puppet_info[:simp_environment_path], 'hieradata', 'hosts')
@@ -34,7 +34,7 @@ module Simp::Cli::Config
           else
             add_yaml_entry(key)
           end
-          @applied_status = :succeeded 
+          @applied_status = :succeeded
         end
       else
         error( "\nERROR: file not found: #{@file}", [:RED] )
@@ -62,7 +62,7 @@ module Simp::Cli::Config
             f.puts line
           end
         end
-        
+
         unless line_written
           f.puts full_yaml_string
         end

@@ -25,7 +25,7 @@ class Simp::Cli::Config::ItemsYamlGenerator
       part_name = nil
       if part.is_a?(Hash)
         part_name = part.keys[0]
-        substitutions = part[part_name] 
+        substitutions = part[part_name]
       else
         part_name = part
       end
@@ -65,7 +65,7 @@ class Simp::Cli::Config::ItemsYamlGenerator
 
     unless scenario_items_hash['includes']
       raise Simp::Cli::Config::InternalError.new("#{scenario_items_file} missing 'includes'")
-    end   
+    end
 
     scenario_items_hash
   end

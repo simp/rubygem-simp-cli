@@ -73,7 +73,7 @@ describe "simp executable" do
 
   before :each do
     @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
-    @simp_config_args = 
+    @simp_config_args =
       "-o #{File.join(@tmp_dir, 'simp_conf.yaml')}" +
       "-p #{File.join(@tmp_dir, 'simp_config_settings.yaml')}" +
       "-l #{File.join(@tmp_dir, 'simp_config.log')}"

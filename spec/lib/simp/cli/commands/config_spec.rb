@@ -337,6 +337,8 @@ describe Simp::Cli::Commands::Config do
          "#{fmt_begin}#{skip_msg}#{fmt_end} Add simp::server::ldap class to SIMP server <host>.yaml",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Set LDAP Root password hash in SIMP server <host>.yaml",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Generate interim certificates for SIMP server",
+         "#{fmt_begin}#{skip_msg}#{fmt_end} Disallow inapplicable 'simp' user in SIMP server <host>.yaml",
+         "#{fmt_begin}#{skip_msg}#{fmt_end} Check for login lockout risk",
          "#{fmt_begin}#{skip_msg}#{fmt_end} Write SIMP global hieradata to YAML file."
        ]
 
@@ -381,10 +383,12 @@ describe Simp::Cli::Commands::Config do
          %r{Creation of SIMP server <host>.yaml skipped}m,
          %r{Setting of PuppetDB master server & port in SIMP server <host>.yaml skipped}m,
          %r{Enabling of remote system .OS. and SIMP YUM repositories in SIMP server <host>.yaml}m,
-         %r{Checking remote YUM configuration skipped}m,
+         %r{Checking of remote YUM configuration skipped}m,
          %r{Addition of simp::server::ldap to SIMP server <host>.yaml class list skipped}m,
          %r{Setting of LDAP Root password hash in SIMP server <host>.yaml skipped}m,
          %r{Interim certificate generation for SIMP server skipped}m,
+         %r{Disallow of inapplicable, local 'simp' user in SIMP server <host>.yaml skipped}m,
+         %r{Check for login lockout risk skipped}m,
          %r{Creation of #{@puppet_system_file} skipped}m,
          %r{#{@answers_output_file} created}m,
          %r{Detailed log written to #{@log_file}}m,

@@ -16,7 +16,7 @@ module Simp::Cli::Config
 
     def apply
       @applied_status = :failed
-   
+
       puppet_server    = get_item( 'simp_options::puppet::server' ).value
       puppet_server_ip = get_item( 'cli::puppet::server::ip' ).value
 

@@ -37,7 +37,7 @@ module Simp::Cli::Config
 
     def recommended_value
       rec_value = os_value
-      if !rec_value 
+      if !rec_value
         rec_value = [ get_item( 'cli::network::hostname' ).value ]
       end
       rec_value

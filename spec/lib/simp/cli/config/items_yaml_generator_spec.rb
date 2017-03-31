@@ -23,35 +23,35 @@ describe Simp::Cli::Config::ItemsYamlGenerator do
 
     it 'fails when scenario_items.yaml fails to parse' do
       expect{ Simp::Cli::Config::ItemsYamlGenerator.new('malformed', files_dir).generate_yaml }.to raise_error(
-        Simp::Cli::Config::InternalError, 
+        Simp::Cli::Config::InternalError,
        "Internal error: Invalid Items list YAML for 'malformed' scenario")
     end
 
     it 'fails when scenario_items.yaml is missing name key' do
       bad_yaml = File.join(files_dir, 'missing_name_items.yaml')
       expect{ Simp::Cli::Config::ItemsYamlGenerator.new('missing_name', files_dir).generate_yaml }.to raise_error(
-        Simp::Cli::Config::InternalError, 
+        Simp::Cli::Config::InternalError,
        "Internal error: #{bad_yaml} missing 'name'")
     end
 
     it 'fails when scenario_items.yaml is missing description key' do
       bad_yaml = File.join(files_dir, 'missing_description_items.yaml')
       expect{ Simp::Cli::Config::ItemsYamlGenerator.new('missing_description', files_dir).generate_yaml }.to raise_error(
-        Simp::Cli::Config::InternalError, 
+        Simp::Cli::Config::InternalError,
        "Internal error: #{bad_yaml} missing 'description'")
     end
 
     it 'fails when scenario_items.yaml is missing includes key' do
       bad_yaml = File.join(files_dir, 'missing_includes_items.yaml')
       expect{ Simp::Cli::Config::ItemsYamlGenerator.new('missing_includes', files_dir).generate_yaml }.to raise_error(
-        Simp::Cli::Config::InternalError, 
+        Simp::Cli::Config::InternalError,
        "Internal error: #{bad_yaml} missing 'includes'")
     end
 
     it 'fails when part is invalid' do
       bad_yaml = File.join(files_dir, 'missing_part_items.yaml')
       expect{ Simp::Cli::Config::ItemsYamlGenerator.new('missing_part', files_dir).generate_yaml }.to raise_error(
-        Simp::Cli::Config::InternalError, 
+        Simp::Cli::Config::InternalError,
        "Internal error: Cannot find 'some_missing_part' include for 'missing_part' scenario")
     end
   end

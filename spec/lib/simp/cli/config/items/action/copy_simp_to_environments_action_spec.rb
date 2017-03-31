@@ -27,7 +27,7 @@ describe Simp::Cli::Config::Item::CopySimpToEnvironmentsAction do
       FileUtils.touch(File.join(@source_dir, 'modules', 'pam', 'CHANGELOG'))
       FileUtils.mkdir_p(File.join(@source_dir, 'modules', 'simplib'))
       FileUtils.touch(File.join(@source_dir, 'modules', 'simplib', 'metadata.json'))
-      
+
       FileUtils.mkdir_p(File.dirname(@dest_dir))
 
       @ci.adapter_config = @adapter_config

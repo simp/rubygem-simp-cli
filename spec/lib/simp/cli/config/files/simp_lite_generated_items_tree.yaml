@@ -123,3 +123,10 @@
     - SimpOptionsSyslogFailoverLogServers
 - GenerateCertificatesAction   # needed for SIMP server independent of scenario
 
+# ==== User actions ====
+- CliHasSimpLocalUser  SKIPQUERY SILENT: # don't ever prompt, just discover current value
+   false:
+    - SimpServerAllowSimpUser SKIPQUERY SILENT # default is correct
+    - DisallowSimpUserAction  # ISO-provided user does not exist, so don't allow!
+    - WarnLockoutRiskAction
+

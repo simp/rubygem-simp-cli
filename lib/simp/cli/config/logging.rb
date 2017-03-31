@@ -32,7 +32,7 @@ module Simp::Cli::Config::Logging
       @file_level    = ::Logger::ERROR
       @file_logger.level = @file_level
     end
-    
+
     def open_logfile(file)
       @file.close if @file
       @file = File.new(file, 'w')  # overwrite existing file
@@ -62,7 +62,7 @@ module Simp::Cli::Config::Logging
     def warn(*args)
       log_and_say(:warn, *args)
     end
-    
+
     def error(*args)
       log_and_say(:error, *args)
     end
@@ -82,7 +82,7 @@ module Simp::Cli::Config::Logging
     #   formatting options.
     #
     # NOTE:  When the final part of a message ends in a ' ' character,
-    # HighLine suppresses the newline when the message is sent to the 
+    # HighLine suppresses the newline when the message is sent to the
     # console.
     #
     # Examples,
@@ -149,5 +149,5 @@ module Simp::Cli::Config::Logging
       HighLine::say(message)
     end
   end
-    
+
 end

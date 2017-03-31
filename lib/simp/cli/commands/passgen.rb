@@ -27,7 +27,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
     opts.separator ''
     opts.separator "OPTIONS:\n"
 
-    opts.on('-e', '--env ENV', 
+    opts.on('-e', '--env ENV',
             'Puppet environment to which the passgen operation will',
             "be applied. Defaults to '#{DEFAULT_ENVIRONMENT}'.",
             "Ignored when '-d' option is specified." ) do |env|
@@ -38,7 +38,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
       @operation = :show_environment_list
     end
 
-    opts.on('-d', '--dir DIR', 
+    opts.on('-d', '--dir DIR',
             'Fully qualified path to a password store.',
             "Overrides an environment specified by the '-e' option.") do |dir|
       @password_dir = dir
@@ -48,28 +48,28 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
       @operation = :show_name_list
     end
 
-    opts.on('-n', '--name NAME1[,NAME2,...]', Array, 
+    opts.on('-n', '--name NAME1[,NAME2,...]', Array,
             'Show password(s) for NAME1[,NAME2,...] in the',
             'specified environment.') do |names|
       @operation = :show_passwords
       @names = names
     end
 
-    opts.on('-s', '--set NAME1[,NAME2,...]', Array, 
+    opts.on('-s', '--set NAME1[,NAME2,...]', Array,
             'Set password(s) for NAME1[,NAME2,...] in the',
             'specified environment.') do |names|
       @operation = :set_passwords
       @names = names
     end
 
-    opts.on('-b', '--[no-]backup', 
+    opts.on('-b', '--[no-]backup',
             'Back up passwords when generating new ones. If',
             'unspecified, user will be prompted for action',
             'to take.') do |backup|
       @backup_passwords = backup
     end
 
-    opts.on('-r', '--remove NAME1[,NAME2,...]', Array, 
+    opts.on('-r', '--remove NAME1[,NAME2,...]', Array,
             'Remove all passwords for NAME1[,NAME2,...] in the',
             'specified environment.') do |names|
       @operation = :remove_passwords
@@ -149,7 +149,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
   end
 
   def self.show_environment_list
-    # FIXME This ASSUMES @password_dir follows a known pattern of 
+    # FIXME This ASSUMES @password_dir follows a known pattern of
     #   <env dir>/<env>/simp_autofiles/gen_passwd
     # (which also assumes Linux path separators)
     unless @password_dir.include?("/simp_autofiles/gen_passwd")

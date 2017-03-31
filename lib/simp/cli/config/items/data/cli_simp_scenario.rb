@@ -9,7 +9,7 @@ module Simp::Cli::Config
       @key         = 'cli::simp::scenario'
 #TODO Generate description and validation based on available
 # scenarios/*_items.yaml
-      @description = %Q{SIMP scenario
+      @description = %Q{The SIMP scenario.
 
 'simp'      = Settings for a full SIMP system. Both the SIMP server
               (this host) and all clients will be running with

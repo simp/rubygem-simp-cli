@@ -22,4 +22,5 @@ includes:
   - ldap_query_options: 'SKIPQUERY SILENT NOYAML'
   - sssd_query_options: 'SKIPQUERY SILENT NOYAML'
 - misc_setup
+- user_setup
 - simp_scenario_specific_setup

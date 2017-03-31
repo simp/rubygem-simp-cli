@@ -33,8 +33,8 @@ module Simp::Cli::Config
     end
 
     # Create link from <primary environments>/simp to
-    # <primary environments>/production, backing up 
-    # <primary environments>/production to 
+    # <primary environments>/production, backing up
+    # <primary environments>/production to
     # <primary environments>.bak/production.<timestamp> if that
     # directory already exists
     # returns true if link and, if relevant, backup operation succeeded
@@ -62,7 +62,7 @@ module Simp::Cli::Config
               backup = File.join(backup_dir, "production.#{@start_time.strftime('%Y%m%dT%H%M%S')}")
               debug( "Backing up #{production_path} to #{backup}" )
               FileUtils.mv(production_path, backup)
-  
+
               debug( "Linking #{production_path} to #{simp_environment_path}" )
               Dir.chdir(@primary_env_path) do
                 File.symlink('simp', 'production')
@@ -86,14 +86,14 @@ module Simp::Cli::Config
     end
 
     # Create link from <primary environments>/simp to
-    # <primary environments>/production, unless 
+    # <primary environments>/production, unless
     # <primary environments>/production already exists
     # returns true when link operation was not required or was successful
     def set_secondary_environment
       success = false
       production_path = File.join(@secondary_env_path, 'production')
       if File.exists?(production_path)#TODO should we verify this is a directory or a link?
-        debug( "Secondary environment link not required:" + 
+        debug( "Secondary environment link not required:" +
           " #{production_path} already exits" )
         success = true
       else

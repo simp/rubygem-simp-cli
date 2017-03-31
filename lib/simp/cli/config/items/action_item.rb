@@ -9,7 +9,7 @@ module Simp::Cli::Config
       # an unpriviledged user and we are not already
       # skipping for some other reason
       unless @allow_user_apply
-        if ENV.fetch('USER') != 'root' 
+        if ENV.fetch('USER') != 'root'
           @skip_apply = true
           @skip_apply_reason = '[**user is not root**]' unless @skip_apply_reason
         end
@@ -26,9 +26,9 @@ module Simp::Cli::Config
         begin
           apply
           info( "#{@applied_status.to_s.capitalize}", [status_color, :BOLD] )
-          if @applied_status == :failed 
+          if @applied_status == :failed
             if @die_on_apply_fail
-              raise apply_summary 
+              raise apply_summary
             else
               # as a courtesy, pause briefly to give user time to see the
               # error message logged by derived class, before moving on

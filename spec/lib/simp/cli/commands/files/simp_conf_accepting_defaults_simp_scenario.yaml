@@ -14,6 +14,7 @@ grub::password: "$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59Yr
 puppetdb::master::config::puppetdb_port: 8139
 puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 3
+simp::server::allow_simp_user: false
 simp::yum::enable_os_repos: true
 simp::yum::enable_simp_repos: true
 simp::yum::os_update_url: "http://os/path"

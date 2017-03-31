@@ -25,7 +25,7 @@ module Simp::Cli::Config
       @host_yaml = File.join( File.dirname( @template_file ), "#{fqdn}.yaml" )
 
       if !File.exists?(@template_file) and !File.exists?(@host_yaml) and File.exists?(@alt_file)
-        # Can get here if 
+        # Can get here if
         # (1) RPM/ISO install (so /usr/share/simp exists)
         # (2) Operator runs simp config more than once but with different hostnames
         #     (e.g., tries to fix a typo by running again).
@@ -42,7 +42,7 @@ module Simp::Cli::Config
           else
             @applied_status = :deferred
             @applied_status_detail =
-              "Manual merging of #{File.basename(@template_file)} into pre-existing" + 
+              "Manual merging of #{File.basename(@template_file)} into pre-existing" +
               " #{File.basename(@host_yaml)} may be required"
 
             message = %Q{\nWARNING: #{File.basename( @host_yaml )} already exists, but differs from the template.
@@ -62,7 +62,7 @@ Review and consider updating:
           begin
             FileUtils.chown(nil, @group, @host_yaml)
             @applied_status = :succeeded
-          rescue Errno::EPERM, ArgumentError 
+          rescue Errno::EPERM, ArgumentError
             # This will happen if the user is not root or the group does
             # not exist.
             error( "\nERROR: Could not change #{@host_yaml} to #{@group} group", [:RED])

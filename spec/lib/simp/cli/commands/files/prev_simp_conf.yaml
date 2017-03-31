@@ -12,6 +12,7 @@ cli::set_production_to_simp: true
 cli::simp::scenario: simp_lite
 grub::password: "$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX."
 simp::runlevel: 3
+simp::server::allow_simp_user: false
 simp::yum::enable_os_repos: true
 simp::yum::enable_simp_repos: true
 simp::yum::os_update_url: "http://os/path"

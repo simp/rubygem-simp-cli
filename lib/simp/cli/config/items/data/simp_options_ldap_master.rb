@@ -7,7 +7,7 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'simp_options::ldap::master'
-      @description = %Q{This is the LDAP master in URI form (ldap://server or ldaps:://server).}
+      @description = %Q{The LDAP master in URI form (ldap://server or ldaps:://server).}
     end
 
     def recommended_value

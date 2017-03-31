@@ -8,6 +8,7 @@ pupmod::enable_puppet_master: true
 puppetdb::master::config::puppet_service_name: 'puppetserver'
 puppetdb::globals::version: 'latest'
 puppetdb::master::config::restart_puppet: false
+simp::server::allow_simp_user: true
 
 # === simp_openldap::server::conf::rootpw ===
 # The LDAP Root password hash.

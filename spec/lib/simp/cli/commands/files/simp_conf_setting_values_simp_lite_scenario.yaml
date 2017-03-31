@@ -12,6 +12,7 @@ cli::simp::scenario: simp_lite
 puppetdb::master::config::puppetdb_port: 8139
 puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 3
+simp::server::allow_simp_user: false
 simp::yum::enable_os_repos: true
 simp::yum::enable_simp_repos: true
 simp::yum::os_update_url: "http://os/path"

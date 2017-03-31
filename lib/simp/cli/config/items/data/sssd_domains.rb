@@ -10,7 +10,7 @@ module Simp::Cli::Config
       @description = %Q{A list of domains for SSSD to use.
 
 * When `simp_options::ldap` is true, this field should include `LDAP`.
-* When `simp_options::ldap` is false, this field must be a valid 
+* When `simp_options::ldap` is false, this field must be a valid
   domain ('Local' and/or a custom domain) or the sssd service will
   fail to start.
 }

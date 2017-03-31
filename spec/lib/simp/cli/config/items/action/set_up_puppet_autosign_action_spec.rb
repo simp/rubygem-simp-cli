@@ -39,7 +39,7 @@ describe Simp::Cli::Config::Item::SetUpPuppetAutosignAction do
       backup_file = "#{@ci.file}.20170113T114203"
       expect( File ).to exist( backup_file )
       expected_backup_content = File.read( File.join( @file_dir, 'autosign.conf.used') )
-      actual_backup_content = File.read( backup_file) 
+      actual_backup_content = File.read( backup_file )
       expect( actual_backup_content ).to eq expected_backup_content
     end
 
