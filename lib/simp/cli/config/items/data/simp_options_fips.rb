@@ -19,9 +19,7 @@ IMPORTANT:
     FIPS mode disables the use of MD5 and may require weaker ciphers or key
     lengths than your security policies allow.
 (2) If the system is currently in FIPS mode and you set this option to false,
-    the system will still work.  The reverse is not necessarily true.  See
-    SIMP documentation for instructions on how to safely convert a non-FIPS
-    system to a FIPS system.
+    the system will still work.  The reverse is also true.
 }
     end
 
