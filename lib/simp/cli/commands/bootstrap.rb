@@ -383,7 +383,7 @@ EOM
       unless Dir.glob(File.join(ssldir, '**', '*.pem')).empty?
         info('Existing puppetserver certificates have been found in')
         info("    #{ssldir}" )
-        info('If this is a fresh install, those certificates can be safely removed.')
+        info('If this server has no registered agents, those certificates can be safely removed.')
         info('Otherwise, although removing them will ensure consistency, manual')
         info('steps may be required to ensure connectivity with existing Puppet clients.')
         info('(See https://docs.puppet.com/puppet/latest/ssl_regenerate_certificates.html)')
