@@ -377,17 +377,23 @@ EOM
 
   # Remove or retain existing puppet certs per user direction
   def self.handle_existing_puppet_certs
+    ssldir = ::Utils.puppet_info[:config]['ssldir']
     rm_ssldir = @remove_ssldir
     if rm_ssldir.nil?  # not configured
-      info('Removing the contents of the puppet ssldir will ensure consistency, but')
-      info('  may not be desireable.  If removed, puppetserver certificates will be')
-      info('  removed and re-generated.')
-      rm_ask = ask("> Do you wish to remove the existing ssldir? (yes|no) ".yellow) { |q|
-        q.validate = /(yes)|(no)/i
-      }
-      rm_ssldir = (rm_ask.downcase == 'yes')
+      unless Dir.glob(File.join(ssldir, '**', '*.pem')).empty?
+        info('Existing puppetserver certificates have been found in')
+        info("    #{ssldir}" )
+        info('If this is a fresh install, those certificates can be safely removed.')
+        info('Otherwise, although removing them will ensure consistency, manual')
+        info('steps may be required to ensure connectivity with existing Puppet clients.')
+        info('(See https://docs.puppet.com/puppet/latest/ssl_regenerate_certificates.html)')
+        info('Regardless, if removed, new puppetserver certificates will be generated')
+        info('automatically.')
+        question = "> Do you wish to remove existing puppetserver certificates? (yes|no) "
+        rm_ask = ask(question.yellow) { |q| q.validate = /(yes)|(no)/i }
+        rm_ssldir = (rm_ask.downcase == 'yes')
+      end
     end
-    ssldir = ::Utils.puppet_info[:config]['ssldir']
     if rm_ssldir
       FileUtils.rm_rf(Dir.glob(File.join(ssldir,'*')))
       info("Successfully removed #{ssldir}/*", 'green')

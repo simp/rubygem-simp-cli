@@ -97,6 +97,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Apr 04 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
+- simp bootstrap update:
+  - Minor tweak to ssldir removal logic and messages
+
 * Thu Mar 30 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
 - simp config updates:
   - When SIMP was not installed via RPM, warn operator about
