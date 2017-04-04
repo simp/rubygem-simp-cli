@@ -111,6 +111,7 @@ EOM
     potential system lockout and then prevent 'simp bootstrap'
     from running, until the operator manually verifies the
     problem has been addressed/is not an issue.
+  - Update location to FakeCA
   
 * Mon Mar 27 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
 - simp config updates:

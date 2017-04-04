@@ -34,7 +34,7 @@ module Utils
         :config => config_hash,
         :environment_path => environment_path,
         :simp_environment_path => File.join(environment_path, 'simp'),
-        :fake_ca_path => File.join(environment_path, 'simp', 'FakeCA'),
+        :fake_ca_path => '/var/simp/environments/simp/FakeCA',
         :puppet_group => config_hash['group']
       }
     end
