@@ -97,6 +97,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Apr 04 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
+- simp bootstrap update:
+  - Minor tweak to ssldir removal logic and messages
+
 * Mon Apr 03 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
 - simp config changes:
   - Reworked YUM-related queries to reflect changes to simp::yum.
