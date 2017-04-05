@@ -10,14 +10,7 @@ puppetdb::globals::version: 'latest'
 puppetdb::master::config::restart_puppet: false
 simp::server::allow_simp_user: true
 
-# === puppetdb::master::config::puppetdb_server ===
-# The DNS name or IP of the PuppetDB server.
-puppetdb::master::config::puppetdb_server: puppet.test.local
-
-# === puppetdb::master::config::puppetdb_port ===
-# The PuppetDB server port number.
-puppetdb::master::config::puppetdb_port: 8139
-
 classes :
+  - 'simp::yum::repo::internet_simp_server'
   - 'simp::server'
   - 'simp::puppetdb'

@@ -8,13 +8,14 @@ puppetdb::globals::version: 'latest'
 puppetdb::master::config::restart_puppet: false
 simp::server::allow_simp_user: true
 
-# === simp::yum::enable_os_repos ===
-# Whether to enable remote system (OS) YUM repositories.
-simp::yum::enable_os_repos: true
+# === simp::yum::repo::local_os_updates::enable_repo ===
+# Whether to enable the SIMP-managed OS Update YUM repository.
+simp::yum::repo::local_os_updates::enable_repo: false
 
-# === simp::yum::enable_simp_repos ===
-# Whether to enable remote SIMP YUM repositories.
-simp::yum::enable_simp_repos: true
+# === simp::yum::repo::local_simp::enable_repo ===
+# Whether to enable the SIMP-managed, SIMP and
+# SIMP dependency YUM repository.
+simp::yum::repo::local_simp::enable_repo: false
 
 classes :
   - 'simp::server'

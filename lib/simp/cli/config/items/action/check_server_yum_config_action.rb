@@ -5,17 +5,18 @@ require 'fileutils'
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
-  class Item::CheckRemoteYumConfigAction < ActionItem
+  class Item::CheckServerYumConfigAction < ActionItem
     attr_accessor :warning_file
     attr_reader :warning_message
 
     def initialize
       super
-      @key             = 'yum::repositories::remote::check'
-      @description     = 'Check remote YUM configuration'
+      @key             = 'yum::repositories::server::config::check'
+      @description     = 'Check YUM configuration for SIMP server'
       @warning_file    = Simp::Cli::BOOTSTRAP_START_LOCK_FILE
-      @warning_message_brief = 'Locking bootstrap due to possibly incomplete YUM config.'
+      @warning_message_brief = 'Locking bootstrap due to possibly incomplete YUM config'
       @warning_message = <<DOC
+#{'#'*72}
 When the SIMP server is installed from ISO, it is configured via
 /etc/yum.repos.d/simp_filesystem.repo and simp::yum class parameters
 to use local system (OS) and local SIMP repositories in /var/www/yum.
@@ -27,7 +28,9 @@ prior to 'simp bootstrap', or the boostrap will fail.
 Once you have successfully configured YUM and verified that
   1. 'repoquery -i kernel' returns the correct OS repository
   2. 'repoquery -i simp' returns the correct SIMP repository
-  3. Any other issues identified in this file are addressed,
+  3. 'repoquery -i puppet-agent' returns the correct SIMP
+     dependencies repository
+  4. Any other issues identified in this file are addressed,
 you can remove this file and continue with 'simp bootstrap'.
 DOC
    end
@@ -42,6 +45,7 @@ DOC
       result = show_wait_spinner {
         query_result = execute('repoquery -i kernel | grep ^Repository')
         query_result = query_result && execute('repoquery -i simp | grep ^Repository')
+        query_result = query_result && execute('repoquery -i puppet-agent | grep ^Repository')
         query_result
       }
 
@@ -64,10 +68,11 @@ DOC
 
     def apply_summary
       if @applied_status == :failed
-      %Q{Your YUM configuration may be incomplete.  Verify you have set up system (OS)
-    updates and SIMP repositories before running 'simp bootstrap'.}
+      %Q{Your SIMP server's YUM configuration may be incomplete.  Verify you have set up
+\tOS updates, SIMP and SIMP dependencies repositories before running
+\t'simp bootstrap'.}
       else
-        "Checking of remote YUM configuration #{@applied_status}"
+        "Checking of SIMP server's YUM configuration #{@applied_status}"
       end
     end
   end
