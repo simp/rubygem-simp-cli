@@ -1,11 +1,11 @@
-require 'simp/cli/config/items/data/cli_has_local_yum_repos'
+require 'simp/cli/config/items/data/cli_has_simp_filesystem_yum_repo'
 require 'fileutils'
 require 'rspec/its'
 require_relative '../spec_helper'
 
-describe Simp::Cli::Config::Item::CliHasLocalYumRepos do
+describe Simp::Cli::Config::Item::CliHasSimpFilesystemYumRepo do
   before :each do
-    @ci = Simp::Cli::Config::Item::CliHasLocalYumRepos.new
+    @ci = Simp::Cli::Config::Item::CliHasSimpFilesystemYumRepo.new
   end
 
   context '#recommended_value' do

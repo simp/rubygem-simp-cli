@@ -97,6 +97,14 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon Apr 03 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
+- simp config changes:
+  - Reworked YUM-related queries to reflect changes to simp::yum.
+    Now, for non-ISO installs, you have the option to set up
+    SIMP repos that pull from SIMP internet repositories.
+    Otherwise, the configuration of YUM repositories for the
+    SIMP server and SIMP clients is left to the installer.
+
 * Thu Mar 30 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
 - simp config updates:
   - When SIMP was not installed via RPM, warn operator about

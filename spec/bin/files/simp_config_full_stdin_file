@@ -11,9 +11,7 @@ test.local
 time-a.nist.gov
 no
 no
-1.2.3.4 1.2.3.5
-http://os/path
-http://simp/path
+yes
 no
 no
 1.2.3.11

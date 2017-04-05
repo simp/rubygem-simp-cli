@@ -1,14 +1,24 @@
 # ==== YUM actions and related configuration ====
-- CliHasLocalYumRepos                SKIPQUERY SILENT: # don't ever prompt, just discover current value
+- CliHasSimpFilesystemYumRepo             SKIPQUERY SILENT: # don't ever prompt, just discover current value
    true:
-    - SimpYumServers                 SKIPQUERY SILENT # default is correct
-    - UpdateOsYumRepositoriesAction
+    - SimpYumRepoLocalOsUpdatesClass      # repo enabled by default
+    - SimpYumRepoLocalSimpClass           # repo enabled by default
+    - SimpYumRepoLocalOsUpdatesServers    SKIPQUERY SILENT # default is correct for SIMP
+    - SimpYumRepoLocalSimpServers         SKIPQUERY SILENT # default is correct for SIMP
+    # configure SIMP server to not use local_simp and local_os_updates, as it
+    # uses simp_filesystem.repo instead
+    # - simp_filesystem.repo is faster to access 
+    # - simp_filesystem.repo is not automatically updated, which assures SIMP server stability
+    - SimpYumRepoLocalOsUpdatesEnableRepo SKIPQUERY SILENT  # default disables
+    - SimpYumRepoLocalSimpEnableRepo      SKIPQUERY SILENT  # default disables
+    - DisableServerLocalOsAndSimpYumReposAction
     - AddYumServerClassToServerAction
+    - UpdateOsYumRepositoriesAction
    false:
-    - SimpYumServers
-    - SimpYumOsUpdateUrl
-    - SimpYumSimpUpdateUrl
-    - SimpYumEnableOsRepos           SKIPQUERY SILENT # default is correct
-    - SimpYumEnableSimpRepos         SKIPQUERY SILENT # default is correct
-    - EnableOsAndSimpYumReposAction
-    - CheckRemoteYumConfigAction
+    - CliUseInternetSimpYumRepos:
+       true:
+        - SimpYumRepoInternetSimpDependenciesClass # NOTE: since global setting, will be used by SIMP server as well
+        - AddSimpYumRepoInternetSimpServerClassToServerAction
+       false:
+        - CheckServerYumConfigAction # simple YUM OS, SIMP, and SIMP dependency package checks for SIMP server
+        - WarnClientYumConfigAction  # can't check YUM for SIMP clients, so warn

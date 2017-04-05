@@ -9,16 +9,11 @@ cli::network::set_up_nic: false
 cli::set_grub_password: false
 cli::set_production_to_simp: false
 cli::simp::scenario: simp_lite
+cli::use_internet_simp_yum_repos: false
 puppetdb::master::config::puppetdb_port: 8139
 puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 3
 simp::server::allow_simp_user: false
-simp::yum::enable_os_repos: true
-simp::yum::enable_simp_repos: true
-simp::yum::os_update_url: "http://os/path"
-simp::yum::servers:
-  - "1.2.3.6"
-simp::yum::simp_update_url: "http://simp/path"
 simp_options::dns::search:
   - test.local
 simp_options::dns::servers:

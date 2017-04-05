@@ -1,28 +1,28 @@
-require 'simp/cli/config/items/data/simp_yum_servers'
-require 'simp/cli/config/items/data/cli_has_local_yum_repos'
+require 'simp/cli/config/items/data/simp_yum_repo_local_simp_servers'
+require 'simp/cli/config/items/data/cli_has_simp_filesystem_yum_repo'
 require 'rspec/its'
 require_relative '../spec_helper'
 
-describe Simp::Cli::Config::Item::SimpYumServers do
+describe Simp::Cli::Config::Item::SimpYumRepoLocalSimpServers do
   before :each do
-    @ci = Simp::Cli::Config::Item::SimpYumServers.new
+    @ci = Simp::Cli::Config::Item::SimpYumRepoLocalSimpServers.new
   end
 
   describe "#recommended_value" do
     it "recommends puppet master when this server has local repos installed by ISO" do
-      item = Simp::Cli::Config::Item::CliHasLocalYumRepos.new
+      item = Simp::Cli::Config::Item::CliHasSimpFilesystemYumRepo.new
       item.value = true
       @ci.config_items[item.key] = item
 
       expect( @ci.recommended_value ).to eq ["%{hiera('simp_options::puppet::server')}"]
     end
 
-    it "recommends nothing when this server does not have local repos installed by ISO" do
-      item = Simp::Cli::Config::Item::CliHasLocalYumRepos.new
+    it "recommends 'FIXME' when this server does not have local repos installed by ISO" do
+      item = Simp::Cli::Config::Item::CliHasSimpFilesystemYumRepo.new
       item.value = false
       @ci.config_items[item.key] = item
 
-      expect( @ci.recommended_value ).to eq []
+      expect( @ci.recommended_value ).to eq ['FIXME']
     end
   end
 
