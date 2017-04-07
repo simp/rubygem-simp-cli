@@ -146,7 +146,10 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       warn('Warning: Primitive checks indicate there may have been issues', 'magenta')
     end
     info("#{@logfile.path} contains details of the bootstrap actions performed.", 'yellow')
-    info('You must reboot your system to complete the bootstrap process.', 'magenta.bold')
+    info('Prior to operation, you must reboot your system.', 'magenta.bold')
+    info('Run `puppet agent -t` after reboot to complete the bootstrap process.', 'magenta.bold')
+    info('It may take a few minutes before the puppetserver accepts agent', 'magenta.bold')
+    info('connections after boot.', 'magenta.bold')
 
     # Re-enable the non-bootstrap puppet agent
     execute('puppet agent --enable')
