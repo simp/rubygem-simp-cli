@@ -140,14 +140,13 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     ensure_bootstrap_puppetserver_process_stopped
 
     # Print closing banner
-    info('=== SIMP Bootstrap Complete! ===', 'yellow', '')
+    info('=== SIMP Bootstrap Finished! ===', 'yellow', '')
     info("Duration of complete bootstrap: #{Time.now - @start_time} seconds")
     if !system('ps -C httpd > /dev/null 2>&1') && (linecounts.include?(-1) || (linecounts.uniq.length < linecounts.length))
       warn('Warning: Primitive checks indicate there may have been issues', 'magenta')
     end
-    info("Check #{@logfile.path} for details", 'yellow')
-    info('Please run `puppet agent -t` by hand to test your configuration', 'yellow')
-    info('You should reboot your system to ensure consistency', 'magenta')
+    info("#{@logfile.path} contains details of the bootstrap actions performed.", 'yellow')
+    info('You must reboot your system to complete the bootstrap process.', 'magenta.bold')
 
     # Re-enable the non-bootstrap puppet agent
     execute('puppet agent --enable')
@@ -378,9 +377,10 @@ EOM
   # Remove or retain existing puppet certs per user direction
   def self.handle_existing_puppet_certs
     ssldir = ::Utils.puppet_info[:config]['ssldir']
+    certs_exist = !Dir.glob(File.join(ssldir, '**', '*.pem')).empty?
     rm_ssldir = @remove_ssldir
     if rm_ssldir.nil?  # not configured
-      unless Dir.glob(File.join(ssldir, '**', '*.pem')).empty?
+      if certs_exist
         info('Existing puppetserver certificates have been found in')
         info("    #{ssldir}" )
         info('If this server has no registered agents, those certificates can be safely removed.')
@@ -398,7 +398,7 @@ EOM
       FileUtils.rm_rf(Dir.glob(File.join(ssldir,'*')))
       info("Successfully removed #{ssldir}/*", 'green')
     else
-      info("Keeping current puppetserver certificates, in #{ssldir}", 'green')
+      info("Keeping current puppetserver certificates, in #{ssldir}", 'green') if certs_exist
     end
   end
 
