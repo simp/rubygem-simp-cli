@@ -97,6 +97,13 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Apr 06 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
+- simp bootstrap update:
+  - Tweak post-bootstrap text to remove instructions to run
+    puppet and to make it more clear that the user must reboot.
+  - Do not tell user existing certificates have been preserved,
+    when none exist.
+
 * Tue Apr 04 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
 - simp bootstrap update:
   - Minor tweak to ssldir removal logic and messages
