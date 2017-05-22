@@ -16,6 +16,13 @@ module Simp::Cli::Config
     end
   end
 
+  # Invalid spawn command
+  class InvalidSpawnError < InternalError;
+    def initialize(cmd)
+      super("Invalid pipe '|' in spawn command: <#{cmd}>")
+    end
+  end
+
   class PasswordError < StandardError; end
 
 end
