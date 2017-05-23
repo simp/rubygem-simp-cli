@@ -80,14 +80,14 @@ describe Simp::Cli::Config::Item do
       command = 'ls /some/missing/path1 /some/missing/path2'
       expect( @ci.run_command(command)[:status] ).to eq false
       expect( @ci.run_command(command)[:stdout] ).to match ""
-      expect( @ci.run_command(command)[:stderr] ).to match /ls: cannot access '\/some\/missing\/path1': No such file or directory/
+      expect( @ci.run_command(command)[:stderr] ).to match /ls: cannot access.*\/some\/missing\/path1.*: No such file or directory/
     end
 
     it 'returns true when command fails and ignore_failure is true' do
       command = 'ls /some/missing/path1 /some/missing/path2'
       expect( @ci.run_command(command, true)[:status] ).to eq true
       expect( @ci.run_command(command)[:stdout] ).to match ""
-      expect( @ci.run_command(command)[:stderr] ).to match /ls: cannot access '\/some\/missing\/path1': No such file or directory/
+      expect( @ci.run_command(command)[:stderr] ).to match /ls: cannot access.*\/some\/missing\/path1.*: No such file or directory/
     end
   end
 
