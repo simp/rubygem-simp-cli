@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.0.0
+%global cli_version 4.0.1
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -97,6 +97,17 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon May 22 2017 Nick Markowski <nmarkowski@keywcorp.com> - 4.0.1
+- simp config update:
+  - We noticed inconsistent behavior when spawning commands with
+    pipes, particularly a pipe to xargs.  Item execute has been
+    re-tooled to reject pipes, and provide users with a way to
+    chain commands while mitigating code flux due to change in API.
+  - Added the run_command method to Cli::Config::Item
+  - Action items updated:
+    - update_os_yum_repositories_action
+    - check_server_yum_config_action
+
 * Thu Apr 06 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
 - simp bootstrap update:
   - Tweak post-bootstrap text to remove instructions to run
@@ -123,7 +134,7 @@ EOM
     from running, until the operator manually verifies the
     problem has been addressed/is not an issue.
   - Update location to FakeCA
-  
+
 * Mon Mar 27 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.0
 - simp config updates:
   - Add query for svckill::mode to simp scenario

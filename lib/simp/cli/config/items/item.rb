@@ -266,8 +266,12 @@ module Simp::Cli::Config
     # whether command succeeded.
     # When ignore_failure is true and command fails, does not log
     # failure and returns true
-    def execute(command, ignore_failure = false)
+    def run_command(command, ignore_failure = false)
       debug( "Executing: #{command}" )
+      # We noticed inconsistent behavior when spawning commands
+      # with pipes, particularly a pipe to 'xargs'. Rejecting pipes
+      # for now, but we may need to re-evaluate in the future.
+      raise InvalidSpawnError.new(command) if command.include? '|'
       out_pipe_r, out_pipe_w = IO.pipe
       err_pipe_r, err_pipe_w = IO.pipe
       pid = spawn(command, :out => out_pipe_w, :err => err_pipe_w)
@@ -281,17 +285,21 @@ module Simp::Cli::Config
       stderr = err_pipe_r.read
       err_pipe_r.close
 
-      return true if ignore_failure
+      return {:status => true, :stdout => stdout, :stderr => stderr} if ignore_failure
 
       if exitstatus == 0
-        return true
+        return {:status => true, :stdout => stdout, :stderr => stderr}
       else
         error( "\n[#{command}] failed with exit status #{exitstatus}:", [:RED] )
         stderr.split("\n").each do |line|
           error( ' '*2 + line, [:RED] )
         end
-        return false
+        return {:status => false, :stdout => stdout, :stderr => stderr}
       end
+    end
+
+    def execute(command, ignore_failure = false)
+      return run_command(command, ignore_failure)[:status]
     end
 
     # Display an ASCII, spinning progress spinner for the action in a block

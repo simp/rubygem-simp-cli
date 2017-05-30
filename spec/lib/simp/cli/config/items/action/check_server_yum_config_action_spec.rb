@@ -19,17 +19,17 @@ describe Simp::Cli::Config::Item::CheckServerYumConfigAction do
     end
 
     it "succeeds when all repos are found by repoquery" do
-      allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(true)
-      allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(true)
-      allow(@ci).to receive(:execute).with('repoquery -i puppet-agent | grep ^Repository').and_return(true)
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => 'Repository:'})
       @ci.apply
       expect( @ci.applied_status ).to eq :succeeded
     end
 
     it "writes warning file when OS repo is not found by repoquery" do
-      allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(false)
-      allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(true)
-      allow(@ci).to receive(:execute).with('repoquery -i puppet-agent | grep ^Repository').and_return(true)
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel').and_return({:stdout => ''})
+      allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => 'Repository:'})
       @ci.apply
       expect( @ci.applied_status ).to eq :failed
       expect( File.exist?(@warning_file) ).to eq true
@@ -37,33 +37,33 @@ describe Simp::Cli::Config::Item::CheckServerYumConfigAction do
       expect( actual_message).to eq @ci.warning_message
       expected_summary =
         "Your SIMP server's YUM configuration may be incomplete.  Verify you have set up\n" +
-        "\tOS updates, SIMP and SIMP dependencies repositories before running\n" + 
+        "\tOS updates, SIMP and SIMP dependencies repositories before running\n" +
         "\t'simp bootstrap'."
       expect( @ci.apply_summary ).to eq expected_summary
     end
 
     it "writes warning file when SIMP repo is not found by repoquery" do
-      allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(true)
-      allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(false)
-      allow(@ci).to receive(:execute).with('repoquery -i puppet-agent | grep ^Repository').and_return(true)
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => ''})
+      allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => 'Repository:'})
       @ci.apply
       expect( @ci.applied_status ).to eq :failed
       expect( File.exist?(@warning_file) ).to eq true
     end
 
     it "writes warning file when SIMP dependencies repo is not found by repoquery" do
-      allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(true)
-      allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(true)
-      allow(@ci).to receive(:execute).with('repoquery -i puppet-agent | grep ^Repository').and_return(false)
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => ''})
       @ci.apply
       expect( @ci.applied_status ).to eq :failed
       expect( File.exist?(@warning_file) ).to eq true
     end
 
     it 'appends to warning file' do
-      allow(@ci).to receive(:execute).with('repoquery -i kernel | grep ^Repository').and_return(true)
-      allow(@ci).to receive(:execute).with('repoquery -i simp | grep ^Repository').and_return(false)
-      allow(@ci).to receive(:execute).with('repoquery -i puppet-agent | grep ^Repository').and_return(false)
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => ''})
+      allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => ''})
       FileUtils.mkdir_p(File.dirname(@warning_file))
       other_warning = "SOME OTHER WARNING"
       File.open(@warning_file, 'w') {|f| f.puts other_warning }

@@ -61,7 +61,13 @@ module Simp::Cli::Config
           # disable any CentOS repo spam
           if ! Dir.glob('CentOS*.repo').empty?
             debug( "Disabling CentOS repositories in #{@yum_repos_d}" )
-            execute( %q{grep "\\[*\\]" *CentOS*.repo | cut -d "[" -f2 | cut -d "]" -f1 | xargs yum-config-manager --disable} )
+            # Don't use pipes with spawn
+            repos = run_command(%q{grep "\\[*\\]" *CentOS*.repo})[:stdout].strip.split("\n")
+            repos.map { |repo|
+              next if not repo =~ /:\[.*\]$/
+              repo.split(':[').last.tr(']','')}.each do |repo_name|
+                execute("yum-config-manager --disable #{repo_name}") if not repo_name.nil?
+            end
             debug( "Finished disabling CentOS repositories" )
           end
         end

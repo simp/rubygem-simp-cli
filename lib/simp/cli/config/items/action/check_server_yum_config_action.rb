@@ -43,9 +43,11 @@ DOC
       # up, but we have no way to verify that the listed repository
       # is the intended repository.
       result = show_wait_spinner {
-        query_result = execute('repoquery -i kernel | grep ^Repository')
-        query_result = query_result && execute('repoquery -i simp | grep ^Repository')
-        query_result = query_result && execute('repoquery -i puppet-agent | grep ^Repository')
+        query_result = true
+        ['kernel', 'simp', 'puppet-agent'].each do |pkg|
+          query = run_command("repoquery -i #{pkg}")[:stdout].strip
+          query_result = false if not query =~ /^Repository/
+        end
         query_result
       }
 
