@@ -193,9 +193,13 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       end
 
       # Run in a temporary cache space.
+      vardir_stat = File.stat(::Utils.puppet_info[:config]['vardir'])
+
+      # Ensure that the ownership is correct
       server_conf_tmp = "#{::Utils.puppet_info[:config]['vardir']}/pserver_tmp"
       FileUtils.mkdir_p(server_conf_tmp)
-      FileUtils.chown('puppet','puppet',server_conf_tmp)
+      FileUtils.chown(vardir_stat.uid, vardir_stat.gid, server_conf_tmp)
+
       command = "puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver'" +
         %Q{ match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m} +
         %Q{ -Djava.io.tmpdir=#{server_conf_tmp}"' 2>&1 > /dev/null}
