@@ -179,7 +179,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       if File.directory?(puppetserver_dir)
         conf_files = ["#{puppetserver_dir}/webserver.conf",
                       "#{puppetserver_dir}/web-routes.conf",
-                      '/etc/sysconfig/puppetserver']
+                      '/etc/sysconfig/puppetserver',
+                      '/etc/puppetlabs/puppet/auth.conf']
         conf_files.each do |file|
           if File.exists?(file)
             backup_dir = File.join(@bootstrap_backup, File.dirname(file))
@@ -190,6 +191,13 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
         end
       else
         fail( "Could not find directory #{puppetserver_dir}" )
+      end
+      # /etc/puppetlabs/puppet/auth.conf is installed by some versions of puppet-agent.
+      # SIMP manages auth.conf in /etc/puppetlabs/puppetserver/conf.d.  Back up and
+      # remove existing /etc/puppetlabs/puppet/auth.conf file.
+      if File.exists?('/etc/puppetlabs/puppet/auth.conf')
+        FileUtils.rm('/etc/puppetlabs/puppet/auth.conf')
+        info("Removed /etc/puppetlabs/puppet/auth.conf", 'green')
       end
 
       # Run in a temporary cache space.

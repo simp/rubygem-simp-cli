@@ -97,6 +97,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Fri Jun 02 2017 Nick Markowski <nmarkowski@keywcorp.com> - 4.0.1
+- simp bootstrap update:
+  - Back up and remove /etc/puppetlabs/puppet/auth.conf
+
 * Mon May 22 2017 Nick Markowski <nmarkowski@keywcorp.com> - 4.0.1
 - simp config update:
   - We noticed inconsistent behavior when spawning commands with
