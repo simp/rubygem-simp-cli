@@ -1,0 +1,26 @@
+#
+---
+unit-test-ruby-2.1:
+  stage: test
+  tags:
+    - docker
+  image: ruby:2.1
+  script:
+    - bundle install
+    - bundle exec rake spec
+unit-test-ruby-2.2:
+  stage: test
+  tags:
+    - docker
+  image: ruby:2.2
+  script:
+    - bundle install
+    - bundle exec rake spec
+unit-test-ruby-2.3:
+  stage: test
+  tags:
+    - docker
+  image: ruby:2.3
+  script:
+    - bundle install
+    - bundle exec rake spec
