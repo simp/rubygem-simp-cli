@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.0.1
+%global cli_version 4.0.3
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -97,6 +97,15 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Fri Jun 02 2017 Nick Markowski <nmarkowski@keywcorp.com> - 4.0.3
+- simp bootstrap update:
+  - Back up and remove /etc/puppetlabs/puppet/auth.conf
+
+* Fri Jun 02 2017 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.0.2
+- Changed chown command to also handle PE
+  - Thanks to Bryan Belanger for the PR!
+- Made the Puppetserver tmp dir code consistent with the rest of the chmods
+
 * Mon May 22 2017 Nick Markowski <nmarkowski@keywcorp.com> - 4.0.1
 - simp config update:
   - We noticed inconsistent behavior when spawning commands with
