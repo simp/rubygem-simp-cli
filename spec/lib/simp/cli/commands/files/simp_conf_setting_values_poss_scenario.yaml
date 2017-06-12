@@ -31,3 +31,5 @@ simp_options::syslog::log_servers:
   - "1.2.3.11"
 simp_options::trusted_nets:
   - "1.2.0.0/16"
+useradd::securetty:
+  - tty0

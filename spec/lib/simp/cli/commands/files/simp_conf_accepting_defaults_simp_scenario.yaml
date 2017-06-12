@@ -37,3 +37,4 @@ simp_options::trusted_nets:
 sssd::domains:
   - LDAP
 svckill::mode: warning
+useradd::securetty: []

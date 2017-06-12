@@ -33,6 +33,7 @@ def generate_simp_input_accepting_defaults
     "iTXA8O6yCoDMotMGPTeHd7IGI\n" << # LDAP root password
     "iTXA8O6yCoDMotMGPTeHd7IGI\n" << # confirm LDAP root password
     "\n"                          << # log servers
+    "\n"                          << # securetty list
     "\n"                             # svckill warning mode
   input_io.rewind
   input_io
@@ -70,7 +71,8 @@ def generate_simp_lite_input_setting_values
     "ldap://puppet.test.local\n"              << # LDAP root master URI
     "ldap://puppet.test.local\n"              << # OpenLDAP server URIs
     "1.2.3.11\n"                              << # log servers
-    "1.2.3.12\n"                                 # failover log servers
+    "1.2.3.12\n"                              << # failover log servers
+    "tty0\n"                                     # securetty list
   input_io.rewind
   input_io
 end
@@ -100,7 +102,8 @@ def generate_poss_input_setting_values
     "no\n"                << # don't use LDAP
     "no\n"                << # use SSSD
     "1.2.3.11\n"          << # log servers
-    "1.2.3.12\n"             # failover log servers
+    "1.2.3.12\n"          << # failover log servers
+    "tty0\n"                 # securetty list
   input_io.rewind
   input_io
 end

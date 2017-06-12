@@ -19,12 +19,13 @@ module Simp::Cli::Config
 
 #{'#'*72}
 Per security policy, SIMP, by default, disables login via ssh for all
-users, including 'root', and beginning with SIMP 6.0.0 disables, root
-logins at the console.  So, to prevent lockout in systems for which
-no administrative user account has yet been created or both console
-access is not available and the administrative user's ssh access has
-not yet been enabled, you should configure a local user for this server
-to have both su and ssh privileges.  This entails the following:
+users, including 'root', and beginning with SIMP 6.0.0 (when 
+useradd::securetty is empty), disables root logins at the console.  So,
+to prevent lockout in systems for which no administrative user account
+has yet been created or both console access is not available and the
+administrative user's ssh access has not yet been enabled, you should
+configure a local user for this server to have both su and ssh
+privileges.  This entails the following:
 
 1. Create a local user account, as needed, using useradd.
 

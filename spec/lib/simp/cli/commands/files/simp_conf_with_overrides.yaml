@@ -38,3 +38,4 @@ simp_options::trusted_nets:
   - "1.2.3.0/24"
 sssd::domains:
   - LDAP
+useradd::securetty: []
