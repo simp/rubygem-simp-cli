@@ -25,6 +25,12 @@ describe Simp::Cli::Config::Item::UseraddSecuretty do
       expect( @ci.validate_item('ttyS3') ).to eq true
     end
 
+    it 'validates any explicit pty (pts)' do
+      expect( @ci.validate_item('pts/1') ).to eq true
+      expect( @ci.validate_item('pts/5') ).to eq true
+      expect( @ci.validate_item('pts/9') ).to eq true
+    end
+
     it 'rejects current tty' do
       expect( @ci.validate_item('tty') ).to eq false
     end

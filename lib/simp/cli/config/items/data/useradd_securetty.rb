@@ -34,8 +34,10 @@ tty0 to the list of allowed TTYs, despite the security risk.
       super
     end
 
+    # Console and tty* are common, and pts/* may be useful for automation
+    # https://unix.stackexchange.com/questions/41840/effect-of-entries-in-etc-securetty
     def validate_item( x )
-      x =~ /console|^tty\S+/ ? true : false
+      x =~ /console|^tty\S+|^pts\/[0-9]*/ ? true : false
     end
 
     def not_valid_message
