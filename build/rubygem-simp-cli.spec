@@ -97,6 +97,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon Jun 12 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.3
+- Prompt user for TTYs to allow in /etc/securetty content
+
 * Fri Jun 02 2017 Nick Markowski <nmarkowski@keywcorp.com> - 4.0.3
 - simp bootstrap update:
   - Back up and remove /etc/puppetlabs/puppet/auth.conf

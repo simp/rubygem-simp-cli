@@ -38,3 +38,5 @@ simp_options::trusted_nets:
   - "1.2.0.0/16"
 sssd::domains:
   - LDAP
+useradd::securetty:
+  - tty0
