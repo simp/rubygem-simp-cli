@@ -25,7 +25,7 @@ gem 'facter'
 gem 'highline', :path => 'ext/gems/highline'
 gem 'puppet', ENV.fetch('PUPPET_VERSION',  '~>4')
 gem 'rake'
-gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', '~> 3.0')
+gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', '~> 4.0')
 
 group :testing do
   # bootstrap common environment variables
