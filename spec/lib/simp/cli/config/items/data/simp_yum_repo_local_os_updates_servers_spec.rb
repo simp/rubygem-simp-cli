@@ -49,7 +49,7 @@ describe Simp::Cli::Config::Item::SimpYumRepoLocalOsUpdatesServers do
       expect( @ci.validate [nil] ).to eq false
       expect( @ci.validate ['yum-'] ).to eq false
       expect( @ci.validate ['-yum'] ).to eq false
-      expect( @ci.validate ['yum.yummityyum.org.'] ).to eq false
+      expect( @ci.validate ['yum.yummityyum.org-'] ).to eq false
       expect( @ci.validate ['.yum.yummityyum.org'] ).to eq false
       expect( @ci.validate ["%[hiera('puppet::server')]"] ).to eq false
     end

@@ -28,7 +28,7 @@ describe Simp::Cli::Config::Item::SimpOptionsNTPServers do
       expect( @ci.validate 0     ).to eq false
       expect( @ci.validate false ).to eq false
       expect( @ci.validate [nil] ).to eq false
-      expect( @ci.validate ['pool.ntp.org.'] ).to eq false
+      expect( @ci.validate ['pool.ntp.org-'] ).to eq false
       expect( @ci.validate ['192.168.1.1.'] ).to eq false
       expect( @ci.validate ['1.2.3.4/24'] ).to eq false
     end
