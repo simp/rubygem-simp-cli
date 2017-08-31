@@ -9,9 +9,8 @@ class Simp::Cli::Config::Utils
   class << self
 
     def validate_fqdn fqdn
-      # snarfed from:
-      #   https://www.safaribooksonline.com/library/view/regular-expressions-cookbook/9781449327453/ch08s15.html
-      regex = %r{\A((?=[a-z0-9-]{1,63}\.)(xn--)?[a-z0-9]+(-[a-z0-9]+)*\.)+[a-z]{2,63}\Z}
+      # matches Simplib::Hostname custom type from pupmod-simp-simplib
+      regex = %r{^(?i-mx:(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]{2}|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])\.?)$}
       ((fqdn =~ regex) ? true : false )
     end
 

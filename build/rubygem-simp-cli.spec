@@ -97,6 +97,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Aug 31 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.3
+- Fix bug in hostname validation that prevented complex hostnames
+  such as 'xyz-w-puppet.qrst-a1-b2' to fail validation.
+
 * Mon Jun 12 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.3
 - Prompt user for TTYs to allow in /etc/securetty content
 

@@ -54,7 +54,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSSearch do
 
     it "doesn't validate array with bad domains" do
       expect( @ci.validate [nil]         ).to eq false
-      expect( @ci.validate ['simp.dev.'] ).to eq false
+      expect( @ci.validate ['simp.dev-'] ).to eq false
       expect( @ci.validate ['.simp.dev'] ).to eq false
     end
 
