@@ -33,7 +33,7 @@ describe Simp::Cli::Config::Item::SimpOptionsSyslogFailoverLogServers do
       expect( @ci.validate [nil] ).to eq false
       expect( @ci.validate ['log-'] ).to eq false
       expect( @ci.validate ['-log'] ).to eq false
-      expect( @ci.validate ['log.loggitylog.org.'] ).to eq false
+      expect( @ci.validate ['log.loggitylog.org-'] ).to eq false
       expect( @ci.validate ['.log.loggitylog.org'] ).to eq false
 
     end

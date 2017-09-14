@@ -13,7 +13,7 @@ describe Simp::Cli::Config::Item::CliNetworkHostname do
     end
 
     it "doesn't validate bad fqdns" do
-      expect( @ci.validate 'puppet' ).to eq false
+      expect( @ci.validate '.puppet' ).to eq false
       expect( @ci.validate 'puppet-' ).to eq false
     end
   end

@@ -70,7 +70,7 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapMaster do
       expect( @ci.validate 'master' ).to eq false
       expect( @ci.validate 'ldap://master-' ).to eq false
       expect( @ci.validate 'ldap://-master' ).to eq false
-      expect( @ci.validate 'ldap://master.loggitylog.org.' ).to eq false
+      expect( @ci.validate 'ldap://master.loggitylog.org-' ).to eq false
       expect( @ci.validate 'ldap://.master.loggitylog.org' ).to eq false
     end
   end
