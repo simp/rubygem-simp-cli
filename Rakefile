@@ -78,7 +78,10 @@ namespace :pkg do
       Dir.chdir gem_dir do
         Dir['*.gemspec'].each do |spec_file|
           cmd = %Q{SIMP_RPM_BUILD=1 bundle exec gem build "#{spec_file}" &> /dev/null}
-          sh cmd
+          ::Bundler.with_clean_env do
+            %x{bundle install}
+            sh cmd
+          end
           FileUtils.mkdir_p 'dist'
           FileUtils.mv Dir.glob('*.gem'), File.join(@rakefile_dir, 'dist')
         end
