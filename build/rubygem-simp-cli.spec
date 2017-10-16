@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.0.3
+%global cli_version 4.0.4
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -67,6 +67,9 @@ mkdir -p %{buildroot}/%{_bindir} # NOTE: this is needed for el7
 gem install --local --install-dir %{buildroot}/%{gemdir} --force %{SOURCE1}
 
 cd ext/gems/highline
+if [ `which bundle 2>/dev/null` ]; then
+  bundle install
+fi
 gem install --local --install-dir %{buildroot}/%{gemdir} --force %{SOURCE11}
 cd -
 
@@ -97,6 +100,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon Oct 16 2017 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.0.4
+- Fix intermittent failure in RPM builds due to missing rubygems
+
 * Thu Aug 31 2017 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.3
 - Fix bug in hostname validation that prevented complex hostnames
   such as 'xyz-w-puppet.qrst-a1-b2' to fail validation.
