@@ -7,6 +7,8 @@ require 'fileutils'
 
 require_relative '../spec_helper'
 
+# This test is horribly dangerous since it modifies the actual system.
+# Run with extreme care.
 describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
   before :context do
     @ci             = Simp::Cli::Config::Item::UpdatePuppetConfAction.new
@@ -15,6 +17,12 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
     @puppet_ca      = 'puppetca.nerd'
     @puppet_ca_port = '9999'
     @puppet_confdir = `puppet config print confdir 2>/dev/null`.strip
+
+    unless File.exist?(@puppet_confdir)
+      FileUtils.mkdir_p(@puppet_confdir)
+      `puppet config print > #{File.join(@puppet_confdir, 'puppet.conf')}`
+    end
+
     @backup_file = File.join( @puppet_confdir, "puppet.conf.20170113T114203" )
 
     previous_items = {}

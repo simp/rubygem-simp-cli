@@ -8,10 +8,21 @@ require 'highline'
 class Simp::Cli::Commands::Bootstrap < Simp::Cli
   require 'pty'
   require 'timeout'
+
   require 'facter'
   require File.expand_path( '../defaults', File.dirname(__FILE__) )
   require File.expand_path( '../errors', File.dirname(__FILE__) )
   HighLine.colorize_strings
+
+  @is_pe = Simp::Cli::Utils.puppet_info[:is_pe]
+
+  @puppetserver_service = 'puppetserver'
+  @puppetdb_service = 'puppetdb'
+
+  if @is_pe
+    @puppetserver_service = 'pe-puppetserver'
+    @puppetdb_service = 'pe-puppetdb'
+  end
 
   @start_time = Time.now
   @start_time_formatted = @start_time.strftime('%Y%m%dT%H%M%S')
@@ -103,31 +114,53 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       # From this point on, capture interrupts
       signals = ['INT','HUP','USR1','USR2']
       signals.each do |sig|
-        Signal.trap(sig) { say "\nSafe mode enabled, ignoring interrupt".magenta }
+        Signal.trap(sig) { say "\nSafe mode enabled, ignoring interrupt - PID is #{Process.pid}".magenta }
       end
       info('Interrupts will be captured and ignored to ensure bootstrap integrity.', 'magenta.bold')
     end
 
-    ensure_puppet_processes_stopped
-    handle_existing_puppet_certs
-    validate_site_puppet_code
-    configure_bootstrap_puppetserver
+    if @is_pe
+      info('Puppet Enterprise found, preserving existing configuration.')
+    else
+      # These items are all handled by the PE installer so need to be done for
+      # the FOSS version independently.
 
-    # - Firstrun is tagged and run against the bootstrap puppetserver port, 8150.
+      ensure_puppet_processes_stopped
+      handle_existing_puppet_certs
+      validate_site_puppet_code
+      configure_bootstrap_puppetserver
+    end
+
+    # Reload the puppetserver
+    execute('puppetserver reload')
+
+    # - Firstrun is tagged and run against the bootstrap puppetserver port.
     #   This run will configure puppetserver and puppetdb; all subsequent runs
     #   will run against the configured masterport.
     # - Create a unique lockfile, we want to preserve the lock on cron and manual
     #   puppet runs during bootstrap.
     agent_lockfile = "#{File.dirname(Simp::Cli::Utils.puppet_info[:config]['agent_disabled_lockfile'])}/bootstrap.lock"
+
+    # This can't be abstracted because the use of 8150 is ephemeral and will
+    # not be reflected in the configuration consistently over time.
+    if @is_pe
+      pup_port = '8140'
+    else
+      # The FOSS version will use 8150 and then switch to 8140 automatically if
+      # all goes well. The server remaining on 8150 is an almost guaranteed
+      # sign that something has gone wrong.
+      pup_port = '8150'
+    end
+
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose" +
       " --no-splay --agent_disabled_lockfile=#{agent_lockfile}" +
-      " --masterport=8150 --ca_port=8150"
+      " --masterport=#{pup_port} --ca_port=#{pup_port}"
 
     info('Running puppet agent, with --tags pupmod,simp', 'cyan')
 
-    # Firstrun is tagged and run against the bootstrap puppetserver port, 8150.
+    # Firstrun is tagged and run against the bootstrap puppetserver port
     linecounts = Array.new
-    linecounts << track_output("#{pupcmd} --tags pupmod,simp 2> /dev/null", '8150')
+    linecounts << track_output("#{pupcmd} --tags pupmod,simp 2> /dev/null", pup_port)
 
     fix_file_contexts
 
@@ -135,13 +168,15 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     info('Running puppet without tags', 'cyan')
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay" +
       " --agent_disabled_lockfile=#{agent_lockfile}"
-    # This is fugly, but until we devise an intelligent way to determine when your system
+    # This is ugly, but until we devise an intelligent way to determine when your system
     # is 'bootstrapped', we're going to run puppet in a loop.
     (0..1).each do
       track_output(pupcmd)
     end
 
-    ensure_bootstrap_puppetserver_process_stopped
+    unless @is_pe
+      ensure_bootstrap_puppetserver_process_stopped
+    end
 
     # Print closing banner
     info('=== SIMP Bootstrap Finished! ===', 'yellow', '')
@@ -352,8 +387,10 @@ EOM
   def self.ensure_puppet_processes_stopped
     # Kill the connection with puppetdb before killing the puppetserver
     info('Killing connection to puppetdb', 'cyan')
-    execute('puppet resource service puppetdb ensure=stopped >& /dev/null')
-    execute('pkill -9 -f puppetdb')
+
+    execute("puppet resource service #{@puppetdb_service} ensure=stopped >& /dev/null")
+    execute("pkill -9 -f #{@puppetdb_service}")
+
     confdir = Simp::Cli::Utils.puppet_info[:config]['confdir']
     routes_yaml = File.join(confdir, 'routes.yaml')
     if File.exists?(routes_yaml)
@@ -373,7 +410,7 @@ EOM
 
     # Kill all puppet processes and stop specific services
     info('Killing all remaining puppet processes', 'cyan')
-    execute('puppet resource service puppetserver ensure=stopped >& /dev/null')
+    execute("puppet resource service #{@puppetserver_service} ensure=stopped >& /dev/null")
     execute('pkill -9 -f puppet >& /dev/null')
     execute('pkill -f pserver_tmp')  # another bootstrap run
 
@@ -386,17 +423,18 @@ EOM
   # Ensure the puppetserver is running ca on the specified port.
   # Used ensure the puppetserver service is running.
   def self.ensure_puppetserver_running(port = nil)
-    port ||= `puppet config print masterport`.chomp
+    port = Simp::Cli::Utils.puppet_info[:config]['masterport']
 
     begin
       info("Waiting for puppetserver to accept connections on port #{port}", 'cyan')
-      curl_cmd = "curl -sS --cert #{Simp::Cli::Utils.puppet_info[:config]['certdir']}/`hostname`.pem" +
-        " --key #{Simp::Cli::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H" +
+      curl_cmd = "curl -sS --cert #{Simp::Cli::Utils.puppet_info[:config]['hostcert']}" +
+        " --key #{Simp::Cli::Utils.puppet_info[:config]['hostprivkey']} -k -H" +
         " \"Accept: s\" https://localhost:#{port}/production/certificate_revocation_list/ca"
       debug(curl_cmd)
       running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
       unless running
-        system('puppet resource service puppetserver ensure="running" enable=true > /dev/null 2>&1 &')
+        debug("System not running, attempting to restart puppetserver")
+        system(%(puppet resource service #{@puppetserver_service} ensure="running" enable=true > /dev/null 2>&1 &))
         stages = ["\\",'|','/','-']
         rest = 0.1
         timeout = 5

@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.1.0
+%global cli_version 4.2.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -101,6 +101,13 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Sun Jul 15 2018 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.2.0
+- Stripped trailing whitespace
+- Adjusted bootstrap to detect PE and avoid operations that are detrimental to
+  proper operation
+- Made a few adjustments for overall safety
+- Fixed dependency loading for 'highline/import' by clearing the gem cache
+
 * Mon Apr 23 2018 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.1.0
 - removed simp_options::selinux references in tests.
 - update setting of grub2 password to use augeausproviders_grub.

@@ -11,7 +11,25 @@ describe Simp::Cli::Config::Item::SetHostnameAction do
   # TODO:  test successes with acceptance tests
   describe "#apply" do
     it "will do set hostname " do
-      skip "FIXME: how shall we test SetHostnameAction#apply()?"
+      skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
+
+      cli_network_hostname = Simp::Cli::Config::Item::CliNetworkHostname.new
+      cli_network_hostname.value = 'foo.bar.baz'
+
+      expect(@ci).to receive(:get_item).with('cli::network::hostname').and_return(cli_network_hostname)
+      expect(@ci).to receive(:execute).with("hostname #{cli_network_hostname.value}").and_return(true)
+      expect(@ci).to receive(:execute).with("sed -i '/HOSTNAME/d' /etc/sysconfig/network").and_return(true)
+      expect(@ci).to receive(:execute).with("echo HOSTNAME=#{cli_network_hostname.value} >> /etc/sysconfig/network").and_return(true)
+      expect(File).to receive(:open).with('/etc/hostname', 'w')
+
+      cli_network_dhcp = Simp::Cli::Config::Item::CliNetworkDHCP.new
+      cli_network_dhcp.value = 'static'
+
+      expect(@ci).to receive(:get_item).with('cli::network::dhcp').and_return(cli_network_dhcp)
+
+      @ci.apply
+
+      expect( @ci.applied_status ).to eq :succeeded
     end
 
     it 'sets applied_status to :failed when fails to set hostname' do

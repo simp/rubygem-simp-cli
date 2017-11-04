@@ -16,28 +16,87 @@ describe Simp::Cli::Config::Item::ConfigureNetworkAction do
     @ci = Simp::Cli::Config::Item::ConfigureNetworkAction.new
   end
 
-
   # TODO: test successes with acceptance tests
   describe "#apply" do
-    it "will puppet apply a static network interface" do
-      @ci.config_items = init_config_items( {'network::dhcp' => 'static'} )
-      skip "FIXME: how shall we test ConfigureNetworkAction#apply()?"
-      @ci.apply
+    before(:each) do
+      @cli_network_interface = Simp::Cli::Config::Item::CliNetworkInterface.new
+      @cli_network_interface.value = 'ethFake'
+
+      expect(@ci).to receive(:get_item).with('cli::network::interface').and_return(@cli_network_interface)
     end
 
-    it "will puppet apply a dhcp network interface" do
-      @ci.config_items = init_config_items( {'network::dhcp' => 'dhcp'} )
-      skip "FIXME: how shall we test ConfigureNetworkAction#apply()?"
-      @ci.apply
+    context 'static' do
+      before(:each) do
+        @cli_network_dhcp = Simp::Cli::Config::Item::CliNetworkDHCP.new
+        @cli_network_dhcp.value = 'static'
+
+        @ci.config_items = init_config_items( {'network::dhcp' => @cli_network_dhcp.value} )
+
+        @cli_network_ipaddress = Simp::Cli::Config::Item::CliNetworkIPAddress.new
+        @cli_network_ipaddress.value = '1.2.3.4'
+
+        @cli_network_hostname = Simp::Cli::Config::Item::CliNetworkHostname.new
+        @cli_network_hostname.value = 'foo.bar.baz'
+
+        @cli_network_netmask = Simp::Cli::Config::Item::CliNetworkNetmask.new
+        @cli_network_netmask.value = '255.255.255.0'
+
+        @cli_network_gateway = Simp::Cli::Config::Item::CliNetworkGateway.new
+        @cli_network_gateway.value = '1.0.0.1'
+
+        @simp_options_dns_search = Simp::Cli::Config::Item::SimpOptionsDNSSearch.new
+        @simp_options_dns_search.value = ['dns.bar.baz']
+
+        @simp_options_dns_servers = Simp::Cli::Config::Item::SimpOptionsDNSServers.new
+        @simp_options_dns_servers.value = ['1.1.1.1', '1.1.1.2']
+
+        expect(@ci).to receive(:get_item).with('cli::network::dhcp').and_return(@cli_network_dhcp)
+        expect(@ci).to receive(:get_item).with('cli::network::ipaddress').and_return(@cli_network_ipaddress)
+        expect(@ci).to receive(:get_item).with('cli::network::hostname').and_return(@cli_network_hostname)
+        expect(@ci).to receive(:get_item).with('cli::network::netmask').and_return(@cli_network_netmask)
+        expect(@ci).to receive(:get_item).with('cli::network::gateway').and_return(@cli_network_gateway)
+        expect(@ci).to receive(:get_item).with('simp_options::dns::search').and_return(@simp_options_dns_search)
+        expect(@ci).to receive(:get_item).with('simp_options::dns::servers').and_return(@simp_options_dns_servers)
+
+        @ci.config_items = init_config_items( {'network::dhcp' => 'static'} )
+      end
+
+      it 'sets applied_status to :failed when puppet apply fails to configure network' do
+        expect(@ci).to receive(:execute).with(%(FACTER_ipaddress=XXX puppet apply  -e "network::eth{'#{@cli_network_interface.value}': bootproto => 'none', onboot => true, ipaddr => '#{@cli_network_ipaddress.value}', netmask => '#{@cli_network_netmask.value}', gateway => '#{@cli_network_gateway.value}' } class{ 'resolv': resolv_domain => '#{@cli_network_hostname.value.split('.')[1..-1].join('.')}', servers => ['#{@simp_options_dns_servers.value.join("','")}'], search => ['#{@simp_options_dns_search.value.join("','")}'], named_autoconf => false, }")).and_return(false)
+
+        @ci.apply
+
+        expect( @ci.applied_status ).to eq :failed
+      end
+
+      it "will puppet apply a network interface" do
+        expect(@ci).to receive(:execute).with(%(FACTER_ipaddress=XXX puppet apply  -e "network::eth{'#{@cli_network_interface.value}': bootproto => 'none', onboot => true, ipaddr => '#{@cli_network_ipaddress.value}', netmask => '#{@cli_network_netmask.value}', gateway => '#{@cli_network_gateway.value}' } class{ 'resolv': resolv_domain => '#{@cli_network_hostname.value.split('.')[1..-1].join('.')}', servers => ['#{@simp_options_dns_servers.value.join("','")}'], search => ['#{@simp_options_dns_search.value.join("','")}'], named_autoconf => false, }")).and_return(true)
+
+        @ci.apply
+
+        expect( @ci.applied_status ).to eq :succeeded
+      end
     end
 
-    it 'sets applied_status to :failed when puppet apply fails to configure network' do
-      skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
-      @ci.config_items = init_config_items( {'network::dhcp' => 'static'} )
-      @ci.apply
-      expect( @ci.applied_status ).to eq :failed
-    end
+    context 'dhcp' do
+      it "will puppet apply a dhcp network interface" do
+        cli_network_dhcp = Simp::Cli::Config::Item::CliNetworkDHCP.new
+        cli_network_dhcp.value = 'dhcp'
 
+        @ci.config_items = init_config_items( {'network::dhcp' => cli_network_dhcp.value} )
+
+        expect(@ci).to receive(:get_item).with('cli::network::dhcp').and_return(cli_network_dhcp)
+
+        expect(@ci).to receive(:execute).with(%(FACTER_ipaddress=XXX puppet apply  -e "network::eth{'#{@cli_network_interface.value}': bootproto => '#{cli_network_dhcp.value}', onboot => true}")).and_return(true)
+
+        expect(Facter).to receive(:clear)
+        expect(Facter).to receive(:value).with("ipaddress_#{@cli_network_interface.value}").and_return('1.2.3.4')
+
+        @ci.apply
+
+        expect( @ci.applied_status ).to eq :succeeded
+      end
+    end
   end
 
   describe "#apply_summary" do

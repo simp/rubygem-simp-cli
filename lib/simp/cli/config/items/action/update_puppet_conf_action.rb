@@ -38,7 +38,12 @@ module Simp::Cli::Config
       # do not die if config items aren't found
       puppet_server  = 'puppet.change.me'
       puppet_ca      = 'puppetca.change.me'
-      puppet_ca_port = '8141'
+      if Simp::Cli::Utils.puppet_info[:is_pe]
+        puppet_ca_port = '8140'
+      else
+        puppet_ca_port = '8141'
+      end
+
       if item = @config_items.fetch( 'simp_options::puppet::server', nil )
         puppet_server  = item.value
       end

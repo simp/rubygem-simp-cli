@@ -11,7 +11,7 @@ module Simp::Cli::Config
       @description     = 'Check YUM configuration for SIMP clients'
       @warning_message = <<DOC
 Unable to verify YUM configuration for SIMP clients.  Please
-manually verify prior to kickstarting SIMP clients. 
+manually verify prior to kickstarting SIMP clients.
 
 See https://docs.puppet.com/puppet/latest/types/yumrepo.html for
 a description of the Puppet native type for YUM repositories.

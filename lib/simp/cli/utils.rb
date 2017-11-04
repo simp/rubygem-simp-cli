@@ -51,7 +51,7 @@ module Simp::Cli::Utils
     end
 
     def get_config
-      return %x{puppet config print}.lines
+      return %x{puppet config print --section=master}.lines
     end
   end
 

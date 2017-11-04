@@ -6,9 +6,18 @@ module Simp::Cli::Config
   class Item::SimpOptionsPuppetCAPort < IntegerItem
     def initialize
       super
+
+      @port = 8141
+      if defined?(Pry)
+        binding.pry
+      end
+      if Simp::Cli::Utils.puppet_info[:is_pe]
+        # We need to keep the port the puppet default if we're using PE
+        @port = 8140
+      end
+
       @key         = 'simp_options::puppet::ca_port'
-      @description = %q{The port on which the Puppet Certificate Authority will listen
-(8141 by default).}
+      @description = %{The port on which the Puppet Certificate Authority will listen (#{@port} by default).}
     end
 
     def get_os_value
@@ -22,7 +31,7 @@ module Simp::Cli::Config
     end
 
     def get_recommended_value
-      8141
+      @port
     end
   end
 end

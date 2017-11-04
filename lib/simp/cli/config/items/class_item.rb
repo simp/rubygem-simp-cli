@@ -11,7 +11,7 @@ module Simp::Cli::Config
       @data_type   = :global_class  # carries class value instead of a parameter
       @description = "'#{@key}' class to be added"
     end
-   
+
     # don't be interactive!
     def validate( x ); true; end
     def query;         nil;  end

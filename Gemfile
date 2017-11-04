@@ -14,13 +14,13 @@ gem 'facter'
 gem 'highline', :path => 'ext/gems/highline'
 gem 'puppet', ENV.fetch('PUPPET_VERSION',  '~>4')
 gem 'rake'
-gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', ['>= 5.2.0', '<= 6.0.0'])
+gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', ['>= 5.5', '< 6.0'])
+gem 'simp-beaker-helpers', ENV.fetch('SIMP_BEAKER_HELPERS_VERSION', '~> 1.10')
 
 group :testing do
   # bootstrap common environment variables
   gem 'dotenv'
 
-  gem 'travish'
   gem 'travis-lint'
 
   # Ruby code coverage
@@ -38,17 +38,8 @@ group :development do
   gem 'pry-byebug', '~> 3.4.2'
   gem 'pry-doc'
 
-  # Automatically test changes
-  gem 'guard'
-  gem 'guard-shell'
-  gem 'guard-rspec'
-
-  # `listen` is a dependency of `guard`
-  # from `listen` 3.1+, `ruby_dep` requires Ruby version >= 2.2.3, ~> 2.2
-  gem 'listen', '~> 3.0.6'
-
   # Generate HISTORY.md from git tags (experimental, but promising)
   gem 'gitlog-md'
 
-  gem 'rubocop'
+  gem 'rubocop', '0.57.2'
 end
