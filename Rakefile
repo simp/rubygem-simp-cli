@@ -6,6 +6,7 @@ require 'rake/clean'
 require 'rspec/core/rake_task'
 require 'rubygems'
 require 'simp/rake'
+require 'simp/cli/version'
 
 Simp::Rake::Pkg.new(File.dirname(__FILE__))
 
@@ -98,6 +99,21 @@ namespace :pkg do
     end
   end
 
+  desc 'ensure simp cli Ruby version matches its RPM spec file version'
+  task :validate_ruby_version do
+    basedir = File.dirname(__FILE__)
+    info, changelogs = Simp::RelChecks::load_and_validate_changelog(basedir, false)
+    spec_file_version = Gem::Version.new(info.version)
+    ruby_version = Gem::Version.new(Simp::Cli::VERSION)
+    if spec_file_version != ruby_version
+      fail("ERROR: Version mismatch: " +
+        " spec file version = #{spec_file_version}," +
+        " version.rb version = #{ruby_version}")
+    end
+  end
+
   Rake::Task[:rpm].prerequisites.unshift(:gem)
+
+  Rake::Task[:compare_latest_tag].enhance [:validate_ruby_version]
 end
 # vim: syntax=ruby

@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.0.4
+%global cli_version 4.0.5
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -100,6 +100,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Wed Jan 31 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.5
+- Clarify confusing svckill::mode description provided by simp config
+
 * Mon Oct 16 2017 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.0.4
 - Fix intermittent failure in RPM builds due to missing rubygems
 
