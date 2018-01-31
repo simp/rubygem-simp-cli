@@ -102,6 +102,8 @@ EOM
 %changelog
 * Wed Jan 31 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.5
 - Clarify confusing svckill::mode description provided by simp config
+- Use modern OS facts in simp config, instead of legacy facts that
+  require LSB packages to be installed.
 
 * Mon Oct 16 2017 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.0.4
 - Fix intermittent failure in RPM builds due to missing rubygems

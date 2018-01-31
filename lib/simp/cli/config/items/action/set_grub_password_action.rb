@@ -19,9 +19,7 @@ module Simp::Cli::Config
     def apply
       @applied_status = :failed
       grub_hash = get_item('grub::password').value
-      # TODO In the future, this logic may need to be reworked to
-      #      consider OS family in addition to OS version.
-      if Facter.value('lsbmajdistrelease') > "6" then
+      if Facter.value('os')['release']['major'] > "6"
         # TODO: beg team hercules to make a augeas provider for grub2 passwords?
         result = execute("sed -i 's/password_pbkdf2 root.*$/password_pbkdf2 root #{grub_hash}/' /etc/grub.d/01_users")
         result = result && execute("grub2-mkconfig -o /etc/grub2.cfg")
