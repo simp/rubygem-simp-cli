@@ -25,21 +25,9 @@ module Simp::Cli::Config
       @applied_status = :failed
       grub_hash = get_item('grub::password').value
       if Facter.value('os')['release']['major'] > "6"
-        result = execute("sed -i 's/password_pbkdf2 root.*$/password_pbkdf2 root #{grub_hash}/' /etc/grub.d/01_users")
-        result = result && execute("grub2-mkconfig -o /etc/grub2.cfg")
+        result = set_password_grub(grub_hash)
       else
-        if File.exist?('/boot/grub/grub.conf')
-          # BIOS boot
-          grub_conf = '/boot/grub/grub.conf'
-        elsif File.exist?('/boot/efi/EFI/redhat/grub.conf')
-          # EFI boot
-          grub_conf = '/boot/efi/EFI/redhat/grub.conf'
-        end
-        if grub_conf
-          result = execute("sed -i '/password/ c\password --encrypted #{grub_hash}' #{grub_conf}")
-        else
-          raise('Could not find grub.conf:  Expected /boot/grub/grub.conf or /boot/efi/EFI/redhat/grub.conf')
-        end
+        result = set_password_old_grub(grub_hash)
       end
       @applied_status = :succeeded if result
     end
@@ -48,5 +36,24 @@ module Simp::Cli::Config
       "Setting of GRUB password #{@applied_status}"
     end
 
+    def set_password_grub(grub_hash)
+      result = execute("sed -i 's/password_pbkdf2 root.*$/password_pbkdf2 root #{grub_hash}/' /etc/grub.d/01_users")
+      result && execute("grub2-mkconfig -o /etc/grub2.cfg")
+    end
+
+    def set_password_old_grub(grub_hash)
+      if File.exist?('/boot/grub/grub.conf')
+        # BIOS boot
+        grub_conf = '/boot/grub/grub.conf'
+      elsif File.exist?('/boot/efi/EFI/redhat/grub.conf')
+        # EFI boot
+        grub_conf = '/boot/efi/EFI/redhat/grub.conf'
+      end
+      if grub_conf
+        result = execute("sed -i '/password/ c\password --encrypted #{grub_hash}' #{grub_conf}")
+      else
+        raise('Could not find grub.conf:  Expected /boot/grub/grub.conf or /boot/efi/EFI/redhat/grub.conf')
+      end
+    end
   end
 end
