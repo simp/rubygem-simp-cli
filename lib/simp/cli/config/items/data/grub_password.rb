@@ -33,7 +33,7 @@ stored in #{@key}.}
     def encrypt string
       result   = nil
       password = string
-      if Facter.value('lsbmajdistrelease') > '6'
+      if Facter.value('os')['release']['major'] > "6"
         result = `grub2-mkpasswd-pbkdf2 <<EOM\n#{password}\n#{password}\nEOM`.split.last
       else
         require 'digest/sha2'

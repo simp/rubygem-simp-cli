@@ -28,7 +28,9 @@ module Simp::Cli::Config
     def instructions
       extra = 'hit enter to skip'
       extra = "hit enter to accept default value" if default_value
-      instructions = "Enter a comma or space-delimited list (#{extra})"
+      # Code actually allows comma and space delimited lists, but
+      # a simpler instruction to the end user is best
+      instructions = "Enter a space-delimited list (#{extra})"
       ::HighLine.color( instructions, ::HighLine.const_get('YELLOW') )
     end
 

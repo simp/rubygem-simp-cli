@@ -17,20 +17,22 @@ module Simp::Cli::Config
 
 NOTICE: svckill is the mechanism that SIMP uses to comply with the
 requirement that no unauthorized services are running on your system.
-Is it HIGHLY recommended that you set this to 'enforcing'. Please be
-aware that, if you do this, svckill will stop ALL services that are
-not referenced in your Puppet configuration.}
+If you are fully aware of all services that need to be running on the
+system, including any custom applications, use 'enforcing'.  If you
+first need to ascertain which services should be running on the system,
+use 'warning'.}
 
       @warning_msgs = {
-        :enforcing => %Q{IMPORTANT:  Be sure to register your site-specific services with svckill
-to prevent them from being automatically shut down and disabled.
+        :enforcing =>
+%Q{IMPORTANT:  Be sure to register your site-specific services with
+svckill to prevent them from being automatically shut down and disabled.
 See svckill::ignore and svckill::ignore_files.},
 
-        :warning => %Q{IMPORTANT: 'warning' will allow you to ascertain the list of undeclared
-services running on your system.  However, to ensure no unnecessary
-services are running, you must register these services with svckill
-and then change #{@key} to 'enforcing'.  See svckill::ignore and
-svckill::ignore_files.}
+        :warning =>
+%Q{IMPORTANT: Once you have examined the list of undeclared services
+reported by svckill and have determined which of those should be
+allowed, register the allowed services with svckill and then change
+#{@key} to 'enforcing'.  See svckill::ignore and svckill::ignore_files.}
       }
     end
 

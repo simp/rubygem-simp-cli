@@ -26,7 +26,8 @@ def execute(command, input_file = nil)
       # be in the Ruby load path due to kludgey logic in bin/simp.
       # This causes problems. For example, we will get warnings
       # about already initialized constants in pathname.rb.
-      line.include?('pathname.rb')
+      line.include?('warning: already initialized constant') or
+      line.include?('warning: previous definition of')
     end.join("\n")
   end
   { :exitstatus => exitstatus, :stdout => stdout, :stderr => stderr }
