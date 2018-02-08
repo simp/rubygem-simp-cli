@@ -100,6 +100,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Feb 08 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.5
+- Fix bug in which simp config failed to set the GRUB password
+  on a CentOS 6 system booted using EFI
+
 * Wed Jan 31 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.0.5
 - Clarify confusing svckill::mode description provided by simp config
 - Use modern OS facts in simp config, instead of legacy facts that

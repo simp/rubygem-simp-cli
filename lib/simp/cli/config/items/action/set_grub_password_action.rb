@@ -3,9 +3,14 @@ require File.expand_path( '../action_item', File.dirname(__FILE__) )
 module Simp; end
 class Simp::Cli; end
 
-
-# NOTE: EL used GRUB 0.9 up through EL6. EL7 moved to Grub 2.0
-# NOTE: The two versions of GRUB use completely different configurations (files, encryption commands, etc)
+# NOTE:
+# * EL used GRUB 0.9 up through EL6. EL7 moved to Grub 2.0.
+# * The two versions of GRUB use completely different configurations
+#   (files, encryption commands, etc).
+# * The augeasproviders_grub Puppet module does not have a GRUB 0.9 provider for
+#   the grub_user resource.  So, we don't have a uniform way of setting the
+#   password using Puppet.
+#
 module Simp::Cli::Config
   class Item::SetGrubPasswordAction < ActionItem
 
@@ -20,11 +25,21 @@ module Simp::Cli::Config
       @applied_status = :failed
       grub_hash = get_item('grub::password').value
       if Facter.value('os')['release']['major'] > "6"
-        # TODO: beg team hercules to make a augeas provider for grub2 passwords?
         result = execute("sed -i 's/password_pbkdf2 root.*$/password_pbkdf2 root #{grub_hash}/' /etc/grub.d/01_users")
         result = result && execute("grub2-mkconfig -o /etc/grub2.cfg")
       else
-        result= execute("sed -i '/password/ c\password --encrypted #{grub_hash}' /boot/grub/grub.conf")
+        if File.exist?('/boot/grub/grub.conf')
+          # BIOS boot
+          grub_conf = '/boot/grub/grub.conf'
+        elsif File.exist?('/boot/efi/EFI/redhat/grub.conf')
+          # EFI boot
+          grub_conf = '/boot/efi/EFI/redhat/grub.conf'
+        end
+        if grub_conf
+          result = execute("sed -i '/password/ c\password --encrypted #{grub_hash}' #{grub_conf}")
+        else
+          raise('Could not find grub.conf:  Expected /boot/grub/grub.conf or /boot/efi/EFI/redhat/grub.conf')
+        end
       end
       @applied_status = :succeeded if result
     end

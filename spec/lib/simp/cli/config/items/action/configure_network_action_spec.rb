@@ -32,7 +32,7 @@ describe Simp::Cli::Config::Item::ConfigureNetworkAction do
     end
 
     it 'sets applied_status to :failed when puppet apply fails to configure network' do
-      skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+      skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
       @ci.config_items = init_config_items( {'network::dhcp' => 'static'} )
       @ci.apply
       expect( @ci.applied_status ).to eq :failed
