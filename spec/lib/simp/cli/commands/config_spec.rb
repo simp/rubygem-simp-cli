@@ -190,7 +190,7 @@ describe Simp::Cli::Commands::Config do
     context 'non-root user' do
 
      it "creates valid yaml files for 'simp' scenario, interactively accepting all defaults" do
-       skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+       skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
        @input.reopen(generate_simp_input_accepting_defaults)
        begin
          Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
@@ -209,7 +209,7 @@ describe Simp::Cli::Commands::Config do
      end
 
      it "creates valid output yaml files for 'simp_lite' scenario, interactively setting values" do
-       skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+       skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
        @input.reopen(generate_simp_lite_input_setting_values)
        begin
          Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
@@ -228,7 +228,7 @@ describe Simp::Cli::Commands::Config do
      end
 
      it "creates valid output yaml files for 'poss' scenario, interactively setting values " do
-       skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+       skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
        @input.reopen(generate_poss_input_setting_values)
        begin
          Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
@@ -247,7 +247,7 @@ describe Simp::Cli::Commands::Config do
      end
 
      it 'creates valid output yaml files for user using minimal prompts' do
-       skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+       skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
 
        input_string = ''
        input_string << "simp_lite\n"          << # 'simp_lite' scenario
@@ -268,7 +268,7 @@ describe Simp::Cli::Commands::Config do
      end
 
      it 'creates valid answers yaml using existing file, command line overrides, and prompts' do
-       skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+       skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
        input_string = "\n" # use suggested interface, as has to be a valid one
        @input.reopen(input_string)
        @input.rewind
@@ -293,7 +293,7 @@ describe Simp::Cli::Commands::Config do
      end
 
      it 'does not apply actions when user is not root' do
-       skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+       skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
        @input.reopen(generate_simp_input_accepting_defaults)
        begin
          Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
@@ -349,7 +349,7 @@ describe Simp::Cli::Commands::Config do
      end
 
      it 'prints a summary of actions' do
-       skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+       skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
        @input.reopen(generate_simp_input_accepting_defaults)
        begin
          Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
@@ -400,7 +400,7 @@ describe Simp::Cli::Commands::Config do
 
     context 'creates detailed log file' do
        it 'logs detailed messages when normal verbosity specified' do
-         skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+         skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
          @input.reopen(generate_simp_input_accepting_defaults)
          begin
            Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
@@ -419,7 +419,7 @@ describe Simp::Cli::Commands::Config do
        end
 
        it 'logs detailed messages when quiet verbosity specified' do
-         skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+         skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
          @input.reopen(generate_simp_input_accepting_defaults)
          begin
            Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
@@ -492,7 +492,7 @@ describe Simp::Cli::Commands::Config do
     end
 
     it 'logs debug output to the console when --verbose option selected' do
-      skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+      skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
       @input.reopen(generate_simp_input_accepting_defaults)
       begin
         Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
@@ -518,7 +518,7 @@ describe Simp::Cli::Commands::Config do
     end
 
     it 'raises an RuntimeError when noninteractive and input yaml is incomplete' do
-      skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+      skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
 
       expect {  Simp::Cli::Commands::Config.run(['-o', @answers_output_file, '--apply',
         File.join(files_dir, 'prev_simp_conf.yaml'), '-l', @log_file]) }.to raise_error(RuntimeError,
@@ -526,7 +526,7 @@ describe Simp::Cli::Commands::Config do
     end
 
     it 'raises an RuntimeError when noninteractive and input answers yaml has an invalid value' do
-      skip("Test can't be run as root") if ENV.fetch('USER') == 'root'
+      skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
 
       # Since network::interface value fails validation when read in, that value
       # is skipped. This results in a missing anwer for network::interface.
