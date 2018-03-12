@@ -147,8 +147,7 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
     end
 
     it "fails when it can't set group ownership" do
-      @ci.group = 'root'
-      @ci.silent = false
+      allow(FileUtils).to receive(:chown).with(nil, `groups`.split[0], @ci.file).and_raise( ArgumentError )
       @ci.apply
       expect( @ci.applied_status ).to eq :failed
     end

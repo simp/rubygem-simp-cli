@@ -1,5 +1,6 @@
 require 'simp/cli/config/items/action/generate_certificates_action'
 require 'simp/cli/config/items/data/cli_network_hostname'
+require 'simp/cli/lib/utils'
 require 'rspec/its'
 require_relative '../spec_helper'
 
@@ -7,6 +8,7 @@ describe Simp::Cli::Config::Item::GenerateCertificatesAction do
   before :each do
     @ci        = Simp::Cli::Config::Item::GenerateCertificatesAction.new
     @ci.silent = true
+    @ci.group = `groups`.split[0]
     @hostname  = 'puppet.testing.fqdn'
     item       = Simp::Cli::Config::Item::CliNetworkHostname.new
     item.value = @hostname
@@ -16,25 +18,26 @@ describe Simp::Cli::Config::Item::GenerateCertificatesAction do
   end
 
 
-  describe "#apply" do
-    context 'using external files,' do
+  describe '#apply' do
+    context 'when keydist directory exists' do
       before :each do
         @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__))
+        simp_env = File.join( @tmp_dir, 'simp', 'environments', 'simp' )
         @tmp_dirs = {
-                      :keydist => File.join( @tmp_dir, 'keydist'),
-                      :fake_ca => File.join( @tmp_dir, 'FakeCA'),
-                    }
-        FileUtils.mkdir @tmp_dirs.values
+          :keydist => File.join( simp_env, 'site_files', 'pki_files', 'files', 'keydist' ),
+          :fake_ca => File.join( simp_env, 'FakeCA' ),
+        }
+        FileUtils.mkdir_p @tmp_dirs.values
         src_dir   = File.join(@files_dir,'FakeCA')
-        FileUtils.cp( File.join(src_dir, "cacertkey"), @tmp_dirs[:fake_ca] )
+        FileUtils.cp( File.join(src_dir, 'cacertkey'), @tmp_dirs[:fake_ca] )
         # in case we do not have exec privileges in /tmp, use a link instead
-        FileUtils.ln_s( File.join(src_dir, "gencerts_nopass.sh"),
-          File.join(@tmp_dirs[:fake_ca], "gencerts_nopass.sh") )
+        FileUtils.ln_s( File.join(src_dir, 'gencerts_nopass.sh'),
+          File.join(@tmp_dirs[:fake_ca], 'gencerts_nopass.sh') )
 
         @ci.dirs   = @tmp_dirs
       end
 
-      context "when cert generation is required " do
+      context 'when cert generation is required' do
         it 'generates certs and reports :succeeded status on success' do
           @ci.apply
           expect( @ci.applied_status ).to eq :succeeded
@@ -49,7 +52,7 @@ describe Simp::Cli::Config::Item::GenerateCertificatesAction do
         end
       end
 
-      context "when cert generation is not required " do
+      context 'when cert generation is not required' do
         it 'reports :unnecessary status' do
           @ci.generate_certificates(@hostname)
           dir = File.join( @tmp_dirs[:keydist], @hostname )
@@ -65,9 +68,63 @@ describe Simp::Cli::Config::Item::GenerateCertificatesAction do
         ENV.delete 'SIMP_CLI_CERTIFICATES_FAIL'
       end
     end
+
+    context 'when keydist directory does not exist' do
+      before :each do
+        @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__))
+        simp_env = File.join( @tmp_dir, 'simp', 'environments', 'simp')
+        @tmp_dirs = {
+          :keydist => File.join( simp_env, 'site_files', 'pki_files', 'files', 'keydist'),
+          :fake_ca => File.join( simp_env, 'FakeCA'),
+        }
+        FileUtils.mkdir_p @tmp_dirs[:fake_ca]
+        # pre-set the permissions on simp_env dirs, to verify they are set
+        # appropriately
+        FileUtils.chmod( 0700, File.join(@tmp_dir, 'simp') )
+        FileUtils.chmod( 0700, File.join(@tmp_dir, 'simp', 'environments') )
+        FileUtils.chmod( 0700, simp_env )
+        src_dir   = File.join(@files_dir,'FakeCA')
+        FileUtils.cp( File.join(src_dir, 'cacertkey'), @tmp_dirs[:fake_ca] )
+        # in case we do not have exec privileges in /tmp, use a link instead
+        FileUtils.ln_s( File.join(src_dir, 'gencerts_nopass.sh'),
+          File.join(@tmp_dirs[:fake_ca], 'gencerts_nopass.sh') )
+
+        @ci.dirs   = @tmp_dirs
+      end
+
+      it 'creates dir tree, fixes perms, generates certs and reports :succeeded status on success' do
+        @ci.apply
+        expect( @ci.applied_status ).to eq :succeeded
+        simp_env = File.join(@tmp_dir, 'simp', 'environments', 'simp')
+        [
+          File.join(@tmp_dir, 'simp'),
+          File.join(@tmp_dir, 'simp', 'environments'),
+          simp_env
+        ].each do |dir|
+          expect( File.stat( dir ).mode & 0777).to eq 0755
+        end
+
+        [
+          File.join( simp_env, 'site_files'),
+          File.join( simp_env, 'site_files', 'pki_files'),
+          File.join( simp_env, 'site_files', 'pki_files', 'files'),
+          File.join( simp_env, 'site_files', 'pki_files', 'files', 'keydist'),
+        ].each do |dir|
+          expect( File.stat( dir ).mode & 0777).to eq 0750
+        end
+
+        dir = File.join( @tmp_dirs[:keydist], @hostname )
+        expect( File.exists? dir ).to be true
+      end
+
+      after :each do
+        FileUtils.remove_entry_secure @tmp_dir
+        ENV.delete 'SIMP_CLI_CERTIFICATES_FAIL'
+      end
+    end
   end
 
-  describe "#apply_summary" do
+  describe '#apply_summary' do
     it 'reports unattempted status when #apply not called' do
       expect(@ci.apply_summary).to eq 'Interim certificate generation for SIMP server unattempted'
     end

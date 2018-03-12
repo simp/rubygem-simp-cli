@@ -4,17 +4,18 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::GenerateCertificatesAction < ActionItem
-    attr_accessor :dirs
+    attr_accessor :dirs, :group
     def initialize
       super
-      @key         = 'certificates'
-      @description = 'Generate interim certificates for SIMP server'
-      @dirs        = {
-        :keydist => '/var/simp/environments/simp/site_files/pki_files/files/keydist',
-        :fake_ca => ::Utils.puppet_info[:fake_ca_path]
+      @key               = 'certificates'
+      @description       = 'Generate interim certificates for SIMP server'
+      @dirs              = {
+        :keydist    => '/var/simp/environments/simp/site_files/pki_files/files/keydist',
+        :fake_ca    => ::Utils.puppet_info[:fake_ca_path]
       }
+      @group             = ::Utils.puppet_info[:puppet_group]
       @die_on_apply_fail = true
-      @hostname = nil
+      @hostname          = nil
     end
 
     def apply
@@ -22,6 +23,36 @@ module Simp::Cli::Config
       @applied_status = :failed
       @hostname = get_item( 'cli::network::hostname' ).value
       debug( "Checking system for '#{@hostname}' certificates" )
+      unless File.exist?(@dirs[:keydist])
+        # Shouldn't get here if simp-environment RPM >= 6.2.8 has been
+        # installed. However, if this is an R10k-based installation and
+        # the user did not set up the pki_files tree, create it here to
+        # ensure the permissions are set up appropriately.
+        FileUtils.mkdir_p(@dirs[:keydist])
+        site_files_dir = File.expand_path(File.join(@dirs[:keydist], '..', '..', '..'))
+
+        # open up read permissions of the SIMP-specific parent
+        # directories of /var/simp/environments/simp/site_files, to
+        # ensure site_files/ can be accessed by the puppet group
+        prev = site_files_dir
+        (1..3).each do |iter|
+          # relative logic allows this code to be unit tested
+          current = File.dirname(prev)
+          FileUtils.chmod(0755, current)
+          prev = current
+        end
+
+        # lock down ownership and permissions of the site_files tree
+        # to only the puppet group
+        begin
+          FileUtils.chown_R(nil, @group, site_files_dir)
+        rescue Errno::EPERM, ArgumentError => e
+          # This will happen if the user is not root or the group does
+          # not exist.
+          raise( "Could not recursively change #{site_files_dir} group to '#{@group}': #{e}", [:RED] )
+        end
+        FileUtils.chmod_R('g+rX,o-rwx', site_files_dir)
+      end
       if !(
         File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pub") &&
         File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pem")
@@ -47,7 +78,12 @@ module Simp::Cli::Config
         Dir.chdir( @dirs[:fake_ca] ) do
           File.open('togen', 'w'){|file| file.puts hostname }
 
-          # NOTE: script must exist in ca_dir
+          # Script generates appropriate dirs/files in keydist/ and
+          # locks down their permissions to allow the puppet group.
+          #
+          # NOTE:  The script only sets ownership and permissions for
+          # keydist/ and below. It leaves the parent directories of
+          # keydist/ unchanged.
           result = execute('./gencerts_nopass.sh auto')
 
           # blank file so subsequent runs don't re-key our hosts

@@ -4,12 +4,13 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SetUpPuppetAutosignAction < ActionItem
-    attr_accessor :file
+    attr_reader :file
     def initialize
       super
       @key         = 'puppet::autosign'
       @description = 'Set up Puppet autosign'
       @file        = File.join(::Utils.puppet_info[:config]['confdir'], 'autosign.conf')
+      @group       = ::Utils.puppet_info[:puppet_group]
     end
 
     def os_value
@@ -55,20 +56,28 @@ module Simp::Cli::Config
 
       entries = recommended_value
       debug( "Updating #{@file}" )
-      File.open(@file, 'w') do |file|
-        file.puts "# You should place any hostnames/domains here that you wish to autosign.\n" +
-                  "# The most security-conscious method is to list each individual hostname:\n" +
-                  "#   hosta.your.domain\n" +
-                  "#   hostb.your.domain\n" +
-                  "#\n" +
-                  "# Wildcard domains work, but absolutely should NOT be used unless you fully\n" +
-                  "# trust your network.\n" +
-                  "#   *.your.domain\n\n"
-        entries.each do |entry|
-          file.puts(entry)
+      begin
+        File.open(@file, 'w') do |file|
+          file.puts "# You should place any hostnames/domains here that you wish to autosign.\n" +
+                    "# The most security-conscious method is to list each individual hostname:\n" +
+                    "#   hosta.your.domain\n" +
+                    "#   hostb.your.domain\n" +
+                    "#\n" +
+                    "# Wildcard domains work, but absolutely should NOT be used unless you fully\n" +
+                    "# trust your network.\n" +
+                    "#   *.your.domain\n\n"
+          entries.each do |entry|
+            file.puts(entry)
+          end
         end
+        FileUtils.chmod(0640, @file)
+        FileUtils.chown(nil, @group, @file)
+        @applied_status = :succeeded
+      rescue Errno::EPERM, ArgumentError => e
+        # This will happen if the user is not root or the group does
+        # not exist.
+        error( "\nERROR: Could not create #{@file} with group '#{@group}': #{e}", [:RED] )
       end
-      @applied_status = :succeeded
     end
 
     def apply_summary

@@ -1,6 +1,7 @@
 require 'simp/cli/commands/passgen'
 require 'simp/cli/lib/utils'
 require 'spec_helper'
+require 'etc'
 
 
 def validate_set_and_backup(args, expected_output, expected_password_files,
@@ -29,6 +30,10 @@ describe Simp::Cli::Commands::Passgen do
       @password_env_dir = File.join(@var_dir, 'simp', 'environments')
       FileUtils.mkdir_p(@password_env_dir)
       allow(Simp::Cli::Commands::Passgen).to receive(:`).with('puppet config print vardir --section master').and_return(@var_dir  + "\n")
+      process_user = Etc.getpwuid(Process.uid).name
+      process_group = Etc.getgrgid(Process.gid).name
+      allow(Simp::Cli::Commands::Passgen).to receive(:`).with('puppet config print user').and_return(process_user)
+      allow(Simp::Cli::Commands::Passgen).to receive(:`).with('puppet config print group').and_return(process_group)
     end
 
     after :each do
@@ -425,6 +430,7 @@ EOM
             expected_output).to_stdout
           new_password_file = File.join(@env1_password_dir, 'new_name')
           expect( File.exist?(new_password_file) ).to eq true
+          expect( File.stat(new_password_file).mode & 0777 ).to eq 0640
           expect( File.exist?(new_password_file + '.last') ).to eq false
           expect( IO.read(new_password_file).chomp ).to eq 'new_password'
         end

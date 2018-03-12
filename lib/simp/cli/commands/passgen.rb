@@ -117,7 +117,6 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
     names = []
     begin
       Dir.chdir(@password_dir) do
-          #File.ftype("#{@password_dir}/#{name}").eql?('file')
         names = Dir.glob('*').select do |x|
           File.file?(x) && (x !~ /\..+$/)  # exclude salt and backup files
         end
@@ -203,6 +202,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
   def self.set_passwords
     validate_password_dir
     @names.each do |name|
+      next if name.strip.empty?
       password_filename = "#{@password_dir}/#{name}"
 
       puts "#{@environment} Name: #{name}"
@@ -223,7 +223,19 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
       end
       begin
         File.open(password_filename, 'w') { |file| file.puts password }
-      rescue SystemCallError => e
+
+        # Ensure that the ownership and permissions are correct
+        puppet_user = `puppet config print user`.strip
+        puppet_group = `puppet config print group`.strip
+        if puppet_user.empty? or puppet_group.empty?
+          raise 'Could not set password file ownership:  unable to determine puppet user and group'
+        end
+        FileUtils.chown(puppet_user, puppet_group, password_filename)
+        FileUtils.chmod(0640, password_filename)
+      rescue ArgumentError => err
+        # This will happen if group does not exist
+        raise "Could not set password file ownership: #{err}"
+      rescue SystemCallError => err
         raise "Error occurred while writing '#{password_filename}': #{err}"
       end
       puts
