@@ -23,36 +23,7 @@ module Simp::Cli::Config
       @applied_status = :failed
       @hostname = get_item( 'cli::network::hostname' ).value
       debug( "Checking system for '#{@hostname}' certificates" )
-      unless File.exist?(@dirs[:keydist])
-        # Shouldn't get here if simp-environment RPM >= 6.2.8 has been
-        # installed. However, if this is an R10k-based installation and
-        # the user did not set up the pki_files tree, create it here to
-        # ensure the permissions are set up appropriately.
-        FileUtils.mkdir_p(@dirs[:keydist])
-        site_files_dir = File.expand_path(File.join(@dirs[:keydist], '..', '..', '..'))
-
-        # open up read permissions of the SIMP-specific parent
-        # directories of /var/simp/environments/simp/site_files, to
-        # ensure site_files/ can be accessed by the puppet group
-        prev = site_files_dir
-        (1..3).each do |iter|
-          # relative logic allows this code to be unit tested
-          current = File.dirname(prev)
-          FileUtils.chmod(0755, current)
-          prev = current
-        end
-
-        # lock down ownership and permissions of the site_files tree
-        # to only the puppet group
-        begin
-          FileUtils.chown_R(nil, @group, site_files_dir)
-        rescue Errno::EPERM, ArgumentError => e
-          # This will happen if the user is not root or the group does
-          # not exist.
-          raise( "Could not recursively change #{site_files_dir} group to '#{@group}': #{e}", [:RED] )
-        end
-        FileUtils.chmod_R('g+rX,o-rwx', site_files_dir)
-      end
+      setup_directories unless File.exist?(@dirs[:keydist])
       if !(
         File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pub") &&
         File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pem")
@@ -93,6 +64,37 @@ module Simp::Cli::Config
         error( "\nERROR: Cannot generate certificates for #{hostname}: #{@dirs[:fake_ca]} not found", [:RED] )
       end
       result
+    end
+
+    def setup_directories
+      # Shouldn't get here if simp-environment RPM >= 6.2.8 has been
+      # installed. However, if this is an R10k-based installation and
+      # the user did not set up the pki_files tree, create it here to
+      # ensure the permissions are set up appropriately.
+      FileUtils.mkdir_p(@dirs[:keydist])
+      site_files_dir = File.expand_path(File.join(@dirs[:keydist], '..', '..', '..'))
+
+      # open up read permissions of the SIMP-specific parent
+      # directories of /var/simp/environments/simp/site_files, to
+      # ensure site_files/ can be accessed by the puppet group
+      prev = site_files_dir
+      (1..3).each do |iter|
+        # relative logic allows this code to be unit tested
+        current = File.dirname(prev)
+        FileUtils.chmod(0755, current)
+        prev = current
+      end
+
+      # lock down ownership and permissions of the site_files tree
+      # to only the puppet group
+      begin
+        FileUtils.chown_R(nil, @group, site_files_dir)
+      rescue Errno::EPERM, ArgumentError => e
+        # This will happen if the user is not root or the group does
+        # not exist.
+        raise( "Could not recursively change #{site_files_dir} group to '#{@group}': #{e}", [:RED] )
+      end
+      FileUtils.chmod_R('g+rX,o-rwx', site_files_dir)
     end
 
   end
