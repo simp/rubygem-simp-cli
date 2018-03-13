@@ -4,3 +4,5 @@ checks:
   method-lines:
     config:
       threshold: 40
+  method-complexity:
+    enabled: false
