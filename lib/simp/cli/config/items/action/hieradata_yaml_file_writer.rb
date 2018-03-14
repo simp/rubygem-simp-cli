@@ -13,7 +13,8 @@ module Simp::Cli::Config
 
       @key             = 'yaml::hieradata_file_writer'
       @description     = %Q{Write SIMP global hieradata to YAML file.}
-      @file            = "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/simp/site/simp_config_overrides.yaml"
+      # 'simp cli' sets @file, so this default doesn't really matter
+      @file            = "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/simp_config_settings.yaml"
       @group           = ::Utils.puppet_info[:puppet_group]
     end
 
@@ -58,6 +59,11 @@ module Simp::Cli::Config
     # write a file and returns the number of bytes written
     def write_hieradata_yaml_file( file, answers )
       debug( "Writing hieradata to: #{file}" )
+      # Shouldn't need to create the directory (except possibly for
+      # unit tests), as CopySimpToEnvironmentsAction, a preceeding item,
+      # *guarantees* the 'simp' environment is present.  As such, we are
+      # not going to worry about the ownership/permissions of each part
+      # of this path.
       FileUtils.mkdir_p( File.dirname( file ) )
       File.open( file, 'w' ){ |fh| print_hieradata_yaml( fh, answers ) }
     end
@@ -73,15 +79,15 @@ module Simp::Cli::Config
          File.chown(nil, group_id, backup_file)
       end
 
-      write_hieradata_yaml_file( @file, @config_items ) if @config_items.size > 0
-      FileUtils.chmod(0640, @file)
       begin
+        write_hieradata_yaml_file( @file, @config_items ) if @config_items.size > 0
+        FileUtils.chmod(0640, @file)
         FileUtils.chown(nil, @group, @file)
         @applied_status = :succeeded
       rescue Errno::EPERM, ArgumentError => e
         # This will happen if the user is not root or the group does
         # not exist.
-        error( "\nERROR: Could not change ownership of\n    #{@file} to '#{@group}' group", [:RED] )
+        error( "\nERROR: Could not write #{@file} with group '#{@group}': #{e}", [:RED] )
       end
     end
 

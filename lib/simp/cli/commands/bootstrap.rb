@@ -175,10 +175,10 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     info('Configuring the puppetserver to listen on port 8150', 'cyan')
     begin
       # Back everything up!
-      puppetserver_dir = '/etc/puppetlabs/puppetserver/conf.d'
-      if File.directory?(puppetserver_dir)
-        conf_files = ["#{puppetserver_dir}/webserver.conf",
-                      "#{puppetserver_dir}/web-routes.conf",
+      puppetserver_conf_dir = '/etc/puppetlabs/puppetserver/conf.d'
+      if File.directory?(puppetserver_conf_dir)
+        conf_files = ["#{puppetserver_conf_dir}/webserver.conf",
+                      "#{puppetserver_conf_dir}/web-routes.conf",
                       '/etc/sysconfig/puppetserver',
                       '/etc/puppetlabs/puppet/auth.conf']
         conf_files.each do |file|
@@ -190,7 +190,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
           end
         end
       else
-        fail( "Could not find directory #{puppetserver_dir}" )
+        fail( "Could not find directory #{puppetserver_conf_dir}" )
       end
       # /etc/puppetlabs/puppet/auth.conf is installed by some versions of puppet-agent.
       # SIMP manages auth.conf in /etc/puppetlabs/puppetserver/conf.d.  Back up and
@@ -207,15 +207,17 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       server_conf_tmp = "#{::Utils.puppet_info[:config]['vardir']}/pserver_tmp"
       FileUtils.mkdir_p(server_conf_tmp)
       FileUtils.chown(vardir_stat.uid, vardir_stat.gid, server_conf_tmp)
+      FileUtils.chmod(vardir_stat.mode & 0777, server_conf_tmp)
 
       command = "puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver'" +
         %Q{ match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m} +
         %Q{ -Djava.io.tmpdir=#{server_conf_tmp}"' 2>&1 > /dev/null}
       execute(command)
-      info("Successfully configured /etc/sysconfig/puppetserver to use a temporary cache", 'green')
+      info('Successfully configured /etc/sysconfig/puppetserver to use a temporary cache', 'green')
 
       # Slap minimalistic conf files in place to get puppetserver off of the ground.
-      File.open("#{puppetserver_dir}/webserver.conf", 'w') do |file|
+      webserver_conf = "#{puppetserver_conf_dir}/webserver.conf"
+      File.open(webserver_conf, 'w') do |file|
         file.puts <<-EOM
 webserver: {
     access-log-config: /etc/puppetlabs/puppetserver/request-logging.xml
@@ -225,9 +227,11 @@ webserver: {
 }
 EOM
       end
-      info("Successfully configured #{puppetserver_dir}/webserver.conf with bootstrap settings", 'green')
+      File.chmod(0644, webserver_conf)
+      info("Successfully configured #{webserver_conf} with bootstrap settings", 'green')
 
-      File.open("#{puppetserver_dir}/web-routes.conf", 'w') do |file|
+      webroutes_conf = "#{puppetserver_conf_dir}/web-routes.conf"
+      File.open(webroutes_conf, 'w') do |file|
         file.puts <<-EOM
 web-router-service: {
     "puppetlabs.services.ca.certificate-authority-service/certificate-authority-service": "/puppet-ca"
@@ -238,7 +242,8 @@ web-router-service: {
 }
 EOM
       end
-      info("Successfully configured #{puppetserver_dir}/web-routes.conf with bootstrap settings", 'green')
+      File.chmod(0644, webroutes_conf)
+      info("Successfully configured #{webroutes_conf} with bootstrap settings", 'green')
     rescue => error
       fail( "Failed to configure the puppetserver with bootstrap settings: #{error.message}" )
     end
@@ -316,7 +321,7 @@ EOM
     if File.exists?(routes_yaml)
       backup_dir = File.join(@bootstrap_backup, confdir)
       FileUtils.mkdir_p(backup_dir)
-      backup_routes_yaml = File.join(backup_dir, 'routes_yaml')
+      backup_routes_yaml = File.join(backup_dir, 'routes.yaml')
       FileUtils.cp(routes_yaml, backup_routes_yaml)
       info("Successfully backed up #{routes_yaml} to #{backup_routes_yaml}", 'green')
       FileUtils.rm_f(routes_yaml)
@@ -455,8 +460,8 @@ EOM
       end
     end
     yield.tap {      # After yielding to the block, save the return value
-      iter = false   # Tell the thread to exit, cleaning up after itself…
-      spinner.join   # …and wait for it to do so.
+      iter = false   # Tell the thread to exit, cleaning up after itself
+      spinner.join   # and wait for it to do so.
     }                # Use the block's return value as the method's
   end
 
