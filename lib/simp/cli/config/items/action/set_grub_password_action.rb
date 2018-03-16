@@ -37,7 +37,15 @@ module Simp::Cli::Config
     end
 
     def set_password_grub(grub_hash)
-      result = execute("sed -i 's/password_pbkdf2 root.*$/password_pbkdf2 root #{grub_hash}/' /etc/grub.d/01_users")
+      grub_users = '/etc/grub.d/01_users'
+
+      if File.exist?(grub_users)
+        result = execute("sed -i 's/password_pbkdf2 root.*$/password_pbkdf2 root #{grub_hash}/' #{grub_users}")
+      else
+        result = execute("echo 'password_pbkdf2 root #{grub_hash}' > #{grub_users}")
+        FileUtils.chmod(0755, grub_users)
+      end
+
       result && execute("grub2-mkconfig -o /etc/grub2.cfg")
     end
 
