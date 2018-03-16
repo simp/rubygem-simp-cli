@@ -9,6 +9,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
   require 'timeout'
   require 'facter'
   require File.expand_path( '../defaults', File.dirname(__FILE__) )
+  require File.expand_path( '../errors', File.dirname(__FILE__) )
   HighLine.colorize_strings
 
   @start_time = Time.now
@@ -108,7 +109,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     ensure_puppet_processes_stopped
     handle_existing_puppet_certs
-    puppet_code_validation
+    validate_site_puppet_code
     configure_bootstrap_puppetserver
 
     # - Firstrun is tagged and run against the bootstrap puppetserver port, 8150.
@@ -169,7 +170,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
   # Do a quick validation that the code in the malleable SIMP spaces is not
   # going to cause the compilation to fail out of the box.
-  def self.puppet_code_validation
+  def self.validate_site_puppet_code
     info('Validating site puppet code', 'cyan')
 
     errors = []
@@ -587,7 +588,7 @@ EOM
 
   def self.fail(message, options='red.bold', console_prefix='> ')
     log_and_say("ERROR: #{message}", options, console_prefix)
-    exit 1
+    raise Simp::Cli::ProcessingError.new("bootstrap processing terminated")
   end
 
   def self.log_and_say(message, options, console_prefix, log_to_console = true)
