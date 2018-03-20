@@ -67,7 +67,6 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
       it 'sets grub password and sets applied_status to :success' do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
         allow(@ci).to receive(:execute).and_return(true, true)
-        allow(FileUtils).to receive(:chmod)
 
         @ci.config_items = { grub_password.key => grub_password }
         @ci.apply
@@ -77,7 +76,6 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
       it "sets applied_status to :failed when 'sed' command fails" do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
         allow(@ci).to receive(:execute).and_return(false)
-        allow(FileUtils).to receive(:chmod)
 
         @ci.config_items = { grub_password.key => grub_password }
         @ci.apply
@@ -87,7 +85,6 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
       it "sets applied_status to :failed when 'grub2-mkconf' command fails" do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
         allow(@ci).to receive(:execute).and_return(true, false)
-        allow(FileUtils).to receive(:chmod)
 
         @ci.config_items = { grub_password.key => grub_password }
         @ci.apply
