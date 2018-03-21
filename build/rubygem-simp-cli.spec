@@ -105,7 +105,6 @@ EOM
   code is valid so that we don't have confusing delays after waiting for
   multiple failing Puppet runs.
 - Clarified the message when bootstrap is locked
-- Fix issue if the grub users file is not present when simp config runs
 - Ensured that backtraces are not displayed to the user on known
   bootstrap failure cases
 
