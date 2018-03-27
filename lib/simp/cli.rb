@@ -111,6 +111,9 @@ class Simp::Cli
           e.backtrace.first(10).each{|l| $stderr.puts l }
         end
         result = 1
+      rescue Simp::Cli::ProcessingError => e
+        $stderr.puts "\n\033[31m#{e.message}\033[39m\n\n"
+        result = 1
       rescue => e
         $stderr.puts "\n\033[31m#{e.message}\033[39m\n\n"
         e.backtrace.first(10).each{|l| $stderr.puts l }

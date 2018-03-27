@@ -25,8 +25,8 @@ describe Simp::Cli::Config::Item::WarnLockoutRiskAction do
       actual_message = IO.read(@warning_file)
       expect( actual_message).to eq @ci.warning_message
       expected_summary =
-        "'simp bootstrap' has been locked due to potential login lockout."
-      expect( @ci.apply_summary ).to eq expected_summary
+        %r{^'simp bootstrap' has been locked due to potential login lockout\.\n  \* See /.+/simp_bootstrap_start_lock for details$}
+      expect( @ci.apply_summary ).to match expected_summary
     end
 
     it "appends warning file" do

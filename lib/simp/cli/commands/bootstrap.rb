@@ -9,6 +9,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
   require 'timeout'
   require 'facter'
   require File.expand_path( '../defaults', File.dirname(__FILE__) )
+  require File.expand_path( '../errors', File.dirname(__FILE__) )
   HighLine.colorize_strings
 
   @start_time = Time.now
@@ -78,13 +79,14 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     super
     return if @help_requested
 
-    check_for_start_lock
-    set_up_simp_environment
-
     # Open log file
     logfilepath = File.dirname(File.expand_path(@bootstrap_log))
     FileUtils.mkpath(logfilepath) unless File.exists?(logfilepath)
     @logfile = File.open(@bootstrap_log, 'w')
+
+    check_for_start_lock
+    set_up_simp_environment
+
     FileUtils.mkdir(@bootstrap_backup)
 
     # Print intro
@@ -107,6 +109,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     ensure_puppet_processes_stopped
     handle_existing_puppet_certs
+    validate_site_puppet_code
     configure_bootstrap_puppetserver
 
     # - Firstrun is tagged and run against the bootstrap puppetserver port, 8150.
@@ -162,6 +165,40 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     if File.exist?(Simp::Cli::BOOTSTRAP_START_LOCK_FILE)
       fail("Bootstrap cannot proceed until problem identified in\n" +
            "#{Simp::Cli::BOOTSTRAP_START_LOCK_FILE} is solved and that file is removed.")
+    end
+  end
+
+  # Do a quick validation that the code in the malleable SIMP spaces is not
+  # going to cause the compilation to fail out of the box.
+  def self.validate_site_puppet_code
+    info('Validating site puppet code', 'cyan')
+
+    errors = []
+
+    site_pp = File.join(::Utils.puppet_info[:config]['codedir'], 'environments','simp','manifests','site.pp')
+
+    if File.exist?(site_pp)
+      msg = %x{puppet parser validate #{site_pp} 2>&1}
+      unless $?.success?
+        errors << msg.strip
+      end
+    end
+
+    site_module = File.join(::Utils.puppet_info[:config]['codedir'], 'environments','simp','modules','site')
+
+    if File.directory?(site_module)
+      msg = %x{puppet parser validate #{site_module} 2>&1}
+      unless $?.success?
+        errors << msg.strip
+      end
+    end
+
+    unless errors.empty?
+      fail(
+        "Puppet code validation failed\n" +
+          "Please fix your manifests and try again\n" +
+          "  * #{errors.join("\n  * ")}"
+        )
     end
   end
 
@@ -545,8 +582,13 @@ EOM
     log_and_say("WARNING: #{message}", options, console_prefix)
   end
 
-  def self.error(message, options=nil, console_prefix='> ')
+  def self.error(message, options='red.bold', console_prefix='> ')
     log_and_say("ERROR: #{message}", options, console_prefix)
+  end
+
+  def self.fail(message, options='red.bold', console_prefix='> ')
+    log_and_say("ERROR: #{message}", options, console_prefix)
+    raise Simp::Cli::ProcessingError.new("bootstrap processing terminated")
   end
 
   def self.log_and_say(message, options, console_prefix, log_to_console = true)
@@ -564,5 +606,4 @@ EOM
       end
     end
   end
-
 end

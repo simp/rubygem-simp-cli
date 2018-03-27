@@ -19,7 +19,7 @@ module Simp::Cli::Config
 
 #{'#'*72}
 Per security policy, SIMP, by default, disables login via ssh for all
-users, including 'root', and beginning with SIMP 6.0.0 (when 
+users, including 'root', and beginning with SIMP 6.0.0 (when
 useradd::securetty is empty), disables root logins at the console.  So,
 to prevent lockout in systems for which no administrative user account
 has yet been created or both console access is not available and the
@@ -70,11 +70,11 @@ Once you have configured a user with both su and ssh privileges and
 addressed any other issues identified in this file, you can remove
 this file and continue with 'simp bootstrap'.
 DOC
-   end
+    end
 
     def apply
       warn( "\nWARNING: #{@warning_message_brief}", [:RED] )
-      warn( "See #{Simp::Cli::BOOTSTRAP_START_LOCK_FILE} for details", [:RED] )
+      warn( "See #{@warning_file} for details", [:RED] )
 
       # append/create file that will prevent bootstrap from running until problem
       # is fixed
@@ -87,7 +87,7 @@ DOC
 
     def apply_summary
       if @applied_status == :failed
-        "'simp bootstrap' has been locked due to potential login lockout."
+        "'simp bootstrap' has been locked due to potential login lockout.\n  * See #{@warning_file} for details"
       else
         "Check for login lockout risk #{@applied_status}"
       end
