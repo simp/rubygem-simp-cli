@@ -92,7 +92,8 @@ module Simp::Cli::Config
       rescue Errno::EPERM, ArgumentError => e
         # This will happen if the user is not root or the group does
         # not exist.
-        raise( "Could not recursively change #{site_files_dir} group to '#{@group}': #{e}", [:RED] )
+        err_msg = "Could not recursively change #{site_files_dir} group to '#{@group}': #{e}"
+        raise ApplyError.new(err_msg)
       end
       FileUtils.chmod_R('g+rX,o-rwx', site_files_dir)
     end

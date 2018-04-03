@@ -10,7 +10,7 @@ module Simp::Cli::Config
       @description = 'The Puppet Certificate Authority.'
     end
 
-    def os_value
+    def get_os_value
       Puppet.settings.setting( 'ca_server' ).value
     end
 
@@ -20,7 +20,7 @@ module Simp::Cli::Config
       Simp::Cli::Config::Utils.validate_ip( x )
     end
 
-    def recommended_value
+    def get_recommended_value
       get_item( 'cli::network::hostname' ).value
     end
   end

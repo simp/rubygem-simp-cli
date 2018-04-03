@@ -13,7 +13,7 @@ module Simp::Cli::Config
       @group       = ::Utils.puppet_info[:puppet_group]
     end
 
-    def os_value
+    def get_os_value
       # TODO: make this a custom fact?
       values = Array.new
       File.readable?(@file) &&
@@ -36,7 +36,7 @@ module Simp::Cli::Config
       end
     end
 
-    def recommended_value
+    def get_recommended_value
       rec_value = os_value
       if !rec_value
         rec_value = [ get_item( 'cli::network::hostname' ).value ]

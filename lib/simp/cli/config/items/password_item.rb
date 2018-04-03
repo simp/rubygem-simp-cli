@@ -54,7 +54,15 @@ module Simp::Cli::Config
       when :never_generate
         return false
       when :generate_no_query
-        return Simp::Cli::Config::Utils.generate_password
+        # Normally, :generate_no_query goes hand-in-hand with skipping
+        # the query.  However, if the Item's value was pre-assigned
+        # and invalid, @skip_query will be set to false. This is so we
+        # give the user an opportunity to fix the problem via a query.
+        if @skip_query
+          return Simp::Cli::Config::Utils.generate_password
+        else
+          default = 'yes'
+        end
       when :generate_as_default
         default = 'yes'
       when :no_generate_as_default
@@ -65,15 +73,20 @@ module Simp::Cli::Config
       @password_name = @key if @password_name.nil? or @password_name.empty?
       if agree( "Auto-generate the #{@password_name} password? " ){ |q| q.default = default }
         password = Simp::Cli::Config::Utils.generate_password
-        logger.say "<%= color( %q{#{''.ljust(80,'-')}}, GREEN)%>\n"
-        logger.say '<%= color( %q{NOTE: }, GREEN, BOLD)%>' +
-            "<%= color( %q{ the generated password is: }) %>\n"
+        logger.say "<%= color( '#{''.ljust(80,'-')}', GREEN)%>\n"
+        logger.say "<%= color( 'NOTE: ', GREEN, BOLD)%>" +
+            "<%= color( ' the generated password is: ') %>\n"
         logger.say "\n"
-        logger.say "<%= color( %q{   #{password}}, YELLOW, BOLD )%>  "
+        # since we are using {} as the string delimiter, make sure we've escaped
+        # any {} in the password
+        escaped_password = password.dup
+        escaped_password.gsub!('{', '\{')
+        escaped_password.gsub!('}', '\}')
+        logger.say "<%= color( %q{   #{escaped_password}}, YELLOW, BOLD )%>  "
         logger.say "\n"
         logger.say "\n"
         logger.say 'Please remember it!'
-        logger.say "<%= color( %q{#{''.ljust(80,'-')}}, GREEN)%>\n"
+        logger.say "<%= color( '#{''.ljust(80,'-')}', GREEN)%>\n"
         logger.say "<%= color( '*** Press enter to continue ***', CYAN, BOLD, BLINK ) %>\n"
         ask ''
       end
@@ -109,7 +122,7 @@ module Simp::Cli::Config
       begin
         Simp::Cli::Config::Utils.validate_password x
       rescue Simp::Cli::Config::PasswordError => e
-        say_yellow "WARNING: Invalid Password: #{e.message}"
+        warn('WARNING: ', [:YELLOW, :BOLD], e.message, [:YELLOW])
         result = false
       end
       result
@@ -117,7 +130,12 @@ module Simp::Cli::Config
 
     def say_yellow( msg, options=[] )
       options = options.unshift( '' ) unless options.empty?
-      logger.say("<%= color(%q{#{msg}}, YELLOW #{options.join(', ')}) %>\n")
+      # since we are using {} as the string delimiter, make sure we've escaped
+      # any {} in the message
+      escaped_msg = msg.dup
+      escaped_msg.gsub!('{', '\{')
+      escaped_msg.gsub!('}', '\}')
+      logger.say("<%= color(%q{#{escaped_msg}}, YELLOW #{options.join(', ')}) %>\n")
     end
 
   end

@@ -23,12 +23,12 @@ module Simp::Cli::Config
     end
 
 
-    def os_value
+    def get_os_value
       # FIXME: Facter fact
       %x{runlevel | awk '{print $2}'}.strip.to_i
     end
 
-    def recommended_value
+    def get_recommended_value
       3
     end
   end

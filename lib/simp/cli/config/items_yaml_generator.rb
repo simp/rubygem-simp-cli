@@ -31,7 +31,10 @@ class Simp::Cli::Config::ItemsYamlGenerator
       end
 
       part_file = File.join(@scenarios_dir, 'parts', part_name)
-      raise Simp::Cli::Config::InternalError.new("Cannot find '#{part_name}' include for '#{@scenario}' scenario") unless File.exist?(part_file)
+      unless File.exist?(part_file)
+        err_msg = "Cannot find '#{part_name}' include for '#{@scenario}' scenario"
+        raise Simp::Cli::Config::InternalError.new(err_msg)
+      end
 
       part_yaml = IO.read(part_file)
       part_yaml = make_substitutions(part_yaml, substitutions) unless substitutions.empty?
@@ -45,7 +48,7 @@ class Simp::Cli::Config::ItemsYamlGenerator
     if File.exist?(scenario_items_file)
       scenario_yaml  = IO.read(scenario_items_file)
     else
-      raise "ERROR: Unsupported scenario '#{@scenario}'"
+      raise Simp::Cli::Config::ValidationError.new("ERROR: Unsupported scenario '#{@scenario}'")
     end
 
     begin

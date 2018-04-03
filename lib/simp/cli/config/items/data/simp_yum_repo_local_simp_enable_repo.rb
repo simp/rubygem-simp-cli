@@ -15,7 +15,7 @@ SIMP dependency YUM repository.'
 
     # NOTE: The default is 'no', because we are only using this to
     # turn off the repo in the SIMP server host YAML.
-    def recommended_value
+    def get_recommended_value
       'no'
     end
   end

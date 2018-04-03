@@ -16,17 +16,17 @@ module Simp::Cli::Config
                       # on the screen
 
     attr_accessor :key, :value, :description, :data_type, :fact
-    attr_accessor :start_time, :applied_status, :applied_time, :applied_detail
-    attr_accessor :skip_query, :skip_apply, :skip_apply_reason, :skip_yaml, :silent
-    attr_accessor :die_on_apply_fail, :allow_user_apply
+    attr_accessor :start_time
+    attr_accessor :skip_query, :skip_yaml, :silent
     attr_accessor :config_items
     attr_accessor :next_items_tree
-    attr_accessor :fail_on_missing_answer
     attr_reader   :puppet_apply_cmd
 
     def initialize(key = nil, description = nil)
       @key               = key           # answers file key for the config Item
       @value             = nil           # value (decided by user)
+      @value_os          = nil           # value extracted from the system
+      @value_recommended = nil           # best default value
       @description       = description   # A text description of the Item
       @data_type         = :global_hiera # :internal     = parameter used within simp config,
                                          #                 but not persisted anywhere
@@ -40,22 +40,19 @@ module Simp::Cli::Config
                                          #                 by SIMP clients and server
                                          # :server_hiera = parameter persisted to hieradata YAML
                                          #                 file for use by SIMP server
+                                         # :none         = carries no data (e.g., ActionItem)
+                                         #
       @fact              = nil           # Facter fact to query OS value
 
       @start_time        = nil           # time at which simp config started; use for backup timestamp
-      @applied_status    = nil           # status of an applied change, as appropriate
-      @applied_time      = nil           # time at which applied change completed
-      @applied_detail    = nil           # details about the apply to be conveyed to user
 
       @skip_query        = false         # skip the query and use the default_value
-      @skip_apply        = false         # skip the apply
-      @skip_apply_reason = nil           # optional description of reason for skipping the apply
       @skip_yaml         = false         # skip yaml output
 
       @silent            = false         # no output to stdout/Highline/log
-      @die_on_apply_fail = false         # halt simp config if apply fails
-      @allow_user_apply  = false         # allow non-superuser to apply
-      @fail_on_missing_answer = false    # error out if @value is not pre-populated
+      @alt_source        = nil           # when set, non-query source of Item's value:
+                                         #   :noninteractive = default value
+                                         #   :answered       = pre-assigned value
 
       possible_module_paths = [
         '/usr/share/simp/modules',
@@ -82,19 +79,65 @@ module Simp::Cli::Config
     end
 
 
-    # methods used to infer Item#value
+    # --------------------------------------------------------------------------
+    # general methods related to Item#value
     # --------------------------------------------------------------------------
 
-    # value of item as read from OS (via Facter)
+    # whether this Item sets a data value
+    def value_required?
+      if @data_type == :none or @data_type == :global_class
+        return false
+      else
+        return true
+      end
+    end
+
+    # returns the value of item as read from OS
+    # Value is cached in @value_os to avoid unnecessary re-evaluation.
+    # Derived Items should override Item::get_os_value() to customize.
     def os_value
+      if @value_os.nil?
+        @value_os = get_os_value
+      end
+      @value_os
+    end
+
+    # returns the value of Item as read from OS (via Facter)
+    # Derived Items can override to customize
+    def get_os_value
       Facter.value( @fact ) unless @fact.nil?
     end
 
+    # returns the value of Item as recommended by Very Clever Logic (tm)
+    # Value is cached in @value_recommended to avoid unnecessary
+    # re-evaluation.
+    # Derived Items should override Item::get_recommended_value() to
+    # customize.
+    def recommended_value
+      if @value_recommended.nil?
+        @value_recommended = get_recommended_value
+      end
+      @value_recommended
+    end
 
-    # value of Item as recommended by Very Clever Logic (tm)
-    def recommended_value; nil; end
+    def get_recommended_value; nil; end
+
+    # returns the default displayed to the user in Item#query
+    def default_value
+      @value || recommended_value
+    end
+
+    # returns the default answer to Item for noninteractive operations
+    # Derived Items must override this when the displayed value
+    # returned by default_value() needs to be mapped to a final value
+    # (e.g., 'yes'/'no' mapped to true/false).
+    def default_value_noninteractive
+      default_value
+    end
+
     # --------------------------------------------------------------------------
-
+    #  Pretty stdout/stdin methods
+    # --------------------------------------------------------------------------
 
     # String in yaml answer file format, with comments (if any)
     def to_yaml_s
@@ -118,10 +161,6 @@ module Simp::Cli::Config
       end
     end
 
-
-    # --------------------------------------------------------------------------
-    #  Pretty stdout/stdin methods
-    # --------------------------------------------------------------------------
     # print a pretty banner to describe an item
     def print_banner
       info( "\n=== #{@key} ===", [:CYAN, :BOLD])
@@ -133,50 +172,118 @@ module Simp::Cli::Config
     end
 
 
-    # print a pretty summary of the Item's key+value, printed to stdout
+    # print a pretty summary of the Item's key+value
     def print_summary
       raise InternalError.new( "@key is empty for #{self.class}" ) if "#{@key}".empty?
-      info( "#{@key} = ", nil, "'#{@value}", [:BOLD] )
-    end
 
-
-    # choose @value of Item
-    def query
-      log_params = query_status
-
-      if @value.nil? && @fail_on_missing_answer
-        raise "FATAL: no answer for '#{log_params[0]}#{@key}'"
-      end
-
-      if !@skip_query && @value.nil?
-        print_banner
-        @value = query_ask
-      end
-
-      # summarize the item's status after the query is complete
-      # inspect is a work around for Ruby 1.8.7 Array.to_s garbage
+      log_params = []
+      log_params += [ "(#{@alt_source.to_s})", [:CYAN, :BOLD] ] unless @alt_source.nil?
       log_params += ["#{@key} = ", [], "#{@value.inspect}", [:BOLD] ]
       info(*log_params)
     end
 
+    # --------------------------------------------------------------------------
+    # methods to set Item#value
+    # --------------------------------------------------------------------------
 
-    def query_status
-      extra = []
-      if !@value.nil?
-        extra = ['(answered)', [:CYAN, :BOLD] ]
-      elsif @skip_query
-        extra = ['(noninteractive)', [:CYAN, :BOLD] ]
-        @value = default_value_noninteractive
+    # Determine the value of the object, querying the user or using the
+    # default, as appropriate
+    #
+    # raises  Simp::Cli::Config::ValidationError upon failure
+    def determine_value(allow_queries, force_defaults)
+      # don't do anything with Items that don't carry data
+      return unless value_required?
+
+      if @skip_query and @value.nil?
+        # value is supposed to be be automatically determined;
+        # @skip_query is typically used to gather system settings or
+        # for internal Items needed by other Items in the item decision
+        # tree.
+        determine_value_from_default()
+      elsif @value.nil?
+        # value has not been pre-assigned
+        determine_value_without_override(allow_queries, force_defaults)
+      else
+        # value has been pre-assigned, but may not be valid
+        determine_value_with_override(allow_queries, force_defaults)
       end
-      extra
+
+      print_summary
     end
+
+    def determine_value_from_default
+      # default value requires no validation
+      @value = default_value_noninteractive
+      @alt_source = :noninteractive
+    end
+
+    def determine_value_without_override(allow_queries, force_defaults)
+      if !allow_queries and !force_defaults
+        err_msg = "FATAL: No answer found for '#{@key}'"
+        raise Simp::Cli::Config::ValidationError.new(err_msg)
+      else
+        if force_defaults
+          # try to use the default value, which may or may not exist
+          possible_value = default_value_noninteractive
+          if validate(possible_value)
+            @value = possible_value
+            @alt_source = :noninteractive
+          end
+        end
+        if @value.nil?
+          if allow_queries
+            query
+            @alt_source = nil
+          else
+            err_msg = "FATAL: No valid answer found for '#{@key}'"
+            raise Simp::Cli::Config::ValidationError.new(err_msg)
+          end
+        end
+      end
+    end
+
+    def determine_value_with_override(allow_queries, force_defaults)
+      # We don't expect users to override Items for which the user
+      # would not be queried in an interactive run.  However, since some
+      # of these Items end up in an answers file, it is possible for
+      # a user to see the answer and decide to change it.  So, we need
+      # to be sure to log the pre-assigned value and any validation error
+      # from normally hidden (silent) Items.
+      @silent = false
+      if validate(@value)
+        @alt_source = :answered
+      else
+        if !allow_queries and !force_defaults
+          err_msg = "FATAL: '#{@value}' is not a valid answer for '#{@key}'"
+          raise Simp::Cli::Config::ValidationError.new(err_msg)
+        else
+          # try to fix the problem interactively or with default values, but
+          # don't allow replacement values to be autogenerated, as that hides
+          # the (user-created) problem
+          warn(
+            'WARNING: ', [:YELLOW, :BOLD],
+            "The invalid value '#{@value}' for '#{@key}' will be **IGNORED**", [:YELLOW]
+          )
+          @value = nil
+          @skip_query = false
+          determine_value_without_override(allow_queries, force_defaults)
+        end
+      end
+    end
+
+    # query user for a value of an item
+    def query
+      print_banner
+      @value = query_ask
+    end
+
 
     # prompt to use for query
     def query_prompt
       @key
     end
 
-    # ask an interactive question (via stdout/stdin)
+    # ask an interactive question
     def query_ask
       # NOTE: This trailing space at the end of the String obliquely instructs
       # Highline to keep the prompt on the same line as the question.  If the
@@ -194,29 +301,28 @@ module Simp::Cli::Config
         query_extras q
 
         # if the answer is not valid, construct a reply:
-        q.responses[:not_valid] =  "<%= color( %q{Invalid answer!}, RED ) %>\n"
-        q.responses[:not_valid] += "<%= color( %q{#{ (not_valid_message || description) }}, RED) %>\n"
+        q.responses[:not_valid] =  "<%= color( 'Invalid answer!', RED ) %>\n"
+        # since we are using {} as the string delimiter, make sure we've escaped
+        # any {} in err_msg
+        err_msg = not_valid_message || description
+        if (err_msg)
+          err_msg.gsub!('{', '\{')
+          err_msg.gsub!('}', '\}')
+        end
+        q.responses[:not_valid] += "<%= color( %q{#{err_msg}}, RED) %>\n"
         q.responses[:not_valid] += "#{q.question}  |#{q.default}|"
         q
       end
       value
     end
 
-    # returns the default answer to Item#query
-    def default_value
-      @value || recommended_value
-    end
-
-    # returns the default answer to Item for noninteractive operations
-    def default_value_noninteractive
-      default_value
-    end
 
 
     def query_extras( q ); q; end
 
 
     # returns true if x is a valid value
+    # Derived Items must override this method.
     def validate( _x )
       #TODO: cover common type-based validations?
       #TODO: Offer validation objects?
@@ -237,14 +343,12 @@ module Simp::Cli::Config
     # in query().  nil means don't cast, Date casts into a date, etc.
     # A lambda can be used for sanitization.
     #
-    # Descendants of Item are very likely to override this method.
+    # Derived Items are very likely to override this method.
     def highline_question_type; nil; end
 
-    def safe_apply; nil; end
-    def apply; nil; end
-
-    # summary of outcome of apply
-    def apply_summary; nil; end
+    # --------------------------------------------------------------------------
+    # miscellaneous methods
+    # --------------------------------------------------------------------------
 
     def status_color
       case (@applied_status)

@@ -38,7 +38,7 @@ module Simp::Cli::Config
       # NOTE: this is a hack to massage Array input to/from a highline query.
       # It would probably be better (but more complex) to provide native Array
       # support for highline.
-      # TODO: Override #query_ask using Highline's #gather?
+      # TODO: Override #query using Highline's #gather?
       q.default  = q.default.join( " " ) if q.default.is_a? Array
       q.question = "#{instructions}\n#{q.question}"
       q
@@ -72,16 +72,14 @@ module Simp::Cli::Config
 
     # print a pretty summary of the ListItem's key+value, printed to stdout
     def print_summary
-      return if @silent
       raise InternalError.new( "@key is empty for #{self.class}" ) if "#{@key}".empty?
 
-      final_value = value
-      if final_value.nil?
-        info( "#{@key} = ", nil, '[]', [:BOLD] )
+      if @value.nil?
+        final_value = []
       else
-        # inspect is a work around for Ruby 1.8.7 Array.to_s garbage
-        info( "#{@key} = ", nil, "'#{final_value.inspect}", [:BOLD] )
+        final_value = @value
       end
+      super
     end
   end
 end

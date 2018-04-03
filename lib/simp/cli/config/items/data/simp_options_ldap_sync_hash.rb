@@ -1,4 +1,5 @@
 require File.expand_path( '../item',  File.dirname(__FILE__) )
+require File.expand_path( '../../utils',  File.dirname(__FILE__) )
 
 module Simp; end
 class Simp::Cli; end
@@ -11,8 +12,8 @@ module Simp::Cli::Config
       @skip_query  = true # generated from another Item, so no query required
     end
 
-    def recommended_value
-      encrypt( @config_items.fetch( 'simp_options::ldap::sync_pw' ).value )
+    def get_recommended_value
+      encrypt( get_item( 'simp_options::ldap::sync_pw' ).value )
     end
 
     def encrypt( string, salt=nil )
@@ -20,7 +21,12 @@ module Simp::Cli::Config
     end
 
     def validate( x )
-      Simp::Cli::Config::Utils.validate_openldap_hash( x )
+      result = Simp::Cli::Config::Utils.validate_openldap_hash( x )
+
+      # in case the value is pre-assigned, make sure the
+      # hash matches the LDAP Bind password
+      result && Simp::Cli::Config::Utils.check_openldap_password(
+        get_item( 'simp_options::ldap::sync_pw' ).value, x )
     end
   end
 end

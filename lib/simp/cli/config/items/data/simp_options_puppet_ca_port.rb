@@ -11,7 +11,7 @@ module Simp::Cli::Config
 (8141 by default).}
     end
 
-    def os_value
+    def get_os_value
       Puppet.settings.setting( 'ca_port' ).value.to_i
     end
 
@@ -21,7 +21,7 @@ module Simp::Cli::Config
        (x.to_s =~ /^\d+$/ ? true : false ) && x.to_i > 0 && x.to_i <= 65535
     end
 
-    def recommended_value
+    def get_recommended_value
       8141
     end
   end

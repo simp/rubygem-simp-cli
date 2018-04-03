@@ -11,7 +11,7 @@ module Simp::Cli::Config
       @description = %Q{The YUM server(s) for SIMP-managed, OS Update packages.}
     end
 
-    def recommended_value
+    def get_recommended_value
       if get_item( 'cli::has_simp_filesystem_yum_repo' ).value
         # Assume this is a normal ISO install for which this SIMP server
         # is both the puppet master and a YUM server.

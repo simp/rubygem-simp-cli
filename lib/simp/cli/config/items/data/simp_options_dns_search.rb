@@ -14,7 +14,7 @@ Remember to put these in the appropriate order for your environment!}
       @file        = '/etc/resolv.conf'
     end
 
-    def os_value
+    def get_os_value
       # TODO: make this a custom fact?
       # NOTE: the resolver only uses the last of multiple search declarations
       File.readlines( @file ).select{ |x| x =~ /^search\s+/ }.last.to_s.gsub( /\bsearch\s+/, '').split( /\s+/ )
@@ -24,16 +24,15 @@ Remember to put these in the appropriate order for your environment!}
     #   - os_value  when present, or:
     #   - cli::network::hostname when present, or:
     #   - a must-change value
-    def recommended_value
-      os = os_value
-      if os.empty?
+    def get_recommended_value
+      if os_value.empty?
         if fqdn = @config_items.fetch( 'cli::network::hostname', nil )
           [fqdn.value.split('.')[1..-1].join('.')]
         else
           ['domain.name (CHANGE THIS)']
         end
       else
-        os
+        os_value
       end
     end
 

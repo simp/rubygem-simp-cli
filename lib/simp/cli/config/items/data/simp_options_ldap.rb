@@ -12,7 +12,7 @@ module Simp::Cli::Config
 If you disable this, modules will not attempt to use LDAP where possible.}
     end
 
-    def recommended_value
+    def get_recommended_value
       os_value || 'yes'
     end
   end

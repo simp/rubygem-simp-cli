@@ -36,7 +36,7 @@ allowed, register the allowed services with svckill and then change
       }
     end
 
-    def recommended_value
+    def get_recommended_value
       # We recommend 'warning' instead of 'enforcing', because 'warning' is not
       # destructive, should the user fail to declare their services. Issuing a
       # 'warning' gives the user time to figure out what services they need to
@@ -49,7 +49,10 @@ allowed, register the allowed services with svckill and then change
       if x == 'warning'
         result = true
         info( @warning_msgs[:warning], [:YELLOW] )
-        pause(:info)
+
+        # if the value is not pre-assigned, pause to give the user time
+        # to think about the impact of not specifying NTP servers
+        pause(:info) if @value.nil?
       elsif x == 'enforcing'
         result = true
         info( @warning_msgs[:enforcing], [:RED] )

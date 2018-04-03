@@ -16,7 +16,7 @@ module Simp::Cli::Config
 }
     end
 
-    def recommended_value
+    def get_recommended_value
       use_ldap   = get_item( 'simp_options::ldap' ).value
       if use_ldap
         ['LDAP']
