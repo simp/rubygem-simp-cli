@@ -12,7 +12,7 @@ describe 'Simp::Cli::Commands::Config.run' do
   before(:each) do
     @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__) )
 
-    allow(::Utils).to receive(:puppet_info).and_return( {
+    allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
       :config => {
         'codedir' => @tmp_dir,
         'confdir' => @tmp_dir
@@ -127,9 +127,9 @@ describe 'Simp::Cli::Commands::Config.run' do
     it 'creates valid file with minimal prompts when --force-defaults' do
       input_string = ''
       input_string <<
-                "\n"                         << # don't auto-generate LDAP root password
-                "iTXA8O6yCoDMotMGTeHd7IGI\n" << # LDAP root password
-                "iTXA8O6yCoDMotMGTeHd7IGI\n"    # confirm LDAP root password
+                "\n"                         << # accept auto-generated grub password
+                "iTXA8O6yC=DMotMGTeHd7IGI\n" << # LDAP root password
+                "iTXA8O6yC=DMotMGTeHd7IGI\n"    # confirm LDAP root password
       @input.reopen(input_string)
       @input.rewind
 
@@ -148,7 +148,8 @@ describe 'Simp::Cli::Commands::Config.run' do
         Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
         '-l', @log_file, '--dry-run', '--force-defaults',
         "cli::network::interface=#{get_valid_interface}",
-        'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL'])
+        'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
+        'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.' ])
       rescue Exception =>e
         puts '=========stdout========='
         puts @output.string
@@ -162,7 +163,9 @@ describe 'Simp::Cli::Commands::Config.run' do
         Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
         '-l', @log_file, '--dry-run', '--non-interactive',
         "cli::network::interface=#{get_valid_interface}",
-        'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL'])
+        'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
+        'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.' ])
+      rescue Exception =>e
       rescue Exception =>e
         puts '=========stdout========='
         puts @output.string
@@ -430,6 +433,7 @@ describe 'Simp::Cli::Commands::Config.run' do
         '--force-defaults', '-l', @log_file, '--dry-run',
         '--disable-queries',
         'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
+        'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.',
         '--quiet'])
       rescue Exception =>e
         puts '=========stdout========='
@@ -510,7 +514,7 @@ describe 'Simp::Cli::Commands::Config.run' do
   end
 
   context 'when invalid passwords are input' do
-    it 're-prompts when user enters different inputs for a password' do
+    it 'starts over when user enters different inputs for a password' do
       input_string = ''
       input_string <<
                 "\n"                         << # don't auto-generate LDAP root password
@@ -528,8 +532,31 @@ describe 'Simp::Cli::Commands::Config.run' do
         puts @output.string
         raise
       end
-      expect( @output.string ).to match /WARNING: passwords did not match!  Please try again/
+      expect( @output.string ).to match /WARNING: Passwords did not match!  Please try again/
+
+      pw_prompt_lines = @output.string.split("\n").delete_if do |line|
+        !line.include?('Please enter a password') and
+        !line.include?('Please confirm the password')
+      end
+      expect( pw_prompt_lines.size ).to eq 4
+
       expect( File.exists?( @answers_output_file ) ).to be true
+    end
+
+    it 'fails after 5 failed start-over attempts' do
+      input_string = "\n" # don't auto-generate LDAP root password
+      (1..5).each do |attempt|
+        input_string << "iTXA8O6y{oDMotMGTeHd7IGI\n"       << # valid LDAP root password
+        input_string << "Bad confirm password #{attempt}\n"   # non-matching confirm
+       end
+      @input.reopen(input_string)
+      @input.rewind
+
+      expect {
+        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
+          '-l', @log_file, '--dry-run', '--force-defaults'])
+      }.to raise_error( Simp::Cli::ProcessingError,
+       /FATAL: Too many failed attempts to enter password/)
     end
 
     it 're-prompts when user enters a password that fails validation' do
@@ -551,9 +578,9 @@ describe 'Simp::Cli::Commands::Config.run' do
         raise
       end
 
-      expect( @output.string ).to match /Invalid password:/
+      expect( @output.string ).to match /Invalid Password:/
       error_lines = @output.string.split("\n").delete_if do |line|
-        !line.include?('Invalid password:')
+        !line.include?('Invalid Password:')
       end
 
       expect( error_lines.size ).to eq 2
@@ -685,16 +712,16 @@ describe 'Simp::Cli::Commands::Config.run' do
           '--force-defaults', '-l', @log_file, '--dry-run',
           '--disable-queries'])
       }.to raise_error( Simp::Cli::ProcessingError,
-       "FATAL: No valid answer found for 'simp_openldap::server::conf::rootpw'")
+       "FATAL: No valid answer found for 'grub::password'")
     end
 
     it 'raises an exception when --disable-queries and input KEY=VALUE has an invalid value' do
       expect {
         Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
           '--force-defaults', '-l', @log_file, '--dry-run',
-          '--disable-queries', 'simp_openldap::server::conf::rootpw=not_encrypted'])
+          '--disable-queries', 'grub::password=not_encrypted'])
       }.to raise_error( Simp::Cli::ProcessingError,
-       "FATAL: No valid answer found for 'simp_openldap::server::conf::rootpw'")
+       "FATAL: No valid answer found for 'grub::password'")
     end
 
     it 'raises an exception when --disable-queries and input KEY=VALUE has an invalid noninteractive value' do

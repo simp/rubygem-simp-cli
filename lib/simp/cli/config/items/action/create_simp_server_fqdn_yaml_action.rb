@@ -12,10 +12,10 @@ module Simp::Cli::Config
       @key         = 'puppet::create_simp_server_fqdn_yaml'
       @description = 'Create SIMP server <host>.yaml from template'
       @die_on_apply_fail = true
-      @template_file = "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/hosts/puppet.your.domain.yaml"
+      @template_file = "#{Simp::Cli::Utils.puppet_info[:simp_environment_path]}/hieradata/hosts/puppet.your.domain.yaml"
       @alt_file    = '/usr/share/simp/environments/simp/hieradata/hosts/puppet.your.domain.yaml'
       @host_yaml    = nil
-      @group       = ::Utils.puppet_info[:puppet_group]
+      @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
     end
 
     def apply

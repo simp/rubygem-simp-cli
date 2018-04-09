@@ -11,10 +11,10 @@ puppetdb::master::config::restart_puppet: false
 simp::server::allow_simp_user: true
 
 # === simp_openldap::server::conf::rootpw ===
-# The LDAP Root password hash.
+# The salted LDAP Root password hash.
 # 
-# When set via 'simp config', it is generated from the password
-# entered on the command line.
+# When set via 'simp config', this password hash is generated from
+# the password entered on the command line.
 simp_openldap::server::conf::rootpw: "{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL"
 
 classes :

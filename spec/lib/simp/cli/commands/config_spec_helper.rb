@@ -24,10 +24,9 @@ def generate_simp_input_accepting_defaults
     "\n"                          << # set production env to simp
     "\n"                          << # use internet SIMP repos
     "\n"                          << # SIMP is LDAP server
-    "\n"                          << # LDAP base DN
     "\n"                          << # don't auto-generate a password
-    "iTXA8O6yCoDMotMGPTeHd7IGI\n" << # LDAP root password
-    "iTXA8O6yCoDMotMGPTeHd7IGI\n" << # confirm LDAP root password
+    "iTXA8O6yC=DMotMGPTeHd7IGI\n" << # LDAP root password
+    "iTXA8O6yC=DMotMGPTeHd7IGI\n" << # confirm LDAP root password
     "\n"                          << # log servers
     "\n"                          << # securetty list
     "\n"                             # svckill warning mode

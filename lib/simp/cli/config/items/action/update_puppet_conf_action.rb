@@ -1,5 +1,5 @@
 require File.expand_path( '../action_item', File.dirname(__FILE__) )
-require 'simp/cli/lib/utils'
+require 'simp/cli/utils'
 
 module Simp; end
 class Simp::Cli; end
@@ -9,7 +9,7 @@ module Simp::Cli::Config
 
     def initialize
       super
-      @file        = File.join(::Utils.puppet_info[:config]['confdir'], 'puppet.conf')
+      @file        = File.join(Simp::Cli::Utils.puppet_info[:config]['confdir'], 'puppet.conf')
       @key         = 'puppet::conf'
       @description = "Update Puppet settings"
     end

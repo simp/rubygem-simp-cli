@@ -2,10 +2,13 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config; end
 
-require File.expand_path( 'errors', File.dirname(__FILE__) )
-
 class Simp::Cli::Config::Utils
-  DEFAULT_PASSWORD_LENGTH = 32
+
+  ###################################################################
+  # Let's be DRY.  Before adding methods to this file, first see if
+  # Simp::Cli::Utils has what you need.
+  ###################################################################
+
   class << self
 
     def validate_fqdn fqdn
@@ -48,36 +51,6 @@ class Simp::Cli::Config::Utils
 
     def validate_hiera_lookup( x )
       x.to_s.strip =~ %r@\%\{.+\}@ ? true : false
-    end
-
-
-    # NOTE: requires shell-based cracklib
-    # TODO: should we find a better way of returning specific error messages than an exception?
-    def validate_password( password )
-      require 'shellwords'
-      if password.length < 8
-        raise Simp::Cli::Config::PasswordError, "Password must be at least 8 characters long"
-      else
-        pass_result = `echo #{Shellwords.escape(password)} | cracklib-check`.split(':').last.strip
-        if pass_result == "OK"
-          true
-        else
-          raise Simp::Cli::Config::PasswordError, "Invalid Password: #{pass_result}"
-        end
-      end
-    end
-
-
-    def generate_password( length = DEFAULT_PASSWORD_LENGTH )
-      password = ''
-      special_chars = ['#','%','&','*','+','-','.',':','@']
-      symbols = ('0'..'9').to_a + ('A'..'Z').to_a + ('a'..'z').to_a
-      Integer(length).times { |i| password += (symbols + special_chars)[rand((symbols.length-1 + special_chars.length-1))] }
-      # Ensure that the password does not start or end with a special
-      # character.
-      special_chars.include?(password[0].chr) and password[0] = symbols[rand(symbols.length-1)]
-      special_chars.include?(password[password.length-1].chr) and password[password.length-1] = symbols[rand(symbols.length-1)]
-      password
     end
 
 

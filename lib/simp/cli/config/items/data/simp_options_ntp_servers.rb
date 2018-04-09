@@ -14,8 +14,8 @@ A consistent time source is critical to a functioning public key
 infrastructure, and thus your site security. **DO NOT** attempt to
 run multiple production systems using individual hardware clocks!
 }
-      @no_ntp_warning  = %Q[Not specifying NTP servers in #{@key} can negatively
-impact your site security.]
+      @no_ntp_warning  = %Q[Not specifying NTP servers in #{@key} can
+negatively impact your site security.]
       @allow_empty_list = true
     end
 

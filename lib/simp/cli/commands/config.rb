@@ -22,7 +22,7 @@ class Simp::Cli::Commands::Config  < Simp::Cli
   DEFAULT_ANSWERS_OUTFILE = File.join(SIMP_CLI_HOME, 'simp_conf.yaml')
 
   DEFAULT_HIERA_OUTFILE =
-    "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/simp_config_settings.yaml"
+    "#{Simp::Cli::Utils.puppet_info[:simp_environment_path]}/hieradata/simp_config_settings.yaml"
 
 
   SIMP_CONFIG_DEFAULT_OPTIONS = {
@@ -280,8 +280,8 @@ EOM
     set_up_global_logger
 
     # Ensure that custom facts are available before the first pluginsync
-    if ::Utils.puppet_info[:config]['modulepath']  # nil in spec tests with Puppet 4
-      ::Utils.puppet_info[:config]['modulepath'].split(':').each do |dir|
+    if Simp::Cli::Utils.puppet_info[:config]['modulepath']  # nil in spec tests with Puppet 4
+      Simp::Cli::Utils.puppet_info[:config]['modulepath'].split(':').each do |dir|
         next unless File.directory?(dir)
         Find.find(dir) do |mod_path|
           fact_path = File.expand_path('lib/facter', mod_path)
@@ -317,7 +317,7 @@ EOM
     print_summary(answers) if answers
 
     unless @options[:verbose] < 0
-      logger.say( "\n<%= color(%q{Detailed log written to #{@options[:log_file]}}, BOLD) %>" )
+      logger.say( "\n" + "Detailed log written to #{@options[:log_file]}".bold )
     end
 
     # Remove the copy of session answers persisted when safety-save
@@ -375,13 +375,14 @@ EOM
         # in that tree, it will be configured to quietly use the default value, so that
         # the user isn't prompted twice.
         item.query
+        item.print_summary
         answers_hash['cli::simp::scenario'] =  item.value
       else
         err_msg = "FATAL: No valid answer found for 'cli::simp::scenario'"
         raise Simp::Cli::Config::ValidationError.new(err_msg)
       end
     end
-    scenario_hiera_file = File.join(::Utils.puppet_info[:simp_environment_path],
+    scenario_hiera_file = File.join(Simp::Cli::Utils.puppet_info[:simp_environment_path],
         'hieradata', 'scenarios', "#{answers_hash['cli::simp::scenario']}.yaml")
     unless File.exist?(scenario_hiera_file)
       # If SIMP is installed via RPMs but not the ISO and the copy

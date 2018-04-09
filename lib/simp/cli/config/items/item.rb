@@ -49,7 +49,7 @@ module Simp::Cli::Config
       @skip_query        = false         # skip the query and use the default_value
       @skip_yaml         = false         # skip yaml output
 
-      @silent            = false         # no output to stdout/Highline/log
+      @silent            = false         # no output to stdout/HighLine/log
       @alt_source        = nil           # when set, non-query source of Item's value:
                                          #   :noninteractive = default value
                                          #   :answered       = pre-assigned value
@@ -224,10 +224,16 @@ module Simp::Cli::Config
       else
         if force_defaults
           # try to use the default value, which may or may not exist
-          possible_value = default_value_noninteractive
-          if validate(possible_value)
-            @value = possible_value
+          # NOTE: We intentionally set @value so validation logic
+          # for encrypted passwords is exercised, for PasswordItems
+          # that prompt for unencrypted values and then encrypt. These
+          # Items exercise different validation logic for unencrypted
+          # and encrypted values.
+          @value = default_value_noninteractive
+          if validate(@value)
             @alt_source = :noninteractive
+          else
+            @value.nil?
           end
         end
         if @value.nil?
@@ -243,16 +249,24 @@ module Simp::Cli::Config
     end
 
     def determine_value_with_override(allow_queries, force_defaults)
-      # We don't expect users to override Items for which the user
-      # would not be queried in an interactive run.  However, since some
-      # of these Items end up in an answers file, it is possible for
-      # a user to see the answer and decide to change it.  So, we need
-      # to be sure to log the pre-assigned value and any validation error
-      # from normally hidden (silent) Items.
-      @silent = false
       if validate(@value)
         @alt_source = :answered
       else
+        # We don't expect users to override Items for which the user
+        # would not be queried in an interactive run.  However, since some
+        # of these Items end up in an answers file, it is possible for
+        # a user to see the answer and decide to change it.  So, we need
+        # to be sure to log any errors related to normally hidden (silent)
+        # Items.
+        prev_silent = @silent
+        @silent = false
+        if prev_silent
+          # This is the only way to get validation errors that may be
+          # logged.  Currently, PasswordItems are the only Items to log
+          # validation error messages.  Since these messages are very
+          # informative, we do not want to lose them.
+          validate(@value)
+        end
         if !allow_queries and !force_defaults
           err_msg = "FATAL: '#{@value}' is not a valid answer for '#{@key}'"
           raise Simp::Cli::Config::ValidationError.new(err_msg)
@@ -285,10 +299,18 @@ module Simp::Cli::Config
 
     # ask an interactive question
     def query_ask
-      # NOTE: This trailing space at the end of the String obliquely instructs
-      # Highline to keep the prompt on the same line as the question.  If the
-      # String did not end with a space or tab, Highline would move the input
-      # prompt to the next line (which, for our purposes, looks confusing)
+      # NOTE: The trailing space at the end of the ask() parameter
+      # obliquely instructs HighLine to keep the prompt on the same
+      # line as the question.  If the String did not end with a space
+      # or tab, HighLine would move the input prompt to the next line
+      # (which, for our purposes, looks confusing).
+
+# FIXME:  When the more-intelligible, string color methods are
+# used here instead of the ERB template, the unit tests that examine
+# HighLine output fail because of missing <CR>s that are not in the
+# output StringIO, even though they appear in the console output, when
+# run manually.
+#      value = ask( "#{query_prompt.white.bold}: ",
       value = ask( "<%= color('#{query_prompt}', WHITE, BOLD) %>: ",
                   highline_question_type ) do |q|
         q.default = default_value unless default_value.to_s.empty?
@@ -301,16 +323,10 @@ module Simp::Cli::Config
         query_extras q
 
         # if the answer is not valid, construct a reply:
-        q.responses[:not_valid] =  "<%= color( 'Invalid answer!', RED ) %>\n"
-        # since we are using {} as the string delimiter, make sure we've escaped
-        # any {} in err_msg
+        q.responses[:not_valid] =  'Invalid answer!'.red + "\n"
         err_msg = not_valid_message || description
-        if (err_msg)
-          err_msg.gsub!('{', '\{')
-          err_msg.gsub!('}', '\}')
-        end
-        q.responses[:not_valid] += "<%= color( %q{#{err_msg}}, RED) %>\n"
-        q.responses[:not_valid] += "#{q.question}  |#{q.default}|"
+        q.responses[:not_valid] += "#{err_msg}".red
+        q.responses[:ask_on_error] = :question
         q
       end
       value

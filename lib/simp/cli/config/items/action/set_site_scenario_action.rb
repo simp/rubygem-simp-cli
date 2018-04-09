@@ -1,6 +1,6 @@
 require File.expand_path( '../action_item', File.dirname(__FILE__) )
 require 'fileutils'
-require 'simp/cli/lib/utils'
+require 'simp/cli/utils'
 
 module Simp; end
 class Simp::Cli; end
@@ -12,7 +12,7 @@ module Simp::Cli::Config
       super
       @key                   = 'puppet::site::scenario'
       @description           = "Set $simp_scenario in simp environment's site.pp"
-      @simp_environment_path = ::Utils.puppet_info[:simp_environment_path]
+      @simp_environment_path = Simp::Cli::Utils.puppet_info[:simp_environment_path]
     end
 
     def apply

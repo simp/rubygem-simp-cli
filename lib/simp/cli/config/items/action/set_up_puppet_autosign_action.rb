@@ -9,8 +9,8 @@ module Simp::Cli::Config
       super
       @key         = 'puppet::autosign'
       @description = 'Set up Puppet autosign'
-      @file        = File.join(::Utils.puppet_info[:config]['confdir'], 'autosign.conf')
-      @group       = ::Utils.puppet_info[:puppet_group]
+      @file        = File.join(Simp::Cli::Utils.puppet_info[:config]['confdir'], 'autosign.conf')
+      @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
     end
 
     def get_os_value

@@ -1,5 +1,5 @@
 require File.expand_path( '../action_item', File.dirname(__FILE__) )
-require 'simp/cli/lib/utils'
+require 'simp/cli/utils'
 require 'fileutils'
 
 module Simp; end
@@ -14,7 +14,7 @@ module Simp::Cli::Config
       @description        = "Set default Puppet environment to 'simp'"
 
       # Normal Puppet environments path
-      @primary_env_path   = ::Utils.puppet_info[:environment_path]
+      @primary_env_path   = Simp::Cli::Utils.puppet_info[:environment_path]
 
       # SIMP-specific secondary environments path
       @secondary_env_path = '/var/simp/environments'

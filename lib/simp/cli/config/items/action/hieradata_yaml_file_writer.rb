@@ -14,8 +14,8 @@ module Simp::Cli::Config
       @key             = 'yaml::hieradata_file_writer'
       @description     = %Q{Write SIMP global hieradata to YAML file.}
       # 'simp cli' sets @file, so this default doesn't really matter
-      @file            = "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/simp_config_settings.yaml"
-      @group           = ::Utils.puppet_info[:puppet_group]
+      @file            = "#{Simp::Cli::Utils.puppet_info[:simp_environment_path]}/hieradata/simp_config_settings.yaml"
+      @group           = Simp::Cli::Utils.puppet_info[:puppet_group]
     end
 
     # prints an hieradata file to an iostream

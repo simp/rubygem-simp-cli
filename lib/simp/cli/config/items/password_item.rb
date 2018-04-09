@@ -1,5 +1,5 @@
 require File.expand_path( 'item', File.dirname(__FILE__) )
-require 'simp/cli/lib/utils'
+require 'simp/cli/utils'
 
 module Simp::Cli::Config
 
@@ -13,9 +13,12 @@ module Simp::Cli::Config
     def initialize
       super
       # :never_generate         = don't give user option to auto-generate
-      # :generate_no_query      = auto-generate and accept
-      # :generate_as_default    = ask user if they want to auto-generate, defaulting to 'yes'
-      # :no_generate_as_default = ask user if they want to auto-generate, defaulting to 'no'
+      # :generate_no_query      = auto-generate and accept; should only be used when
+      #                           a password will be persisted to hieradata
+      # :generate_as_default    = ask user if they want to auto-generate, defaulting to 'yes',
+      #                           and tell user to persist the password themselves
+      # :no_generate_as_default = ask user if they want to auto-generate, defaulting to 'no',
+      #                           and tell user to persist the password themselves
       @generate_option          = :generate_as_default
       @password_name            = nil # password name used in the auto-generate query;
                                       # When log level is > info and the explanatory
@@ -23,15 +26,23 @@ module Simp::Cli::Config
                                       # is what tells the user which password the
                                       # query is for.  If unset, @key will be used
                                       # instead.
+      @minimize_queries         = false # whether the user wants to use the minimum
+                                        # number of queries as possible
+    end
+
+
+    def determine_value_without_override(allow_queries, force_defaults)
+      @minimize_queries = force_defaults
+      super
     end
 
     # returns the default answer to Item for noninteractive operations
     def default_value_noninteractive
       case @generate_option
-      when :never_generate, :no_generate_as_default
+      when :never_generate, :no_generate_as_default, :generate_as_default
         value = nil
-      when :generate_no_query, :generate_as_default
-        password = Simp::Cli::Config::Utils.generate_password
+      when :generate_no_query
+        password = Simp::Cli::Utils.generate_password
         value = encrypt(password)
       end
       value
@@ -49,67 +60,110 @@ module Simp::Cli::Config
     end
 
 
-    def query_generate_password
+    # returns generated password or nil, if auto-generation is not
+    # appropriate
+    def auto_generate_password
       case @generate_option
       when :never_generate
-        return false
+        return nil
       when :generate_no_query
         # Normally, :generate_no_query goes hand-in-hand with skipping
         # the query.  However, if the Item's value was pre-assigned
         # and invalid, @skip_query will be set to false. This is so we
         # give the user an opportunity to fix the problem via a query.
         if @skip_query
-          return Simp::Cli::Config::Utils.generate_password
+          return Simp::Cli::Utils.generate_password
         else
-          default = 'yes'
+          auto_default = 'yes'
         end
       when :generate_as_default
-        default = 'yes'
+        auto_default = 'yes'
       when :no_generate_as_default
-        default = 'no'
+        auto_default = 'no'
       end
 
-      password = false
-      @password_name = @key if @password_name.nil? or @password_name.empty?
-      if agree( "Auto-generate the #{@password_name} password? " ){ |q| q.default = default }
-        password = Simp::Cli::Config::Utils.generate_password
-        logger.say "<%= color( '#{''.ljust(80,'-')}', GREEN)%>\n"
-        logger.say "<%= color( 'NOTE: ', GREEN, BOLD)%>" +
-            "<%= color( ' the generated password is: ') %>\n"
-        logger.say "\n"
-        # since we are using {} as the string delimiter, make sure we've escaped
-        # any {} in the password
-        escaped_password = password.dup
-        escaped_password.gsub!('{', '\{')
-        escaped_password.gsub!('}', '\}')
-        logger.say "<%= color( %q{   #{escaped_password}}, YELLOW, BOLD )%>  "
-        logger.say "\n"
-        logger.say "\n"
-        logger.say 'Please remember it!'
-        logger.say "<%= color( '#{''.ljust(80,'-')}', GREEN)%>\n"
-        logger.say "<%= color( '*** Press enter to continue ***', CYAN, BOLD, BLINK ) %>\n"
-        ask ''
+      if @minimize_queries
+        # skip the 'Auto-generate the password?' query
+        if auto_default == 'no'
+          # assume auto-generation is not appropriate
+          return nil
+        else
+          # assume auto-generation is appropriate
+          password = generate_and_print_password
+        end
+      else
+        password = nil
+        @password_name = @key if @password_name.nil? or @password_name.empty?
+        if agree( "Auto-generate the #{@password_name} password? " ){ |q| q.default = auto_default }
+          password = generate_and_print_password
+        end
       end
       password
     end
 
+    # generate a password, print it to the screen, and make user
+    # acknowledge the password by pressing <enter>
+    def generate_and_print_password
+      password = Simp::Cli::Utils.generate_password
+      logger.say ('~'*80).green + "\n"
+      logger.say 'NOTE: '.green.bold + " The generated password is: \n\n"
+      logger.say '   ' + password.yellow.bold + "\n\n"
+      logger.say '  >>>> Please remember this password! <<<<'.bold
+      logger.say '   It will ' + '**NOT**'.bold + ' be written to the log or hieradata.'
+      logger.say ('~'*80).green + "\n"
+      logger.say '*** Press enter to continue ***'.cyan.bold.blink
+      ask ''
+      password
+    end
+
+
+    def not_valid_message
+      # The failure message has already logged, but if we return nil
+      # the entire description will be spewed.  So, use a single
+      # space, which will appear at the beginning of the re-prompt,
+      # because HighLine thinks a space means no newline.
+      ' '
+    end
 
     # ask for the password twice (and verify that both match)
     def query_ask
-      password = false
-      password = query_generate_password unless @generate_option == :never_generate
+      password = nil
 
-      while !password
-        answers = []
-        [0,1].each{ |x|
-          logger.say "Please enter a password:"     if x == 0
-          logger.say "Please confirm the password:" if x == 1
-          answers[x] = super
-        }
-        if answers.first == answers.last
-          password = answers.first
-        else
-          say_yellow( 'WARNING: passwords did not match!  Please try again.' )
+      # auto-generate the password, if appropriate
+      password = auto_generate_password
+
+      unless password
+        # have to query user for value
+        retries = 5
+        begin
+          if retries == 0
+            err_msg  = "FATAL: Too many failed attempts to enter password for #{@key}"
+            raise Simp::Cli::ProcessingError.new(err_msg)
+          end
+
+          # use Item::query_ask to read in, validate, and re-prompt if necessary
+          # to get a valid password
+          logger.say "Please enter a password:"
+          password = super
+
+          # use HighLine to read in the confirm password, but don't do any
+          # validation, here
+          logger.say "Please confirm the password:"
+          confirm_password = ask( "<%= color('Confirm #{query_prompt}', WHITE, BOLD) %>: ",
+                  highline_question_type ) do |q|
+            q.echo = '*'
+            q
+          end
+
+          # restart the process if the confirm password does not match the
+          # validated password.
+          if password != confirm_password
+            raise Simp::Cli::PasswordError.new('WARNING: Passwords did not match!  Please try again.')
+          end
+        rescue Simp::Cli::PasswordError => e
+          logger.say(e.message.yellow)
+          retries -= 1
+          retry
         end
       end
 
@@ -120,22 +174,12 @@ module Simp::Cli::Config
     def validate x
       result = true
       begin
-        Simp::Cli::Config::Utils.validate_password x
-      rescue Simp::Cli::Config::PasswordError => e
+        Simp::Cli::Utils.validate_password x
+      rescue Simp::Cli::PasswordError => e
         warn('WARNING: ', [:YELLOW, :BOLD], e.message, [:YELLOW])
         result = false
       end
       result
-    end
-
-    def say_yellow( msg, options=[] )
-      options = options.unshift( '' ) unless options.empty?
-      # since we are using {} as the string delimiter, make sure we've escaped
-      # any {} in the message
-      escaped_msg = msg.dup
-      escaped_msg.gsub!('{', '\{')
-      escaped_msg.gsub!('}', '\}')
-      logger.say("<%= color(%q{#{escaped_msg}}, YELLOW #{options.join(', ')}) %>\n")
     end
 
   end

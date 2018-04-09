@@ -9,7 +9,7 @@ describe Simp::Cli::Config::PasswordItem do
   end
 
   it "validates good passwords" do
-    expect( @ci.validate( 'duP3rP@ssw0r!' ) ).to eq true
+    expect( @ci.validate( 'A=Re@lly=S_6duP3rP@ssw0r!' ) ).to eq true
   end
 
   it "doesn't validate bad passwords" do
