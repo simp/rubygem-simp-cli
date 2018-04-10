@@ -25,8 +25,13 @@ entered on the command line.}
     end
 
     def validate( x )
-      Simp::Cli::Config::Utils.validate_openldap_hash( x ) ||
+      if @value.nil?
+        # we should be dealing with an unencrypted password
         ( !x.to_s.strip.empty? && super )
+      else
+        # the password hash has been pre-assigned
+        Simp::Cli::Config::Utils.validate_openldap_hash( x )
+      end
     end
   end
 end

@@ -10,7 +10,7 @@ module Simp::Cli::Config
       @description = %q{The Hostname or FQDN of the Puppet server.}
     end
 
-    def os_value
+    def get_os_value
       Puppet.settings.setting( 'server' ).value
     end
 
@@ -19,7 +19,7 @@ module Simp::Cli::Config
       Simp::Cli::Config::Utils.validate_fqdn( x )
     end
 
-    def recommended_value
+    def get_recommended_value
       get_item( 'cli::network::hostname' ).value
     end
   end

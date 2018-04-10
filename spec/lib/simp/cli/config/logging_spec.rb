@@ -1,12 +1,13 @@
 require 'simp/cli/config/logging'
 require 'spec_helper'
+require 'tmpdir'
 
 class MyLogTesterA
   include Simp::Cli::Config::Logging
 
   def self.use_logger
-    logger.debug("#{self.inspect}: this is an unformatted debug message")
-    logger.info("#{self.inspect}: this is a single-part, formatted text message", [:BOLD, :RED])
+    logger.debug("#{self.inspect}: this is an unformatted debug message with a {")
+    logger.info("#{self.inspect}: this is a single-part, formatted text message with a }", [:BOLD, :RED])
     logger.warn("#{self.inspect}: this is a", nil, ' multi-part ', [:BOLD], 'formatted text message')
     logger.error("#{self.inspect}: this is a message that does not end in a newline when sent to the console... ")
     logger.error("#{self.inspect}: continuation first line")
@@ -20,8 +21,8 @@ class MyLogTesterB
   include Simp::Cli::Config::Logging
 
   def use_logger
-    logger.debug("#{self.class}: this is an unformatted debug message")
-    logger.info("#{self.class}: this is a single-part, formatted text message", [:BOLD, :RED])
+    logger.debug("#{self.class}: this is an unformatted debug message with a {")
+    logger.info("#{self.class}: this is a single-part, formatted text message with a }", [:BOLD, :RED])
     logger.warn("#{self.class}: this is a", nil, ' multi-part ', [:BOLD], 'formatted text message')
     logger.error("#{self.class}: this is a message that does not end in a newline when sent to the console... ")
     logger.error("#{self.class}: continuation first line")
@@ -118,8 +119,8 @@ EOM
         MyLogTesterA.use_logger
 
         expected_formatted_output = <<EOM
-MyLogTesterA: this is an unformatted debug message
-\e[1m\e[31mMyLogTesterA: this is a single-part, formatted text message\e[0m
+MyLogTesterA: this is an unformatted debug message with a {
+\e[1m\e[31mMyLogTesterA: this is a single-part, formatted text message with a }\e[0m
 MyLogTesterA: this is a\e[1m multi-part\e[0m formatted text message
 MyLogTesterA: this is a message that does not end in a newline when sent to the console... MyLogTesterA: continuation first line
 MyLogTesterA: this is a\e[31m message\e[0m that does not end in a newline when sent to the console... MyLogTesterA: continuation second line
@@ -127,8 +128,8 @@ EOM
         expect( @output.string ).to eq expected_formatted_output
 
         expected_file_output = <<EOM
-MyLogTesterA: this is an unformatted debug message
-MyLogTesterA: this is a single-part, formatted text message
+MyLogTesterA: this is an unformatted debug message with a {
+MyLogTesterA: this is a single-part, formatted text message with a }
 MyLogTesterA: this is a multi-part formatted text message
 MyLogTesterA: this is a message that does not end in a newline when sent to the console... 
 MyLogTesterA: continuation first line
@@ -145,8 +146,8 @@ EOM
         MyLogTesterB.new.use_logger
 
         expected_formatted_output = <<EOM
-MyLogTesterB: this is an unformatted debug message
-\e[1m\e[31mMyLogTesterB: this is a single-part, formatted text message\e[0m
+MyLogTesterB: this is an unformatted debug message with a {
+\e[1m\e[31mMyLogTesterB: this is a single-part, formatted text message with a }\e[0m
 MyLogTesterB: this is a\e[1m multi-part\e[0m formatted text message
 MyLogTesterB: this is a message that does not end in a newline when sent to the console... MyLogTesterB: continuation first line
 MyLogTesterB: this is a\e[31m message\e[0m that does not end in a newline when sent to the console... MyLogTesterB: continuation second line
@@ -154,8 +155,8 @@ EOM
         expect( @output.string ).to eq expected_formatted_output
 
         expected_file_output = <<EOM
-MyLogTesterB: this is an unformatted debug message
-MyLogTesterB: this is a single-part, formatted text message
+MyLogTesterB: this is an unformatted debug message with a {
+MyLogTesterB: this is a single-part, formatted text message with a }
 MyLogTesterB: this is a multi-part formatted text message
 MyLogTesterB: this is a message that does not end in a newline when sent to the console... 
 MyLogTesterB: continuation first line

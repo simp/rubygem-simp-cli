@@ -7,21 +7,17 @@ describe Simp::Cli::Config::Item do
     @ci = Simp::Cli::Config::Item.new
   end
 
-  describe "#initialize" do
-    it "has no value when initialized" do
+  describe '#initialize' do
+    it 'has no value when initialized' do
       expect( @ci.value ).to eq nil
     end
 
-    it "has nil values when initialized" do
+    it 'has nil os_value when initialized' do
       expect( @ci.os_value ).to be_nil
     end
 
-    it "has nil applied_status when initialized" do
-      expect( @ci.applied_status ).to be_nil
-    end
-
-    it "has nil applied_time when initialized" do
-      expect( @ci.applied_time ).to be_nil
+    it 'has nil recommended_value when initialized' do
+      expect( @ci.recommended_value ).to be_nil
     end
 
   end
@@ -45,27 +41,21 @@ describe Simp::Cli::Config::Item do
     end
   end
 
-  describe "#print_summary" do
-    it "raises Simp::Cli::Config::InternalError on nil @key" do
+  describe '#print_summary' do
+    it 'raises Simp::Cli::Config::InternalError on nil @key' do
       @ci.key = nil
       expect{ @ci.print_summary }.to raise_error( Simp::Cli::Config::InternalError )
     end
 
-    it "raises a Simp::Cli::Config::InternalError on empty @key" do
-      @ci.key = ""
+    it 'raises a Simp::Cli::Config::InternalError on empty @key' do
+      @ci.key = ''
       expect{ @ci.print_summary }.to raise_error( Simp::Cli::Config::InternalError )
     end
   end
 
-  describe "#apply_summary" do
-    it "returns nil by default" do
-      expect( @ci.apply_summary ).to be_nil
-    end
-  end
-
-  describe "#run_command" do
+  describe '#run_command' do
     it 'should reject pipes' do
-      command = "ls /some/missing/path1 | grep path1"
+      command = 'ls /some/missing/path1 | grep path1'
       expect{ @ci.run_command(command) }.to raise_error("Internal error: Invalid pipe '|' in spawn command: <ls /some/missing/path1 | grep path1>")
     end
 
@@ -73,25 +63,25 @@ describe Simp::Cli::Config::Item do
       command = "ls #{__FILE__}"
       expect( @ci.run_command(command)[:status] ).to eq true
       expect( @ci.run_command(command)[:stdout] ).to match "#{__FILE__}"
-      expect( @ci.run_command(command)[:stderr] ).to eq ""
+      expect( @ci.run_command(command)[:stderr] ).to eq ''
     end
 
     it 'returns false when command fails and ignore_failure is false' do
       command = 'ls /some/missing/path1 /some/missing/path2'
       expect( @ci.run_command(command)[:status] ).to eq false
-      expect( @ci.run_command(command)[:stdout] ).to match ""
+      expect( @ci.run_command(command)[:stdout] ).to eq ''
       expect( @ci.run_command(command)[:stderr] ).to match /ls: cannot access.*\/some\/missing\/path1.*: No such file or directory/
     end
 
     it 'returns true when command fails and ignore_failure is true' do
       command = 'ls /some/missing/path1 /some/missing/path2'
       expect( @ci.run_command(command, true)[:status] ).to eq true
-      expect( @ci.run_command(command)[:stdout] ).to match ""
+      expect( @ci.run_command(command)[:stdout] ).to eq ''
       expect( @ci.run_command(command)[:stderr] ).to match /ls: cannot access.*\/some\/missing\/path1.*: No such file or directory/
     end
   end
 
-  describe "#execute" do
+  describe '#execute' do
     it 'should reject pipes' do
       command = "ls /some/missing/path1 | grep path1"
       expect{ @ci.run_command(command) }.to raise_error("Internal error: Invalid pipe '|' in spawn command: <ls /some/missing/path1 | grep path1>")
@@ -110,6 +100,17 @@ describe Simp::Cli::Config::Item do
     it 'returns true when command fails and ignore_failure is true' do
       command = 'ls /some/missing/path1 /some/missing/path2'
       expect( @ci.execute(command, true) ).to eq true
+    end
+  end
+
+  describe '#get_os_value' do
+    it 'has nil value when @fact is nil' do
+      expect( @ci.get_os_value ).to be_nil
+    end
+
+    it 'does not have nil value when @fact is set' do
+      @ci.fact = 'interfaces'
+      expect( @ci.get_os_value ).to_not be_nil
     end
   end
 end

@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.0.5
+%global cli_version 4.1.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -100,6 +100,40 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Wed Apr 04 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.1.0
+- 'simp config' bug fixes
+  - Fixed bug in which '{' and '}' characters in console error messages
+    resulted in obscure Ruby parsing failures.
+  - Fixed bug in which existing non-local NTP servers configuration
+    was not presented to the user as a recommended value for
+    simp_options::ntpd::servers.
+- 'simp config' enhancements
+  - Improved input validation and error handling:
+    - When interactive operation is permitted, always query the user for
+      replacement values for invalid answers provided by file or command
+      command line KEY=VALUE input.  Previously, for items that
+      'simp config' would normally automatically assign without user
+      input, 'simp config' would automatically (and sometimes
+      silently), replace the invalid values.  This both hid errors
+      and yielded unexpected settings.
+    - Verify <password, password hash> pairs provided by file or
+      command line KEY=VALUE input are valid.  Previously, a user
+      could pre-assign LDAP Bind/Sync passwords that did not match
+      their respective password hashes.
+    - Log problems with invalid answers provided by file or command
+      line KEY=VALUE input when the answer is processed, not when
+      it is first read in.  Previously, validation error messages
+      were totally disassociated from the values causing the errors.
+  - Added an option to disable queries (-D,--disable-queries) whether or
+    not an input answers file is being used.  This feature is a
+    functioning replacement for the previously removed -ff capability.
+  - Deprecated the --non-interactive long name of -f in favor of
+    a more accurately-named replacement, --force-defaults.
+    --non-interactive will be removed in a future release.
+- General updates
+  - No longer emit Ruby backtraces for errors for which a backtrace
+    provides no additional information.
+
 * Fri Mar 16 2018 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.0.5
 - Prior to bootstrap, we now ensure that the site.pp and site module
   code is valid so that we don't have confusing delays after waiting for

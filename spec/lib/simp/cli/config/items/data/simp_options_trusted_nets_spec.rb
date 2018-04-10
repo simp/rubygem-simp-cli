@@ -11,13 +11,13 @@ describe Simp::Cli::Config::Item::SimpOptionsTrustedNets do
   end
 
 
-  describe "#recommended_value" do
+  describe "#get_recommended_value" do
     it "recommends correct CIDR notation for a given IP + netmask" do
       @ci.config_items = create_prior_items( '10.10.6.227', '255.255.255.0' )
-      expect( @ci.recommended_value ).to eq ['10.10.6.0/24']
+      expect( @ci.get_recommended_value ).to eq ['10.10.6.0/24']
 
       @ci.config_items = create_prior_items( '10.10.10.99', '255.255.255.224' )
-      expect( @ci.recommended_value ).to eq ['10.10.10.96/27']
+      expect( @ci.get_recommended_value ).to eq ['10.10.10.96/27']
     end
   end
 

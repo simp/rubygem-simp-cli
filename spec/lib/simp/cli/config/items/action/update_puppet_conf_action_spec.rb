@@ -14,7 +14,7 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
     @puppet_server  = 'puppet.nerd'
     @puppet_ca      = 'puppetca.nerd'
     @puppet_ca_port = '9999'
-    @puppet_confdir = `puppet config print confdir`.strip
+    @puppet_confdir = `puppet config print confdir 2>/dev/null`.strip
     @backup_file = File.join( @puppet_confdir, "puppet.conf.20170113T114203" )
 
     previous_items = {}
@@ -37,12 +37,12 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
       FileUtils.rm_f(@backup_file)
 
       # set initial state of puppet config
-      `puppet config set digest_algorithm md5`
-      `puppet config set keylength 128`
-      `puppet config set server 127.0.0.1`
-      `puppet config set ca_server 127.0.0.1`
-      `puppet config set ca_port 1000`
-      `puppet config set trusted_server_facts false`
+      `puppet config set digest_algorithm md5 2>/dev/null`
+      `puppet config set keylength 128 2>/dev/null`
+      `puppet config set server 127.0.0.1 2>/dev/null`
+      `puppet config set ca_server 127.0.0.1 2>/dev/null`
+      `puppet config set ca_port 1000 2>/dev/null`
+      `puppet config set trusted_server_facts false 2>/dev/null`
     end
 
     context 'updates puppet configuration' do
@@ -53,12 +53,14 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
         @ci.config_items[ item.key ] = item
         @ci.apply
         expect(@ci.applied_status).to eq :succeeded
-        expect( `puppet config print digest_algorithm`.strip ).to eq 'sha256'
-        expect( `puppet config print keylength`.strip ).to eq '2048'
-        expect( `puppet config print server`.strip ).to eq @puppet_server
-        expect( `puppet config print ca_server`.strip ).to eq @puppet_ca
-        expect( `puppet config print ca_port`.strip ).to eq @puppet_ca_port
-        expect( `puppet config print trusted_server_facts`.strip ).to eq 'true'
+        # Read in all settings at once because puppet cli can be slow
+        puppet_settings = `puppet config print 2>/dev/null`
+        expect( puppet_settings ).to match /digest_algorithm\s*=\s*sha256/
+        expect( puppet_settings ).to match /keylength\s*=\s*2048/
+        expect( puppet_settings ).to match /server\s*=\s*#{@puppet_server}/
+        expect( puppet_settings ).to match /ca_server\s*=\s*#{@puppet_ca}/
+        expect( puppet_settings ).to match /ca_port\s*=\s*#{@puppet_ca_port}/
+        expect( puppet_settings ).to match /trusted_server_facts\s*=\s*true/
         expect( File ).to exist(@backup_file)
       end
 
@@ -68,12 +70,14 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
         @ci.config_items[ item.key ] = item
         @ci.apply
         expect(@ci.applied_status).to eq :succeeded
-        expect( `puppet config print digest_algorithm`.strip ).to eq 'sha256'
-        expect( `puppet config print keylength`.strip ).to eq '4096'
-        expect( `puppet config print server`.strip ).to eq @puppet_server
-        expect( `puppet config print ca_server`.strip ).to eq @puppet_ca
-        expect( `puppet config print ca_port`.strip ).to eq @puppet_ca_port
-        expect( `puppet config print trusted_server_facts`.strip ).to eq 'true'
+        # Read in all settings at once because puppet cli can be slow
+        puppet_settings = `puppet config print 2>/dev/null`
+        expect( puppet_settings ).to match /digest_algorithm\s*=\s*sha256/
+        expect( puppet_settings ).to match /keylength\s*=\s*4096/
+        expect( puppet_settings ).to match /server\s*=\s*#{@puppet_server}/
+        expect( puppet_settings ).to match /ca_server\s*=\s*#{@puppet_ca}/
+        expect( puppet_settings ).to match /ca_port\s*=\s*#{@puppet_ca_port}/
+        expect( puppet_settings ).to match /trusted_server_facts\s*=\s*true/
         expect( File ).to exist(@backup_file)
       end
     end

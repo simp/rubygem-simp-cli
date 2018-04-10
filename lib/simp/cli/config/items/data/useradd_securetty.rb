@@ -16,11 +16,11 @@ console is problematic.  In that case, you may wish to include at least
 tty0 to the list of allowed TTYs, despite the security risk.
 }
       @allow_empty_list = true
-      @warning1 = %Q{IMPORTANT: This setting will prevent root login from any TTY.}
+      @warning1 = %Q{IMPORTANT: An empty #{@key} will prevent root login from any TTY.}
       @warning2 = %Q{      >>> This includes logging in from the console <<<}
     end
 
-    def recommended_value
+    def get_recommended_value
       []
     end
 
@@ -29,7 +29,10 @@ tty0 to the list of allowed TTYs, despite the security risk.
     def validate list
       if (list.is_a?(Array) || list.is_a?(String)) && list.empty?
         info( "#{@warning1}\n", [:YELLOW], @warning2, [:YELLOW,:BOLD] )
-        pause(:info)
+
+        # if the value is not pre-assigned, pause to give the user time
+        # to think about the impact of not specifying NTP servers
+        pause(:info) if @value.nil?
       end
       super
     end

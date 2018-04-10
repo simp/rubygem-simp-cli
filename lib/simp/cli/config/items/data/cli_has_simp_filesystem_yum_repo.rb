@@ -21,11 +21,11 @@ SIMP, and SIMP dependency packages.}
     end
 
 
-    def os_value
+    def get_os_value
       (File.exist?(@local_repo) ? 'yes' : 'no')
     end
 
-    def recommended_value
+    def get_recommended_value
       os_value
     end
   end

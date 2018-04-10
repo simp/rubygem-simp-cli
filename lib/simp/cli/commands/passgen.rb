@@ -1,4 +1,5 @@
 require File.expand_path( '../../cli', File.dirname(__FILE__) )
+require File.expand_path( '../errors', File.dirname(__FILE__) )
 
 module Simp::Cli::Commands; end
 class Simp::Cli::Commands::Passgen < Simp::Cli
@@ -122,7 +123,8 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
         end
       end
     rescue SystemCallError => err
-      raise "Error occurred while accessing '#{@password_dir}': #{err}"
+      err_msg = "Error occurred while accessing '#{@password_dir}': #{err}"
+      raise Simp::Cli::ProcessingError.new(err_msg)
     end
     names.sort
   end
@@ -143,8 +145,15 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
   end
 
   def self.validate_password_dir
-    raise "Password directory '#{@password_dir}' does not exist" unless File.exist?(@password_dir)
-    raise "Password directory '#{@password_dir}' is not a directory" unless File.directory?(@password_dir)
+    unless File.exist?(@password_dir)
+      err_msg = "Password directory '#{@password_dir}' does not exist"
+      raise Simp::Cli::ProcessingError.new(err_msg)
+    end
+
+    unless File.directory?(@password_dir)
+      err_msg = "Password directory '#{@password_dir}' is not a directory"
+      raise Simp::Cli::ProcessingError.new(err_msg)
+    end
   end
 
   def self.show_environment_list
@@ -152,18 +161,30 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
     #   <env dir>/<env>/simp_autofiles/gen_passwd
     # (which also assumes Linux path separators)
     unless @password_dir.include?("/simp_autofiles/gen_passwd")
-      raise "Password environment directory could not be determined from '#{@password_dir}'"
+      err_msg = "Password environment directory could not be determined from '#{@password_dir}'"
+      raise Simp::Cli::ProcessingError.new(err_msg)
     end
+
     env_dir = File.dirname(@password_dir.split("/simp_autofiles/")[0])
-    raise "Password environment directory '#{env_dir}' does not exist" unless File.exist?(env_dir)
-    raise "Password environment directory '#{env_dir}' is not a directory" unless File.directory?(env_dir)
+
+    unless File.exist?(env_dir)
+      err_msg ="Password environment directory '#{env_dir}' does not exist"
+      raise Simp::Cli::ProcessingError.new(err_msg)
+    end
+
+    unless File.directory?(env_dir)
+      err_msg = "Password environment directory '#{env_dir}' is not a directory"
+      raise Simp::Cli::ProcessingError.new(err_msg)
+    end
+
     environments = []
     begin
       Dir.chdir(env_dir) do
         environments = Dir.glob('*').sort
       end
     rescue SystemCallError => err
-      raise "Error occurred while accessing '#{env_dir}': #{err}"
+      err_msg = "Error occurred while accessing '#{env_dir}': #{err}"
+      raise Simp::Cli::ProcessingError.new(err_msg)
     end
     puts "Environments:\n\t#{environments.join("\n\t")}"
     puts
@@ -217,7 +238,8 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
           begin
             FileUtils.mv(password_filename, password_filename + '.last', :verbose => true, :force => true)
           rescue SystemCallError => err
-            raise "Error occurred while moving '#{password_filename}' to '#{password_filename + '.last'}': #{err}"
+            err_msg = "Error occurred while moving '#{password_filename}' to '#{password_filename + '.last'}': #{err}"
+            raise Simp::Cli::ProcessingError.new(err_msg)
           end
         end
       end
@@ -228,15 +250,18 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
         puppet_user = `puppet config print user`.strip
         puppet_group = `puppet config print group`.strip
         if puppet_user.empty? or puppet_group.empty?
-          raise 'Could not set password file ownership:  unable to determine puppet user and group'
+          err_msg = 'Could not set password file ownership:  unable to determine puppet user and group'
+          raise Simp::Cli::ProcessingError.new(err_msg)
         end
         FileUtils.chown(puppet_user, puppet_group, password_filename)
         FileUtils.chmod(0640, password_filename)
       rescue ArgumentError => err
         # This will happen if group does not exist
-        raise "Could not set password file ownership: #{err}"
+        err_msg = "Could not set password file ownership: #{err}"
+        raise Simp::Cli::ProcessingError.new(err_msg)
       rescue SystemCallError => err
-        raise "Error occurred while writing '#{password_filename}': #{err}"
+        err_msg = "Error occurred while writing '#{password_filename}': #{err}"
+        raise Simp::Cli::ProcessingError.new(err_msg)
       end
       puts
     end

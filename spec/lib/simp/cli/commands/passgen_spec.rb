@@ -66,20 +66,23 @@ EOM
       end
 
       it 'fails when environments cannot be determined from password dir option' do
-        expect { Simp::Cli::Commands::Passgen.run(['-E', '-d', @tmp_dir]) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-E', '-d', @tmp_dir]) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password environment directory could not be determined from '#{@tmp_dir}'")
       end
 
       it 'fails when environment directory does not exist' do
         FileUtils.rm_rf(@password_env_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-E']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-E']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password environment directory '#{@password_env_dir}' does not exist")
       end
 
       it 'fails when environment directory is not a directory' do
         FileUtils.rm_rf(@password_env_dir)
         FileUtils.touch(@password_env_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-E']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-E']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password environment directory '#{@password_env_dir}' is not a directory")
       end
     end
@@ -127,14 +130,16 @@ EOM
 
       it 'fails when password directory does not exist' do
         FileUtils.rm_rf(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-l']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-l']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' does not exist")
       end
 
       it 'fails when password directory is not a directory' do
         FileUtils.rm_rf(@default_password_dir)
         FileUtils.touch(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-l']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-l']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' is not a directory")
       end
 
@@ -201,14 +206,16 @@ EOM
 
       it 'fails when password directory does not exist' do
         FileUtils.rm_rf(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-n', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-n', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' does not exist")
       end
 
       it 'fails when password directory is not a directory' do
         FileUtils.rm_rf(@default_password_dir)
         FileUtils.touch(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-n', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-n', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' is not a directory")
       end
     end
@@ -442,14 +449,16 @@ EOM
 
       it 'fails when password directory does not exist' do
         FileUtils.rm_rf(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-s', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-s', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' does not exist")
       end
 
       it 'fails when password directory is not a directory' do
         FileUtils.rm_rf(@default_password_dir)
         FileUtils.touch(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-s', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-s', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' is not a directory")
       end
     end
@@ -586,14 +595,16 @@ EOM
 
       it 'fails when password directory does not exist' do
         FileUtils.rm_rf(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-r', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-r', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' does not exist")
       end
 
       it 'fails when password directory is not a directory' do
         FileUtils.rm_rf(@default_password_dir)
         FileUtils.touch(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-r', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-r', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' is not a directory")
       end
     end

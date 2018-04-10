@@ -5,6 +5,8 @@ require 'find'
 
 require File.expand_path( '../../cli', File.dirname(__FILE__) )
 require File.expand_path( '../defaults', File.dirname(__FILE__) )
+require File.expand_path( '../errors', File.dirname(__FILE__) )
+require File.expand_path( '../config/errors', File.dirname(__FILE__) )
 require File.expand_path( '../config/items', File.dirname(__FILE__) )
 require File.expand_path( '../config/item_list_factory', File.dirname(__FILE__) )
 require File.expand_path( '../config/logging', File.dirname(__FILE__) )
@@ -22,19 +24,21 @@ class Simp::Cli::Commands::Config  < Simp::Cli
   DEFAULT_HIERA_OUTFILE =
     "#{::Utils.puppet_info[:simp_environment_path]}/hieradata/simp_config_settings.yaml"
 
+
   SIMP_CONFIG_DEFAULT_OPTIONS = {
-    :verbose                 => 0,
-    :noninteractive          => 0, # TODO: between these two, we should choose better names
-    :dry_run                 => false,
+    :verbose                => 0, # <0 = ERROR and above
+                                  #  0 = INFO and above
+                                  # >0 = DEBUG and above
+    :allow_queries          => true,
+    :force_defaults         => false, # true  = use valid defaults, preemptively
+    :dry_run                => false,
 
-    :scenario                => nil,
-    :answers_input_file      => nil,
-    :answers_output_file     => File.expand_path( DEFAULT_ANSWERS_OUTFILE ),
-    :puppet_system_file      => File.expand_path( DEFAULT_HIERA_OUTFILE ),
+    :answers_input_file     => nil,
+    :answers_output_file    => File.expand_path( DEFAULT_ANSWERS_OUTFILE ),
+    :puppet_system_file     => File.expand_path( DEFAULT_HIERA_OUTFILE ),
 
-    :use_safety_save         => true,
-    :autoaccept_safety_save  => false,
-    :fail_on_missing_answers => false   # false = prompt upon failure
+    :use_safety_save        => true,
+    :autoaccept_safety_save => false
   }
 
   INTRO_TEXT = <<EOM
@@ -82,31 +86,48 @@ EOM
     opts.on("-p", "--puppet-output FILE",
             "The Puppet system FILE where the",
             "created/edited system hieradata will be",
-            "written.  Defaults to ",
+            "written.  Defaults to",
             "'#{DEFAULT_HIERA_OUTFILE}'") do |file|
       @options[:puppet_system_file] = file
     end
 
-    opts.on("-a", "--apply FILE", "Apply answers FILE (fails on missing items)") do |file|
+    opts.on("-a", "--apply FILE", "Apply answers FILE (fails on missing/invalid items)") do |file|
       @options[:answers_input_file] = file
-      @options[:fail_on_missing_answers] = true
+      @options[:allow_queries] = false
     end
 
     opts.on("-A", "--apply-with-questions FILE",
-            "Apply answers FILE (asks on missing items).") do |file|
+            "Apply answers FILE (prompts on missing/invalid items).") do |file|
       @options[:answers_input_file] = file
-      @options[:fail_on_missing_answers] = false
+      @options[:allow_queries] = true
+    end
+
+    opts.on("-f", "--force-defaults",
+            "Use valid default answers for otherwise unspecified items.") do |force_defaults|
+      @options[:force_defaults] = true
+    end
+
+    opts.on('--non-interactive',
+            'DEPRECATED:  This has been deprecated by --force-defaults',
+            'for clarity and will be removed in a future release.') do  |x|
+      @options[:force_defaults] = true
+    end
+
+    opts.on('-D', '--disable-queries',
+            'Run completely non-interactively. All answers must',
+            'be specified by an answers file or command line',
+            'KEY=VALUE pairs.') do |disable_queries|
+      @options[:allow_queries] = false
     end
 
     opts.on("-l", "--log-file FILE",
-            "Log file.  Defaults to ",
+            "Log file.  Defaults to",
             File.join(SIMP_CLI_HOME, 'simp_config.log.<timestamp>')) do |file|
       @options[:log_file] = file
     end
 
     opts.separator opts_separator
 
-    # TODO: improve nomenclature
     opts.on("-v", "--verbose", "Verbose output (stacks)") do
       @options[:verbose] += 1
     end
@@ -122,13 +143,6 @@ EOM
             "configuration changes, SIMP scenario",
             "configuration, ...)" ) do
       @options[:dry_run] = true
-    end
-
-    opts.on("-f", "--non-interactive", "Force default answers (prompt if unknown)"
-                                       ) do |file|
-      # FIXME there is some logic/comments for -ff/REALLY_NONINTERACTIVE in
-      #  questionnaire.rb that may be OBE.
-      @options[:noninteractive] += 1
     end
 
     opts.on("-s", "--skip-safety-save",         "Ignore any safety-save files") do
@@ -159,7 +173,8 @@ EOM
   end
 
   def self.print_summary(answers)
-    apply_actions = answers.select { |key,value| value.applied_time }
+    apply_actions = answers.select { |key,item| item.respond_to?(:applied_time) }
+
     unless apply_actions.empty?
       logger.info( "\n#{'='*80}", [:BOLD] )
       logger.info( "\nSummary of Applied Changes", [:BOLD] )
@@ -170,6 +185,8 @@ EOM
     end
   end
 
+  # Returns the saved subset of answers from the previous, interrupted
+  # run, when safety-save is enabled
   def self.saved_session
     result = {}
     if @options.fetch( :use_safety_save, false ) && file = @options.fetch( :answers_output_file )
@@ -218,6 +235,8 @@ EOM
   end
 
 
+  # Removes the set of answers saved during this session when the
+  # safety-save operation is enabled
   def self.remove_saved_session
     if file = @options.fetch( :answers_output_file )
       _file = File.join( File.dirname( file ), ".#{File.basename( file )}" )
@@ -226,11 +245,14 @@ EOM
   end
 
 
-  def self.read_answers_file file
+  # Read in the 'answers file' containing the answers to some/all
+  # of the questions 'simp config' asks (Item values), as well as
+  # values 'simp config' automatically sets
+  def self.read_answers_file(file)
     answers_hash = {}    # Read the input file
 
     unless File.exist?(file)
-      raise "ERROR: Could not access the file '#{file}'!"
+      raise Simp::Cli::ProcessingError.new("ERROR: Could not access the file '#{file}'!")
     end
 
     begin
@@ -238,11 +260,13 @@ EOM
       answers_hash = YAML.load(File.read(file))
       answers_hash = {} if !answers_hash.is_a?(Hash) # empty yaml file returns false
 
-    rescue SignalException => e
-      raise
     rescue Psych::SyntaxError => e
-      raise "ERROR: System configuration file '#{file}' is corrupted:\n" +  e.message +
-       "\nReview the file and either fix or remove it before trying again."
+      err_msgs = [
+        "ERROR: System configuration file '#{file}' is corrupted:",
+        e.message,
+        "Review the file and either fix or remove it before trying again."
+      ]
+      raise Simp::Cli::ProcessingError.new(err_msgs.join("\n"))
     end
 
     answers_hash
@@ -253,7 +277,7 @@ EOM
     return if @help_requested
     @options[:start_time] = Time.now
 
-    set_up_logger
+    set_up_global_logger
 
     # Ensure that custom facts are available before the first pluginsync
     if ::Utils.puppet_info[:config]['modulepath']  # nil in spec tests with Puppet 4
@@ -267,13 +291,56 @@ EOM
       end
     end
 
-    # Read in and merge sets of answers (predetermined settings) to result
-    # in the following priority
-    # 1. answers from the command line
-    # 2. answers from an interrupted session
-    # 3. answers from the input answers file
-    # 4. answers from the scenario file
+    # Load all pre-set answers (predetermined Item values), querying
+    # the user for the scenario, as appropriate
+    answers_hash = load_pre_set_answers(args, @options)
 
+    # Generate the 'list' of Items and pre-assign Item values using
+    # answers_hash.  The Item 'list' is really a decision tree, in
+    # which the answer to an individual Item can simply be a system
+    # setting (e.g., hieradata setting) or can be a decision point
+    # dictating that other related information Items should be gathered
+    # and/or a subset of system configuration should be applied.
+    item_list = Simp::Cli::Config::ItemListFactory.new( @options ).process( answers_hash )
+
+    # Process item tree:
+    #  - Get any remaining answers via user queries or item defaults.
+    #  - Apply appropriate changes to system configuration, based on
+    #    the answers obtained.
+    #  - When the safety-save option is enabled, after each answer is
+    #    determined, persist the accumulated subset of answers for the
+    #    session.
+    questionnaire = Simp::Cli::Config::Questionnaire.new( @options )
+    answers = questionnaire.process( item_list, {} )
+
+    # Summarize any actions taken
+    print_summary(answers) if answers
+
+    unless @options[:verbose] < 0
+      logger.say( "\n<%= color(%q{Detailed log written to #{@options[:log_file]}}, BOLD) %>" )
+    end
+
+    # Remove the copy of session answers persisted when safety-save
+    # is enabled
+    remove_saved_session
+
+  rescue Simp::Cli::Config::ApplyError, Simp::Cli::Config::ValidationError => e
+    # backtrace is not useful here, so only report the error message
+    raise Simp::Cli::ProcessingError.new(e.message)
+  end
+
+
+  # Read in and merge sets of answers (predetermined Item values) to
+  # result in the following priority
+  # 1. answers from the command line
+  # 2. answers from an interrupted session
+  # 3. answers from the input answers file
+  # 4. answers from the scenario file
+  #
+  # Also queries user for cli::simp::scenario, if not present and
+  # queries are allowed
+  #
+  def self.load_pre_set_answers(args, options)
     # Retrieve set of answers set at command line via tag=value pairs
     cli_answers = {}
     cli_answers  = Hash[ args.map{ |x| x.split '=' } ]
@@ -283,28 +350,36 @@ EOM
 
     # Retrieve set of answers from an input answers file
     file_answers = {}
-    if @options.fetch(:answers_input_file)
-      file_answers = read_answers_file( @options.fetch(:answers_input_file) )
+    if options.fetch(:answers_input_file)
+      file_answers = read_answers_file( options.fetch(:answers_input_file) )
     end
 
     # Merge what has been read in so far to see if scenario is defined yet
     answers_hash = (file_answers.merge(interrupted_session_answers)).merge(cli_answers)
 
-    # greet user before any prompts
+    # greet user before any prompts, which may be for cli::simp::scenario
     logger.info( "\n#{INTRO_TEXT.chomp}", [:GREEN] )
-    logger.info( "#{' '*15}#{@options[:log_file]}")
+    logger.info( "#{' '*15}#{options[:log_file]}")
     logger.info( '='*80 + "\n", [:GREEN] )
 
-    # Retrieve set of answer from a scenario file, prompting for scenario if needed
-    unless answers_hash['cli::simp::scenario']
-      # prompt user so we can figure out which yaml file to read
-      # NOTE:  In order to persist the 'cli::simp::scenario' key in the output answers
-      # yaml file, CliSimpScenario will also be in the item decision tree.  However,
-      # in that tree, it will be configured with the 'SKIPQUERY SILENT' options, so that
-      # the user isn't prompted twice.
+    # Retrieve set of answer from a scenario file, prompting for scenario
+    # if needed.  (We need the scenario in order to figure out which
+    # which simp scenario yaml file to read).
+    if !answers_hash['cli::simp::scenario']
       item = Simp::Cli::Config::Item::CliSimpScenario.new
-      item.query
-      answers_hash['cli::simp::scenario'] =  item.value
+      if options[:force_defaults]
+        answers_hash['cli::simp::scenario'] =  item.default_value_noninteractive
+      elsif @options[:allow_queries]
+        # NOTE:  In order to persist the 'cli::simp::scenario' key in the output answers
+        # yaml file, CliSimpScenario will also be in the item decision tree.  However,
+        # in that tree, it will be configured to quietly use the default value, so that
+        # the user isn't prompted twice.
+        item.query
+        answers_hash['cli::simp::scenario'] =  item.value
+      else
+        err_msg = "FATAL: No valid answer found for 'cli::simp::scenario'"
+        raise Simp::Cli::Config::ValidationError.new(err_msg)
+      end
     end
     scenario_hiera_file = File.join(::Utils.puppet_info[:simp_environment_path],
         'hieradata', 'scenarios', "#{answers_hash['cli::simp::scenario']}.yaml")
@@ -319,24 +394,10 @@ EOM
     end
     scenario_answers = read_answers_file( scenario_hiera_file )
     answers_hash = scenario_answers.merge(answers_hash)
-
-    # Get the list (decision tree) of items
-    #  - applies any known answers at this point
-    item_list = Simp::Cli::Config::ItemListFactory.new( @options ).process( answers_hash )
-
-    # Process item tree:
-    #  - get any remaining answers from user
-    #  - apply changes as needed
-    questionnaire = Simp::Cli::Config::Questionnaire.new( @options )
-    answers = questionnaire.process( item_list, {} )
-    print_summary(answers) if answers
-
-    logger.say( "\n<%= color(%q{Detailed log written to #{@options[:log_file]}}, BOLD) %>" )
-
-    remove_saved_session
+    answers_hash
   end
 
-  def self.set_up_logger
+  def self.set_up_global_logger
     unless @options[:log_file]
       @options[:log_file] = File.join(SIMP_CLI_HOME, "simp_config.log.#{@options[:start_time].strftime('%Y%m%dT%H%M%S')}")
     end

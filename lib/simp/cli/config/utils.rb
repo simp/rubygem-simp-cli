@@ -88,14 +88,13 @@ class Simp::Cli::Config::Utils
 
        # Ruby 1.8.7 hack to do Random.new.bytes(4):
        salt   = salt || (x = ''; 4.times{ x += ((rand * 255).floor.chr ) }; x)
+       salt.force_encoding('UTF-8') if salt.encoding.name == 'ASCII-8BIT'
+
        digest = Digest::SHA1.digest( string + salt )
 
        # NOTE: Digest::SHA1.digest in Ruby 1.9+ returns a String encoding in
        #       ASCII-8BIT, whereas all other Strings in play are UTF-8
-       if RUBY_VERSION.split('.')[0..1].join('.').to_f > 1.8
-         digest = digest.force_encoding( 'UTF-8' )
-         salt   = salt.force_encoding( 'UTF-8' )
-       end
+       digest.force_encoding('UTF-8') if digest.encoding.name == 'ASCII-8BIT'
 
        "{SSHA}"+Base64.encode64( digest + salt ).chomp
     end
@@ -103,6 +102,16 @@ class Simp::Cli::Config::Utils
 
     def validate_openldap_hash( x )
       (x =~ %r@\{SSHA\}[A-Za-z0-9=+/]+@ ) ? true : false
+    end
+
+    # Check the supplied password against the given hash.
+    # return true upon match
+    def check_openldap_password(password, ssha)
+      require 'base64'
+      decoded = Base64.decode64(ssha.gsub(/^{SSHA}/, ''))
+      hash = decoded[0..19]
+      salt = decoded[20..-1]
+      encrypt_openldap_hash(password, salt) == ssha
     end
   end
 end

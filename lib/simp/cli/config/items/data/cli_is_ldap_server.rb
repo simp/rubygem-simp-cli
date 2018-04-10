@@ -12,7 +12,7 @@ module Simp::Cli::Config
       @data_type   = :cli_params
     end
 
-    def recommended_value
+    def get_recommended_value
       'yes'
     end
   end

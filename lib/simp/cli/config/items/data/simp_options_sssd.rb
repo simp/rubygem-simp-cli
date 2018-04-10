@@ -10,7 +10,7 @@ module Simp::Cli::Config
       @description = %q{Whether to use SSSD.}
     end
 
-    def recommended_value
+    def get_recommended_value
       os_value || 'yes'
     end
   end

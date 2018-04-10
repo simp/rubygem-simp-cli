@@ -12,10 +12,6 @@ module Simp::Cli::Config
       @allow_empty_list = true
     end
 
-    def os_value
-      nil
-    end
-
     def validate_item item
       ( Simp::Cli::Config::Utils.validate_hostname( item ) ||
         Simp::Cli::Config::Utils.validate_fqdn( item ) ||

@@ -25,11 +25,11 @@ IMPORTANT:
 }
     end
 
-    def os_value
+    def get_os_value
       Facter.value('fips_enabled') ? 'yes' : 'no'
     end
 
-    def recommended_value
+    def get_recommended_value
       os_value
     end
   end

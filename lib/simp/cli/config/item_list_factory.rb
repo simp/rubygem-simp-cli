@@ -1,3 +1,4 @@
+require File.expand_path( 'errors', File.dirname(__FILE__) )
 require File.expand_path( 'items', File.dirname(__FILE__) )
 require File.expand_path( 'logging', File.dirname(__FILE__) )
 require File.expand_path( 'items_yaml_generator', File.dirname(__FILE__) )
@@ -44,7 +45,7 @@ class Simp::Cli::Config::ItemListFactory
       $stderr.puts '>'*80
       $stderr.puts items_yaml
       $stderr.puts '<'*80
-      raise 'Internal error:  invalid Items list YAML'
+      raise Simp::Cli::Config::InternalError.new('invalid Items list YAML')
     end
 
     # add file writers needed by all scenarios
@@ -64,11 +65,10 @@ class Simp::Cli::Config::ItemListFactory
     if !value.nil?
       # workaround to allow cli/env var arrays
       value = value.split(',,') if item.is_a?(Simp::Cli::Config::ListItem) && !value.is_a?(Array)
-      if ! item.validate value
-        print_warning "'#{value}' is not an acceptable answer for '#{item.key}' (skipping)."
-      else
-        item.value = value
-      end
+
+      # validation is deferred until the Item is processed, to allow
+      # any invalid value message to appear in the appropriate context
+      item.value = value
     end
     item
   end
@@ -91,26 +91,34 @@ class Simp::Cli::Config::ItemListFactory
         next
       end
       item.silent           = true if part == 'SILENT'
-      item.skip_apply       = true if part == 'NOAPPLY'
       item.skip_query       = true if part == 'SKIPQUERY'
       item.skip_yaml        = true if part == 'NOYAML'
-      item.allow_user_apply = true if part == 'USERAPPLY'
-      item.generate_option  = :generate_no_query if part == 'GENERATENOQUERY'
-      item.generate_option  = :never_generate    if part == 'NEVERGENERATE'
-      dry_run_apply         = true if part == 'DRYRUNAPPLY'
+      if item.respond_to?(:safe_apply)
+        item.skip_apply       = true if part == 'NOAPPLY'
+        item.allow_user_apply = true if part == 'USERAPPLY'
+      end
+      if part == 'GENERATENOQUERY'
+        item.skip_query    = true
+        item.generate_option = :generate_no_query
+      end
+      item.generate_option  = :never_generate if part == 'NEVERGENERATE'
+      dry_run_apply         = true            if part == 'DRYRUNAPPLY'
       if part =~ /^FILE=(.+)/
         item.file = $1
       end
 
     end
     #  ...based on cli options
-    if (@options.fetch( :dry_run, false ) and !dry_run_apply)
+    if ( @options.fetch( :dry_run, false ) and
+         !dry_run_apply and
+         item.respond_to?(:safe_apply)
+       )
       item.skip_apply = true
       item.skip_apply_reason = '[**dry run**]'
     end
     item.start_time = @options.fetch( :start_time, Time.now )
 
-    # (try to) assign item values from various sources
+    # pre-assign item value from various sources, if available
     item = assign_value_from_hash( @answers_hash, item )
   end
 
@@ -158,9 +166,5 @@ class Simp::Cli::Config::ItemListFactory
       writer.sort_output      = false
       writer
     end
-  end
-
-  def print_warning error
-    logger.warn( "WARNING: ", [:YELLOW, :BOLD], error, [:YELLOW])
   end
 end
