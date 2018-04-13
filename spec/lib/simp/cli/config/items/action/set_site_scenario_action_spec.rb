@@ -11,7 +11,7 @@ describe Simp::Cli::Config::Item::SetSiteScenarioAction do
     @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
     @site_pp = File.join(@tmp_dir, 'environments', 'simp', 'manifests', 'site.pp')
 
-    allow(::Utils).to receive(:puppet_info).and_return( {
+    allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
       :config => {
         'codedir' => @tmp_dir,
         'confdir' => @tmp_dir

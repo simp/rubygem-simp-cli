@@ -25,7 +25,7 @@ module Simp::Cli::Config
     end
 
     def get_os_value
-      site_pp = File.join(::Utils.puppet_info[:simp_environment_path],
+      site_pp = File.join(Simp::Cli::Utils.puppet_info[:simp_environment_path],
         'manifests', 'site.pp')
 
       # If SIMP has not be copied over to the Puppet environments yet, (RPM install

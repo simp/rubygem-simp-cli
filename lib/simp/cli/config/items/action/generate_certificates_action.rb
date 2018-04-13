@@ -11,9 +11,9 @@ module Simp::Cli::Config
       @description       = 'Generate interim certificates for SIMP server'
       @dirs              = {
         :keydist    => '/var/simp/environments/simp/site_files/pki_files/files/keydist',
-        :fake_ca    => ::Utils.puppet_info[:fake_ca_path]
+        :fake_ca    => Simp::Cli::Utils.puppet_info[:fake_ca_path]
       }
-      @group             = ::Utils.puppet_info[:puppet_group]
+      @group             = Simp::Cli::Utils.puppet_info[:puppet_group]
       @die_on_apply_fail = true
       @hostname          = nil
     end

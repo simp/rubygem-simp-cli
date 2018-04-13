@@ -2,8 +2,9 @@ $LOAD_PATH << File.expand_path( '..', File.dirname(__FILE__) )
 
 require 'optparse'
 
+require 'simp/cli/errors'
+require 'simp/cli/utils'
 require 'simp/cli/version'
-require 'simp/cli/lib/utils'
 
 # load each command
 commands_path = File.expand_path( 'cli/commands/*.rb', File.dirname(__FILE__) )
@@ -45,8 +46,7 @@ class Simp::Cli
     rescue
       #TODO Send this message to stderr instead of stdout?
       msg = "Cannot find SIMP OS installation via `#{cmd}`!"
-      say '<%= color( "WARNING: ", BOLD, YELLOW ) %>' +
-          "<%= color( '#{msg}', YELLOW) %>"
+      say 'WARNING: '.bold.yellow + msg.yellow
     end
   end
 

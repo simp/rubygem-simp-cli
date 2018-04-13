@@ -1,6 +1,6 @@
 require 'yaml'
 require File.expand_path( 'action_item', File.dirname(__FILE__) )
-require 'simp/cli/lib/utils'
+require 'simp/cli/utils'
 
 module Simp::Cli::Config
   # An ActionItem that adds/updates a hieradata key in the SIMP server's
@@ -12,7 +12,7 @@ module Simp::Cli::Config
 
     def initialize
       super
-      @dir          = File.join(::Utils.puppet_info[:simp_environment_path], 'hieradata', 'hosts')
+      @dir          = File.join(Simp::Cli::Utils.puppet_info[:simp_environment_path], 'hieradata', 'hosts')
       @description = "Set #{@hiera_to_add.join(', ')} in SIMP server <host>.yaml"
       @file         = nil
     end

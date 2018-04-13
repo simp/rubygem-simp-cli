@@ -72,7 +72,7 @@ modifiers are as follows:
                  required (i.e., Items for which internal logic can be
                  used to figure out their correct values).
 - SKIPQUERY    = set the Item's .skip_query ; Item will use
-                 .default_value_noninteractive
+                 .default_value_noninteractive() for value
 - NOYAML       = set the Item's .skip_yaml ; no YAML for Item will be
                  written
 - GENERATENOQUERY = set a PasswordItem's .generate_option to :generate_no_query

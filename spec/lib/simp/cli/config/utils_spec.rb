@@ -88,33 +88,6 @@ describe Simp::Cli::Config::Utils do
   end
 
 
-  describe '.validate_password' do
-    it 'validates good passwords' do
-      expect( Simp::Cli::Config::Utils.validate_password 'dup3rP@ssw0r!x' ).to eq true
-    end
-
-    it 'raises an PasswordError on short passwords' do
-      expect{ Simp::Cli::Config::Utils.validate_password 'a@1X' }.to raise_error( Simp::Cli::Config::PasswordError )
-    end
-
-    it 'raises an PasswordError on simple passwords' do
-      expect{ Simp::Cli::Config::Utils.validate_password 'aaaaaaaaaaaaaaa' }.to raise_error( Simp::Cli::Config::PasswordError )
-    end
-  end
-
-
-  describe '.generate_password' do
-    it 'is the correct length' do
-      expect( Simp::Cli::Config::Utils.generate_password.size ).to eq 32
-      expect( Simp::Cli::Config::Utils.generate_password( 73 ).size ).to eq 73
-    end
-
-    it 'does not start or end with a special character' do
-      expect( Simp::Cli::Config::Utils.generate_password ).to_not match /^[#%&_.:@-]|[#%&_.:@-]$/
-    end
-  end
-
-
   describe '.encrypt_openldap_hash' do
     it 'encrypts a known password and salt to the correct SHA-1 password hash' do
       expect( Simp::Cli::Config::Utils.encrypt_openldap_hash \

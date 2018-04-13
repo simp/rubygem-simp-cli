@@ -1,6 +1,6 @@
 require 'simp/cli/config/items/action/generate_certificates_action'
 require 'simp/cli/config/items/data/cli_network_hostname'
-require 'simp/cli/lib/utils'
+require 'simp/cli/utils'
 require 'rspec/its'
 require_relative '../spec_helper'
 
@@ -104,13 +104,24 @@ describe Simp::Cli::Config::Item::GenerateCertificatesAction do
           expect( File.stat( dir ).mode & 0777).to eq 0755
         end
 
+        # If the umask of process running the test is 0002, instead of
+        # locked down 0022, the resulting mode will be 0770, not 0750.
+        # This is because the operation applied is to remove access
+        # to world and add read access to group:
+        #    FileUtils.chmod_R('g+rX,o-rwx', site_files_dir)
+        if (File.stat( File.join( simp_env, 'site_files') ).mode & 0070) == 0070
+          expected_mode = 0770
+        else
+          expected_mode = 0750
+        end
+
         [
           File.join( simp_env, 'site_files'),
           File.join( simp_env, 'site_files', 'pki_files'),
           File.join( simp_env, 'site_files', 'pki_files', 'files'),
           File.join( simp_env, 'site_files', 'pki_files', 'files', 'keydist'),
         ].each do |dir|
-          expect( File.stat( dir ).mode & 0777).to eq 0750
+          expect( File.stat( dir ).mode & 0777).to eq expected_mode
         end
 
         dir = File.join( @tmp_dirs[:keydist], @hostname )
