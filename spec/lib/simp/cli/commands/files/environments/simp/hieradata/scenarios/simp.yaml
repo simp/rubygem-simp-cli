@@ -28,7 +28,6 @@ simp_options::ldap: true
 simp_options::logrotate: true
 simp_options::pam: true
 simp_options::pki: simp
-simp_options::selinux: true
 simp_options::sssd: true
 simp_options::stunnel: true
 simp_options::syslog: true

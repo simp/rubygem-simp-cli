@@ -100,6 +100,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon Apr 23 2018 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.1.0
+- removed simp_options::selinux references in tests.
+
 * Wed Apr 11 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.1.0
 - 'simp config' bug fixes
   - Fixed bug in which '{' and '}' characters in console error messages
