@@ -18,7 +18,7 @@ describe Simp::Cli::Config::ItemsYamlGenerator do
 
     it 'fails when scenario is invalid' do
       expect{ Simp::Cli::Config::ItemsYamlGenerator.new('oops').generate_yaml }.to raise_error(
-        RuntimeError, "ERROR: Unsupported scenario 'oops'")
+        Simp::Cli::Config::ValidationError, "ERROR: Unsupported scenario 'oops'")
     end
 
     it 'fails when scenario_items.yaml fails to parse' do

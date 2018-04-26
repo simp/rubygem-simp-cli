@@ -17,7 +17,7 @@ module Simp::Cli::Config
       Simp::Cli::Config::Utils.validate_fqdn x
     end
 
-    def recommended_value
+    def get_recommended_value
       # FIXME The 'fqdn' fact used for the os_value is not very sophisticated.
       # Specifically, it doesn't tell us the network hostname associated
       # with a DHCP-retrieved IP address. We attempt to get that information

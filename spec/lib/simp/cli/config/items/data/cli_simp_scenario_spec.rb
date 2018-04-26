@@ -20,7 +20,7 @@ describe Simp::Cli::Config::Item::CliSimpScenario do
     before :each do
       @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
 
-      allow(::Utils).to receive(:puppet_info).and_return( {
+      allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
         :config => {
           'codedir' => @tmp_dir,
           'confdir' => @tmp_dir

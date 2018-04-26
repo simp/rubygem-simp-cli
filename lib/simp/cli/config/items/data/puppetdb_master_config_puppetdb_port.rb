@@ -12,7 +12,7 @@ module Simp::Cli::Config
       @data_type   = :server_hiera
     end
 
-    def recommended_value
+    def get_recommended_value
       8139
     end
 

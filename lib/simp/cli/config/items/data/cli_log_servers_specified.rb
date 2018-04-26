@@ -14,7 +14,7 @@ This is used to decide whether to prompt for forwarding log servers.}
     end
 
 
-    def recommended_value
+    def get_recommended_value
       if get_item( 'simp_options::syslog::log_servers' ).value.empty?
         return 'no'
       else

@@ -7,11 +7,15 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'cli::network::set_up_nic'
-      @description = %Q{Whether to activate this NIC now.}
+      @description = %Q{Whether to activate this NIC now.
+
+This will **reset** the interface, so enter 'no' if you are logged
+in via the interface.}
+
       @data_type   = :cli_params
     end
 
-    def recommended_value
+    def get_recommended_value
       os_value || 'yes'
     end
 

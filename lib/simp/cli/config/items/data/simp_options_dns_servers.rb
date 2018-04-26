@@ -1,4 +1,5 @@
 require File.expand_path( '../list_item', File.dirname(__FILE__) )
+require File.expand_path( '../../utils', File.dirname(__FILE__) )
 
 module Simp; end
 class Simp::Cli; end
@@ -25,7 +26,7 @@ definition for File['/etc/named.conf'].}
       @file = '/etc/resolv.conf'
     end
 
-    def os_value
+    def get_os_value
       # TODO: make this a custom fact?
       File.readlines( @file ).select{ |x| x =~ /^nameserver\s+/ }.map{ |x| x.gsub( /nameserver\s+(.*)\s*/, '\\1' ) }
     end
@@ -34,16 +35,15 @@ definition for File['/etc/named.conf'].}
     #   - os_value  when present, or:
     #   - ipaddress when present, or:
     #   - a must-change value
-    def recommended_value
-      os = os_value
-      if os.empty?
+    def get_recommended_value
+      if os_value.empty?
         if ip = @config_items.fetch( 'cli::network::ipaddress', nil )
           [ip.value]
         else
           ['8.8.8.8 (CHANGE THIS)']
         end
       else
-        os
+        os_value
       end
     end
 

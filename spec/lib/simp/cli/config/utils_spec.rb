@@ -3,8 +3,8 @@ require 'rspec/its'
 require 'spec_helper'
 
 describe Simp::Cli::Config::Utils do
-  describe ".validate_fqdn" do
-    it "validates good FQDNs" do
+  describe '.validate_fqdn' do
+    it 'validates good FQDNs' do
       expect( Simp::Cli::Config::Utils.validate_fqdn 'localhost' ).to eq true
       expect( Simp::Cli::Config::Utils.validate_fqdn 'simp.dev' ).to eq true
       expect( Simp::Cli::Config::Utils.validate_fqdn 'si-mp.dev' ).to eq true
@@ -32,8 +32,8 @@ describe Simp::Cli::Config::Utils do
   end
 
 
-  describe ".validate_ip" do
-    it "validates good IPs" do
+  describe '.validate_ip' do
+    it 'validates good IPs' do
       expect( Simp::Cli::Config::Utils.validate_ip '192.168.1.1' ).to eq true
     end
 
@@ -51,8 +51,8 @@ describe Simp::Cli::Config::Utils do
   end
 
 
-  describe ".validate_hostname" do
-    it "validates good hostnames" do
+  describe '.validate_hostname' do
+    it 'validates good hostnames' do
       expect( Simp::Cli::Config::Utils.validate_hostname 'log' ).to        eq true
       expect( Simp::Cli::Config::Utils.validate_hostname 'log-server' ).to eq true
 
@@ -73,13 +73,13 @@ describe Simp::Cli::Config::Utils do
   end
 
 
-  describe ".validate_hiera_lookup" do
-    it "validates correct hiera lookup syntax" do
+  describe '.validate_hiera_lookup' do
+    it 'validates correct hiera lookup syntax' do
       expect( Simp::Cli::Config::Utils.validate_hiera_lookup "%{hiera('puppet::ca')}" ).to eq true
-      expect( Simp::Cli::Config::Utils.validate_hiera_lookup "%{::domain}" ).to eq true
+      expect( Simp::Cli::Config::Utils.validate_hiera_lookup '%{::domain}' ).to eq true
     end
 
-    it "validates correct hiera lookup syntax" do
+    it 'validates correct hiera lookup syntax' do
       expect( Simp::Cli::Config::Utils.validate_hiera_lookup "%[hiera('puppet::ca')]" ).to eq false
       expect( Simp::Cli::Config::Utils.validate_hiera_lookup '' ).to    eq false
       expect( Simp::Cli::Config::Utils.validate_hiera_lookup 'foo' ).to eq false
@@ -88,35 +88,8 @@ describe Simp::Cli::Config::Utils do
   end
 
 
-  describe ".validate_password" do
-    it "validates good passwords" do
-      expect( Simp::Cli::Config::Utils.validate_password 'dup3rP@ssw0r!x' ).to eq true
-    end
-
-    it "raises an PasswordError on short passwords" do
-      expect{ Simp::Cli::Config::Utils.validate_password 'a@1X' }.to raise_error( Simp::Cli::Config::PasswordError )
-    end
-
-    it "raises an PasswordError on simple passwords" do
-      expect{ Simp::Cli::Config::Utils.validate_password 'aaaaaaaaaaaaaaa' }.to raise_error( Simp::Cli::Config::PasswordError )
-    end
-  end
-
-
-  describe ".generate_password" do
-    it "is the correct length" do
-      expect( Simp::Cli::Config::Utils.generate_password.size ).to eq 32
-      expect( Simp::Cli::Config::Utils.generate_password( 73 ).size ).to eq 73
-    end
-
-    it "does not start or end with a special character" do
-      expect( Simp::Cli::Config::Utils.generate_password ).to_not match /^[#%&_.:@-]|[#%&_.:@-]$/
-    end
-  end
-
-
-  describe ".encrypt_openldap_hash" do
-    it "encrypts a known password and salt to the correct SHA-1 password hash" do
+  describe '.encrypt_openldap_hash' do
+    it 'encrypts a known password and salt to the correct SHA-1 password hash' do
       expect( Simp::Cli::Config::Utils.encrypt_openldap_hash \
         'foo', "\xef\xb2\x2e\xac"
       ).to eq '{SSHA}zxOLQEdncCJTMObl5s+y1N/Ydh3vsi6s'
@@ -124,11 +97,32 @@ describe Simp::Cli::Config::Utils do
   end
 
 
-  describe ".validate_openldap_hash" do
-    it "validates OpenLDAP-format SHA-1 algorithm (FIPS 160-1) password hash" do
+  describe '.validate_openldap_hash' do
+    it 'validates OpenLDAP-format SHA-1 algorithm (FIPS 160-1) password hash' do
       expect( Simp::Cli::Config::Utils.validate_openldap_hash  \
         '{SSHA}Y6x92VpatHf9G6yMiktUYTrA/3SxUFm'
       ).to eq true
+    end
+
+    it 'fails to validate OpenLDAP-format MD5 algorithm password hash' do
+      expect( Simp::Cli::Config::Utils.validate_openldap_hash  \
+        '{CRYPT}Y6x92VpatHf9G6yMiktUYTrA/3SxUFm'
+      ).to eq false
+    end
+  end
+
+
+  describe '.check_openldap_password' do
+    it 'validates a valid password against an OpenLDAP-format SHA-1 hash' do
+      expect( Simp::Cli::Config::Utils.check_openldap_password('foo',
+        '{SSHA}zxOLQEdncCJTMObl5s+y1N/Ydh3vsi6s')
+      ).to be true
+    end
+
+    it 'fails to validate an invalid password against an OpenLDAP-format SHA-1 hash' do
+      expect( Simp::Cli::Config::Utils.check_openldap_password('bar',
+        '{SSHA}zxOLQEdncCJTMObl5s+y1N/Ydh3vsi6s')
+      ).to be false
     end
   end
 end

@@ -10,7 +10,7 @@ module Simp::Cli::Config
       @description = %Q{The LDAP master in URI form (ldap://server or ldaps:://server).}
     end
 
-    def recommended_value
+    def get_recommended_value
       result = "ldap://FIXME"
       if @config_items.key?( 'cli::is_ldap_server') and
         @config_items.fetch( 'cli::is_ldap_server').value

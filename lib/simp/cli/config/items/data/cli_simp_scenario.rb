@@ -24,8 +24,8 @@ module Simp::Cli::Config
       @data_type  = :cli_params
     end
 
-    def os_value
-      site_pp = File.join(::Utils.puppet_info[:simp_environment_path],
+    def get_os_value
+      site_pp = File.join(Simp::Cli::Utils.puppet_info[:simp_environment_path],
         'manifests', 'site.pp')
 
       # If SIMP has not be copied over to the Puppet environments yet, (RPM install
@@ -40,7 +40,7 @@ module Simp::Cli::Config
       scenario_lines[0].match(/^\$simp_scenario\s*=\s*['"]*(\S+)['"]/)[1]
     end
 
-    def recommended_value
+    def get_recommended_value
       'simp'
     end
 

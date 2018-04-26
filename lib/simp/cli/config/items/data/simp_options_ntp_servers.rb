@@ -8,12 +8,14 @@ module Simp::Cli::Config
     def initialize
       super
       @key              = 'simp_options::ntpd::servers'
-      @warnings         = {
-        :no_ntp            => "A consistent time source is critical to your systems' security.",
-        :warning_hw_clocks => "DO NOT run multiple production systems using individual hardware clocks!",
-      }
       @description      =  %Q{Your network's NTP time servers.
-#{@warnings.values.join("\n")}}
+
+A consistent time source is critical to a functioning public key
+infrastructure, and thus your site security. **DO NOT** attempt to
+run multiple production systems using individual hardware clocks!
+}
+      @no_ntp_warning  = %Q[Not specifying NTP servers in #{@key} can
+negatively impact your site security.]
       @allow_empty_list = true
     end
 
@@ -26,25 +28,22 @@ module Simp::Cli::Config
       "#{@description}#{extra}"
     end
 
-    def os_value( file='/etc/ntp/ntpservers' )
+    def get_os_value( file='/etc/ntp.conf' )
       # TODO: make this a custom fact?
-      # TODO: is /etc/ntp/ntpservers being used in recent versions of SIMP?
       servers = []
       if File.readable? file
-        File.readlines( file ).map do |line|
-          line.strip!
-          if line !~ /^#/
-            servers << line
-          else
-            nil
+        File.readlines( file ).each do |line|
+          match = line.match(/^server ([\w\.\-:]+)/)
+          if match
+            servers << match[1] unless (match[1] =~ /^127/)
           end
-        end.compact
+        end
       end
       servers
     end
 
-    def recommended_value
-      if (!os_value.empty?) && (os_value.first !~ /^127\./)
+    def get_recommended_value
+      unless os_value.empty?
         os_value
       else
         nil
@@ -54,8 +53,11 @@ module Simp::Cli::Config
     # allow empty NTP servers, but reiterate warning because it's important.
     def validate list
       if (list.is_a?(Array) || list.is_a?(String)) && list.empty?
-        info( "IMPORTANT: #{@warnings.fetch(:no_ntp)}", [:RED] )
-        pause(:info)
+        info( "IMPORTANT: #{@no_ntp_warning}", [:RED] )
+
+        # if the value is not pre-assigned, pause to give the user time
+        # to think about the impact of not specifying NTP servers
+        pause(:info) if @value.nil?
       end
       super
     end

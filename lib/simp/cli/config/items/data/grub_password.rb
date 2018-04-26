@@ -26,7 +26,15 @@ stored in #{@key}.}
     end
 
     def validate string
-      !string.to_s.strip.empty? && super
+      if @value.nil?
+        # we should be dealing with an unencrypted password
+        !string.to_s.strip.empty? && super
+      else
+        # the password hash has been pre-assigned
+        # TODO need something better
+        (string =~ /^(grub\.pbkdf2.*)/) or # grub2
+        (string =~ /^\$[56]\$/)            # legacy grub
+      end
     end
 
 

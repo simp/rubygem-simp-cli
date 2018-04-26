@@ -60,21 +60,23 @@ used to control specific behaviors of an Item.  The supported
 modifiers are as follows:
 
 - FILE=value   = set the Item's .file to value
-- DRYRUNAPPLY  = make sure this Item's apply() is called when the
-  :dry_run option is selected; (Normally an Item's
-  .skip_apply is set to prevent the apply() from running
-  when :dry_run is selected.)
-- NOAPPLY      = set the Item's .skip_apply ; Item.apply() will do nothing
-- USERAPPLY    = execute Item's apply() even when running non-privileged
-- SILENT       = set the Item's .silent ; suppresses stdout console/log output;
-  This option is best used in conjuction with SKIPQUERY for
-  Items for which no user interaction is required (i.e.,
-  Items for which internal logic can be used to figure
-  out their correct values).
-- SKIPQUERY    = set the Item's .skip_query ; Item will use default_value
-- NOYAML       = set the Item's .skip_yaml ; no YAML for Item will be written
-- GENERATENOQUERY = set the PasswordItem's .generate_option to :generate_no_query
-- NEVERGENERATE   = set the PasswordItem's .generate_option to :never_generate
+- DRYRUNAPPLY  = make sure an ActionItem's apply() is called even when
+                 the :dry_run option is selected
+- NOAPPLY      = set an ActionItem's .skip_apply; ActionItem.apply()
+                 will do nothing
+- USERAPPLY    = execute an ActionItem's apply() even when running
+                 as a non-privileged user
+- SILENT       = set an Item's .silent; suppresses stdout console/log
+                 output; This option is best used in conjuction with
+                 SKIPQUERY for Items for which no user interaction is
+                 required (i.e., Items for which internal logic can be
+                 used to figure out their correct values).
+- SKIPQUERY    = set the Item's .skip_query ; Item will use
+                 .default_value_noninteractive() for value
+- NOYAML       = set the Item's .skip_yaml ; no YAML for Item will be
+                 written
+- GENERATENOQUERY = set a PasswordItem's .generate_option to :generate_no_query
+- NEVERGENERATE   = set a PasswordItem's .generate_option to :never_generate
 
 For this example, if the answer to ItemB was 'answer1' the sequence of
 configuration queries/actions would be:
@@ -98,6 +100,6 @@ configuration queries/actions would be:
    earlier in the tree and use those values in their logic.
    For example, several Items require cli::network::hostname, which is
    set by CliNetworkHostname.
-4. Action Items do not ask the user for any input, but simply affect an action.
+4. ActionItems do not ask the user for any input, but simply affect an action.
 5. Since modifiers are parsed as part of a YAML key, they must appear before the ':'.
    (This looks weird, but the parser knows what to do with it.)

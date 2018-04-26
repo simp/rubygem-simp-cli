@@ -13,7 +13,7 @@ module Simp::Cli::Config
 
 
     # FIXME: make this a custom Fact?
-    def os_value
+    def get_os_value
       `ip route show 2>/dev/null` =~ /default\s*via\s*(.*)\s*dev/
       (($1 && $1.strip) || nil)
     end
@@ -21,7 +21,9 @@ module Simp::Cli::Config
 
     # Always recommend the default Gateway
     # TODO IDEA: recommend the primary nic's gateway?
-    def recommended_value; os_value; end
+    def get_recommended_value
+      os_value
+    end
 
 
     def validate( x )

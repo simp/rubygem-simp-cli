@@ -33,7 +33,6 @@ simp_options::syslog: true
 
 # These settings explicitly turned off
 simp_options::firewall: false
-simp_options::selinux: false
 simp_options::tcpwrappers: false
 
 # Options that are not suggested to be turned on by default:

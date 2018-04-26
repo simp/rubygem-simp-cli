@@ -1,5 +1,6 @@
 module Simp::Cli::Commands; end
 
+require 'simp/cli/utils'
 require 'simp/cli/config/items/action/set_production_to_simp_action'
 require 'highline/import'
 require 'highline'
@@ -117,7 +118,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     #   will run against the configured masterport.
     # - Create a unique lockfile, we want to preserve the lock on cron and manual
     #   puppet runs during bootstrap.
-    agent_lockfile = "#{File.dirname(::Utils.puppet_info[:config]['agent_disabled_lockfile'])}/bootstrap.lock"
+    agent_lockfile = "#{File.dirname(Simp::Cli::Utils.puppet_info[:config]['agent_disabled_lockfile'])}/bootstrap.lock"
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose" +
       " --no-splay --agent_disabled_lockfile=#{agent_lockfile}" +
       " --masterport=8150 --ca_port=8150"
@@ -175,7 +176,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     errors = []
 
-    site_pp = File.join(::Utils.puppet_info[:config]['codedir'], 'environments','simp','manifests','site.pp')
+    site_pp = File.join(Simp::Cli::Utils.puppet_info[:config]['codedir'], 'environments','simp','manifests','site.pp')
 
     if File.exist?(site_pp)
       msg = %x{puppet parser validate #{site_pp} 2>&1}
@@ -184,7 +185,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       end
     end
 
-    site_module = File.join(::Utils.puppet_info[:config]['codedir'], 'environments','simp','modules','site')
+    site_module = File.join(Simp::Cli::Utils.puppet_info[:config]['codedir'], 'environments','simp','modules','site')
 
     if File.directory?(site_module)
       msg = %x{puppet parser validate #{site_module} 2>&1}
@@ -238,10 +239,10 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       end
 
       # Run in a temporary cache space.
-      vardir_stat = File.stat(::Utils.puppet_info[:config]['vardir'])
+      vardir_stat = File.stat(Simp::Cli::Utils.puppet_info[:config]['vardir'])
 
       # Ensure that the ownership is correct
-      server_conf_tmp = "#{::Utils.puppet_info[:config]['vardir']}/pserver_tmp"
+      server_conf_tmp = "#{Simp::Cli::Utils.puppet_info[:config]['vardir']}/pserver_tmp"
       FileUtils.mkdir_p(server_conf_tmp)
       FileUtils.chown(vardir_stat.uid, vardir_stat.gid, server_conf_tmp)
       FileUtils.chmod(vardir_stat.mode & 0777, server_conf_tmp)
@@ -310,7 +311,7 @@ EOM
 
   # Ensure puppet agent is stopped and disabled
   def self.ensure_puppet_agent_stopped
-    agent_run_lockfile = ::Utils.puppet_info[:config]['agent_catalog_run_lockfile']
+    agent_run_lockfile = Simp::Cli::Utils.puppet_info[:config]['agent_catalog_run_lockfile']
     if @kill_agent
       info('Killing puppet agents', 'cyan')
       execute("pkill -9 -f 'puppet agent' >& /dev/null")
@@ -353,7 +354,7 @@ EOM
     info('Killing connection to puppetdb', 'cyan')
     execute('puppet resource service puppetdb ensure=stopped >& /dev/null')
     execute('pkill -9 -f puppetdb')
-    confdir = ::Utils.puppet_info[:config]['confdir']
+    confdir = Simp::Cli::Utils.puppet_info[:config]['confdir']
     routes_yaml = File.join(confdir, 'routes.yaml')
     if File.exists?(routes_yaml)
       backup_dir = File.join(@bootstrap_backup, confdir)
@@ -377,7 +378,7 @@ EOM
     execute('pkill -f pserver_tmp')  # another bootstrap run
 
     # Remove the run directory
-    rundir = ::Utils.puppet_info[:config]['rundir']
+    rundir = Simp::Cli::Utils.puppet_info[:config]['rundir']
     FileUtils.rm_f(Dir.glob(File.join(rundir,'*')))
     info("Successfully removed #{rundir}/*", 'green')
   end
@@ -389,8 +390,8 @@ EOM
 
     begin
       info("Waiting for puppetserver to accept connections on port #{port}", 'cyan')
-      curl_cmd = "curl -sS --cert #{::Utils.puppet_info[:config]['certdir']}/`hostname`.pem" +
-        " --key #{::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H" +
+      curl_cmd = "curl -sS --cert #{Simp::Cli::Utils.puppet_info[:config]['certdir']}/`hostname`.pem" +
+        " --key #{Simp::Cli::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H" +
         " \"Accept: s\" https://localhost:#{port}/production/certificate_revocation_list/ca"
       debug(curl_cmd)
       running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
@@ -433,7 +434,7 @@ EOM
 
   # Remove or retain existing puppet certs per user direction
   def self.handle_existing_puppet_certs
-    ssldir = ::Utils.puppet_info[:config]['ssldir']
+    ssldir = Simp::Cli::Utils.puppet_info[:config]['ssldir']
     certs_exist = !Dir.glob(File.join(ssldir, '**', '*.pem')).empty?
     rm_ssldir = @remove_ssldir
     if rm_ssldir.nil?  # not configured

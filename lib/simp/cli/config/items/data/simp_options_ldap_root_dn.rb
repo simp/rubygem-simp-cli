@@ -10,7 +10,7 @@ module Simp::Cli::Config
       @description = %Q{The LDAP Root Distinguished Name.}
     end
 
-    def recommended_value
+    def get_recommended_value
       if @config_items.key?( 'cli::is_ldap_server') and
         @config_items.fetch( 'cli::is_ldap_server').value
 

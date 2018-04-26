@@ -9,6 +9,11 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
 
   before :each do
     @ci = Simp::Cli::Config::Item::SimpOptionsDNSServers.new
+    # logger is a singleton that may or may not be hanging
+    # around from previous tests. To make sure file
+    # output doesn't get dumped to the screen, set that level
+    # super high.
+    @ci.logger.levels(::Logger::INFO, ::Logger::FATAL)
   end
 
   describe '#recommended_value' do
@@ -71,7 +76,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
     end
   end
 
-  describe '#query' do
+  describe '#determine_value' do
     context "accepts recommended values and displays options and selection" do
       before do
         @input = StringIO.new("\n")
@@ -88,7 +93,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
 
       it 'handles a single nameserver' do
         @ci.file = File.join(@files_dir,'resolv.conf__single')
-        @ci.query
+        @ci.determine_value(true, false) # query, don't force
         expect( @ci.value ).to eq ['10.0.0.1']
         list = '\["10.0.0.1"\]'
         r = /os value:\s+#{list}.* recommended value:\s+#{list}.* simp_options::dns::servers = .*#{list}/m
@@ -97,7 +102,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
 
       it 'handles multiple nameservers' do
         @ci.file = File.join(@files_dir,'resolv.conf__multiple')
-        @ci.query
+        @ci.determine_value(true, false) # query, don't force
         expect( @ci.value ).to eq ['10.0.0.1', '10.0.0.2', '10.0.0.3']
         list = '\["10.0.0.1", "10.0.0.2", "10.0.0.3"\]'
         r = /os value:\s+#{list}.* recommended value:\s+#{list}.* simp_options::dns::servers = .*#{list}/m

@@ -1,6 +1,6 @@
 require 'simp/cli/config/items/action/set_up_puppet_autosign_action'
 require 'simp/cli/config/items/data/cli_network_hostname'
-require 'simp/cli/lib/utils'
+require 'simp/cli/utils'
 require 'rspec/its'
 require_relative '../spec_helper'
 
@@ -8,7 +8,7 @@ describe Simp::Cli::Config::Item::SetUpPuppetAutosignAction do
   before :each do
     @file_dir  = File.expand_path( 'files',  File.dirname( __FILE__ ) )
     @tmp_dir   = Dir.mktmpdir(File.basename(__FILE__) )
-    allow(::Utils).to receive(:puppet_info).and_return( {
+    allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
       :config => {
         'codedir' => @tmp_dir,
         'confdir' => @tmp_dir

@@ -46,6 +46,7 @@ end
 group :development do
   # enhanced REPL + debugging environment
   gem 'pry'
+  gem 'pry-byebug', '~> 3.4.2'
   gem 'pry-doc'
 
   # Automatically test changes

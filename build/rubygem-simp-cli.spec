@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.0.5
+%global cli_version 4.1.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -100,6 +100,63 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon Apr 23 2018 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.1.0
+- removed simp_options::selinux references in tests.
+
+* Wed Apr 11 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.1.0
+- 'simp config' bug fixes
+  - Fixed bug in which '{' and '}' characters in console error messages
+    resulted in obscure Ruby parsing failures.
+  - Fixed bug in which existing non-local NTP servers configuration
+    was not presented to the user as a recommended value for
+    simp_options::ntpd::servers.
+  - Fixed a bug in simp config in which the grub password could
+    be **silently** generated and set when the -f option was used.
+    The user would have no way to figuring out the value of the
+    grub password in that scenario.
+- 'simp config' enhancements
+  - Reworked password entry to act more like traditional Linux password
+    changing programs
+  - Improved input validation and error handling:
+    - Improved password validation. This validation now uses pwscore,
+      when available.  cracklib-check is used otherwise.
+      **CAUTION**:  Existing passwords may not pass current validation.
+    - When interactive operation is permitted, always query the user for
+      replacement values for invalid answers provided by file or command
+      command line KEY=VALUE input.  Previously, for items that
+      'simp config' would normally automatically assign without user
+      input, 'simp config' would automatically (and sometimes
+      silently), replace the invalid values.  This both hid errors
+      and yielded unexpected settings.
+    - Verify <password, password hash> pairs provided by file or
+      command line KEY=VALUE input are valid.  Previously, a user
+      could pre-assign LDAP Bind/Sync passwords that did not match
+      their respective password hashes.
+    - Log problems with invalid answers provided by file or command
+      line KEY=VALUE input when the answer is processed, not when
+      it is first read in.  Previously, validation error messages
+      were totally disassociated from the values causing the errors.
+  - Added an option to disable queries (-D,--disable-queries) whether or
+    not an input answers file is being used.  This feature is a
+    functioning replacement for the previously removed -ff capability.
+  - Deprecated the --non-interactive long name of -f in favor of
+    a more accurately-named replacement, --force-defaults.
+    --non-interactive will be removed in a future release.
+- 'simp passgen'
+  - Fixed bug in which password filenames containing one or more '.'
+    characters could not be listed, added, or removed.
+  - Added password auto-generation capability to password setting
+    operation.
+  - Added backup of password salt files, when passwords are backed up.
+  - Per security best practices, when a password is updated, now
+    removes the salt file corresponding to an old password.
+  - Improved password validation. This validation now uses pwscore,
+    when available.  cracklib-check is used otherwise.
+    **CAUTION**:  Existing passwords may not pass current validation.
+- General updates
+  - No longer emit Ruby backtraces for errors for which a backtrace
+    provides no additional information.
+
 * Fri Mar 16 2018 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.0.5
 - Prior to bootstrap, we now ensure that the site.pp and site module
   code is valid so that we don't have confusing delays after waiting for

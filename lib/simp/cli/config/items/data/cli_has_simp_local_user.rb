@@ -33,7 +33,7 @@ via the simp::server manifest, when SIMP is bootstrapped.}
       File.exist?(@iso_marker)
     end
 
-    def os_value
+    def get_os_value
       begin
         Etc.getpwnam(@username)
 
@@ -49,7 +49,7 @@ via the simp::server manifest, when SIMP is bootstrapped.}
       end
     end
 
-    def recommended_value
+    def get_recommended_value
       os_value
     end
   end

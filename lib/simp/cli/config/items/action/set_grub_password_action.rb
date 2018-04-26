@@ -60,7 +60,8 @@ module Simp::Cli::Config
       if grub_conf
         result = execute("sed -i '/password/ c\password --encrypted #{grub_hash}' #{grub_conf}")
       else
-        raise('Could not find grub.conf:  Expected /boot/grub/grub.conf or /boot/efi/EFI/redhat/grub.conf')
+        err_msg = 'Could not find grub.conf:  Expected /boot/grub/grub.conf or /boot/efi/EFI/redhat/grub.conf'
+        raise ApplyError.new(err_msg)
       end
     end
   end

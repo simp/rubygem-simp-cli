@@ -18,7 +18,7 @@ module Simp::Cli::Config
 
     # TODO: comment upon the hell-logic below
     # TODO: possibly refactor ip and netmask os_value into shared parent
-    def os_value
+    def get_os_value
       netmask = nil
       nic = get_item( 'cli::network::interface' ).value
       if nic || @fact
@@ -33,6 +33,8 @@ module Simp::Cli::Config
       netmask
     end
 
-    def recommended_value; os_value; end
+    def get_recommended_value
+      os_value
+    end
   end
 end

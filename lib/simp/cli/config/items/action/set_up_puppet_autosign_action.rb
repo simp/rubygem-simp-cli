@@ -9,11 +9,11 @@ module Simp::Cli::Config
       super
       @key         = 'puppet::autosign'
       @description = 'Set up Puppet autosign'
-      @file        = File.join(::Utils.puppet_info[:config]['confdir'], 'autosign.conf')
-      @group       = ::Utils.puppet_info[:puppet_group]
+      @file        = File.join(Simp::Cli::Utils.puppet_info[:config]['confdir'], 'autosign.conf')
+      @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
     end
 
-    def os_value
+    def get_os_value
       # TODO: make this a custom fact?
       values = Array.new
       File.readable?(@file) &&
@@ -36,7 +36,7 @@ module Simp::Cli::Config
       end
     end
 
-    def recommended_value
+    def get_recommended_value
       rec_value = os_value
       if !rec_value
         rec_value = [ get_item( 'cli::network::hostname' ).value ]

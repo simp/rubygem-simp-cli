@@ -18,7 +18,7 @@ the Puppet environments directory.}
     end
 
 
-    def os_value
+    def get_os_value
       # SIMP can be installed via an ISO, individual RPMs or R10K.  When SIMP
       # is installed from an ISO or R10K, the SIMP modules are automatically
       # copied into the Puppet environments directory.  When SIMP is
@@ -44,7 +44,7 @@ the Puppet environments directory.}
       end
     end
 
-    def recommended_value
+    def get_recommended_value
       os_value
     end
   end

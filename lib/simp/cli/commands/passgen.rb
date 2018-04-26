@@ -1,4 +1,6 @@
 require File.expand_path( '../../cli', File.dirname(__FILE__) )
+require File.expand_path( '../errors', File.dirname(__FILE__) )
+require 'highline'
 
 module Simp::Cli::Commands; end
 class Simp::Cli::Commands::Passgen < Simp::Cli
@@ -118,17 +120,53 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
     begin
       Dir.chdir(@password_dir) do
         names = Dir.glob('*').select do |x|
-          File.file?(x) && (x !~ /\..+$/)  # exclude salt and backup files
+          File.file?(x) && (x !~ /\.salt$|\.last$/)  # exclude salt and backup files
         end
       end
     rescue SystemCallError => err
-      raise "Error occurred while accessing '#{@password_dir}': #{err}"
+      err_msg = "Error occurred while accessing '#{@password_dir}': #{err}"
+      raise Simp::Cli::ProcessingError.new(err_msg)
     end
     names.sort
   end
 
+  def self.get_password(allow_autogenerate = true, attempts = 5)
+    if (attempts == 0)
+      raise Simp::Cli::ProcessingError.new('FATAL: Too may failed attempts to enter password')
+    end
+
+    password = ''
+    if allow_autogenerate and yes_or_no('Do you want to autogenerate the password?', true )
+      password = Simp::Cli::Utils.generate_password
+      puts "  Password set to '#{password}'"
+    else
+      question1 = "> #{'Enter password'.bold}: "
+      password = ask(question1) do |q|
+        q.echo = '*'
+        q.validate = lambda { |answer| validate_password(answer) }
+        q.responses[:not_valid] = nil
+        q.responses[:ask_on_error] = :question
+        q
+      end
+
+      question2 = "> #{'Confirm password'.bold}: "
+      confirm_password = ask(question2) do |q|
+        q.echo = '*'
+        q
+      end
+
+      if password != confirm_password
+        $stderr.puts '  Passwords do not match! Please try again.'.red.bold
+
+        # start all over, skipping the autogenerate question
+        password = get_password(false, attempts - 1)
+      end
+    end
+    password
+  end
+
   def self.get_password_dir
-    password_env_dir = File.join(`puppet config print vardir --section master`.strip, 'simp', 'environments')
+    password_env_dir = File.join(`puppet config print vardir --section master 2>/dev/null`.strip, 'simp', 'environments')
     File.join(password_env_dir, @environment, 'simp_autofiles', 'gen_passwd')
   end
 
@@ -142,9 +180,26 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
     end
   end
 
+  def self.validate_password(password)
+    begin
+      Simp::Cli::Utils::validate_password(password)
+      return true
+    rescue Simp::Cli::PasswordError => e
+      $stderr.puts "  #{e.message}.".red.bold
+      return false
+    end
+  end
+
   def self.validate_password_dir
-    raise "Password directory '#{@password_dir}' does not exist" unless File.exist?(@password_dir)
-    raise "Password directory '#{@password_dir}' is not a directory" unless File.directory?(@password_dir)
+    unless File.exist?(@password_dir)
+      err_msg = "Password directory '#{@password_dir}' does not exist"
+      raise Simp::Cli::ProcessingError.new(err_msg)
+    end
+
+    unless File.directory?(@password_dir)
+      err_msg = "Password directory '#{@password_dir}' is not a directory"
+      raise Simp::Cli::ProcessingError.new(err_msg)
+    end
   end
 
   def self.show_environment_list
@@ -152,18 +207,30 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
     #   <env dir>/<env>/simp_autofiles/gen_passwd
     # (which also assumes Linux path separators)
     unless @password_dir.include?("/simp_autofiles/gen_passwd")
-      raise "Password environment directory could not be determined from '#{@password_dir}'"
+      err_msg = "Password environment directory could not be determined from '#{@password_dir}'"
+      raise Simp::Cli::ProcessingError.new(err_msg)
     end
+
     env_dir = File.dirname(@password_dir.split("/simp_autofiles/")[0])
-    raise "Password environment directory '#{env_dir}' does not exist" unless File.exist?(env_dir)
-    raise "Password environment directory '#{env_dir}' is not a directory" unless File.directory?(env_dir)
+
+    unless File.exist?(env_dir)
+      err_msg ="Password environment directory '#{env_dir}' does not exist"
+      raise Simp::Cli::ProcessingError.new(err_msg)
+    end
+
+    unless File.directory?(env_dir)
+      err_msg = "Password environment directory '#{env_dir}' is not a directory"
+      raise Simp::Cli::ProcessingError.new(err_msg)
+    end
+
     environments = []
     begin
       Dir.chdir(env_dir) do
         environments = Dir.glob('*').sort
       end
     rescue SystemCallError => err
-      raise "Error occurred while accessing '#{env_dir}': #{err}"
+      err_msg = "Error occurred while accessing '#{env_dir}': #{err}"
+      raise Simp::Cli::ProcessingError.new(err_msg)
     end
     puts "Environments:\n\t#{environments.join("\n\t")}"
     puts
@@ -199,6 +266,25 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
     end
   end
 
+  def self.backup_password_files(password_filename)
+    backup_passwords = @backup_passwords
+    if backup_passwords.nil?
+      backup_passwords = yes_or_no("Would you like to rotate the old password?", false)
+    end
+    if backup_passwords
+      begin
+        FileUtils.mv(password_filename, password_filename + '.last', :verbose => true, :force => true)
+        salt_filename = password_filename + '.salt'
+        if File.exists?(salt_filename)
+          FileUtils.mv(salt_filename, salt_filename + '.last', :verbose => true, :force => true)
+        end
+      rescue SystemCallError => err
+        err_msg = "Error occurred while backing up '#{password_filename}' files: #{err}"
+        raise Simp::Cli::ProcessingError.new(err_msg)
+      end
+    end
+  end
+
   def self.set_passwords
     validate_password_dir
     @names.each do |name|
@@ -206,37 +292,35 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
       password_filename = "#{@password_dir}/#{name}"
 
       puts "#{@environment} Name: #{name}"
-#TODO add an auto-generate option and use Simp::Cli::Config::Utils.generate_password
-      password = Utils.get_password
-      if File.exists?(password_filename)
-        backup_passwords = @backup_passwords
-        if backup_passwords.nil?
-          backup_passwords = Utils.yes_or_no("Would you like to rotate the old password?", false)
-        end
-        if backup_passwords
-          begin
-            FileUtils.mv(password_filename, password_filename + '.last', :verbose => true, :force => true)
-          rescue SystemCallError => err
-            raise "Error occurred while moving '#{password_filename}' to '#{password_filename + '.last'}': #{err}"
-          end
-        end
-      end
+      password = get_password
+      backup_password_files(password_filename) if File.exists?(password_filename)
+
       begin
+        # Remove any residual salt file, as per best security practices,
+        # it should not be used with the new password.  simplib::passgen()
+        # (from SIMP's simplib puppet module) will create a new salt file
+        # when it is needed.
+        FileUtils.rm_f(password_filename + '.salt')
+
         File.open(password_filename, 'w') { |file| file.puts password }
 
         # Ensure that the ownership and permissions are correct
-        puppet_user = `puppet config print user`.strip
-        puppet_group = `puppet config print group`.strip
+        puppet_user = `puppet config print user 2>/dev/null`.strip
+        puppet_group = `puppet config print group 2>/dev/null`.strip
         if puppet_user.empty? or puppet_group.empty?
-          raise 'Could not set password file ownership:  unable to determine puppet user and group'
+          err_msg = 'Could not set password file ownership:  unable to determine puppet user and group'
+          raise Simp::Cli::ProcessingError.new(err_msg)
         end
         FileUtils.chown(puppet_user, puppet_group, password_filename)
         FileUtils.chmod(0640, password_filename)
+
       rescue ArgumentError => err
         # This will happen if group does not exist
-        raise "Could not set password file ownership: #{err}"
+        err_msg = "Could not set password file ownership: #{err}"
+        raise Simp::Cli::ProcessingError.new(err_msg)
       rescue SystemCallError => err
-        raise "Error occurred while writing '#{password_filename}': #{err}"
+        err_msg = "Error occurred while writing '#{password_filename}': #{err}"
+        raise Simp::Cli::ProcessingError.new(err_msg)
       end
       puts
     end
@@ -251,22 +335,41 @@ class Simp::Cli::Commands::Passgen < Simp::Cli
       if File.exists?(password_filename)
         remove = @force_remove
         unless remove
-          remove = Utils.yes_or_no("Are you sure you want to remove all entries for #{name}?", false)
+          remove = yes_or_no("Are you sure you want to remove all entries for #{name}?", false)
         end
         if remove
+          File.delete(password_filename)
+          puts "#{password_filename} deleted"
+
+          salt_password_filename = password_filename + '.salt'
+          if File.exists?(salt_password_filename)
+            File.delete(salt_password_filename)
+            puts "#{salt_password_filename} deleted"
+          end
+
           last_password_filename = password_filename + '.last'
           if File.exists?(last_password_filename)
             File.delete(last_password_filename)
             puts "#{last_password_filename} deleted"
           end
-
-          File.delete(password_filename)
-          puts "#{password_filename} deleted"
         end
       end
       puts
     end
   end
+
+  def self.yes_or_no(prompt, default_yes)
+    question = "> #{prompt.bold}: "
+    answer = ask(question) do |q|
+      q.validate = /^y$|^n$|^yes$|^no$/i
+      q.default = (default_yes ? 'yes' : 'no')
+      q.responses[:not_valid] = "Invalid response. Please enter 'yes' or 'no'".red
+      q.responses[:ask_on_error] = :question
+      q
+    end
+    result = (answer.downcase[0] == 'y')
+  end
+
 
   # Resets options to original values.
   # This ugly method is needed for unit-testing, in which multiple occurrences of

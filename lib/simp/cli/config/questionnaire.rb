@@ -1,5 +1,4 @@
 require File.expand_path( 'items', File.dirname(__FILE__) )
-require File.expand_path( 'logging', File.dirname(__FILE__) )
 
 # Builds a SIMP configuration profile based on an Array of Config::Items
 #
@@ -8,16 +7,10 @@ require File.expand_path( 'logging', File.dirname(__FILE__) )
 #
 class Simp::Cli::Config::Questionnaire
 
-  include Simp::Cli::Config::Logging
-
-  INTERACTIVE           = 0
-  NONINTERACTIVE        = 1
-  REALLY_NONINTERACTIVE = 2
-
   def initialize( options = {} )
     @options = {
-     :noninteractive          => INTERACTIVE,
-     :verbose                 => 0
+     :force_defaults => false,
+     :allow_queries  => true
     }.merge( options )
   end
 
@@ -43,44 +36,9 @@ class Simp::Cli::Config::Questionnaire
 
 
   # process a Config::Item
-  #
-  # simp config can run in the following modes:
-  #   - interactive (prompt each item)
-  #   - mostly non-interactive (-f/-A; prompt items that can't be inferred or pulled from cli args)
-  #   - never prompt (-a; optionally use cli args for non-inferrable items);
-  #   - never prompt (-ff; relies on cli args for non-inferrable items))
   def process_item item
-    item.skip_query = true if @options[ :noninteractive ] >= NONINTERACTIVE
-    if @options.fetch( :fail_on_missing_answers, false )
-      item.fail_on_missing_answer = true
-    end
-
-    if @options[ :noninteractive ] == INTERACTIVE
-      item.query
-    else
-      value = item.default_value_noninteractive
-
-      if item.validate( value )
-        item.value = value
-        item.print_summary if @options.fetch( :verbose ) >= 0
-      else
-        # present an interactive prompt for invalid answers unless '-ff'
-        if @options.fetch( :noninteractive ) >= REALLY_NONINTERACTIVE
-          raise "FATAL: '#{item.value}' is an invalid answer for '#{item.key}'"
-        else
-          # alert user that the value is wrong
-          print_invalid_item_error item
-          item.skip_query = false
-          value = item.query
-        end
-      end
-    end
-    item.safe_apply
+    item.determine_value(@options[:allow_queries], @options[:force_defaults])
+    item.safe_apply if item.respond_to?(:safe_apply)
   end
 
-  def print_invalid_item_error item
-    error =  "ERROR: '#{item.value}' is not a valid value for #{item.key}"
-    error += "\n#{item.not_valid_message}" if item.not_valid_message
-    logger.error(error, [:RED])
-  end
 end

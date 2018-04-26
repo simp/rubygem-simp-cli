@@ -2,6 +2,10 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
 
+  # Exception class for errors during ActionItem::safe_apply()
+  # and ActionItem::apply()
+  class ApplyError < StandardError; end
+
   # Exception class for errors the indicate internal, software error, for
   # example errors in which the Item tree is ordered incorrectly.
   class InternalError < StandardError
@@ -23,6 +27,6 @@ module Simp::Cli::Config
     end
   end
 
-  class PasswordError < StandardError; end
+  class ValidationError < StandardError; end
 
 end

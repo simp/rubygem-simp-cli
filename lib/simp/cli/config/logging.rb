@@ -96,7 +96,7 @@ module Simp::Cli::Config::Logging
     def log_and_say(level, *args)
       plain_message, formatted_message = create_message_strings(*args)
       plain_message.split("\n").each { |msg| eval("@file_logger.#{level.to_s.downcase}(msg)") }
-      unless @console_level > eval("::Logger::#{level.to_s.upcase}")
+      unless eval("::Logger::#{level.to_s.upcase}") < @console_level
         say( formatted_message )
       end
     end
@@ -125,7 +125,12 @@ module Simp::Cli::Config::Logging
           adjusted_message.chop!
           extra = ' '
         end
+        # since we are using {} as the string delimiter, make sure we've escaped
+        # any {} in the message
+        adjusted_message.gsub!('{', '\{')
+        adjusted_message.gsub!('}', '\}')
         formatted_message = "<%= color(%q{#{adjusted_message}}#{options}) %>#{extra}"
+
       end
       formatted_message
     end

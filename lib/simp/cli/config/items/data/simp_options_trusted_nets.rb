@@ -16,14 +16,14 @@ you can override it in Hiera.}
       @allow_empty_list = false
     end
 
-    def os_value
+    def get_os_value
       # NOTE: the logic that would normally go here is in recommended_value
       # trusted_nets is an administrative concept, not an os configuration
       nil
     end
 
     # infer base network/CIDR values from IP/netmask
-    def recommended_value
+    def get_recommended_value
       address = get_item('cli::network::ipaddress').value
       nm      = get_item('cli::network::netmask').value
 

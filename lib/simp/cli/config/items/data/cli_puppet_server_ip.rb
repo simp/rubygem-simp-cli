@@ -15,7 +15,7 @@ This is used to configure /etc/hosts properly.}
 
 
     # Always recommend the configured IP
-    def recommended_value
+    def get_recommended_value
       get_item( 'cli::network::ipaddress' ).value
     end
 

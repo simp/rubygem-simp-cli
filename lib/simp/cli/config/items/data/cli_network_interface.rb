@@ -14,7 +14,7 @@ module Simp::Cli::Config
 
     # try to guess which NIC is likely to be used
     # TODO IDEA: also use Facter to prefer NICs that already have IPs
-    def recommended_value
+    def get_recommended_value
       devices = acceptable_values
       (
        devices.select{|x|  x.match(/^br/)}.first  ||

@@ -1,5 +1,5 @@
 require File.expand_path( 'action_item', File.dirname(__FILE__) )
-require 'simp/cli/lib/utils'
+require 'simp/cli/utils'
 
 module Simp::Cli::Config
 
@@ -11,7 +11,7 @@ module Simp::Cli::Config
 
     def initialize
       super
-      @dir          = File.join(::Utils.puppet_info[:simp_environment_path], 'hieradata', 'hosts')
+      @dir          = File.join(Simp::Cli::Utils.puppet_info[:simp_environment_path], 'hieradata', 'hosts')
       @description = "Add #{@class_to_add} class to SIMP server <host>.yaml"
       @file         = nil
     end

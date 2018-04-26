@@ -1,39 +1,204 @@
 require 'simp/cli/commands/passgen'
-require 'simp/cli/lib/utils'
+require 'simp/cli/utils'
 require 'spec_helper'
 require 'etc'
 
 
-def validate_set_and_backup(args, expected_output, expected_password_files,
-    expected_passwords)
+def validate_set_and_backup(args, expected_output, expected_file_info)
   expect { Simp::Cli::Commands::Passgen.run(args) }.to output(expected_output).to_stdout
 
-  expected_password_files.each do |file|
-    expect(File.exist?(file)).to eq true
-  end
-
-  actual_passwords = []
-  expected_password_files.each do |file|
-    actual_passwords << IO.read(file).chomp
-  end
-
-  expected_passwords.each_index do |index|
-    expect(actual_passwords[index]).to eq expected_passwords[index]
+  expected_file_info.each do |file,expected_contents|
+    expect(File.exist?(file)).to be true
+    expect(IO.read(file).chomp).to eq expected_contents
   end
 end
 
 describe Simp::Cli::Commands::Passgen do
+  describe ".get_password" do
+    before :each do
+      @input = StringIO.new
+      @output = StringIO.new
+      @prev_terminal = $terminal
+      $terminal = HighLine.new(@input, @output)
+    end
+
+    after :each do
+      @input.close
+      @output.close
+      $terminal = @prev_terminal
+    end
+
+    let(:password1) { 'A=V3ry=Go0d=P@ssw0r!' }
+
+    it 'autogenerates a password when default is selected' do
+      @input << "\n"
+      @input.rewind
+      expect(Simp::Cli::Commands::Passgen.get_password.length)
+        .to eq Simp::Cli::Utils::DEFAULT_PASSWORD_LENGTH
+
+      expected = '> Do you want to autogenerate the password?: |yes| '
+      expect(@output.string.uncolor).to eq expected
+    end
+
+    it "autogenerates a password when 'yes' is entered" do
+      @input << "yes\n"
+      @input.rewind
+      expect(Simp::Cli::Commands::Passgen.get_password.length)
+        .to eq Simp::Cli::Utils::DEFAULT_PASSWORD_LENGTH
+
+      expected = '> Do you want to autogenerate the password?: |yes| '
+      expect(@output.string.uncolor).to eq expected
+    end
+
+    it 'does not prompt for autogenerate when allow_autogenerate=false' do
+      @input << "#{password1}\n"
+      @input << "#{password1}\n"
+      @input.rewind
+      expect(Simp::Cli::Commands::Passgen.get_password(false))
+        .to eq password1
+
+      expected = <<EOM
+> Enter password: ********************
+> Confirm password: ********************
+EOM
+      expect(@output.string.uncolor).to_not match /Do you want to autogenerate/
+    end
+
+    it 'accepts a valid password when entered twice' do
+      @input << "no\n"
+      @input << "#{password1}\n"
+      @input << "#{password1}\n"
+      @input.rewind
+      expect(Simp::Cli::Commands::Passgen.get_password)
+        .to eq password1
+
+      expected = <<EOM
+> Do you want to autogenerate the password?: |yes| > Enter password: ********************
+> Confirm password: ********************
+EOM
+      expect(@output.string.uncolor).to eq expected
+    end
+
+    it 're-prompts when the entered password fails validation' do
+      @input << "short\n"
+      @input << "#{password1}\n"
+      @input << "#{password1}\n"
+      @input.rewind
+      expect(Simp::Cli::Commands::Passgen.get_password(false))
+        .to eq password1
+
+      expected = <<EOM
+> Enter password: *****
+> Enter password: ********************
+> Confirm password: ********************
+EOM
+      expect(@output.string.uncolor).to eq expected
+    end
+
+    it 'starts over when the confirm password does not match the entered password' do
+      @input << "#{password1}\n"
+      @input << "bad confirm\n"
+      @input << "#{password1}\n"
+      @input << "#{password1}\n"
+      @input.rewind
+      expect(Simp::Cli::Commands::Passgen.get_password(false))
+        .to eq password1
+
+      expected = <<EOM
+> Enter password: ********************
+> Confirm password: ***********
+> Enter password: ********************
+> Confirm password: ********************
+EOM
+      expect(@output.string.uncolor).to eq expected
+    end
+
+    it 'fails after 5 failed start-over attempts' do
+      @input << "#{password1}\n"
+      @input << "bad confirm 1\n"
+      @input << "#{password1}\n"
+      @input << "bad confirm 2\n"
+      @input << "#{password1}\n"
+      @input << "bad confirm 3\n"
+      @input << "#{password1}\n"
+      @input << "bad confirm 4\n"
+      @input << "#{password1}\n"
+      @input << "bad confirm 5\n"
+      @input.rewind
+      expect{ Simp::Cli::Commands::Passgen.get_password(false) }
+        .to raise_error(Simp::Cli::ProcessingError)
+    end
+
+  end
+
+  describe ".yes_or_no" do
+    before :each do
+      @input = StringIO.new
+      @output = StringIO.new
+      @prev_terminal = $terminal
+      $terminal = HighLine.new(@input, @output)
+    end
+
+    after :each do
+      @input.close
+      @output.close
+      $terminal = @prev_terminal
+    end
+
+    it "when default_yes=true, prompts, accepts default of 'yes' and returns true" do
+      @input << "\n"
+      @input.rewind
+
+      expect(Simp::Cli::Commands::Passgen.yes_or_no('Remove backups', true)).to eq true
+      expect(@output.string.uncolor).to eq '> Remove backups: |yes| '
+    end
+
+    it "when default_yes=false, prompts, accepts default of 'no' and returns false" do
+      @input << "\n"
+      @input.rewind
+      expect(Simp::Cli::Commands::Passgen.yes_or_no('Remove backups', false)).to eq false
+      expect(@output.string.uncolor).to eq '> Remove backups: |no| '
+    end
+
+    ['yes', 'YES', 'y', 'Y'].each do |response|
+      it "accepts '#{response}' and returns true" do
+        @input << "#{response}\n"
+        @input.rewind
+        expect(Simp::Cli::Commands::Passgen.yes_or_no('Remove backups', false)).to eq true
+      end
+    end
+
+    ['no', 'NO', 'n', 'N'].each do |response|
+      it "accepts '#{response}' and returns false" do
+        @input << "#{response}\n"
+        @input.rewind
+        expect(Simp::Cli::Commands::Passgen.yes_or_no('Remove backups', false)).to eq false
+      end
+    end
+
+    it 're-prompts user when user does not enter a string that begins with Y, y, N, or n' do
+      @input << "oops\n"
+      @input << "I\n"
+      @input << "can't\n"
+      @input << "type!\n"
+      @input << "yes\n"
+      @input.rewind
+      expect(Simp::Cli::Commands::Passgen.yes_or_no('Remove backups', false)).to eq true
+    end
+
+  end
+
   describe ".run" do
     before :each do
       @tmp_dir   = Dir.mktmpdir(File.basename(__FILE__))
       @var_dir = File.join(@tmp_dir, 'vardir')
       @password_env_dir = File.join(@var_dir, 'simp', 'environments')
       FileUtils.mkdir_p(@password_env_dir)
-      allow(Simp::Cli::Commands::Passgen).to receive(:`).with('puppet config print vardir --section master').and_return(@var_dir  + "\n")
+      allow(Simp::Cli::Commands::Passgen).to receive(:`).with('puppet config print vardir --section master 2>/dev/null').and_return(@var_dir  + "\n")
       process_user = Etc.getpwuid(Process.uid).name
       process_group = Etc.getgrgid(Process.gid).name
-      allow(Simp::Cli::Commands::Passgen).to receive(:`).with('puppet config print user').and_return(process_user)
-      allow(Simp::Cli::Commands::Passgen).to receive(:`).with('puppet config print group').and_return(process_group)
+      allow(Simp::Cli::Commands::Passgen).to receive(:`).with('puppet config print user 2>/dev/null').and_return(process_user)
+      allow(Simp::Cli::Commands::Passgen).to receive(:`).with('puppet config print group 2>/dev/null').and_return(process_group)
     end
 
     after :each do
@@ -66,20 +231,23 @@ EOM
       end
 
       it 'fails when environments cannot be determined from password dir option' do
-        expect { Simp::Cli::Commands::Passgen.run(['-E', '-d', @tmp_dir]) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-E', '-d', @tmp_dir]) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password environment directory could not be determined from '#{@tmp_dir}'")
       end
 
       it 'fails when environment directory does not exist' do
         FileUtils.rm_rf(@password_env_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-E']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-E']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password environment directory '#{@password_env_dir}' does not exist")
       end
 
       it 'fails when environment directory is not a directory' do
         FileUtils.rm_rf(@password_env_dir)
         FileUtils.touch(@password_env_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-E']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-E']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password environment directory '#{@password_env_dir}' is not a directory")
       end
     end
@@ -100,14 +268,19 @@ EOM
       end
 
       it 'lists available names for default environment' do
-        FileUtils.touch(File.join(@default_password_dir, 'production_name1'))
-        FileUtils.touch(File.join(@default_password_dir, 'production_name2'))
-        FileUtils.touch(File.join(@default_password_dir, 'production_name3'))
+        FileUtils.touch(File.join(@default_password_dir, 'production_name'))
+        FileUtils.touch(File.join(@default_password_dir, 'production_name.salt'))
+        FileUtils.touch(File.join(@default_password_dir, 'production_name.last'))
+        FileUtils.touch(File.join(@default_password_dir, 'production_name.salt.last'))
+        FileUtils.touch(File.join(@default_password_dir, '10.0.1.2'))
+        FileUtils.touch(File.join(@default_password_dir, 'salt.and.pepper'))
+        FileUtils.touch(File.join(@default_password_dir, 'my.last.name'))
         expected_output = <<EOM
 production Names:
-	production_name1
-	production_name2
-	production_name3
+	10.0.1.2
+	my.last.name
+	production_name
+	salt.and.pepper
 
 EOM
         expect { Simp::Cli::Commands::Passgen.run(['-l']) }.to output(expected_output).to_stdout
@@ -127,14 +300,16 @@ EOM
 
       it 'fails when password directory does not exist' do
         FileUtils.rm_rf(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-l']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-l']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' does not exist")
       end
 
       it 'fails when password directory is not a directory' do
         FileUtils.rm_rf(@default_password_dir)
         FileUtils.touch(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-l']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-l']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' is not a directory")
       end
 
@@ -201,14 +376,16 @@ EOM
 
       it 'fails when password directory does not exist' do
         FileUtils.rm_rf(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-n', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-n', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' does not exist")
       end
 
       it 'fails when password directory is not a directory' do
         FileUtils.rm_rf(@default_password_dir)
         FileUtils.touch(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-n', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-n', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' is not a directory")
       end
     end
@@ -217,12 +394,17 @@ EOM
       before :each do
         @default_password_dir = File.join(@password_env_dir, 'production', 'simp_autofiles', 'gen_passwd')
         FileUtils.mkdir_p(@default_password_dir)
+
         @name1_file = File.join(@default_password_dir, 'production_name1')
         File.open(@name1_file, 'w') { |file| file.puts "production_name1_password" }
+        @name1_salt_file = File.join(@default_password_dir, 'production_name1.salt')
+        File.open(@name1_salt_file, 'w') { |file| file.puts 'production_name1_salt' }
         @name1_backup_file = File.join(@default_password_dir, 'production_name1.last')
         File.open(@name1_backup_file, 'w') { |file| file.puts "production_name1_backup_password" }
+
         @name2_file = File.join(@default_password_dir, 'production_name2')
         File.open(@name2_file, 'w') { |file| file.puts "production_name2_password" }
+
         @name3_file = File.join(@default_password_dir, 'production_name3')
         File.open(@name3_file, 'w') { |file| file.puts "production_name3_password" }
         @name3_backup_file = File.join(@default_password_dir, 'production_name3.last')
@@ -232,45 +414,44 @@ EOM
         FileUtils.mkdir_p(@env1_password_dir)
         @name4_file = File.join(@env1_password_dir, 'env1_name4')
         File.open(@name4_file, 'w') { |file| file.puts "env1_name4_password" }
+        @name4_salt_file = File.join(@env1_password_dir, 'env1_name4.salt')
+        File.open(@name4_salt_file, 'w') { |file| file.puts "env1_name4_salt" }
         @name4_backup_file = File.join(@env1_password_dir, 'env1_name4.last')
         File.open(@name4_backup_file, 'w') { |file| file.puts "env1_name4_backup_password" }
       end
 
       context 'with default environment' do
         context 'with backups' do
-          let(:expected_passwords) { [
-            'new_password',
-            'production_name1_password',
-            'new_password',
-            'production_name2_password',
-            'production_name3_password',       # unchanged
-            'production_name3_backup_password' # unchanged
-          ] }
-
-          let(:expected_password_files) { [
-            @name1_file,
-            @name1_backup_file,
-            @name2_file,
-            @name2_file + '.last',
-            @name3_file,
-            @name3_backup_file
-          ] }
-
-          it 'updates password file and backs up old file per prompt' do
-            allow(::Utils).to receive(:get_password).and_return('new_password')
-            allow(STDIN).to receive(:gets) { 'y' }
-            expected_output = <<EOM
-production Name: production_name1
-Would you like to rotate the old password? [y|N]: 
-production Name: production_name2
-Would you like to rotate the old password? [y|N]: 
-EOM
-            validate_set_and_backup(['-s', 'production_name1,production_name2' ],
-              expected_output, expected_password_files, expected_passwords)
+          let(:expected_file_info) do {
+              @name1_file                => 'first_new_password',
+              @name1_backup_file         => 'production_name1_password',
+              @name1_salt_file + '.last' => 'production_name1_salt',
+              @name2_file                => 'second_new_password',
+              @name2_file + '.last'      => 'production_name2_password',
+              @name3_file                => 'production_name3_password',       # unchanged
+              @name3_backup_file         => 'production_name3_backup_password' # unchanged
+            }
           end
 
-          it 'updates password file and backs up old file per --backup option' do
-            allow(::Utils).to receive(:get_password).and_return('new_password')
+          it 'updates password file and backs up old files per prompt' do
+            allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return(
+              'first_new_password', 'second_new_password')
+            allow(Simp::Cli::Commands::Passgen).to receive(:yes_or_no).and_return(true)
+            expected_output = <<EOM
+production Name: production_name1
+
+production Name: production_name2
+
+EOM
+            validate_set_and_backup(['-s', 'production_name1,production_name2' ],
+              expected_output, expected_file_info)
+
+            expect(File.exist?(@name1_salt_file)).to be false
+          end
+
+          it 'updates password file and backs up old files per --backup option' do
+            allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return(
+              'first_new_password', 'second_new_password')
             expected_output = <<EOM
 production Name: production_name1
 
@@ -278,44 +459,46 @@ production Name: production_name2
 
 EOM
             validate_set_and_backup(['--backup', '-s', 'production_name1,production_name2' ],
-              expected_output, expected_password_files, expected_passwords)
+              expected_output, expected_file_info)
+
+            expect(File.exist?(@name1_salt_file)).to be false
           end
         end
 
         context 'without backups' do
-          let(:expected_passwords) { [
-            'new_password',
-            'production_name1_backup_password',
-            'new_password',
-            'production_name3_password',
-            'production_name3_backup_password'
-          ] }
+          let(:expected_file_info) do {
+              @name1_file        => 'first_new_password',
+              @name1_backup_file => 'production_name1_backup_password', # unchanged
+              @name2_file        => 'second_new_password',
+              @name3_file        => 'production_name3_password',        # unchanged
+              @name3_backup_file => 'production_name3_backup_password'  # unchanged
+            }
+          end
 
-          let(:expected_password_files) { [
-            @name1_file,
-            @name1_backup_file,
-            @name2_file,
-            @name3_file,
-            @name3_backup_file
-          ] }
+          it 'updates password file and does not back up old files per prompt' do
+            allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return(
+              'first_new_password', 'second_new_password')
+            allow(Simp::Cli::Commands::Passgen).to receive(:yes_or_no).and_return(true)
+            allow(Simp::Cli::Commands::Passgen).to receive(:yes_or_no).and_return(false)
 
-          it 'updates password file and does not back up old file per prompt' do
-            allow(::Utils).to receive(:get_password).and_return('new_password')
-            allow(STDIN).to receive(:gets) { 'n' }
+            # not mocking query output
             expected_output = <<EOM
 production Name: production_name1
-Would you like to rotate the old password? [y|N]: 
+
 production Name: production_name2
-Would you like to rotate the old password? [y|N]: 
+
 EOM
             validate_set_and_backup(['-s', 'production_name1,production_name2' ],
-              expected_output, expected_password_files, expected_passwords)
+              expected_output, expected_file_info)
 
+            expect(File.exist?(@name1_salt_file)).to be false
+            expect(File.exist?(@name1_salt_file + '.last')).to be false
             expect(File.exist?(@name2_file + '.last')).to eq false
           end
 
-          it 'updates password file and does not back up old file per --no-backup option' do
-            allow(::Utils).to receive(:get_password).and_return('new_password')
+          it 'updates password file and does not back up old files per --no-backup option' do
+            allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return(
+              'first_new_password', 'second_new_password')
             expected_output = <<EOM
 production Name: production_name1
 
@@ -323,14 +506,16 @@ production Name: production_name2
 
 EOM
             validate_set_and_backup(['--no-backup', '-s', 'production_name1,production_name2' ],
-              expected_output, expected_password_files, expected_passwords)
+              expected_output, expected_file_info)
 
+            expect(File.exist?(@name1_salt_file)).to be false
+            expect(File.exist?(@name1_salt_file + '.last')).to be false
             expect(File.exist?(@name2_file + '.last')).to eq false
           end
         end
 
         it 'creates password file for new name' do
-          allow(::Utils).to receive(:get_password).and_return('new_password')
+          allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return('new_password')
           expected_output = <<EOM
 production Name: new_name
 
@@ -339,12 +524,13 @@ EOM
             expected_output).to_stdout
           new_password_file = File.join(@default_password_dir, 'new_name')
           expect( File.exist?(new_password_file) ).to eq true
+          expect( File.exist?(new_password_file + '.salt') ).to eq false
           expect( File.exist?(new_password_file + '.last') ).to eq false
           expect( IO.read(new_password_file).chomp ).to eq 'new_password'
         end
 
         it 'allows multiple backups' do
-          allow(::Utils).to receive(:get_password).and_return('new_password')
+          allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return('new_password')
           Simp::Cli::Commands::Passgen.run(['--backup', '-s', 'production_name1'])
           expect { Simp::Cli::Commands::Passgen.run(['--backup', '-s', 'production_name1']) }.not_to raise_error
           expect { Simp::Cli::Commands::Passgen.run(['--backup', '-s', 'production_name1']) }.not_to raise_error
@@ -353,75 +539,78 @@ EOM
 
       context 'specified environment' do
         context 'with backups' do
-          let(:expected_passwords) { [
-            'new_password',
-            'env1_name4_password'
-          ] }
-
-          let(:expected_password_files) { [
-            @name4_file,
-            @name4_backup_file
-          ] }
-
-          it 'updates password file and backs up old file per prompt' do
-            allow(::Utils).to receive(:get_password).and_return('new_password')
-            allow(STDIN).to receive(:gets) { 'y' }
-            expected_output = <<EOM
-env1 Name: env1_name4
-Would you like to rotate the old password? [y|N]: 
-EOM
-            validate_set_and_backup(['-e', 'env1', '-s', 'env1_name4'],
-              expected_output, expected_password_files, expected_passwords)
+          let(:expected_file_info) do {
+              @name4_file                => 'new_password',
+              @name4_salt_file + '.last' => 'env1_name4_salt',
+              @name4_backup_file         => 'env1_name4_password'
+            }
           end
 
-          it 'updates password file and backs up old file per --backup option' do
-            allow(::Utils).to receive(:get_password).and_return('new_password')
+          it 'updates password file and backs up old files per prompt' do
+            allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return('new_password')
+            allow(Simp::Cli::Commands::Passgen).to receive(:yes_or_no).and_return(true)
+            # not mocking query output
+            expected_output = <<EOM
+env1 Name: env1_name4
+
+EOM
+            validate_set_and_backup(['-e', 'env1', '-s', 'env1_name4'],
+              expected_output, expected_file_info)
+
+            expect(File.exist?(@name4_salt_file)).to be false
+          end
+
+          it 'updates password file and backs up old files per --backup option' do
+            allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return('new_password')
             expected_output = <<EOM
 env1 Name: env1_name4
 
 EOM
             validate_set_and_backup(['-e', 'env1', '--backup', '-s', 'env1_name4' ],
-              expected_output, expected_password_files, expected_passwords)
+              expected_output, expected_file_info)
+
+            expect(File.exist?(@name4_salt_file)).to be false
           end
         end
 
         context 'without backups' do
-          let(:expected_passwords) { [
-            'new_password',
-            'env1_name4_backup_password'
-          ] }
-
-          let(:expected_password_files) { [
-            @name4_file,
-            @name4_backup_file
-          ] }
-
-          it 'updates password file and does not back up old file per prompt' do
-            allow(::Utils).to receive(:get_password).and_return('new_password')
-            allow(STDIN).to receive(:gets) { 'n' }
-            expected_output = <<EOM
-env1 Name: env1_name4
-Would you like to rotate the old password? [y|N]: 
-EOM
-            validate_set_and_backup(['-e', 'env1', '-s', 'env1_name4' ],
-              expected_output, expected_password_files, expected_passwords)
-
-            expect(File.exist?(@name2_file + '.last')).to eq false
+          let(:expected_file_info) do {
+              @name4_file                => 'new_password',
+              @name4_backup_file         => 'env1_name4_backup_password' # unchanged
+            }
           end
 
-          it 'updates password file and does not back up old file per --no-backup option' do
-            allow(::Utils).to receive(:get_password).and_return('new_password')
+          it 'updates password file and does not back up old files per prompt' do
+            allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return('new_password')
+            allow(Simp::Cli::Commands::Passgen).to receive(:yes_or_no).and_return(false)
+            # not mocking query output
+            expected_output = <<EOM
+env1 Name: env1_name4
+
+EOM
+            validate_set_and_backup(['-e', 'env1', '-s', 'env1_name4' ],
+              expected_output, expected_file_info)
+
+            expect(File.exist?(@name4_salt_file)).to eq false
+            expect(File.exist?(@name4_salt_file + '.last')).to eq false
+          end
+
+          it 'updates password file and does not back up old files per --no-backup option' do
+            allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return('new_password')
             expected_output = <<EOM
 env1 Name: env1_name4
 
 EOM
             validate_set_and_backup(['-e', 'env1', '--no-backup', '-s', 'env1_name4' ],
-              expected_output, expected_password_files, expected_passwords)
+              expected_output, expected_file_info)
+
+            expect(File.exist?(@name4_salt_file)).to eq false
+            expect(File.exist?(@name4_salt_file + '.last')).to eq false
           end
         end
 
         it 'creates password file for new name' do
-          allow(::Utils).to receive(:get_password).and_return('new_password')
+          allow(Simp::Cli::Commands::Passgen).to receive(:get_password).and_return('new_password')
           expected_output = <<EOM
 env1 Name: new_name
 
@@ -442,14 +631,16 @@ EOM
 
       it 'fails when password directory does not exist' do
         FileUtils.rm_rf(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-s', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-s', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' does not exist")
       end
 
       it 'fails when password directory is not a directory' do
         FileUtils.rm_rf(@default_password_dir)
         FileUtils.touch(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-s', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-s', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' is not a directory")
       end
     end
@@ -458,65 +649,75 @@ EOM
       before :each do
         @default_password_dir = File.join(@password_env_dir, 'production', 'simp_autofiles', 'gen_passwd')
         FileUtils.mkdir_p(@default_password_dir)
+
         @name1_file = File.join(@default_password_dir, 'production_name1')
-        File.open(@name1_file, 'w') { |file| file.puts "production_name1_password" }
+        File.open(@name1_file, 'w') { |file| file.puts 'production_name1_password' }
+        @name1_salt_file = File.join(@default_password_dir, 'production_name1.salt')
+        File.open(@name1_salt_file, 'w') { |file| file.puts 'production_name1_salt' }
         @name1_backup_file = File.join(@default_password_dir, 'production_name1.last')
-        File.open(@name1_backup_file, 'w') { |file| file.puts "production_name1_backup_password" }
+        File.open(@name1_backup_file, 'w') { |file| file.puts 'production_name1_backup_password' }
+
         @name2_file = File.join(@default_password_dir, 'production_name2')
-        File.open(@name2_file, 'w') { |file| file.puts "production_name2_password" }
+        File.open(@name2_file, 'w') { |file| file.puts 'production_name2_password' }
+
         @name3_file = File.join(@default_password_dir, 'production_name3')
-        File.open(@name3_file, 'w') { |file| file.puts "production_name3_password" }
+        File.open(@name3_file, 'w') { |file| file.puts 'production_name3_password' }
         @name3_backup_file = File.join(@default_password_dir, 'production_name3.last')
-        File.open(@name3_backup_file, 'w') { |file| file.puts "production_name3_backup_password" }
+        File.open(@name3_backup_file, 'w') { |file| file.puts 'production_name3_backup_password' }
 
         @env1_password_dir = File.join(@password_env_dir, 'env1', 'simp_autofiles', 'gen_passwd')
         FileUtils.mkdir_p(@env1_password_dir)
         @name4_file = File.join(@env1_password_dir, 'env1_name4')
-        File.open(@name4_file, 'w') { |file| file.puts "env1_name4_password" }
+        File.open(@name4_file, 'w') { |file| file.puts 'env1_name4_password' }
+        @name4_salt_file = File.join(@env1_password_dir, 'env1_name4.salt')
+        File.open(@name4_salt_file, 'w') { |file| file.puts 'env1_name4_salt' }
         @name4_backup_file = File.join(@env1_password_dir, 'env1_name4.last')
-        File.open(@name4_backup_file, 'w') { |file| file.puts "env1_name4_backup_password" }
+        File.open(@name4_backup_file, 'w') { |file| file.puts 'env1_name4_backup_password' }
       end
 
       context 'with default environment' do
-        it 'removes password files, including backup files when prompt returns yes' do
-          allow(STDIN).to receive(:gets) { 'y' }
+        it 'removes password, backup, and salt files when prompt returns yes' do
+          allow(Simp::Cli::Commands::Passgen).to receive(:yes_or_no).and_return(true)
+          # not mocking query output
           expected_output = <<EOM
-Are you sure you want to remove all entries for production_name1? [y|N]: #{@name1_backup_file} deleted
 #{@name1_file} deleted
+#{@name1_salt_file} deleted
+#{@name1_backup_file} deleted
 
-Are you sure you want to remove all entries for production_name2? [y|N]: #{@name2_file} deleted
+#{@name2_file} deleted
 
 EOM
           expect { Simp::Cli::Commands::Passgen.run(['-r',
             'production_name1,production_name2' ]) }.to output(expected_output).to_stdout
 
           expect(File.exist?(@name1_file)).to eq false
+          expect(File.exist?(@name1_salt_file)).to eq false
           expect(File.exist?(@name1_backup_file)).to eq false
           expect(File.exist?(@name2_file)).to eq false
           expect(File.exist?(@name3_file)).to eq true
           expect(File.exist?(@name3_backup_file)).to eq true
         end
 
-        it 'does not remove password files, including backup files when prompt returns no' do
-          allow(STDIN).to receive(:gets) { 'N' }
-          expected_output = <<EOM
-Are you sure you want to remove all entries for production_name1? [y|N]: 
-Are you sure you want to remove all entries for production_name2? [y|N]: 
-EOM
+        it 'does not remove password, backup and salt files when prompt returns no' do
+          allow(Simp::Cli::Commands::Passgen).to receive(:yes_or_no).and_return(false)
+          # not mocking query output
+          expected_output = "\n\n"
           expect { Simp::Cli::Commands::Passgen.run(['-r',
             'production_name1,production_name2' ]) }.to output(expected_output).to_stdout
 
           expect(File.exist?(@name1_file)).to eq true
+          expect(File.exist?(@name1_salt_file)).to eq true
           expect(File.exist?(@name1_backup_file)).to eq true
           expect(File.exist?(@name2_file)).to eq true
           expect(File.exist?(@name3_file)).to eq true
           expect(File.exist?(@name3_backup_file)).to eq true
         end
 
-        it 'removes password files, including backup files, without prompting with --force-remove option' do
+        it 'removes password, backup, and salt files, without prompting with --force-remove option' do
           expected_output = <<EOM
-#{@name1_backup_file} deleted
 #{@name1_file} deleted
+#{@name1_salt_file} deleted
+#{@name1_backup_file} deleted
 
 #{@name2_file} deleted
 
@@ -525,6 +726,7 @@ EOM
             '--force-remove']) }.to output(expected_output).to_stdout
 
           expect(File.exist?(@name1_file)).to eq false
+          expect(File.exist?(@name1_salt_file)).to eq false
           expect(File.exist?(@name1_backup_file)).to eq false
           expect(File.exist?(@name2_file)).to eq false
           expect(File.exist?(@name3_file)).to eq true
@@ -533,43 +735,47 @@ EOM
       end
 
       context 'specified environment' do
-        it 'removes password files, including backup files, per prompt' do
-          allow(STDIN).to receive(:gets) { 'yes' }
+        it 'removes password, backup, and salt files, per prompt' do
+          allow(Simp::Cli::Commands::Passgen).to receive(:yes_or_no).and_return(true)
+          # not mocking query output
           expected_output = <<EOM
-Are you sure you want to remove all entries for env1_name4? [y|N]: #{@name4_backup_file} deleted
 #{@name4_file} deleted
+#{@name4_salt_file} deleted
+#{@name4_backup_file} deleted
 
 EOM
           expect { Simp::Cli::Commands::Passgen.run(['-e', 'env1', '-r',
             'env1_name4']) }.to output(expected_output).to_stdout
 
           expect(File.exist?(@name4_file)).to eq false
+          expect(File.exist?(@name4_salt_file)).to eq false
           expect(File.exist?(@name4_backup_file)).to eq false
-
         end
 
         it 'does not remove password files, including backup files, per prompt' do
-          allow(STDIN).to receive(:gets) { 'no' }
-          expected_output = <<EOM
-Are you sure you want to remove all entries for env1_name4? [y|N]: 
-EOM
+          allow(Simp::Cli::Commands::Passgen).to receive(:yes_or_no).and_return(false)
+          # not mocking query output
+          expected_output = "\n"
           expect { Simp::Cli::Commands::Passgen.run(['-e', 'env1', '-r',
             'env1_name4']) }.to output(expected_output).to_stdout
 
           expect(File.exist?(@name4_file)).to eq true
+          expect(File.exist?(@name4_salt_file)).to eq true
           expect(File.exist?(@name4_backup_file)).to eq true
         end
 
         it 'removes password files, including backup files, without prompting with --force-remove option' do
           expected_output = <<EOM
-#{@name4_backup_file} deleted
 #{@name4_file} deleted
+#{@name4_salt_file} deleted
+#{@name4_backup_file} deleted
 
 EOM
           expect { Simp::Cli::Commands::Passgen.run(['-e', 'env1', '-r', 'env1_name4',
             '--force-remove']) }.to output(expected_output).to_stdout
 
           expect(File.exist?(@name4_file)).to eq false
+          expect(File.exist?(@name4_salt_file)).to eq false
           expect(File.exist?(@name4_backup_file)).to eq false
         end
       end
@@ -586,14 +792,16 @@ EOM
 
       it 'fails when password directory does not exist' do
         FileUtils.rm_rf(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-r', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-r', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' does not exist")
       end
 
       it 'fails when password directory is not a directory' do
         FileUtils.rm_rf(@default_password_dir)
         FileUtils.touch(@default_password_dir)
-        expect { Simp::Cli::Commands::Passgen.run(['-r', 'production_name1']) }.to raise_error(RuntimeError,
+        expect { Simp::Cli::Commands::Passgen.run(['-r', 'production_name1']) }.to raise_error(
+          Simp::Cli::ProcessingError,
           "Password directory '#{@default_password_dir}' is not a directory")
       end
     end

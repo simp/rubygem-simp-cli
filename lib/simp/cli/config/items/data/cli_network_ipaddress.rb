@@ -19,7 +19,7 @@ module Simp::Cli::Config
     # But any Item that relies on the value of interface has a problem
     # in that facter can't know which ipaddress_* fact to query until the value
     # of interface is known.
-    def os_value
+    def get_os_value
       ip = nil
       nic = get_item( 'cli::network::interface' ).value
       if nic || @fact
@@ -36,7 +36,9 @@ module Simp::Cli::Config
 
 
     # Always recommend the configured IP
-    def recommended_value; os_value; end
+    def get_recommended_value
+      os_value
+    end
 
 
     def validate( x )
