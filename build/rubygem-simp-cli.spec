@@ -100,6 +100,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Apr 26 2018 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.1.0
+- 'simp config' bug fixes
+  - fixed set_grub_password so it set the appropriate files.
+
 * Mon Apr 23 2018 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.1.0
 - removed simp_options::selinux references in tests.
 

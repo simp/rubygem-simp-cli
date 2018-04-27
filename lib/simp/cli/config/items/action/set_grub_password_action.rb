@@ -16,45 +16,61 @@ module Simp::Cli::Config
 
     def initialize
       super
-      @key         = 'set_grub_password_action'
-      @description = 'Set GRUB password'
+      @key            = 'set_grub_password_action'
+      @description    = 'Set GRUB password'
       @applied_status = :unattempted
     end
 
     def apply
       @applied_status = :failed
-      grub_hash = get_item('grub::password').value
-      if Facter.value('os')['release']['major'] > "6"
-        result = set_password_grub(grub_hash)
+      grub_hash  = get_item('grub::password').value
+      os_name    = Facter.value('os')['name'].downcase
+      os_ver     = Facter.value('os')['release']['major']
+      efi        = File.exist?('/sys/firmware/efi')
+      grub_dir   = 'none'
+      if os_ver > "6"
+        if efi
+          grub_dir = "/boot/efi/EFI/#{os_name}"
+        else
+          grub_dir = "/boot/grub2"
+        end
+        grub_file = "grub.cfg"
       else
-        result = set_password_old_grub(grub_hash)
+        if efi
+          grub_dir = "/boot/efi/EFI/#{os_name}"
+        else
+          grub_dir = "/boot/grub"
+        end
+        grub_file = "grub.conf"
       end
-      @applied_status = :succeeded if result
+      if File.exist?("#{grub_dir}/#{grub_file}")
+        if os_ver > "6"
+          result = set_password_grub(grub_hash,grub_dir)
+        else
+          result = set_password_old_grub(grub_hash,"#{grub_dir}/#{grub_file}")
+        end
+        @applied_status = :succeeded if result
+      else
+        err_msg = "Could not find grub config file:  Expected #{grub_dir}/#{grub_file}"
+        raise ApplyError.new(err_msg)
+      end
     end
 
     def apply_summary
       "Setting of GRUB password #{@applied_status}"
     end
 
-    def set_password_grub(grub_hash)
-      result = execute("sed -i 's/password_pbkdf2 root.*$/password_pbkdf2 root #{grub_hash}/' /etc/grub.d/01_users")
-      result && execute("grub2-mkconfig -o /etc/grub2.cfg")
+    def set_password_grub(grub_hash,grub_dir)
+      begin
+        result =  File.write("#{grub_dir}/user.cfg","GRUB2_PASSWORD=#{grub_hash}")
+      rescue Errno::EACCES
+        result = false
+      end
+      result && execute("grub2-mkconfig -o #{grub_dir}/grub.cfg")
     end
 
-    def set_password_old_grub(grub_hash)
-      if File.exist?('/boot/grub/grub.conf')
-        # BIOS boot
-        grub_conf = '/boot/grub/grub.conf'
-      elsif File.exist?('/boot/efi/EFI/redhat/grub.conf')
-        # EFI boot
-        grub_conf = '/boot/efi/EFI/redhat/grub.conf'
-      end
-      if grub_conf
-        result = execute("sed -i '/password/ c\password --encrypted #{grub_hash}' #{grub_conf}")
-      else
-        err_msg = 'Could not find grub.conf:  Expected /boot/grub/grub.conf or /boot/efi/EFI/redhat/grub.conf'
-        raise ApplyError.new(err_msg)
-      end
+    def set_password_old_grub(grub_hash,grub_conf)
+      result = execute("sed -i '/password/ c\password --encrypted #{grub_hash}' #{grub_conf}")
     end
   end
 end
