@@ -17,10 +17,11 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
     }
 
     context 'CentOS 6.x' do
-      let(:os_fact)  { { 'release' => { 'major' => '6'} } }
+      let(:os_fact)  { { 'release' => { 'major' => '6'}, 'name' => 'CentOS' } }
 
       it 'sets grub password for BIOS boot and sets applied_status to :success' do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
+        allow(File).to receive(:exist?).with('/sys/firmware/efi').and_return(false)
         allow(File).to receive(:exist?).with('/boot/grub/grub.conf').and_return(true)
         allow(@ci).to receive(:execute).and_return(true)
 
@@ -31,8 +32,8 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
 
       it 'sets grub password for EFI boot and sets applied_status to :success' do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(File).to receive(:exist?).with('/boot/grub/grub.conf').and_return(false)
-        allow(File).to receive(:exist?).with('/boot/efi/EFI/redhat/grub.conf').and_return(true)
+        allow(File).to receive(:exist?).with('/sys/firmware/efi').and_return(true)
+        allow(File).to receive(:exist?).with('/boot/efi/EFI/centos/grub.conf').and_return(true)
         allow(@ci).to receive(:execute).and_return(true)
 
         @ci.config_items = { grub_password.key => grub_password }
@@ -42,8 +43,8 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
 
       it 'fails when boot file not found' do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(File).to receive(:exist?).with('/boot/grub/grub.conf').and_return(false)
-        allow(File).to receive(:exist?).with('/boot/efi/EFI/redhat/grub.conf').and_return(false)
+        allow(File).to receive(:exist?).with('/sys/firmware/efi').and_return(true)
+        allow(File).to receive(:exist?).with('/boot/efi/EFI/centos/grub.conf').and_return(false)
 
         @ci.config_items = { grub_password.key => grub_password }
         expect{ @ci.apply }.to  raise_error(/Could not find grub.conf/)
@@ -51,8 +52,8 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
 
       it "sets applied_status to :failed when 'sed' command fails" do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(File).to receive(:exist?).with('/boot/grub/grub.conf').and_return(false)
-        allow(File).to receive(:exist?).with('/boot/efi/EFI/redhat/grub.conf').and_return(true)
+        allow(File).to receive(:exist?).with('/sys/firmware/efi').and_return(true)
+        allow(File).to receive(:exist?).with('/boot/efi/EFI/centos/grub.conf').and_return(true)
         allow(@ci).to receive(:execute).and_return(false)
 
         @ci.config_items = { grub_password.key => grub_password }
@@ -62,11 +63,26 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
     end
 
     context 'CentOS 7.x' do
-      let(:os_fact)  { { 'release' => { 'major' => '7'} } }
+      let(:os_fact)  { { 'release' => { 'major' => '7'} , 'name' => 'CentOS'} }
 
-      it 'sets grub password and sets applied_status to :success' do
+      it 'sets grub password and sets applied_status to :success for bios' do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(@ci).to receive(:execute).and_return(true, true)
+        allow(File).to receive(:exist?).with('/sys/firmware/efi').and_return(false)
+        allow(File).to receive(:exist?).with('/boot/grub2/grub.cfg').and_return(true)
+        allow(File).to receive(:write).with("/boot/grub2/user.cfg", "GRUB2_PASSWORD=#{grub_password.value}").and_return(100)
+        allow(@ci).to receive(:execute).and_return(true)
+
+        @ci.config_items = { grub_password.key => grub_password }
+        @ci.apply
+        expect( @ci.applied_status ).to eq :succeeded
+      end
+
+      it 'sets grub password and sets applied_status to :success for bios' do
+        allow(Facter).to receive(:value).with('os').and_return(os_fact)
+        allow(File).to receive(:exist?).with('/sys/firmware/efi').and_return(true)
+        allow(File).to receive(:exist?).with('/boot/efi/EFI/centos/grub.cfg').and_return(true)
+        allow(File).to receive(:write).with("/boot/efi/EFI/centos/user.cfg", "GRUB2_PASSWORD=#{grub_password.value}").and_return(100)
+        allow(@ci).to receive(:execute).and_return(true)
 
         @ci.config_items = { grub_password.key => grub_password }
         @ci.apply
@@ -75,6 +91,9 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
 
       it "sets applied_status to :failed when 'sed' command fails" do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
+        allow(File).to receive(:exist?).with('/sys/firmware/efi').and_return(true)
+        allow(File).to receive(:exist?).with('/boot/efi/EFI/centos/grub.cfg').and_return(true)
+        allow(File).to receive(:write).with("/boot/efi/EFI/centos/user.cfg", "GRUB2_PASSWORD=#{grub_password.value}").and_raise(Errno::EACCES)
         allow(@ci).to receive(:execute).and_return(false)
 
         @ci.config_items = { grub_password.key => grub_password }
@@ -84,7 +103,10 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
 
       it "sets applied_status to :failed when 'grub2-mkconf' command fails" do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(@ci).to receive(:execute).and_return(true, false)
+        allow(File).to receive(:exist?).with('/sys/firmware/efi').and_return(false)
+        allow(File).to receive(:exist?).with('/boot/grub2/grub.cfg').and_return(true)
+        allow(File).to receive(:write).with('/boot/grub2/user.cfg', "GRUB2_PASSWORD=#{grub_password.value}").and_return(100)
+        allow(@ci).to receive(:execute).and_return(false)
 
         @ci.config_items = { grub_password.key => grub_password }
         @ci.apply
