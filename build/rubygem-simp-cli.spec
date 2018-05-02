@@ -21,6 +21,7 @@ Source1: %{gemname}-%{cli_version}.gem
 Requires: puppet >= 3
 Requires: facter >= 2.2
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
+Requires: pupmod-herculesteam-augeasproviders_grub >= 3.0.1
 BuildRequires: ruby(rubygems)
 BuildRequires: ruby
 BuildArch: noarch
@@ -102,6 +103,7 @@ EOM
 %changelog
 * Mon Apr 23 2018 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.1.0
 - removed simp_options::selinux references in tests.
+- update setting of grub2 password to use augeausproviders_grub.
 
 * Wed Apr 11 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.1.0
 - 'simp config' bug fixes
