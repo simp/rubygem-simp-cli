@@ -39,7 +39,7 @@ module Simp::Cli::Config
     # This requires augeasproviders_grub 3.0.1 or later.  There were errors in the
     # provider before this time that did not create the file in /etc/grub.d corectly.
     def set_password_grub(grub_hash)
-      cmd = %Q(#{@puppet_apply_cmd} -e "grub_user { 'root': password => '#{grub_hash}'; superuser => true }")
+      cmd = %Q(#{@puppet_apply_cmd} -e "grub_user { 'root': password => '#{grub_hash}', superuser => true }")
       result = execute(cmd)
     end
 
