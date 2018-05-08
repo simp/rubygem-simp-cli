@@ -66,7 +66,7 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
 
       it 'calls puppet apply and sets applied_status to :success' do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(@ci).to receive(:execute).with(%Q(puppet apply  -e "grub_user { 'root': password => '#{grub_password.value}'; superuser => true }")).and_return(true)
+        allow(@ci).to receive(:execute).with(%Q(puppet apply  -e "grub_user { 'root': password => '#{grub_password.value}', superuser => true }")).and_return(true)
 
         @ci.config_items = { grub_password.key => grub_password }
         @ci.apply
