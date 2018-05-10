@@ -64,27 +64,18 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
     context 'CentOS 7.x' do
       let(:os_fact)  { { 'release' => { 'major' => '7'} } }
 
-      it 'sets grub password and sets applied_status to :success' do
+      it 'calls puppet apply and sets applied_status to :success' do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(@ci).to receive(:execute).and_return(true, true)
+        allow(@ci).to receive(:execute).with(%Q(puppet apply  -e "grub_user { 'root': password => '#{grub_password.value}', superuser => true }")).and_return(true)
 
         @ci.config_items = { grub_password.key => grub_password }
         @ci.apply
         expect( @ci.applied_status ).to eq :succeeded
       end
 
-      it "sets applied_status to :failed when 'sed' command fails" do
+      it "sets applied_status to :failed when  puppet apply fails" do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
         allow(@ci).to receive(:execute).and_return(false)
-
-        @ci.config_items = { grub_password.key => grub_password }
-        @ci.apply
-        expect( @ci.applied_status ).to eq :failed
-      end
-
-      it "sets applied_status to :failed when 'grub2-mkconf' command fails" do
-        allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(@ci).to receive(:execute).and_return(true, false)
 
         @ci.config_items = { grub_password.key => grub_password }
         @ci.apply

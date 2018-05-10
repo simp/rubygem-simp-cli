@@ -36,9 +36,11 @@ module Simp::Cli::Config
       "Setting of GRUB password #{@applied_status}"
     end
 
+    # This requires augeasproviders_grub 3.0.1 or later.  There were errors in the
+    # provider before this time that did not create the file in /etc/grub.d corectly.
     def set_password_grub(grub_hash)
-      result = execute("sed -i 's/password_pbkdf2 root.*$/password_pbkdf2 root #{grub_hash}/' /etc/grub.d/01_users")
-      result && execute("grub2-mkconfig -o /etc/grub2.cfg")
+      cmd = %Q(#{@puppet_apply_cmd} -e "grub_user { 'root': password => '#{grub_hash}', superuser => true }")
+      result = execute(cmd)
     end
 
     def set_password_old_grub(grub_hash)
