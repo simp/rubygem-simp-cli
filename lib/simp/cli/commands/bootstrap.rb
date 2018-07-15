@@ -390,8 +390,8 @@ EOM
 
     begin
       info("Waiting for puppetserver to accept connections on port #{port}", 'cyan')
-      curl_cmd = "curl -sS --cert #{Simp::Cli::Utils.puppet_info[:config]['certdir']}/`hostname`.pem" +
-        " --key #{Simp::Cli::Utils.puppet_info[:config]['ssldir']}/private_keys/`hostname`.pem -k -H" +
+      curl_cmd = "curl -sS --cert #{Simp::Cli::Utils.puppet_info[:config]['hostcert']}" +
+        " --key #{Simp::Cli::Utils.puppet_info[:config]['hostprivkey']}` -k -H" +
         " \"Accept: s\" https://localhost:#{port}/production/certificate_revocation_list/ca"
       debug(curl_cmd)
       running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)

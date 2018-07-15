@@ -50,5 +50,5 @@ group :development do
   # Generate HISTORY.md from git tags (experimental, but promising)
   gem 'gitlog-md'
 
-  gem 'rubocop'
+  gem 'rubocop', '>= 0.49'
 end
