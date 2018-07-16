@@ -28,10 +28,10 @@ module Simp::Cli::Config
       # sed only fails if file doesn't exist and we know @file exists
       # because the copy above didn't fail
       # TODO are these seds really needed?
-      execute("sed -i '/^\s*server.*/d'          #{@file}")
+      execute("sed -i '/^\s*server.*/d' #{@file}")
       execute("sed -i '/.*trusted_node_data.*/d' #{@file}")
-      execute("sed -i '/.*digest_algorithm.*/d'  #{@file}")
-      execute("sed -i '/.*stringify_facts.*/d'   #{@file}")
+      execute("sed -i '/.*digest_algorithm.*/d' #{@file}")
+      execute("sed -i '/.*stringify_facts.*/d' #{@file}")
 
       keylength = get_item( 'simp_options::fips' ).value ? '2048' : '4096'
 

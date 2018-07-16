@@ -13,17 +13,11 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
   before :context do
     @ci             = Simp::Cli::Config::Item::UpdatePuppetConfAction.new
     @ci.start_time  = Time.new(2017, 1, 13, 11, 42, 3)
+    @ci.file        = 'test'
+
     @puppet_server  = 'puppet.nerd'
     @puppet_ca      = 'puppetca.nerd'
     @puppet_ca_port = '9999'
-    @puppet_confdir = `puppet config print confdir 2>/dev/null`.strip
-
-    unless File.exist?(@puppet_confdir)
-      FileUtils.mkdir_p(@puppet_confdir)
-      `puppet config print > #{File.join(@puppet_confdir, 'puppet.conf')}`
-    end
-
-    @backup_file = File.join( @puppet_confdir, "puppet.conf.20170113T114203" )
 
     previous_items = {}
     s = Simp::Cli::Config::Item::SimpOptionsPuppetServer.new
@@ -40,53 +34,48 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
   end
 
   describe "#apply" do
-    before :each do
-      # remove any backup file from a previous test
-      FileUtils.rm_f(@backup_file)
-
-      # set initial state of puppet config
-      `puppet config set digest_algorithm md5 2>/dev/null`
-      `puppet config set keylength 128 2>/dev/null`
-      `puppet config set server 127.0.0.1 2>/dev/null`
-      `puppet config set ca_server 127.0.0.1 2>/dev/null`
-      `puppet config set ca_port 1000 2>/dev/null`
-      `puppet config set trusted_server_facts false 2>/dev/null`
-    end
-
     context 'updates puppet configuration' do
+      before(:each) do
+        @item = Simp::Cli::Config::Item::SimpOptionsFips.new
+
+        backup_file = @ci.file + '.' + @ci.start_time.strftime('%Y%m%dT%H%M%S')
+        expect(FileUtils).to receive(:cp).with(@ci.file, backup_file)
+
+        current_dir_stat = File.stat(Dir.pwd)
+        expect(File).to receive(:stat).with(@ci.file).and_return(current_dir_stat)
+        expect(File).to receive(:chown).with(nil, current_dir_stat.gid, backup_file)
+
+        expect(@ci).to receive(:execute).with(%(sed -i '/^\s*server.*/d' #{@ci.file}))
+        expect(@ci).to receive(:execute).with(%(sed -i '/.*trusted_node_data.*/d' #{@ci.file}))
+        expect(@ci).to receive(:execute).with(%(sed -i '/.*digest_algorithm.*/d' #{@ci.file}))
+        expect(@ci).to receive(:execute).with(%(sed -i '/.*stringify_facts.*/d' #{@ci.file}))
+        expect(@ci).to receive(:execute).with(%(puppet config set digest_algorithm sha256)).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set server #{@puppet_server})).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set ca_server #{@puppet_ca})).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set ca_port #{@puppet_ca_port})).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set trusted_server_facts true)).and_return(true)
+
+        @ci.config_items[ @item.key ] = @item
+      end
 
       it 'backs up config file and configures server for FIPS mode' do
-        item  = Simp::Cli::Config::Item::SimpOptionsFips.new
-        item.value = true
-        @ci.config_items[ item.key ] = item
+        expect(@ci).to receive(:execute).with(%(puppet config set keylength 2048)).and_return(true)
+
+        @item.value = true
+
         @ci.apply
+
         expect(@ci.applied_status).to eq :succeeded
-        # Read in all settings at once because puppet cli can be slow
-        puppet_settings = `puppet config print 2>/dev/null`
-        expect( puppet_settings ).to match /digest_algorithm\s*=\s*sha256/
-        expect( puppet_settings ).to match /keylength\s*=\s*2048/
-        expect( puppet_settings ).to match /server\s*=\s*#{@puppet_server}/
-        expect( puppet_settings ).to match /ca_server\s*=\s*#{@puppet_ca}/
-        expect( puppet_settings ).to match /ca_port\s*=\s*#{@puppet_ca_port}/
-        expect( puppet_settings ).to match /trusted_server_facts\s*=\s*true/
-        expect( File ).to exist(@backup_file)
       end
 
       it 'backs up config file and configures server for non-FIPS mode' do
-        item  = Simp::Cli::Config::Item::SimpOptionsFips.new
-        item.value = false
-        @ci.config_items[ item.key ] = item
+        expect(@ci).to receive(:execute).with(%(puppet config set keylength 4096)).and_return(true)
+
+        @item.value = false
+
         @ci.apply
+
         expect(@ci.applied_status).to eq :succeeded
-        # Read in all settings at once because puppet cli can be slow
-        puppet_settings = `puppet config print 2>/dev/null`
-        expect( puppet_settings ).to match /digest_algorithm\s*=\s*sha256/
-        expect( puppet_settings ).to match /keylength\s*=\s*4096/
-        expect( puppet_settings ).to match /server\s*=\s*#{@puppet_server}/
-        expect( puppet_settings ).to match /ca_server\s*=\s*#{@puppet_ca}/
-        expect( puppet_settings ).to match /ca_port\s*=\s*#{@puppet_ca_port}/
-        expect( puppet_settings ).to match /trusted_server_facts\s*=\s*true/
-        expect( File ).to exist(@backup_file)
       end
     end
   end
