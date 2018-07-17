@@ -423,7 +423,10 @@ EOM
   # Ensure the puppetserver is running ca on the specified port.
   # Used ensure the puppetserver service is running.
   def self.ensure_puppetserver_running(port = nil)
-    port = Simp::Cli::Utils.puppet_info[:config]['masterport']
+
+    # This changes over time so we need to snag it fresh instead of getting it
+    # from the originally pulled values.
+    port ||= `puppet config print --section=master masterport`.strip
 
     begin
       info("Waiting for puppetserver to accept connections on port #{port}", 'cyan')

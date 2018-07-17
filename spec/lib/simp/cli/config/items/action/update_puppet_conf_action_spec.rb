@@ -7,8 +7,6 @@ require 'fileutils'
 
 require_relative '../spec_helper'
 
-# This test is horribly dangerous since it modifies the actual system.
-# Run with extreme care.
 describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
   before :context do
     @ci             = Simp::Cli::Config::Item::UpdatePuppetConfAction.new

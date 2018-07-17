@@ -8,16 +8,14 @@ module Simp::Cli::Config
       super
 
       @port = 8141
-      if defined?(Pry)
-        binding.pry
-      end
+
       if Simp::Cli::Utils.puppet_info[:is_pe]
         # We need to keep the port the puppet default if we're using PE
         @port = 8140
       end
 
       @key         = 'simp_options::puppet::ca_port'
-      @description = %{The port on which the Puppet Certificate Authority will listen (#{@port} by default).}
+      @description = %{The port on which the Puppet Certificate Authority will listen\n(#{@port} by default).}
     end
 
     def get_os_value

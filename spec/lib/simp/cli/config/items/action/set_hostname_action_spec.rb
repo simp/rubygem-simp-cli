@@ -11,8 +11,6 @@ describe Simp::Cli::Config::Item::SetHostnameAction do
   # TODO:  test successes with acceptance tests
   describe "#apply" do
     it "will do set hostname " do
-      skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
-
       cli_network_hostname = Simp::Cli::Config::Item::CliNetworkHostname.new
       cli_network_hostname.value = 'foo.bar.baz'
 
@@ -33,7 +31,6 @@ describe Simp::Cli::Config::Item::SetHostnameAction do
     end
 
     it 'sets applied_status to :failed when fails to set hostname' do
-      skip("Test can't be run as root") if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
       cli_network_hostname = Simp::Cli::Config::Item::CliNetworkHostname.new
       cli_network_hostname.value = 'oops.test.local'
       @ci.config_items = { cli_network_hostname.key => cli_network_hostname }
