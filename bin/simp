@@ -10,6 +10,11 @@ if File.directory?('/opt/puppetlabs/puppet/bin')
   ENV['PATH'] = '/opt/puppetlabs/puppet/bin:' + ENV['PATH']
 end
 
+# This seems to have popped up at some point with Puppet 5, not sure why this
+# is needed and apparently 'pry' works around it somehow. Printing Gem.path
+# shows the same in either case
+Gem.clear_paths
+
 $LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), '../lib')))
 Gem.path.unshift(File.expand_path(File.join(File.dirname(__FILE__), '../../..')))
 
@@ -24,7 +29,6 @@ fact_paths = [
 ]
 fact_paths << ENV['FACTER_PATH'] unless ENV['FACTER_PATH'].nil? or ENV['FACTER_PATH'].empty?
 
-require 'rubygems'
 require 'simp/cli'
 require 'facter'
 

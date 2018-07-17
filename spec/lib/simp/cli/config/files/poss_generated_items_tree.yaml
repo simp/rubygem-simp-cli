@@ -80,7 +80,7 @@
     - SimpYumRepoLocalSimpServers         SKIPQUERY SILENT # default is correct for SIMP
     # configure SIMP server to not use local_simp and local_os_updates, as it
     # uses simp_filesystem.repo instead
-    # - simp_filesystem.repo is faster to access 
+    # - simp_filesystem.repo is faster to access
     # - simp_filesystem.repo is not automatically updated, which assures SIMP server stability
     - SimpYumRepoLocalOsUpdatesEnableRepo SKIPQUERY SILENT  # default disables
     - SimpYumRepoLocalSimpEnableRepo      SKIPQUERY SILENT  # default disables

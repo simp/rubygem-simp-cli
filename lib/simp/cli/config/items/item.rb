@@ -7,6 +7,7 @@ require File.expand_path( '../logging', File.dirname(__FILE__) )
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
+
   class Item
 
     include Simp::Cli::Config::Logging

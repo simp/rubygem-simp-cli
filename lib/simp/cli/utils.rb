@@ -50,8 +50,11 @@ module Simp::Cli::Utils
       }
     end
 
-    def get_config
-      return %x{puppet config print}.lines
+    def get_config(section='master')
+      # Get the master section by default in case things are overridden from
+      # main or don't match the agent settings
+
+      return %x{puppet config print --section=#{section}}.lines
     end
   end
 

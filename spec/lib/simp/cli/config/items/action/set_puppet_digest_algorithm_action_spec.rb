@@ -9,7 +9,10 @@ describe Simp::Cli::Config::Item::SetPuppetDigestAlgorithmAction do
 
   describe "#apply" do
     it 'sets puppet digest algorithm'do
+      expect(@ci).to receive(:execute).with(%(puppet config set digest_algorithm sha256)).and_return(true)
+
      @ci.apply
+
      expect( @ci.applied_status ).to eq :succeeded
     end
   end
