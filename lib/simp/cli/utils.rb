@@ -15,6 +15,9 @@ module Simp::Cli::Utils
 
   DEFAULT_PASSWORD_LENGTH = 32
 
+  @@puppet_info = nil
+  @@simp_env_datadir = nil
+
   class PuppetInfo
     attr_reader :system_puppet_info
 
@@ -62,6 +65,41 @@ module Simp::Cli::Utils
     @@puppet_info ||= PuppetInfo.new
 
     return @@puppet_info.system_puppet_info
+  end
+
+  # Returns the (discovered) simp environment data directory
+  # Raises Simp::Cli::ProcessingError if a stock simp environment data
+  # directory does not exist
+  def simp_env_datadir
+    unless @@simp_env_datadir.nil?
+      return @@simp_env_datadir
+    end
+
+    # Check (weakly) for stock SIMP configurations.
+    env_hiera5_file = File.join(puppet_info[:simp_environment_path], 'hiera.yaml')
+    env_hiera5_dir = File.join(puppet_info[:simp_environment_path], 'data')
+    env_hiera3_dir = File.join(puppet_info[:simp_environment_path], 'hieradata')
+    if File.exist?(env_hiera5_file)
+      # Using environment Hiera 5 configuration
+      if Dir.exist?(env_hiera5_dir)
+        # The data directory SIMP uses for Hiera 5 is in place, so we are ASSUMING this
+        # is a stock SIMP configuration.
+        @@simp_env_datadir = env_hiera5_dir
+      end
+    elsif Dir.exist?(env_hiera3_dir)
+      @@simp_env_datadir = env_hiera3_dir
+    end
+
+    if @@simp_env_datadir.nil?
+      err_msg = 'simp environment hieradata directory cannot be determined.'
+      raise Simp::Cli::ProcessingError.new(err_msg)
+    end
+    @@simp_env_datadir
+  end
+
+  # This method allow simp_env_datadir to be unit tested.
+  def clear_simp_env_datadir
+    @@simp_env_datadir = nil
   end
 
   def generate_password(length = DEFAULT_PASSWORD_LENGTH )
@@ -118,7 +156,7 @@ module Simp::Cli::Utils
     require 'shellwords'
     # message is <password>: OK or <password>: <validation failure description>
     result = `echo #{Shellwords.escape(password)} | cracklib-check`.split(':').last.strip
-    if result != "OK"
+    if result != 'OK'
       # detailed message already includes 'Invalid Password'
       raise Simp::Cli::PasswordError, "Invalid Password: #{result}"
     end

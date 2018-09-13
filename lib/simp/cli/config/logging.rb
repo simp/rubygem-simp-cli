@@ -1,4 +1,6 @@
 require 'highline/import'
+HighLine.colorize_strings
+
 require 'logger'
 
 module Simp; end

@@ -1,6 +1,5 @@
 require 'simp/cli/config/items/action/set_site_scenario_action'
 require 'simp/cli/config/items/data/cli_simp_scenario'
-require 'rspec/its'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SetSiteScenarioAction do
@@ -9,32 +8,34 @@ describe Simp::Cli::Config::Item::SetSiteScenarioAction do
 
   before :each do
     @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
-    @site_pp = File.join(@tmp_dir, 'environments', 'simp', 'manifests', 'site.pp')
+    test_env_dir = File.join(@tmp_dir, 'environments')
+    @site_pp = File.join(test_env_dir, 'simp', 'manifests', 'site.pp')
 
     allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
       :config => {
         'codedir' => @tmp_dir,
         'confdir' => @tmp_dir
       },
-      :environment_path => File.join(@tmp_dir, 'environments'),
-      :simp_environment_path => File.join(@tmp_dir, 'environments', 'simp'),
-      :fake_ca_path => File.join(@tmp_dir, 'environments', 'simp', 'FakeCA')
+      :environment_path => test_env_dir,
+      :simp_environment_path => File.join(test_env_dir, 'simp'),
+      :fake_ca_path => File.join(test_env_dir, 'simp', 'FakeCA')
     } )
-    FileUtils.cp_r(File.join(env_files_dir, 'environments'), @tmp_dir)
+    FileUtils.mkdir(test_env_dir)
+    FileUtils.cp_r(File.join(env_files_dir, 'environments', 'simp'), test_env_dir)
 
     @ci        = Simp::Cli::Config::Item::SetSiteScenarioAction.new
     @ci.silent = true
     @ci.start_time = Time.new(2017, 1, 13, 11, 42, 3)
 
     item       = Simp::Cli::Config::Item::CliSimpScenario.new
-    item.value = 'simp'
+    item.value = 'simp_lite'
     @ci.config_items[item.key] = item
   end
 
   context '#apply' do
     it 'backs up site.pp and replaces value in site.pp ' do
       @ci.apply
-      expected = File.join(files_dir, 'site_with_simp_scenario.pp')
+      expected = File.join(files_dir, 'site_with_simp_lite_scenario.pp')
       expect( FileUtils.compare_file(expected, @site_pp)).to be true
       expect( @ci.applied_status ).to eq(:succeeded)
       backup_site_pp = "#{@site_pp}.20170113T114203"
@@ -60,7 +61,7 @@ describe Simp::Cli::Config::Item::SetSiteScenarioAction do
     end
   end
 
-  describe "#apply_summary" do
+  describe '#apply_summary' do
     it 'reports unattempted status when #apply not called' do
       expect(@ci.apply_summary).to eq "Setting of $simp_scenario in the simp environment's site.pp unattempted"
     end

@@ -23,8 +23,8 @@ simp_options::fips: false
 simp_options::ldap::base_dn: "dc=test,dc=local"
 simp_options::ldap::bind_hash: "{SSHA}tx9ennniDQnmx83gPjCqhy6pknR89QsD"
 simp_options::ldap::bind_pw: "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm"
-simp_options::ldap::sync_hash: "{SSHA}Y0aQ6WWCriBQGXxlEeRNdWZsX8ey3LDz"
-simp_options::ldap::sync_pw: "6Pe4*3oW0Rw.VXx2BbdvfnU2bv9x*%CB"
+simp_options::ldap::sync_hash: "{SSHA}hdk9CtgE0+OMJ1xMVLJQrVTVzbsSwdku"
+simp_options::ldap::sync_pw: "6Pe4*3oW0Rw.VXx2Bbdv!nU2bv9x*%CB"
 simp_options::ntpd::servers: []
 simp_options::puppet::ca: puppet.test.local
 simp_options::puppet::ca_port: 8141

@@ -3,36 +3,43 @@ require 'simp/cli/config/items'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
-  before :all do
+  before :each do
+    @files_dir = File.expand_path( 'files', File.dirname( __FILE__ ) )
+
+    # Since we are using the setter for file in tests that do something with a
+    # file, this value doesn't matter.  However, we do need to mock it so the
+    # actual Simp::Cli::Utils doesn't run and raise an exception because
+    # it can't find the expected file/directory structure.
+    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return('/unused/dir')
+
     @ci            = Simp::Cli::Config::Item::HieradataYAMLFileWriter.new
     @ci.silent     = true  # comment out this line to see log output
     @ci.group      = `groups`.split[0]
     @ci.start_time = Time.new(2017, 1, 13, 11, 42, 3)
-    @files_dir       = File.expand_path( 'files', File.dirname( __FILE__ ) )
   end
 
   describe '#print_hieradata_yaml' do
     before :each do
-      ci                = Simp::Cli::Config::Item.new
+      ci                = TestItem.new
       ci.key            = 'item'
       ci.value          = 'foo'
       ci.description    = 'A simple item'
       list              = { 'foo' => ci }
 
-      ci                = Simp::Cli::Config::ListItem.new
+      ci                = TestListItem.new
       ci.key            = 'list'
       ci.value          = ['one','two','three']
       ci.description    = 'A simple list'
       list[ci.key]      = ci
 
-      ci                = Simp::Cli::Config::YesNoItem.new
+      ci                = TestYesNoItem.new
       ci.key            = 'yesno'
       ci.value          = true
       ci.data_type      = :internal
       ci.description    = 'A simple yes/no item'
       list[ci.key]      = ci
 
-      ci                = Simp::Cli::Config::ActionItem.new
+      ci                = TestActionItem.new
       ci.key            = 'action'
       ci.value          = 'unused'
       ci.description    = 'A simple action item which should not have yaml output'
@@ -167,6 +174,6 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
   end
 
   it_behaves_like "an Item that doesn't output YAML"
-  it_behaves_like "a child of Simp::Cli::Config::Item"
+  it_behaves_like 'a child of Simp::Cli::Config::Item'
 end
 

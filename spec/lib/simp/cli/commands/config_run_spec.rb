@@ -1,27 +1,41 @@
-require_relative 'config_spec_helper'
-require 'spec_helper'
-
 require 'simp/cli/commands/config'
+
+require_relative 'config_spec_helper'
 require 'fileutils'
 require 'set'
+require 'spec_helper'
+require 'timeout'
 require 'yaml'
 
-describe 'Simp::Cli::Commands::Config.run' do
+# NOTE: Simp::Cli::Command::Config#run can hang if bad input is
+#       specified and the reprompt logic is outside of the HighLine
+#       library. (HighLine raises EOFError when input is exhausted
+#       while reading in values.)  So, to help debug input problems
+#       that are not caught by HighLine, Simp::Cli::Command::Config#run
+#       calls are wrapped in a Timeout block.
+
+describe 'Simp::Cli::Command::Config#run' do
   let(:files_dir) { File.join(File.dirname(__FILE__), 'files') }
+  let(:max_config_run_seconds) { 60 }
 
   before(:each) do
     @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__) )
+    test_env_dir = File.join(@tmp_dir, 'environments')
+    simp_env_dir = File.join(test_env_dir, 'simp')
+    FileUtils.mkdir(test_env_dir)
+    FileUtils.cp_r(File.join(files_dir, 'environments', 'simp'), test_env_dir)
 
     allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
       :config => {
         'codedir' => @tmp_dir,
         'confdir' => @tmp_dir
       },
-      :environment_path => File.join(@tmp_dir, 'environments'),
-      :simp_environment_path => File.join(@tmp_dir, 'environments', 'simp'),
-      :fake_ca_path => File.join(@tmp_dir, 'environments', 'simp', 'FakeCA')
+      :environment_path => test_env_dir,
+      :simp_environment_path => simp_env_dir,
+      :fake_ca_path => File.join(test_env_dir, 'simp', 'FakeCA')
     } )
-    FileUtils.cp_r(File.join(files_dir, 'environments'), @tmp_dir)
+
+    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return( File.join(simp_env_dir, 'data') )
 
     @input = StringIO.new
     @output = StringIO.new
@@ -30,7 +44,8 @@ describe 'Simp::Cli::Commands::Config.run' do
     @answers_output_file = File.join(@tmp_dir, 'simp_conf.yaml')
     @puppet_system_file = File.join(@tmp_dir, 'simp_config_settings.yaml')
     @log_file = File.join(@tmp_dir, 'simp_config.log')
-    Simp::Cli::Commands::Config.reset_options
+
+    @config = Simp::Cli::Commands::Config.new
   end
 
   after :each do
@@ -40,8 +55,6 @@ describe 'Simp::Cli::Commands::Config.run' do
     FileUtils.remove_entry_secure @tmp_dir
     Facter.reset  # make sure this test's facts don't affect other tests
   end
-
-
 
   let(:extra_keys_to_exclude) { [
       'cli::network::gateway',
@@ -72,9 +85,11 @@ describe 'Simp::Cli::Commands::Config.run' do
     it "creates valid file for 'simp' scenario, interactively accepting all defaults" do
       @input.reopen(generate_simp_input_accepting_defaults)
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-          '-l', @log_file, '--dry-run'])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-l', @log_file, '--dry-run'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -91,9 +106,11 @@ describe 'Simp::Cli::Commands::Config.run' do
     it "creates valid file for 'simp_lite' scenario, interactively setting values" do
       @input.reopen(generate_simp_lite_input_setting_values)
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-          '-l', @log_file, '--dry-run'])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-l', @log_file, '--dry-run'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -109,9 +126,11 @@ describe 'Simp::Cli::Commands::Config.run' do
     it "creates valid file for 'poss' scenario, interactively setting values " do
       @input.reopen(generate_poss_input_setting_values)
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-          '-l', @log_file, '--dry-run'])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-l', @log_file, '--dry-run'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -134,9 +153,12 @@ describe 'Simp::Cli::Commands::Config.run' do
       @input.rewind
 
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-          '-l', @log_file, '--dry-run', '--force-defaults'])
-      rescue EOFError => e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-l', @log_file, '--dry-run', '--force-defaults'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+        puts '=========stdout========='
         puts @output.string
         raise
       end
@@ -145,12 +167,14 @@ describe 'Simp::Cli::Commands::Config.run' do
 
     it 'creates valid file with no prompts when --force-defaults and KEY=VALUE arguments are complete' do
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-        '-l', @log_file, '--dry-run', '--force-defaults',
-        "cli::network::interface=#{get_valid_interface}",
-        'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
-        'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.' ])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+          '-l', @log_file, '--dry-run', '--force-defaults',
+          "cli::network::interface=#{get_valid_interface}",
+          'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
+          'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.' ])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -160,13 +184,14 @@ describe 'Simp::Cli::Commands::Config.run' do
 
     it 'allows deprecated --non-interactive in lieu of --force-defaults' do
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-        '-l', @log_file, '--dry-run', '--non-interactive',
-        "cli::network::interface=#{get_valid_interface}",
-        'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
-        'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.' ])
-      rescue Exception =>e
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+          '-l', @log_file, '--dry-run', '--non-interactive',
+          "cli::network::interface=#{get_valid_interface}",
+          'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
+          'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.' ])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -180,11 +205,13 @@ describe 'Simp::Cli::Commands::Config.run' do
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
       File.open(input_answers_file,'w') { |file| file.puts(input) }
       begin
-        Simp::Cli::Commands::Config.run([
-          '-o', @answers_output_file,
-          '--apply-with-questions', input_answers_file,
-          '-l', @log_file, '--dry-run'])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run([
+            '-o', @answers_output_file,
+            '--apply-with-questions', input_answers_file,
+            '-l', @log_file, '--dry-run'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -201,11 +228,13 @@ describe 'Simp::Cli::Commands::Config.run' do
       @input.reopen(input_string)
       @input.rewind
       begin
-        Simp::Cli::Commands::Config.run([
-          '-o', @answers_output_file,
-          '--apply-with-questions', File.join(files_dir, 'incomplete_prev_simp_conf.yaml'),
-          '-l', @log_file, '--dry-run'])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run([
+            '-o', @answers_output_file,
+            '--apply-with-questions', File.join(files_dir, 'incomplete_prev_simp_conf.yaml'),
+            '-l', @log_file, '--dry-run'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -229,13 +258,15 @@ describe 'Simp::Cli::Commands::Config.run' do
       @input.reopen(input_string)
       @input.rewind
       begin
-        Simp::Cli::Commands::Config.run([
-          '-o', @answers_output_file,
-          '--apply-with-questions', File.join(files_dir, 'prev_simp_conf.yaml'),
-          '-l', @log_file, '--dry-run',
-          'simp::runlevel=4',
-          'simp_options::dns::servers=1.2.3.10,,1.2.3.11,,1.2.3.12'])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run([
+            '-o', @answers_output_file,
+            '--apply-with-questions', File.join(files_dir, 'prev_simp_conf.yaml'),
+            '-l', @log_file, '--dry-run',
+            'simp::runlevel=4',
+            'simp_options::dns::servers=1.2.3.10,,1.2.3.11,,1.2.3.12'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -254,12 +285,14 @@ describe 'Simp::Cli::Commands::Config.run' do
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
       File.open(input_answers_file,'w') { |file| file.puts(input) }
       begin
-        Simp::Cli::Commands::Config.run([
-          '-o', @answers_output_file,
-          '--apply', input_answers_file,
-          '-l', @log_file, '--dry-run',
-          "cli::network::interface=#{get_valid_interface}"])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run([
+            '-o', @answers_output_file,
+            '--apply', input_answers_file,
+            '-l', @log_file, '--dry-run',
+            "cli::network::interface=#{get_valid_interface}"])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -274,12 +307,14 @@ describe 'Simp::Cli::Commands::Config.run' do
     it 'creates valid file using --apply and KEY=VALUE arguments' do
       input_answers_file = File.join(files_dir, 'prev_simp_conf.yaml')
       begin
-        Simp::Cli::Commands::Config.run([
-          '-o', @answers_output_file,
-          '--apply', input_answers_file,
-          '-l', @log_file, '--dry-run',
-          "cli::network::interface=#{get_valid_interface}"])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run([
+            '-o', @answers_output_file,
+            '--apply', input_answers_file,
+            '-l', @log_file, '--dry-run',
+            "cli::network::interface=#{get_valid_interface}"])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -309,9 +344,11 @@ describe 'Simp::Cli::Commands::Config.run' do
       skip(not_safe_msg) if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
       @input.reopen(generate_simp_input_accepting_defaults)
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-          '-l', @log_file])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-l', @log_file])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -367,9 +404,11 @@ describe 'Simp::Cli::Commands::Config.run' do
     it 'prints a summary of actions' do
       @input.reopen(generate_simp_input_accepting_defaults)
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-          '-p', @puppet_system_file, '-l', @log_file, '--dry-run'])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-p', @puppet_system_file, '-l', @log_file, '--dry-run'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -415,9 +454,11 @@ describe 'Simp::Cli::Commands::Config.run' do
     it 'logs debug output to the console when --verbose option selected' do
       @input.reopen(generate_simp_input_accepting_defaults)
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-          '-l', @log_file, '--dry-run', '--verbose'])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-l', @log_file, '--dry-run', '--verbose'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -429,13 +470,15 @@ describe 'Simp::Cli::Commands::Config.run' do
     it 'logs no non-error output to the console when --quiet option selected' do
       @input.reopen(generate_simp_input_accepting_defaults)
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-        '--force-defaults', '-l', @log_file, '--dry-run',
-        '--disable-queries',
-        'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
-        'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.',
-        '--quiet'])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+          '--force-defaults', '-l', @log_file, '--dry-run',
+          '--disable-queries',
+          'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
+          'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.',
+          '--quiet'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -446,42 +489,46 @@ describe 'Simp::Cli::Commands::Config.run' do
   end
 
   context 'creates detailed log file' do
-     it 'logs detailed messages when normal verbosity specified' do
-       @input.reopen(generate_simp_input_accepting_defaults)
-       begin
-         Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-           '-l', @log_file, '--dry-run'])
-       rescue Exception =>e
-         puts '=========stdout========='
-         puts @output.string
-         raise
-       end
+    it 'logs detailed messages when normal verbosity specified' do
+      @input.reopen(generate_simp_input_accepting_defaults)
+      begin
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-l', @log_file, '--dry-run'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+        puts '=========stdout========='
+        puts @output.string
+        raise
+      end
 
-       expect( File.exists?( @log_file ) ).to be true
+      expect( File.exists?( @log_file ) ).to be true
 
-       #FIXME validate full file content, not just that it contains debug-level messages
+      #FIXME validate full file content, not just that it contains debug-level messages
        content = IO.read(@log_file)
        expect( content ).to match /Loading answers from .*\/simp.yaml/
-     end
+    end
 
-     it 'logs detailed messages when quiet verbosity specified' do
-       @input.reopen(generate_simp_input_accepting_defaults)
-       begin
-         Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-           '-p', @puppet_system_file, '-l', @log_file, '--dry-run',
-           '--quiet'])
-       rescue Exception =>e
-         puts '=========stdout========='
-         puts @output.string
-         raise
-       end
+    it 'logs detailed messages when quiet verbosity specified' do
+      @input.reopen(generate_simp_input_accepting_defaults)
+      begin
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-p', @puppet_system_file, '-l', @log_file, '--dry-run',
+            '--quiet'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+        puts '=========stdout========='
+        puts @output.string
+        raise
+      end
 
-       expect( File.exists?( @log_file ) ).to be true
+      expect( File.exists?( @log_file ) ).to be true
 
-       #FIXME validate full file content, not just that it contains debug-level messages
-       content = IO.read(@log_file)
-       expect( content ).to match /Loading answers from .*\/simp.yaml/
-     end
+      #FIXME validate full file content, not just that it contains debug-level messages
+      content = IO.read(@log_file)
+      expect( content ).to match /Loading answers from .*\/simp.yaml/
+    end
   end
 
   context 'when -dry-run option selected' do
@@ -490,9 +537,11 @@ describe 'Simp::Cli::Commands::Config.run' do
     it "reports 'dry run' skip reason" do
       @input.reopen(generate_simp_input_accepting_defaults)
       begin
-        Simp::Cli::Commands::Config.run(['--dry-run', '-o', @answers_output_file,
-          '-p', @puppet_system_file, '-l', @log_file])
-      rescue Exception =>e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['--dry-run', '-o', @answers_output_file,
+            '-p', @puppet_system_file, '-l', @log_file])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
@@ -510,7 +559,7 @@ describe 'Simp::Cli::Commands::Config.run' do
     it 'applies file when user selects default safety-save option at prompt'
     it "discards file and does not apply when user enters 'no' at prompt"
     it 'automatically applies safety-save file when --accept-safety-save option specified'
-    it "automatically discards file and does not apply when --skip-safety-save option specified"
+    it 'automatically discards file and does not apply when --skip-safety-save option specified'
   end
 
   context 'when invalid passwords are input' do
@@ -526,9 +575,12 @@ describe 'Simp::Cli::Commands::Config.run' do
       @input.rewind
 
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-          '-l', @log_file, '--dry-run', '--force-defaults'])
-      rescue EOFError => e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-l', @log_file, '--dry-run', '--force-defaults'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+        puts '=========stdout========='
         puts @output.string
         raise
       end
@@ -553,7 +605,7 @@ describe 'Simp::Cli::Commands::Config.run' do
       @input.rewind
 
       expect {
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
+        @config.run(['-o', @answers_output_file,
           '-l', @log_file, '--dry-run', '--force-defaults'])
       }.to raise_error( Simp::Cli::ProcessingError,
        /FATAL: Too many failed attempts to enter password/)
@@ -571,9 +623,12 @@ describe 'Simp::Cli::Commands::Config.run' do
       @input.rewind
 
       begin
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
-          '-l', @log_file, '--dry-run', '--force-defaults'])
-      rescue EOFError => e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run(['-o', @answers_output_file,
+            '-l', @log_file, '--dry-run', '--force-defaults'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+        puts '=========stdout========='
         puts @output.string
         raise
       end
@@ -605,11 +660,14 @@ describe 'Simp::Cli::Commands::Config.run' do
       @input.rewind
 
       begin
-        Simp::Cli::Commands::Config.run([
-          '-o', @answers_output_file,
-          '--apply-with-questions', input_answers_file,
-          '-l', @log_file, '--dry-run'])
-      rescue EOFError => e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run([
+            '-o', @answers_output_file,
+            '--apply-with-questions', input_answers_file,
+            '-l', @log_file, '--dry-run'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+        puts '=========stdout========='
         puts @output.string
         raise
       end
@@ -624,7 +682,7 @@ describe 'Simp::Cli::Commands::Config.run' do
 
     it 'prompts for new password hash when --apply-with-questions and input file has a password that does not match its hash' do
       # valid password that does not match its encrypted value
-      different_pw = 'Puy.c&48I1A8#PI1JW#&gX*4ugnzwhg7'
+      different_pw = 'Puy.c&48I1A8#PI1JW#&gX*4ugn!whg7'
       input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
       input.gsub!(/oops_force_replacement/, get_valid_interface)
       input.gsub!(/simp_options::ldap::bind_pw: .*\n/,
@@ -637,11 +695,14 @@ describe 'Simp::Cli::Commands::Config.run' do
       @input.rewind
 
       begin
-        Simp::Cli::Commands::Config.run([
-          '-o', @answers_output_file,
-          '--apply-with-questions', input_answers_file,
-          '-l', @log_file, '--dry-run'])
-      rescue EOFError => e
+        Timeout.timeout(max_config_run_seconds) do
+          @config.run([
+            '-o', @answers_output_file,
+            '--apply-with-questions', input_answers_file,
+            '-l', @log_file, '--dry-run'])
+        end
+      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+        puts '=========stdout========='
         puts @output.string
         raise
       end
@@ -663,7 +724,7 @@ describe 'Simp::Cli::Commands::Config.run' do
     it 'raises an exception when --apply and input YAML is missing cli::simp::scenario' do
       # this exercises an error path in config.rb, not item.rb
       expect {
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
+        @config.run(['-o', @answers_output_file,
         '--apply', File.join(files_dir, 'simp_conf_missing_scenario.yaml'),
         '-l', @log_file, '--dry-run'])
       }.to raise_error( Simp::Cli::ProcessingError,
@@ -672,7 +733,7 @@ describe 'Simp::Cli::Commands::Config.run' do
 
     it 'raises an exception when --apply and input YAML is incomplete' do
       expect {
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
+        @config.run(['-o', @answers_output_file,
         '--apply', File.join(files_dir, 'incomplete_prev_simp_conf.yaml'),
         '-l', @log_file, '--dry-run'])
       }.to raise_error( Simp::Cli::ProcessingError,
@@ -683,7 +744,7 @@ describe 'Simp::Cli::Commands::Config.run' do
       # prev_simp_conf.yaml has a bad interface value that must be 
       # fixed via prompt or override
       expect {
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
+        @config.run(['-o', @answers_output_file,
           '--apply', File.join(files_dir, 'prev_simp_conf.yaml'),
           '-l', @log_file, '--dry-run'])
       }.to raise_error( Simp::Cli::ProcessingError,
@@ -698,7 +759,7 @@ describe 'Simp::Cli::Commands::Config.run' do
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
       File.open(input_answers_file,'w') { |file| file.puts(input) }
       expect {
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
+        @config.run(['-o', @answers_output_file,
           '--apply', input_answers_file, '-l', @log_file, '--dry-run'])
       }.to raise_error( Simp::Cli::ProcessingError,
           "FATAL: '0' is not a valid answer for 'puppetdb::master::config::puppetdb_port'")
@@ -708,7 +769,7 @@ describe 'Simp::Cli::Commands::Config.run' do
     it 'raises an exception when --disable-queries and input is incomplete' do
       expect {
         # Not all answers can be determined by --force-defaults
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
+        @config.run(['-o', @answers_output_file,
           '--force-defaults', '-l', @log_file, '--dry-run',
           '--disable-queries'])
       }.to raise_error( Simp::Cli::ProcessingError,
@@ -717,7 +778,7 @@ describe 'Simp::Cli::Commands::Config.run' do
 
     it 'raises an exception when --disable-queries and input KEY=VALUE has an invalid value' do
       expect {
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
+        @config.run(['-o', @answers_output_file,
           '--force-defaults', '-l', @log_file, '--dry-run',
           '--disable-queries', 'grub::password=not_encrypted'])
       }.to raise_error( Simp::Cli::ProcessingError,
@@ -726,7 +787,7 @@ describe 'Simp::Cli::Commands::Config.run' do
 
     it 'raises an exception when --disable-queries and input KEY=VALUE has an invalid noninteractive value' do
       expect {
-        Simp::Cli::Commands::Config.run(['-o', @answers_output_file,
+        @config.run(['-o', @answers_output_file,
           '-l', @log_file, '--dry-run',
           '--disable-queries',
           'cli::simp::scenario=simp_lite',
