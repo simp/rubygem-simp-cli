@@ -4,9 +4,10 @@ checks:
   file-lines:
     enabled: false
   method-lines:
-    config:
-      threshold: 40
+    enabled: false
   method-complexity:
     enabled: false
   similar-code:
+    enabled: false
+  identical-code:
     enabled: false
