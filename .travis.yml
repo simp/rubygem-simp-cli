@@ -30,7 +30,7 @@ jobs:
 
     # Test with Ruby versions packaged with standard Puppet All-in-one installs
     - stage: spec
-      rvm: 2.4.1
+      rvm: 2.4.4
       env: SIMP_SKIP_NON_SIMPOS_TESTS=1
       script:
         - bundle exec rake spec
@@ -42,7 +42,7 @@ jobs:
         - bundle exec rake spec
 
     - stage: deploy
-      rvm: 2.4.1
+      rvm: 2.4.4
       script:
         - true
       before_deploy:
@@ -55,6 +55,6 @@ jobs:
             secure: "R6KNY9wDFtWVDXA0tC/We+OunS+8wiu4YHymDh5NBO/NWm0Dt5I6+Ado8QfjW5jZWja0Bl1cpjsf65Ln+XMQ6MDsiRvidnqMKTyyzjF/Y5U1inRm6i2+XGCCxKPGVJY6IrSidJg0NIlqKKghaq7DYDT5cDopcA/xHqY/S4mxvJf1OQQ7JdN0GtOrNv2h+lL9qlpvE8ogvb0fQyZXyKkz3TCCyauzb2w6ay4TjIqD2yo8yy3nUInyRDJf6XIyxWdiOFNHe3cwiYblqmosPUMYBf6qkzGPzmsQsmPoqN0+WopMnaNShPoiVoTdXIJDPe0deWmFbvFUvYL1zYoxZ+Vggjd+wXXJBiB3i/7xC3MOj9EPDQtY4AdjG5ZM6mqyjX7jFzv31DfK8WPa11OhDeOYgWfTc8b3MkeDWsKqC/IjPs83M8Qz03Fwxtocx0cNP2BmIDxxMi8GRT45CG3BYONVFHvXo/uGmUdY1jm4ke8RNOpem73kLbYmFrb314UM+AwwF3QxKc5PRHYIRy4HHFlCRagbl0+pga42w1Obp5PEVPCoyt9HAJ5FRIaR5Y7hogn1HiqpZXlnDRGWBVHqASvyntc2sHtXwIhtihUzAT037+Bk5+BS1tsYbJhvCmj12GUypWvUyryUH0354SvKitoHbfPITH8Tn7dKissftfF4J9o="
           on:
             tags: true
-            rvm: 2.4.1
+            rvm: 2.4.4
             condition: "($SKIP_PUBLISH != true)"
 
