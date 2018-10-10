@@ -249,7 +249,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   end
 
   # Return java major version or nil
-  def self.java_major_version
+  def java_major_version
     java_bindir = ENV['PATH'].split(':').find{|x| File.exists?(File.join(x,'java'))}
     cmd = %Q[#{File.join(java_bindir,'java')} -version]
     java_version = %x[#{cmd} |& tee echo].split("\n").first
