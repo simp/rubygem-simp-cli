@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.2.0
+%global cli_version 4.2.1
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -101,6 +101,11 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Oct 09 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.2.1
+- Fixed `simp bootstrap` errors in puppetserver 5+:
+  - No longer overwrites `web-routes.conf` (fixes fatal configuration error)
+  - No longer adds `-XX:MaxPermSize` for Java >= 8 (fixes warnings at restart)
+
 * Sun Jul 15 2018 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.2.0
 - Stripped trailing whitespace
 - Adjusted bootstrap to detect PE and avoid operations that are detrimental to

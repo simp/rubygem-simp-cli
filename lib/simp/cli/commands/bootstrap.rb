@@ -238,6 +238,14 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     end
   end
 
+  # Return java major version or nil
+  def self.java_major_version
+    java_bindir = ENV['PATH'].split(':').find{|x| File.exists?(File.join(x,'java'))}
+    cmd = %Q[#{File.join(java_bindir,'java')} -version]
+    java_version = %x[#{cmd} |& tee echo].split("\n").first
+    @java_major_version ||= java_version.nil? ? nil : java_version.strip.split('_')[0].split('.')[1].to_i
+  end
+
   # Configure an initial, bootstrap puppetserver service listening on 8150
   # - Many of our modules depend on server_facts, which require a running puppetserver.
   #   Otherwise, puppet applys would suffice.
@@ -249,22 +257,23 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     begin
       # Back everything up!
       puppetserver_conf_dir = '/etc/puppetlabs/puppetserver/conf.d'
-      if File.directory?(puppetserver_conf_dir)
-        conf_files = ["#{puppetserver_conf_dir}/webserver.conf",
-                      "#{puppetserver_conf_dir}/web-routes.conf",
-                      '/etc/sysconfig/puppetserver',
-                      '/etc/puppetlabs/puppet/auth.conf']
-        conf_files.each do |file|
-          if File.exists?(file)
-            backup_dir = File.join(@bootstrap_backup, File.dirname(file))
-            FileUtils.mkdir_p(backup_dir)
-            FileUtils.cp(file, backup_dir)
-            info("Successfully backed up #{file} to #{backup_dir}", 'green')
-          end
-        end
-      else
+      unless File.directory?(puppetserver_conf_dir)
         fail( "Could not find directory #{puppetserver_conf_dir}" )
       end
+
+      conf_files = ["#{puppetserver_conf_dir}/webserver.conf",
+                    '/etc/sysconfig/puppetserver',
+                    '/etc/puppetlabs/puppet/auth.conf']
+
+      conf_files.each do |file|
+        if File.exists?(file)
+          backup_dir = File.join(@bootstrap_backup, File.dirname(file))
+          FileUtils.mkdir_p(backup_dir)
+          FileUtils.cp(file, backup_dir)
+          info("Successfully backed up #{file} to #{backup_dir}", 'green')
+        end
+      end
+
       # /etc/puppetlabs/puppet/auth.conf is installed by some versions of puppet-agent.
       # SIMP manages auth.conf in /etc/puppetlabs/puppetserver/conf.d.  Back up and
       # remove existing /etc/puppetlabs/puppet/auth.conf file.
@@ -282,8 +291,10 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
       FileUtils.chown(vardir_stat.uid, vardir_stat.gid, server_conf_tmp)
       FileUtils.chmod(vardir_stat.mode & 0777, server_conf_tmp)
 
+      xx_args = (java_major_version && (java_major_version < 8)) ? ' -XX:MaxPermSize=256m' : ''
+
       command = "puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver'" +
-        %Q{ match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m} +
+        %Q{ match='^JAVA_ARGS' line='JAVA_ARGS="-Xms2g -Xmx2g #{xx_args}} +
         %Q{ -Djava.io.tmpdir=#{server_conf_tmp}"' 2>&1 > /dev/null}
       execute(command)
       info('Successfully configured /etc/sysconfig/puppetserver to use a temporary cache', 'green')
@@ -303,20 +314,6 @@ EOM
       File.chmod(0644, webserver_conf)
       info("Successfully configured #{webserver_conf} with bootstrap settings", 'green')
 
-      webroutes_conf = "#{puppetserver_conf_dir}/web-routes.conf"
-      File.open(webroutes_conf, 'w') do |file|
-        file.puts <<-EOM
-web-router-service: {
-    "puppetlabs.services.ca.certificate-authority-service/certificate-authority-service": "/puppet-ca"
-    "puppetlabs.services.master.master-service/master-service": "/puppet"
-    "puppetlabs.services.legacy-routes.legacy-routes-service/legacy-routes-service": ""
-    "puppetlabs.services.puppet-admin.puppet-admin-service/puppet-admin-service": "/puppet-admin-api"
-    "puppetlabs.trapperkeeper.services.status.status-service/status-service": "/status"
-}
-EOM
-      end
-      File.chmod(0644, webroutes_conf)
-      info("Successfully configured #{webroutes_conf} with bootstrap settings", 'green')
     rescue => error
       fail( "Failed to configure the puppetserver with bootstrap settings: #{error.message}" )
     end
