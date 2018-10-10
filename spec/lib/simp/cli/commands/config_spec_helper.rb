@@ -25,8 +25,8 @@ def generate_simp_input_accepting_defaults
     "\n"                          << # use internet SIMP repos
     "\n"                          << # SIMP is LDAP server
     "\n"                          << # don't auto-generate a password
-    "iTXA8O6yC=DMotMGPTeHd7IGI\n" << # LDAP root password
-    "iTXA8O6yC=DMotMGPTeHd7IGI\n" << # confirm LDAP root password
+    "iTXA8O6yC=DMotMGP!eHd7IGI\n" << # LDAP root password
+    "iTXA8O6yC=DMotMGP!eHd7IGI\n" << # confirm LDAP root password
     "\n"                          << # log servers
     "\n"                          << # securetty list
     "\n"                             # svckill warning mode
@@ -61,8 +61,8 @@ def generate_simp_lite_input_setting_values
     "xXx}.9Xx9>x.x9OmbjG%%Exr0R3z8Mkm\n"      << # LDAP bind password
     "xXx}.9Xx9>x.x9OmbjG%%Exr0R3z8Mkm\n"      << # confirm LDAP bind password
     "cn=LDAPSync,ou=Hosts,dc=test,dc=local\n" << # LDAP sync DN
-    "MCMD3u-iTXA8O6yCoD{ot}GPTeHd7{GI\n"      << # LDAP sync password
-    "MCMD3u-iTXA8O6yCoD{ot}GPTeHd7{GI\n"      << # confirm LDAP sync password
+    "MCM!3u-iTXA8O6yCoD{ot}GPTeHd7{GI\n"      << # LDAP sync password
+    "MCM!3u-iTXA8O6yCoD{ot}GPTeHd7{GI\n"      << # confirm LDAP sync password
     "ldap://puppet.test.local\n"              << # LDAP root master URI
     "ldap://puppet.test.local\n"              << # OpenLDAP server URIs
     "1.2.3.11\n"                              << # log servers

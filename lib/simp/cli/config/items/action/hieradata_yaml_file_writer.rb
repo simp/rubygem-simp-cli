@@ -1,9 +1,8 @@
+require 'simp/cli/config/items/action_item'
+require 'simp/cli/utils'
 require 'simp/cli/version'
-require File.expand_path( '../action_item', File.dirname(__FILE__) )
 require 'fileutils'
 
-module Simp; end
-class Simp::Cli; end
 module Simp::Cli::Config
   class Item::HieradataYAMLFileWriter < ActionItem
     attr_accessor :file, :group
@@ -14,7 +13,7 @@ module Simp::Cli::Config
       @key             = 'yaml::hieradata_file_writer'
       @description     = %Q{Write SIMP global hieradata to YAML file.}
       # 'simp cli' sets @file, so this default doesn't really matter
-      @file            = "#{Simp::Cli::Utils.puppet_info[:simp_environment_path]}/hieradata/simp_config_settings.yaml"
+      @file            = File.join(Simp::Cli::Utils.simp_env_datadir, 'simp_config_settings.yaml')
       @group           = Simp::Cli::Utils.puppet_info[:puppet_group]
     end
 
@@ -25,13 +24,13 @@ module Simp::Cli::Config
       else
          scenario_info = ''
       end
-      iostream.puts "#" + '='*72
-      iostream.puts "# SIMP global configuration"
-      iostream.puts "#"
+      iostream.puts '#' + '='*72
+      iostream.puts '# SIMP global configuration'
+      iostream.puts '#'
       iostream.puts "# Generated #{scenario_info}on #{@start_time.strftime('%F %T')}"
       iostream.puts "# using simp-cli version #{Simp::Cli::VERSION}"
-      iostream.puts "#" + '='*72
-      iostream.puts "---"
+      iostream.puts '#' + '='*72
+      iostream.puts '---'
       global_classes = []
       answers.sort.to_h.each do |k,v|
         if v.data_type

@@ -1,94 +1,43 @@
-module Simp::Cli::Commands; end
-
-require 'simp/cli/utils'
+require 'simp/cli/commands/command'
 require 'simp/cli/config/items/action/set_production_to_simp_action'
 require 'highline/import'
-require 'highline'
 
-class Simp::Cli::Commands::Bootstrap < Simp::Cli
+class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   require 'pty'
   require 'timeout'
 
   require 'facter'
-  require File.expand_path( '../defaults', File.dirname(__FILE__) )
-  require File.expand_path( '../errors', File.dirname(__FILE__) )
-  HighLine.colorize_strings
 
-  @is_pe = Simp::Cli::Utils.puppet_info[:is_pe]
+  def initialize
 
-  @puppetserver_service = 'puppetserver'
-  @puppetdb_service = 'puppetdb'
+    @is_pe = Simp::Cli::Utils.puppet_info[:is_pe]
 
-  if @is_pe
-    @puppetserver_service = 'pe-puppetserver'
-    @puppetdb_service = 'pe-puppetdb'
+    @puppetserver_service = 'puppetserver'
+    @puppetdb_service = 'puppetdb'
+
+    if @is_pe
+      @puppetserver_service = 'pe-puppetserver'
+      @puppetdb_service = 'pe-puppetdb'
+    end
+
+    @start_time = Time.now
+    @start_time_formatted = @start_time.strftime('%Y%m%dT%H%M%S')
+    @bootstrap_log = File.join(Simp::Cli::SIMP_CLI_HOME, "simp_bootstrap.log.#{@start_time_formatted}")
+    @bootstrap_backup = "#{Simp::Cli::SIMP_CLI_HOME}/simp_bootstrap.backup.#{@start_time_formatted}"
+
+    @kill_agent = false
+    @remove_ssldir = nil
+    @track = true
+    @unsafe = false
+    @verbose = false
   end
 
-  @start_time = Time.now
-  @start_time_formatted = @start_time.strftime('%Y%m%dT%H%M%S')
-  @bootstrap_log = File.join(SIMP_CLI_HOME, "simp_bootstrap.log.#{@start_time_formatted}")
-  @bootstrap_backup = "#{SIMP_CLI_HOME}/simp_bootstrap.backup.#{@start_time_formatted}"
-
-  @kill_agent = false
-  @remove_ssldir = nil
-  @track = true
-  @unsafe = false
-  @verbose = false
-  @opt_parser = OptionParser.new do |opts|
-    opts.banner = "\n=== The SIMP Bootstrap Tool ==="
-    opts.separator "\nThe SIMP Bootstrap Tool aids initial configuration of the system by"
-    opts.separator "bootstrapping it. This should be run after 'simp config' has applied a new"
-    opts.separator "system configuration.\n\n"
-    opts.separator "Prior to configuration, any running puppet agents are allowed to complete"
-    opts.separator "their runs. If you wish to forcibly kill a running agent, pass --kill_agent\n\n"
-    opts.separator "The tool configures and starts a puppetserver with minimal memory, on"
-    opts.separator "port 8150.  It applies the simp and pupmod modules to the system which"
-    opts.separator "will configure the puppetserver and puppetdb services according to the system"
-    opts.separator "configuration (values set in simp config).  Two tagless puppet runs follow,"
-    opts.separator "to apply all other core modules.\n\n"
-    opts.separator "By default, this tool will prompt to keep or remove existing puppetserver"
-    opts.separator "certificates. To skip the prompt, see --[no]-remove_ssldir.\n\n"
-    opts.separator "This utility can be run more than once. Note what options are available"
-    opts.separator "before re-running.\n\n"
-    opts.separator "Logging information about the run is written to #{SIMP_CLI_HOME}/simp_bootstrap.log.*"
-    opts.separator "Prior to modification, config files are backed up to #{SIMP_CLI_HOME}/simp_bootstrap.backup.*\n\n"
-    opts.separator "OPTIONS:\n"
-
-    opts.on('-k', '--kill_agent',  'Ignore the status of agent_catalog_run_lockfile, and',
-                                   'force kill active puppet agents at the beginning of',
-                                   'bootstrap') do |k|
-      @kill_agent = true
-    end
-
-    opts.on('-r', '--[no-]remove_ssldir', 'Remove the existing puppet ssldir. If unspecified',
-                                          'user will be prompted for action to take.') do |r|
-      @remove_ssldir = r
-    end
-
-    opts.on('-t', '--[no-]track', 'Enables/disables the tracker. Default is enabled.') do |t|
-      @track = t
-    end
-
-    opts.on('-u', '--unsafe', "Run bootstrap in 'unsafe' mode.  Interrupts are NOT ",
-                              'captured and ignored, which may result in a corrupt',
-                              'system. Useful for debugging. Default is SAFE.') do |u|
-      @unsafe = true
-    end
-
-    opts.on('-v', '--[no-]verbose', 'Enables/disables verbose mode. Prints out verbose',
-                                    'information.') do |v|
-      @verbose = true
-    end
-
-    opts.on('-h', '--help', 'Print out this message.') do
-      puts opts
-      @help_requested = true
-    end
-
+  def help
+    parse_command_line( [ '--help' ] )
   end
 
-  def self.run(args = [])
-    super
+  def run(args)
+    parse_command_line(args)
     return if @help_requested
 
     # Open log file
@@ -166,7 +115,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
     # SIMP is not single-run idempotent.  Until it is, run puppet twice.
     info('Running puppet without tags', 'cyan')
-    pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay" +
+    pupcmd = 'puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay' +
       " --agent_disabled_lockfile=#{agent_lockfile}"
     # This is ugly, but until we devise an intelligent way to determine when your system
     # is 'bootstrapped', we're going to run puppet in a loop.
@@ -194,8 +143,69 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
     execute('puppet agent --enable')
   end
 
+  private
+
+  def parse_command_line(args)
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = "\n=== The SIMP Bootstrap Tool ==="
+      opts.separator "\nThe SIMP Bootstrap Tool aids initial configuration of the system by"
+      opts.separator "bootstrapping it. This should be run after 'simp config' has applied a new"
+      opts.separator "system configuration.\n\n"
+      opts.separator "Prior to configuration, any running puppet agents are allowed to complete"
+      opts.separator "their runs. If you wish to forcibly kill a running agent, pass --kill_agent\n\n"
+      opts.separator "The tool configures and starts a puppetserver with minimal memory, on"
+      opts.separator "port 8150.  It applies the simp and pupmod modules to the system which"
+      opts.separator "will configure the puppetserver and puppetdb services according to the system"
+      opts.separator "configuration (values set in simp config).  Two tagless puppet runs follow,"
+      opts.separator "to apply all other core modules.\n\n"
+      opts.separator "By default, this tool will prompt to keep or remove existing puppetserver"
+      opts.separator "certificates. To skip the prompt, see --[no]-remove_ssldir.\n\n"
+      opts.separator "This utility can be run more than once. Note what options are available"
+      opts.separator "before re-running.\n\n"
+      opts.separator "Logging information about the run is written to #{Simp::Cli::SIMP_CLI_HOME}/simp_bootstrap.log.*"
+      opts.separator "Prior to modification, config files are backed up to #{Simp::Cli::SIMP_CLI_HOME}/simp_bootstrap.backup.*\n\n"
+      opts.separator "OPTIONS:\n"
+
+      opts.on('-k', '--kill_agent',  'Ignore the status of agent_catalog_run_lockfile, and',
+                                     'force kill active puppet agents at the beginning of',
+                                     'bootstrap') do |k|
+        @kill_agent = true
+      end
+
+      opts.on('-r', '--[no-]remove_ssldir', 'Remove the existing puppet ssldir. If unspecified',
+                                            'user will be prompted for action to take.') do |r|
+        @remove_ssldir = r
+      end
+
+      opts.on('-t', '--[no-]track', 'Enables/disables the tracker. Default is enabled.') do |t|
+        @track = t
+      end
+
+      opts.on('-u', '--unsafe', "Run bootstrap in 'unsafe' mode.  Interrupts are NOT ",
+                                'captured and ignored, which may result in a corrupt',
+                                'system. Useful for debugging. Default is SAFE.') do |u|
+        @unsafe = true
+      end
+
+      opts.on('-v', '--[no-]verbose', 'Enables/disables verbose mode. Prints out verbose',
+                                      'information.') do |v|
+        @verbose = true
+      end
+
+      opts.on('-h', '--help', 'Print out this message.') do
+        puts opts
+        @help_requested = true
+      end
+
+    end
+
+    opt_parser.parse!(args)
+  end
+
+
   # Check for bootstrap start lock
-  def self.check_for_start_lock
+  def check_for_start_lock
     # During simp config, critical failed items are logged in a lock file. If the file
     # exists, don't bootstrap.
     if File.exist?(Simp::Cli::BOOTSTRAP_START_LOCK_FILE)
@@ -206,7 +216,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
 
   # Do a quick validation that the code in the malleable SIMP spaces is not
   # going to cause the compilation to fail out of the box.
-  def self.validate_site_puppet_code
+  def validate_site_puppet_code
     info('Validating site puppet code', 'cyan')
 
     errors = []
@@ -252,7 +262,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli
   # - The port against which we do firstrun, 8150, is arbitrary. The first puppet run
   #   is a tagged run with pupmod and simp, which will re-configure puppetserver/puppetdb
   #   with the operational configuration parameters generated by simp config.
-  def self.configure_bootstrap_puppetserver
+  def configure_bootstrap_puppetserver
     info('Configuring the puppetserver to listen on port 8150', 'cyan')
     begin
       # Back everything up!
@@ -320,7 +330,7 @@ EOM
   end
 
   # Clean up the leftover, bootstrap puppetserver process (if any)
-  def self.ensure_bootstrap_puppetserver_process_stopped
+  def ensure_bootstrap_puppetserver_process_stopped
     begin
       pserver_proc = %x{netstat -tlpn}.split("\n").select{|x| x =~ /\d:8150/}
       unless pserver_proc.empty?
@@ -342,7 +352,7 @@ EOM
   end
 
   # Ensure puppet agent is stopped and disabled
-  def self.ensure_puppet_agent_stopped
+  def ensure_puppet_agent_stopped
     agent_run_lockfile = Simp::Cli::Utils.puppet_info[:config]['agent_catalog_run_lockfile']
     if @kill_agent
       info('Killing puppet agents', 'cyan')
@@ -381,7 +391,7 @@ EOM
   end
 
   # Ensure any remaining puppet processes are stopped
-  def self.ensure_puppet_processes_stopped
+  def ensure_puppet_processes_stopped
     # Kill the connection with puppetdb before killing the puppetserver
     info('Killing connection to puppetdb', 'cyan')
 
@@ -419,7 +429,7 @@ EOM
 
   # Ensure the puppetserver is running ca on the specified port.
   # Used ensure the puppetserver service is running.
-  def self.ensure_puppetserver_running(port = nil)
+  def ensure_puppetserver_running(port = nil)
 
     # This changes over time so we need to snag it fresh instead of getting it
     # from the originally pulled values.
@@ -456,7 +466,7 @@ EOM
   end
 
   # If selinux is enabled, relabel the filesystem.
-  def self.fix_file_contexts
+  def fix_file_contexts
     FileUtils.touch('/.autorelabel')
     if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? &&
         (Facter.value(:selinux_current_mode) != 'disabled')
@@ -471,7 +481,7 @@ EOM
   end
 
   # Remove or retain existing puppet certs per user direction
-  def self.handle_existing_puppet_certs
+  def handle_existing_puppet_certs
     ssldir = Simp::Cli::Utils.puppet_info[:config]['ssldir']
     certs_exist = !Dir.glob(File.join(ssldir, '**', '*.pem')).empty?
     rm_ssldir = @remove_ssldir
@@ -505,7 +515,7 @@ EOM
   #     paths.
   # fail if puppet environments directory does not exist, primary simp environment
   # does not exist, or secondary simp environment does not exist
-  def self.set_up_simp_environment
+  def set_up_simp_environment
     item = Simp::Cli::Config::Item::SetProductionToSimpAction.new
     item.start_time = @start_time
     item.apply
@@ -524,7 +534,7 @@ EOM
   #
   # FIXME:  This is a duplicate of code in simp/cli/config/items/item.rb.
   # Need to share that code.
-  def self.show_wait_spinner(frames_per_second=5)
+  def show_wait_spinner(frames_per_second=5)
     chars = %w[| / - \\]
     delay = 1.0/frames_per_second
     iter = 0
@@ -544,7 +554,7 @@ EOM
   # Track a running process by following its STDOUT output
   # Prints a '#' for each line of output
   # returns -1 if error occured, otherwise the line count if PTY.spawn succeeded
-  def self.track_output(command, port = nil)
+  def track_output(command, port = nil)
     ensure_puppetserver_running(port)
     successful = true
 
@@ -599,7 +609,7 @@ EOM
     return successful ? linecount : -1
   end
 
-  def self.execute(command)
+  def execute(command)
     debug("Executing: #{command}")
     system(command)
   end
@@ -609,28 +619,28 @@ EOM
 
   # Debug logs only go to the console when verbose option specified,
   # but always go to the log file (which is expected to contain details)
-  def self.debug(message, options=nil, console_prefix='> DEBUG: ')
+  def debug(message, options=nil, console_prefix='> DEBUG: ')
     log_and_say("#{message}", options, console_prefix, @verbose)
   end
 
-  def self.info(message, options=nil, console_prefix='> ')
+  def info(message, options=nil, console_prefix='> ')
     log_and_say("#{message}", options, console_prefix)
   end
 
-  def self.warn(message, options=nil, console_prefix='> ')
+  def warn(message, options=nil, console_prefix='> ')
     log_and_say("WARNING: #{message}", options, console_prefix)
   end
 
-  def self.error(message, options='red.bold', console_prefix='> ')
+  def error(message, options='red.bold', console_prefix='> ')
     log_and_say("ERROR: #{message}", options, console_prefix)
   end
 
-  def self.fail(message, options='red.bold', console_prefix='> ')
+  def fail(message, options='red.bold', console_prefix='> ')
     log_and_say("ERROR: #{message}", options, console_prefix)
     raise Simp::Cli::ProcessingError.new("bootstrap processing terminated")
   end
 
-  def self.log_and_say(message, options, console_prefix, log_to_console = true)
+  def log_and_say(message, options, console_prefix, log_to_console = true)
     log_prefix = Time.now.strftime('%Y-%m-%d %H:%M:%S') + ': '
     message.split("\n").each do |line|
       @logfile.puts "#{log_prefix}#{line}"

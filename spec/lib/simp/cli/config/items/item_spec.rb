@@ -1,6 +1,12 @@
 require 'simp/cli/config/items/item'
-require 'rspec/its'
-require 'spec_helper'
+require_relative 'spec_helper'
+
+class TestItem < Simp::Cli::Config::Item
+  # These values must be set by the derived class.
+  # Provide setters for tests below that depend
+  # upon values not set in the Item base class
+  attr_writer :key, :description, :fact
+end
 
 describe Simp::Cli::Config::Item do
   before :each do
@@ -9,7 +15,7 @@ describe Simp::Cli::Config::Item do
 
   describe '#initialize' do
     it 'has no value when initialized' do
-      expect( @ci.value ).to eq nil
+      expect( @ci.value ).to be_nil
     end
 
     it 'has nil os_value when initialized' do
@@ -24,32 +30,33 @@ describe Simp::Cli::Config::Item do
 
   describe '#to_yaml_s' do
     it 'raises a Simp::Cli::Config::InternalError if @key is empty' do
-      @ci.key = nil
       expect{ @ci.to_yaml_s }.to raise_error( Simp::Cli::Config::InternalError )
     end
 
     it 'uses FIXME message as description if description is not set' do
-      @ci.key = 'mykey'
-      expect( @ci.to_yaml_s ).to match(/FIXME/)
+      ci = TestItem.new
+      ci.key = 'mykey'
+      expect( ci.to_yaml_s ).to match(/FIXME/)
     end
 
     it 'returns nil instead of YAML key/value if @skip_yaml=true' do
-      @ci.key = 'mykey'
-      @ci.value = 'myvalue'
-      @ci.skip_yaml = true
-      expect( @ci.to_yaml_s ).to eq(nil)
+      ci = TestItem.new
+      ci.key = 'mykey'
+      ci.value = 'myvalue'
+      ci.skip_yaml = true
+      expect( ci.to_yaml_s ).to eq(nil)
     end
   end
 
   describe '#print_summary' do
     it 'raises Simp::Cli::Config::InternalError on nil @key' do
-      @ci.key = nil
       expect{ @ci.print_summary }.to raise_error( Simp::Cli::Config::InternalError )
     end
 
     it 'raises a Simp::Cli::Config::InternalError on empty @key' do
-      @ci.key = ''
-      expect{ @ci.print_summary }.to raise_error( Simp::Cli::Config::InternalError )
+      ci = TestItem.new
+      ci.key = ''
+      expect{ ci.print_summary }.to raise_error( Simp::Cli::Config::InternalError )
     end
   end
 
@@ -83,7 +90,7 @@ describe Simp::Cli::Config::Item do
 
   describe '#execute' do
     it 'should reject pipes' do
-      command = "ls /some/missing/path1 | grep path1"
+      command = 'ls /some/missing/path1 | grep path1'
       expect{ @ci.run_command(command) }.to raise_error("Internal error: Invalid pipe '|' in spawn command: <ls /some/missing/path1 | grep path1>")
     end
 
@@ -109,8 +116,9 @@ describe Simp::Cli::Config::Item do
     end
 
     it 'does not have nil value when @fact is set' do
-      @ci.fact = 'interfaces'
-      expect( @ci.get_os_value ).to_not be_nil
+      ci = TestItem.new
+      ci.fact = 'interfaces'
+      expect( ci.get_os_value ).to_not be_nil
     end
   end
 end

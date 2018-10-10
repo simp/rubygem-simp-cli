@@ -1,7 +1,6 @@
-require File.expand_path( '../action_item', File.dirname(__FILE__) )
+require 'simp/cli/config/items/action_item'
+require 'simp/cli/utils'
 
-module Simp; end
-class Simp::Cli; end
 module Simp::Cli::Config
   class Item::UpdateOsYumRepositoriesAction < ActionItem
     class YumRepoError < RuntimeError; end
@@ -14,9 +13,6 @@ module Simp::Cli::Config
       @www_yum_dir = '/var/www/yum/'
       @yumpath     = nil
       @yum_repos_d = '/etc/yum.repos.d'
-      @dir         = "#{Simp::Cli::Utils.puppet_info[:simp_environment_path]}/hieradata/hosts"
-      @yaml_file   = nil
-
       @yum_update       = :unattempted
       @yum_repo_disable = :unattempted
     end
@@ -48,7 +44,7 @@ module Simp::Cli::Config
         result = result && execute("chmod -R u=rwX,g=rX,o-rwx #{@www_yum_dir}/")
         raise YumRepoError.new("Updating ownership and permissions of #{@www_yum_dir}/ failed!")  unless result
         @yum_update = :succeeded
-        debug( "Finished updating Updates repository" )
+        debug( 'Finished updating Updates repository' )
       rescue YumRepoError, Errno::ENOENT, Errno::ENOTDIR, Errno::EACCES, Errno::EEXIST => err
         error( "\nERROR: Something went wrong setting up the Updates repo in #{@yumpath}!", [:RED] )
         error( '       Please make sure your Updates repo is properly configured.', [:RED] )
@@ -68,7 +64,7 @@ module Simp::Cli::Config
               repo.split(':[').last.tr(']','')}.each do |repo_name|
                 execute("yum-config-manager --disable #{repo_name}") if not repo_name.nil?
             end
-            debug( "Finished disabling CentOS repositories" )
+            debug( 'Finished disabling CentOS repositories' )
           end
         end
         @yum_repo_disable = :succeeded

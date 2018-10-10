@@ -1,8 +1,8 @@
 require 'highline/import'
 require 'puppet'
 require 'yaml'
-require File.expand_path( '../errors', File.dirname(__FILE__) )
-require File.expand_path( '../logging', File.dirname(__FILE__) )
+require 'simp/cli/config/errors'
+require 'simp/cli/config/logging'
 
 module Simp; end
 class Simp::Cli; end
@@ -16,19 +16,20 @@ module Simp::Cli::Config
                       # an important logged message to be highlighted
                       # on the screen
 
-    attr_accessor :key, :value, :description, :data_type, :fact
+    attr_reader   :key, :description, :data_type, :fact, :puppet_apply_cmd
+    attr_accessor :value
     attr_accessor :start_time
     attr_accessor :skip_query, :skip_yaml, :silent
     attr_accessor :config_items
     attr_accessor :next_items_tree
-    attr_reader   :puppet_apply_cmd
 
-    def initialize(key = nil, description = nil)
-      @key               = key           # answers file key for the config Item
+    # Derive Item classes must set @key
+    def initialize
+      @key               = nil           # answers file key for the config Item
       @value             = nil           # value (decided by user)
       @value_os          = nil           # value extracted from the system
       @value_recommended = nil           # best default value
-      @description       = description   # A text description of the Item
+      @description       = nil           # A text description of the Item
       @data_type         = :global_hiera # :internal     = parameter used within simp config,
                                          #                 but not persisted anywhere
                                          # :cli_params   = parameter persisted to answers YAML

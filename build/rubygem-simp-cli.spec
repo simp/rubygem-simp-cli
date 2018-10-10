@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.2.1
+%global cli_version 4.3.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -101,10 +101,22 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Tue Oct 09 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.2.1
+* Tue Oct 09 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.3.0
 - Fixed `simp bootstrap` errors in puppetserver 5+:
   - No longer overwrites `web-routes.conf` (fixes fatal configuration error)
   - No longer adds `-XX:MaxPermSize` for Java >= 8 (fixes warnings at restart)
+
+* Mon Oct 01 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.3.0
+- Update 'simp config' to support environment-specific Hiera 5
+  configuration provided by SIMP-6.3.0.
+  - Assumes a legacy Hiera 3 configuration, when the 'simp'
+    environment only contains a 'hieradata' directory.
+  - Assumes a Hiera 5 configuration configuration, when the 'simp'
+    environment contains both a 'hiera.yaml' file and a 'data/'
+    directory.
+  - Fails to run otherwise, as neither stock SIMP configuration
+    has been found and 'simp config' cannot safely modify
+    hieradata.
 
 * Sun Jul 15 2018 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.2.0
 - Stripped trailing whitespace

@@ -1,18 +1,13 @@
 $LOAD_PATH << File.expand_path( '..', File.dirname(__FILE__) )
 
 require 'optparse'
+require 'highline'
+HighLine.colorize_strings
 
+require 'simp/cli/commands'
 require 'simp/cli/errors'
 require 'simp/cli/utils'
 require 'simp/cli/version'
-
-# load each command
-commands_path = File.expand_path( 'cli/commands/*.rb', File.dirname(__FILE__) )
-
-# load the commands from commands/*.rb and grab the classes that are simp commands
-Dir.glob( commands_path ).sort_by(&:to_s).each do |command_file|
-    require command_file
-end
 
 # namespace for SIMP logic
 module Simp; end
@@ -30,15 +25,6 @@ class Simp::Cli
     puts
   end
 
-  def self.help  # <-- lol.
-    puts @opt_parser.to_s
-  end
-
-  def self.run(args)
-    @opt_parser.parse!(args)
-  end
-
-  private
   def self.version
     cmd = 'rpm -q simp'
     begin
@@ -55,8 +41,8 @@ class Simp::Cli
     @commands = {}
     Simp::Cli::Commands::constants.each{ |constant|
       obj = Simp::Cli::Commands.const_get(constant)
-      if obj.respond_to?(:superclass) and obj.superclass == Simp::Cli
-        @commands[constant.to_s.downcase] = obj
+      if obj.respond_to?(:superclass) and obj.superclass == Simp::Cli::Commands::Command
+        @commands[constant.to_s.downcase] = obj.new
       end
     }
     @commands['version'] = self
@@ -68,16 +54,16 @@ class Simp::Cli
       puts version
     elsif args[0] == 'help'
       if (command = @commands[args[1]]).nil?
-        $stderr.puts "\n\033[31m#{args[1]} is not a recognized command\033[39m\n\n"
+        $stderr.puts "\n#{args[1]} is not a recognized command\n\n".red
         menu
         result = 1
       elsif args[1] == 'version'
-        puts "Display the current version of SIMP."
+        puts 'Display the current version of SIMP.'
       else
         command.help
       end
     elsif (command = @commands[args[0]]).nil?
-      $stderr.puts "\n\033[31m#{args[0]} is not a recognized command\033[39m\n\n"
+      $stderr.puts "\n#{args[0]} is not a recognized command\n\n".red
       menu
       result = 1
     else
@@ -86,11 +72,11 @@ class Simp::Cli
         command_name = args[0]
         command.run(args.drop(1))
       rescue OptionParser::ParseError => e
-        $stderr.puts "\033[31m'#{command_name}' command options error: #{e.message}\033[39m\n\n"
+        $stderr.puts "'#{command_name}' command options error: #{e.message}\n\n".red
         result = 1
       rescue EOFError
         # user has terminated an interactive query
-        $stderr.puts "\n\033[31mInput terminated! Exiting.\033[39m\n"
+        $stderr.puts "\nInput terminated! Exiting.\n".red
         result = 1
       rescue SignalException => e
         # SignalException is a bit messy.
@@ -105,17 +91,17 @@ class Simp::Cli
         #   e.signo   -> nil                           e.signo   -> <signal number>
         #   e.message -> 'SIGxxx'                      e.message -> 'SIGxxx'
         if e.inspect == 'Interrupt'
-          $stderr.puts "\n\033[31mProcessing interrupted! Exiting.\033[39m\n\n"
+          $stderr.puts "\nProcessing interrupted! Exiting.\n\n".red
         else
-          $stderr.puts "\n\033[31mProcess received signal #{e.message}. Exiting!\033[39m\n\n"
+          $stderr.puts "\nProcess received signal #{e.message}. Exiting!\n\n".red
           e.backtrace.first(10).each{|l| $stderr.puts l }
         end
         result = 1
       rescue Simp::Cli::ProcessingError => e
-        $stderr.puts "\n\033[31m#{e.message}\033[39m\n\n"
+        $stderr.puts "\n#{e.message}\n\n".red
         result = 1
       rescue => e
-        $stderr.puts "\n\033[31m#{e.message}\033[39m\n\n"
+        $stderr.puts "\n#{e.message}\n\n".red
         e.backtrace.first(10).each{|l| $stderr.puts l }
         result = 1
       end

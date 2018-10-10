@@ -1,4 +1,9 @@
+require 'simp/cli/config/items/action_item'
+require 'simp/cli/config/items/list_item'
+require 'simp/cli/config/items/yes_no_item'
+
 require 'spec_helper'
+require 'rspec/its'
 
 shared_examples 'a child of Simp::Cli::Config::Item' do
   describe '#to_yaml_s' do
@@ -44,3 +49,20 @@ shared_examples 'a yes/no validator' do
   end
 
 end
+
+class TestItem < Simp::Cli::Config::Item
+  attr_accessor :key, :description, :data_type
+end
+
+class TestListItem < Simp::Cli::Config::ListItem
+  attr_accessor :key, :description, :data_type
+end
+
+class TestYesNoItem < Simp::Cli::Config::YesNoItem
+  attr_accessor :key, :description, :data_type
+end
+
+class TestActionItem < Simp::Cli::Config::ActionItem
+  attr_accessor :key, :description, :data_type
+end
+
