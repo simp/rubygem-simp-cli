@@ -3,43 +3,17 @@ require 'yaml'
 require 'fileutils'
 require 'find'
 
-require File.expand_path( '../../cli', File.dirname(__FILE__) )
-require File.expand_path( '../defaults', File.dirname(__FILE__) )
-require File.expand_path( '../errors', File.dirname(__FILE__) )
-require File.expand_path( '../config/errors', File.dirname(__FILE__) )
-require File.expand_path( '../config/items', File.dirname(__FILE__) )
-require File.expand_path( '../config/item_list_factory', File.dirname(__FILE__) )
-require File.expand_path( '../config/logging', File.dirname(__FILE__) )
-require File.expand_path( '../config/questionnaire', File.dirname(__FILE__) )
-
-module Simp::Cli::Commands; end
+require 'simp/cli/commands/command'
+require 'simp/cli/config/errors'
+require 'simp/cli/config/items'
+require 'simp/cli/config/item_list_factory'
+require 'simp/cli/config/logging'
+require 'simp/cli/config/questionnaire'
 
 # Handle CLI interactions for "simp config"
-class Simp::Cli::Commands::Config  < Simp::Cli
+class Simp::Cli::Commands::Config  < Simp::Cli::Commands::Command
 
   include Simp::Cli::Config::Logging
-
-  DEFAULT_ANSWERS_OUTFILE = File.join(SIMP_CLI_HOME, 'simp_conf.yaml')
-
-  DEFAULT_HIERA_OUTFILE =
-    "#{Simp::Cli::Utils.puppet_info[:simp_environment_path]}/hieradata/simp_config_settings.yaml"
-
-
-  SIMP_CONFIG_DEFAULT_OPTIONS = {
-    :verbose                => 0, # <0 = ERROR and above
-                                  #  0 = INFO and above
-                                  # >0 = DEBUG and above
-    :allow_queries          => true,
-    :force_defaults         => false, # true  = use valid defaults, preemptively
-    :dry_run                => false,
-
-    :answers_input_file     => nil,
-    :answers_output_file    => File.expand_path( DEFAULT_ANSWERS_OUTFILE ),
-    :puppet_system_file     => File.expand_path( DEFAULT_HIERA_OUTFILE ),
-
-    :use_safety_save        => true,
-    :autoaccept_safety_save => false
-  }
 
   INTRO_TEXT = <<EOM
 #{'='*80}
@@ -49,231 +23,38 @@ and required general system setup and required Puppet configuration. All changes
 will be logged to
 EOM
 
-  @version         = Simp::Cli::VERSION
-  @options         = SIMP_CONFIG_DEFAULT_OPTIONS
+  def initialize
 
-  @opt_parser      = OptionParser.new do |opts|
-    opts_separator = ' '*4 + '-'*76
-    opts.banner = "\n=== The SIMP Configuration Tool ==="
-    opts.separator ""
-    opts.separator "The SIMP Configuration Tool sets up the server configuration"
-    opts.separator "required for bootstrapping the SIMP system. It performs two"
-    opts.separator "main functions:"
-    opts.separator ""
-    opts.separator "   (1) creation/editing of system configurations"
-    opts.separator "   (2) application of system configurations."
-    opts.separator ""
-    opts.separator "By default, the SIMP Configuration Tool interactively gathers"
-    opts.separator "input from the user.  However, this input can also be read in"
-    opts.separator "from an existing, complete answers YAML file; an existing,"
-    opts.separator "partial, answers YAML file and/or command line key/value"
-    opts.separator "arguments."
-    opts.separator ""
-    opts.separator "USAGE:"
-    opts.separator "  #{File.basename($0)} config [options] [KEY=VALUE] [KEY=VALUE1,,VALUE2,,VALUE3] [...]"
-    opts.separator ""
-    opts.separator "OPTIONS:\n"
-    opts.separator opts_separator
+    @default_answers_outfile = File.join(Simp::Cli::SIMP_CLI_HOME, 'simp_conf.yaml')
+    @default_hiera_outfile   = File.join(Simp::Cli::Utils::simp_env_datadir,
+     'simp_config_settings.yaml')
 
-    opts.on("-o", "--answers-output FILE",
-            "The answers FILE where the created/edited",
-            "system configuration used by 'simp config'",
-            "will be written.  Defaults to",
-            "'#{DEFAULT_ANSWERS_OUTFILE}'") do |file|
-      @options[:answers_output_file] = file
-    end
+    @options =  {
+      :verbose                => 0, # <0 = ERROR and above
+                                    #  0 = INFO and above
+                                    # >0 = DEBUG and above
+      :allow_queries          => true,
+      :force_defaults         => false, # true  = use valid defaults, preemptively
+      :dry_run                => false,
 
-    opts.on("-p", "--puppet-output FILE",
-            "The Puppet system FILE where the",
-            "created/edited system hieradata will be",
-            "written.  Defaults to",
-            "'#{DEFAULT_HIERA_OUTFILE}'") do |file|
-      @options[:puppet_system_file] = file
-    end
+      :answers_input_file     => nil,
+      :answers_output_file    => File.expand_path( @default_answers_outfile ),
+      :puppet_system_file     => File.expand_path( @default_hiera_outfile ),
 
-    opts.on("-a", "--apply FILE", "Apply answers FILE (fails on missing/invalid items)") do |file|
-      @options[:answers_input_file] = file
-      @options[:allow_queries] = false
-    end
+      :use_safety_save        => true,
+      :autoaccept_safety_save => false
+    }
 
-    opts.on("-A", "--apply-with-questions FILE",
-            "Apply answers FILE (prompts on missing/invalid items).") do |file|
-      @options[:answers_input_file] = file
-      @options[:allow_queries] = true
-    end
+    @version         = Simp::Cli::VERSION
 
-    opts.on("-f", "--force-defaults",
-            "Use valid default answers for otherwise unspecified items.") do |force_defaults|
-      @options[:force_defaults] = true
-    end
-
-    opts.on('--non-interactive',
-            'DEPRECATED:  This has been deprecated by --force-defaults',
-            'for clarity and will be removed in a future release.') do  |x|
-      @options[:force_defaults] = true
-    end
-
-    opts.on('-D', '--disable-queries',
-            'Run completely non-interactively. All answers must',
-            'be specified by an answers file or command line',
-            'KEY=VALUE pairs.') do |disable_queries|
-      @options[:allow_queries] = false
-    end
-
-    opts.on("-l", "--log-file FILE",
-            "Log file.  Defaults to",
-            File.join(SIMP_CLI_HOME, 'simp_config.log.<timestamp>')) do |file|
-      @options[:log_file] = file
-    end
-
-    opts.separator opts_separator
-
-    opts.on("-v", "--verbose", "Verbose output (stacks)") do
-      @options[:verbose] += 1
-    end
-
-    opts.on("-q", "--quiet", "Quiet output") do
-      @options[:verbose] = -1
-    end
-
-    opts.on("-n", "--dry-run",
-            "Gather input and generate answers",
-            "configuration file but do not apply",
-            "system changes (e.g., NIC setup, Puppet",
-            "configuration changes, SIMP scenario",
-            "configuration, ...)" ) do
-      @options[:dry_run] = true
-    end
-
-    opts.on("-s", "--skip-safety-save",         "Ignore any safety-save files") do
-      @options[:use_safety_save] = false
-    end
-
-    opts.on("-S", "--accept-safety-save",  "Automatically apply any safety-save files") do
-      @options[:autoaccept_safety_save] = true
-    end
-
-    opts.separator opts_separator
-
-    opts.on("-h", "--help", "Print this message") do
-      puts opts
-      @help_requested = true
-    end
-    opts.separator "\nKEY/VALUE ARGUMENTS:"
-    opts.separator "The values for any of the answers file YAML keys can be set "
-    opts.separator "via key/value command line arguments:"
-    opts.separator ""
-    opts.separator "KEY=VALUE syntax specifies a mapped, scalar node. For example,"
-    opts.separator "  #{File.basename($0)} config simp_options::auditd=true"
-    opts.separator ""
-    opts.separator "KEY=VALUE1,,VALUE2,,VALUE3 syntax specifies a mapped sequence"
-    opts.separator "node. For example,"
-    opts.separator "  #{File.basename($0)} config simp_options::dns::search=domain1,,domain2"
-    opts.separator ""
   end
 
-  def self.print_summary(answers)
-    apply_actions = answers.select { |key,item| item.respond_to?(:applied_time) }
-
-    unless apply_actions.empty?
-      logger.info( "\n#{'='*80}", [:BOLD] )
-      logger.info( "\nSummary of Applied Changes", [:BOLD] )
-      apply_actions.each.sort{ |a,b| a[1].applied_time <=> b[1].applied_time }.each do |pair|
-        item = pair[1]
-        logger.info("  #{item.apply_summary}", [item.status_color, :BOLD] )
-      end
-    end
+  def help
+    parse_command_line( [ '--help' ] )
   end
 
-  # Returns the saved subset of answers from the previous, interrupted
-  # run, when safety-save is enabled
-  def self.saved_session
-    result = {}
-    if @options.fetch( :use_safety_save, false ) && file = @options.fetch( :answers_output_file )
-      _file = File.join( File.dirname( file ), ".#{File.basename( file )}" )
-      if File.file?( _file )
-        lines      = File.open( _file, 'r' ).readlines
-        saved_hash = read_answers_file _file
-        last_item  = nil
-        if saved_hash.keys.size > 0
-          last_item = {saved_hash.keys.last =>
-                       saved_hash[ saved_hash.keys.last ]}.to_yaml.gsub( /^---/, '' ).strip
-        end
-
-        color = :YELLOW
-        message = %Q{WARNING: interrupted session detected!}
-        logger.warn( "*** #{message} ***\n", [color, :BOLD] )
-        logger.warn( "An automatic safety-save file from a previous session has been found at:",
-          [color] )
-        logger.warn("      #{_file}\n", [:BOLD] )
-        if last_item
-          logger.warn( "The most recent answer from this session was:", [color] )
-          logger.warn( "#{last_item.gsub( /^/, "      " )}\n", [:BOLD] )
-        end
-
-        if @options.fetch( :autoaccept_safety_save, false )
-          logger.warn(
-              "Automatically resuming these answers because ", [color],
-              "--accept-safety-save", [color,:BOLD],
-              " is active.\n", [color])
-          result = saved_hash
-        else
-          logger.warn( "You can resume these answers or delete the file.\n", [color] )
-
-          if agree( "Resume the session? (no = deletes file)" ){ |q| q.default = 'yes' }
-            logger.info( "\nApplying answers from '#{_file}'", [:GREEN])
-            result = saved_hash
-          else
-            logger.debug( "\nRemoving file '#{_file}'", [:RED] )
-            FileUtils.rm_f _file
-          end
-        end
-        sleep 1
-      end
-    end
-    result
-  end
-
-
-  # Removes the set of answers saved during this session when the
-  # safety-save operation is enabled
-  def self.remove_saved_session
-    if file = @options.fetch( :answers_output_file )
-      _file = File.join( File.dirname( file ), ".#{File.basename( file )}" )
-      FileUtils.rm_f( _file, :verbose => false ) if File.file?( _file )
-    end
-  end
-
-
-  # Read in the 'answers file' containing the answers to some/all
-  # of the questions 'simp config' asks (Item values), as well as
-  # values 'simp config' automatically sets
-  def self.read_answers_file(file)
-    answers_hash = {}    # Read the input file
-
-    unless File.exist?(file)
-      raise Simp::Cli::ProcessingError.new("ERROR: Could not access the file '#{file}'!")
-    end
-
-    begin
-      logger.debug("Loading answers from #{file}")
-      answers_hash = YAML.load(File.read(file))
-      answers_hash = {} if !answers_hash.is_a?(Hash) # empty yaml file returns false
-
-    rescue Psych::SyntaxError => e
-      err_msgs = [
-        "ERROR: System configuration file '#{file}' is corrupted:",
-        e.message,
-        "Review the file and either fix or remove it before trying again."
-      ]
-      raise Simp::Cli::ProcessingError.new(err_msgs.join("\n"))
-    end
-
-    answers_hash
-  end
-
-  def self.run(args = [])
-    super # parse @options, will raise upon parsing error
+  def run(args)
+    parse_command_line(args)
     return if @help_requested
     @options[:start_time] = Time.now
 
@@ -329,6 +110,232 @@ EOM
     raise Simp::Cli::ProcessingError.new(e.message)
   end
 
+  def parse_command_line(args)
+
+    @opt_parser      = OptionParser.new do |opts|
+      opts_separator = ' '*4 + '-'*76
+      opts.banner = "\n=== The SIMP Configuration Tool ==="
+      opts.separator ''
+      opts.separator 'The SIMP Configuration Tool sets up the server configuration'
+      opts.separator 'required for bootstrapping the SIMP system. It performs two'
+      opts.separator 'main functions:'
+      opts.separator ''
+      opts.separator '   (1) creation/editing of system configurations'
+      opts.separator '   (2) application of system configurations.'
+      opts.separator ''
+      opts.separator 'By default, the SIMP Configuration Tool interactively gathers'
+      opts.separator 'input from the user.  However, this input can also be read in'
+      opts.separator 'from an existing, complete answers YAML file; an existing,'
+      opts.separator 'partial, answers YAML file and/or command line key/value'
+      opts.separator 'arguments.'
+      opts.separator ''
+      opts.separator 'USAGE:'
+      opts.separator "  #{File.basename($0)} config [options] [KEY=VALUE] [KEY=VALUE1,,VALUE2,,VALUE3] [...]"
+      opts.separator ''
+      opts.separator "OPTIONS:\n"
+      opts.separator opts_separator
+
+      opts.on('-o', '--answers-output FILE',
+              'The answers FILE where the created/edited',
+              "system configuration used by 'simp config'",
+              'will be written.  Defaults to',
+              "'#{@default_answers_outfile}'") do |file|
+        @options[:answers_output_file] = file
+      end
+
+      opts.on('-p', '--puppet-output FILE',
+              'The Puppet system FILE where the',
+              'created/edited system hieradata will be',
+              'written.  Defaults to',
+              "'#{@default_hiera_outfile}'") do |file|
+        @options[:puppet_system_file] = file
+      end
+
+      opts.on('-a', '--apply FILE', 'Apply answers FILE (fails on missing/invalid items)') do |file|
+        @options[:answers_input_file] = file
+        @options[:allow_queries] = false
+      end
+
+      opts.on('-A', '--apply-with-questions FILE',
+              'Apply answers FILE (prompts on missing/invalid items).') do |file|
+        @options[:answers_input_file] = file
+        @options[:allow_queries] = true
+      end
+
+      opts.on('-f', '--force-defaults',
+              'Use valid default answers for otherwise unspecified items.') do |force_defaults|
+        @options[:force_defaults] = true
+      end
+
+      opts.on('--non-interactive',
+              'DEPRECATED:  This has been deprecated by --force-defaults',
+              'for clarity and will be removed in a future release.') do  |x|
+        @options[:force_defaults] = true
+      end
+
+      opts.on('-D', '--disable-queries',
+              'Run completely non-interactively. All answers must',
+              'be specified by an answers file or command line',
+              'KEY=VALUE pairs.') do |disable_queries|
+        @options[:allow_queries] = false
+      end
+
+      opts.on('-l', '--log-file FILE',
+              'Log file.  Defaults to',
+              File.join(Simp::Cli::SIMP_CLI_HOME, 'simp_config.log.<timestamp>')) do |file|
+        @options[:log_file] = file
+      end
+
+      opts.separator opts_separator
+
+      opts.on('-v', '--verbose', 'Verbose output (stacks)') do
+        @options[:verbose] += 1
+      end
+
+      opts.on('-q', '--quiet', 'Quiet output') do
+        @options[:verbose] = -1
+      end
+
+      opts.on('-n', '--dry-run',
+              'Gather input and generate answers',
+              'configuration file but do not apply',
+              'system changes (e.g., NIC setup, Puppet',
+              'configuration changes, SIMP scenario',
+              'configuration, ...)' ) do
+        @options[:dry_run] = true
+      end
+
+      opts.on('-s', '--skip-safety-save',         'Ignore any safety-save files') do
+        @options[:use_safety_save] = false
+      end
+
+      opts.on('-S', '--accept-safety-save',  'Automatically apply any safety-save files') do
+        @options[:autoaccept_safety_save] = true
+      end
+
+      opts.separator opts_separator
+
+      opts.on('-h', '--help', 'Print this message') do
+        puts opts
+        @help_requested = true
+      end
+      opts.separator "\nKEY/VALUE ARGUMENTS:"
+      opts.separator 'The values for any of the answers file YAML keys can be set '
+      opts.separator 'via key/value command line arguments:'
+      opts.separator ''
+      opts.separator 'KEY=VALUE syntax specifies a mapped, scalar node. For example,'
+      opts.separator "  #{File.basename($0)} config simp_options::auditd=true"
+      opts.separator ''
+      opts.separator 'KEY=VALUE1,,VALUE2,,VALUE3 syntax specifies a mapped sequence'
+      opts.separator 'node. For example,'
+      opts.separator "  #{File.basename($0)} config simp_options::dns::search=domain1,,domain2"
+      opts.separator ''
+    end
+
+    @opt_parser.parse!(args)
+  end
+
+
+  def print_summary(answers)
+    apply_actions = answers.select { |key,item| item.respond_to?(:applied_time) }
+
+    unless apply_actions.empty?
+      logger.info( "\n#{'='*80}", [:BOLD] )
+      logger.info( "\nSummary of Applied Changes", [:BOLD] )
+      apply_actions.each.sort{ |a,b| a[1].applied_time <=> b[1].applied_time }.each do |pair|
+        item = pair[1]
+        logger.info("  #{item.apply_summary}", [item.status_color, :BOLD] )
+      end
+    end
+  end
+
+  # Returns the saved subset of answers from the previous, interrupted
+  # run, when safety-save is enabled
+  def saved_session
+    result = {}
+    if @options.fetch( :use_safety_save, false ) && file = @options.fetch( :answers_output_file )
+      _file = File.join( File.dirname( file ), ".#{File.basename( file )}" )
+      if File.file?( _file )
+        lines      = File.open( _file, 'r' ).readlines
+        saved_hash = read_answers_file _file
+        last_item  = nil
+        if saved_hash.keys.size > 0
+          last_item = {saved_hash.keys.last =>
+                       saved_hash[ saved_hash.keys.last ]}.to_yaml.gsub( /^---/, '' ).strip
+        end
+
+        color = :YELLOW
+        message = %Q{WARNING: interrupted session detected!}
+        logger.warn( "*** #{message} ***\n", [color, :BOLD] )
+        logger.warn( 'An automatic safety-save file from a previous session has been found at:',
+          [color] )
+        logger.warn("      #{_file}\n", [:BOLD] )
+        if last_item
+          logger.warn( 'The most recent answer from this session was:', [color] )
+          logger.warn( "#{last_item.gsub( /^/, "      " )}\n", [:BOLD] )
+        end
+
+        if @options.fetch( :autoaccept_safety_save, false )
+          logger.warn(
+              'Automatically resuming these answers because ', [color],
+              '--accept-safety-save', [color,:BOLD],
+              " is active.\n", [color])
+          result = saved_hash
+        else
+          logger.warn( "You can resume these answers or delete the file.\n", [color] )
+
+          if agree( 'Resume the session? (no = deletes file)' ){ |q| q.default = 'yes' }
+            logger.info( "\nApplying answers from '#{_file}'", [:GREEN])
+            result = saved_hash
+          else
+            logger.debug( "\nRemoving file '#{_file}'", [:RED] )
+            FileUtils.rm_f _file
+          end
+        end
+        sleep 1
+      end
+    end
+    result
+  end
+
+
+  # Removes the set of answers saved during this session when the
+  # safety-save operation is enabled
+  def remove_saved_session
+    if file = @options.fetch( :answers_output_file )
+      _file = File.join( File.dirname( file ), ".#{File.basename( file )}" )
+      FileUtils.rm_f( _file, :verbose => false ) if File.file?( _file )
+    end
+  end
+
+
+  # Read in the 'answers file' containing the answers to some/all
+  # of the questions 'simp config' asks (Item values), as well as
+  # values 'simp config' automatically sets
+  def read_answers_file(file)
+    answers_hash = {}    # Read the input file
+
+    unless File.exist?(file)
+      raise Simp::Cli::ProcessingError.new("ERROR: Could not access the file '#{file}'!")
+    end
+
+    begin
+      logger.debug("Loading answers from #{file}")
+      answers_hash = YAML.load(File.read(file))
+      answers_hash = {} if !answers_hash.is_a?(Hash) # empty yaml file returns false
+
+    rescue Psych::SyntaxError => e
+      err_msgs = [
+        "ERROR: System configuration file '#{file}' is corrupted:",
+        e.message,
+        'Review the file and either fix or remove it before trying again.'
+      ]
+      raise Simp::Cli::ProcessingError.new(err_msgs.join("\n"))
+    end
+
+    answers_hash
+  end
+
 
   # Read in and merge sets of answers (predetermined Item values) to
   # result in the following priority
@@ -340,7 +347,7 @@ EOM
   # Also queries user for cli::simp::scenario, if not present and
   # queries are allowed
   #
-  def self.load_pre_set_answers(args, options)
+  def load_pre_set_answers(args, options)
     # Retrieve set of answers set at command line via tag=value pairs
     cli_answers = {}
     cli_answers  = Hash[ args.map{ |x| x.split '=' } ]
@@ -382,14 +389,14 @@ EOM
         raise Simp::Cli::Config::ValidationError.new(err_msg)
       end
     end
-    scenario_hiera_file = File.join(Simp::Cli::Utils.puppet_info[:simp_environment_path],
-        'hieradata', 'scenarios', "#{answers_hash['cli::simp::scenario']}.yaml")
+    scenario_hiera_file = File.join(Simp::Cli::Utils.simp_env_datadir,
+        'scenarios', "#{answers_hash['cli::simp::scenario']}.yaml")
     unless File.exist?(scenario_hiera_file)
       # If SIMP is installed via RPMs but not the ISO and the copy
       # hasn't been made yet, the scenario YAML file should be able
       # to be found in /usr/share/simp instead.
       alt_scenario_hiera_file = File.join('/', 'usr', 'share', 'simp',
-        'environments','simp', 'hieradata', 'scenarios',
+        'environments','simp', File.basename(Simp::Cli::Utils.simp_env_datadir), 'scenarios',
         "#{answers_hash['cli::simp::scenario']}.yaml")
       scenario_hiera_file = alt_scenario_hiera_file if File.exist?(alt_scenario_hiera_file)
     end
@@ -398,9 +405,9 @@ EOM
     answers_hash
   end
 
-  def self.set_up_global_logger
+  def set_up_global_logger
     unless @options[:log_file]
-      @options[:log_file] = File.join(SIMP_CLI_HOME, "simp_config.log.#{@options[:start_time].strftime('%Y%m%dT%H%M%S')}")
+      @options[:log_file] = File.join(Simp::Cli::SIMP_CLI_HOME, "simp_config.log.#{@options[:start_time].strftime('%Y%m%dT%H%M%S')}")
     end
     FileUtils.mkdir_p(File.dirname(@options[:log_file]))
     logger.open_logfile(@options[:log_file])
@@ -414,14 +421,5 @@ EOM
     end
     file_log_level = ::Logger::DEBUG       # always log action details to file
     logger.levels(console_log_level, file_log_level)
-  end
-
-  # Resets options to original values.
-  # This ugly method is needed for unit-testing, in which multiple occurrences of
-  # the self.run method are called with different options.
-  # FIXME Variables set here are really class variables, not instance variables.
-  def self.reset_options
-    @options = Hash.new.update(SIMP_CONFIG_DEFAULT_OPTIONS)
-    @help_requested = false
   end
 end

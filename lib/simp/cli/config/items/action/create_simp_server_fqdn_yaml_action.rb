@@ -1,8 +1,7 @@
-require File.expand_path( '../action_item', File.dirname(__FILE__) )
+require 'simp/cli/config/items/action_item'
+require 'simp/cli/utils'
 require 'fileutils'
 
-module Simp; end
-class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CreateSimpServerFqdnYamlAction < ActionItem
     attr_accessor :template_file, :alt_file, :group
@@ -12,8 +11,9 @@ module Simp::Cli::Config
       @key         = 'puppet::create_simp_server_fqdn_yaml'
       @description = 'Create SIMP server <host>.yaml from template'
       @die_on_apply_fail = true
-      @template_file = "#{Simp::Cli::Utils.puppet_info[:simp_environment_path]}/hieradata/hosts/puppet.your.domain.yaml"
-      @alt_file    = '/usr/share/simp/environments/simp/hieradata/hosts/puppet.your.domain.yaml'
+      @template_file = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts', 'puppet.your.domain.yaml')
+      @alt_file    = File.join('usr', 'share', 'simp', 'environments', 'simp',
+        File.basename(Simp::Cli::Utils.simp_env_datadir), 'hosts', 'puppet.your.domain.yaml')
       @host_yaml    = nil
       @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
     end
@@ -87,7 +87,7 @@ Review and consider updating:
     end
 
     def apply_summary
-      "Creation of " +
+      'Creation of ' +
         "#{@host_yaml ? File.basename(@host_yaml) : 'SIMP server <host>.yaml'} #{@applied_status.to_s}" +
         "#{@applied_status_detail ? ":\n    #{@applied_status_detail}" : ''}"
     end

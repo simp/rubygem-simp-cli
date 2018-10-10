@@ -1,6 +1,5 @@
 require 'simp/cli/config/items/data/cli_simp_scenario'
 require 'fileutils'
-require 'rspec/its'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::CliSimpScenario do
@@ -19,21 +18,23 @@ describe Simp::Cli::Config::Item::CliSimpScenario do
 
     before :each do
       @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
+      test_env_dir = File.join(@tmp_dir, 'environments')
 
       allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
         :config => {
           'codedir' => @tmp_dir,
           'confdir' => @tmp_dir
         },
-        :environment_path => File.join(@tmp_dir, 'environments'),
-        :simp_environment_path => File.join(@tmp_dir, 'environments', 'simp'),
-        :fake_ca_path => File.join(@tmp_dir, 'environments', 'simp', 'FakeCA')
+        :environment_path => test_env_dir,
+        :simp_environment_path => File.join(test_env_dir, 'simp'),
+        :fake_ca_path => File.join(test_env_dir, 'simp', 'FakeCA')
       } )
-      FileUtils.cp_r(File.join(env_files_dir, 'environments'), @tmp_dir)
+      FileUtils.mkdir(test_env_dir)
+      FileUtils.cp_r(File.join(env_files_dir, 'environments', 'simp'), test_env_dir)
     end
 
     it 'returns value in site.pp' do
-      expect( @ci.os_value ).to eq('poss')
+      expect( @ci.os_value ).to eq('simp')
     end
 
     it 'returns nil when site.pp does not exist' do
@@ -59,7 +60,7 @@ describe Simp::Cli::Config::Item::CliSimpScenario do
       expect( @ci.validate('poss') ).to eq true
     end
 
-    it "rejects invalid scenario names" do
+    it 'rejects invalid scenario names' do
       expect( @ci.validate('pss') ).to eq false
     end
   end

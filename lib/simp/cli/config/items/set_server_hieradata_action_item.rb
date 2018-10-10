@@ -1,5 +1,5 @@
 require 'yaml'
-require File.expand_path( 'action_item', File.dirname(__FILE__) )
+require 'simp/cli/config/items/action_item'
 require 'simp/cli/utils'
 
 module Simp::Cli::Config
@@ -8,11 +8,10 @@ module Simp::Cli::Config
   # Derived class must set @key and @hiera_to_add where @key must be
   # unique and @hiera_to_add is an array of hiera keys
   class SetServerHieradataActionItem < ActionItem
-    attr_accessor :dir
 
     def initialize
       super
-      @dir          = File.join(Simp::Cli::Utils.puppet_info[:simp_environment_path], 'hieradata', 'hosts')
+      @dir          = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts')
       @description = "Set #{@hiera_to_add.join(', ')} in SIMP server <host>.yaml"
       @file         = nil
     end
@@ -51,7 +50,7 @@ module Simp::Cli::Config
       debug( "Adding #{hiera_key} to #{File.basename(@file)}" )
       yaml = IO.readlines(@file)
       line_written = false
-      File.open(@file, "w") do |f|
+      File.open(@file, 'w') do |f|
         yaml.each do |line|
           line.chomp!
           if line =~ /^classes\s*:/
@@ -86,7 +85,7 @@ module Simp::Cli::Config
 
       debug( "Replacing #{hiera_key} in #{File.basename(@file)}" )
       yaml = IO.readlines(@file)
-      File.open(@file, "w") do |f|
+      File.open(@file, 'w') do |f|
         yaml.each do |line|
           line.chomp!
           if line =~ /^#{hiera_key}\s*:/

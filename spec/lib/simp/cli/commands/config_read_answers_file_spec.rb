@@ -4,12 +4,31 @@ require 'fileutils'
 require 'set'
 require 'yaml'
 
-describe 'Simp::Cli::Commands::Config.read_answers_file' do
+describe 'Simp::Cli::Commands::Config#read_answers_file' do
   let(:files_dir) { File.join(File.dirname(__FILE__), 'files') }
 
   before(:each) do
-    @tmp_dir   = Dir.mktmpdir( File.basename(__FILE__) )
+    @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__) )
+    test_env_dir = File.join(@tmp_dir, 'environments')
+    simp_env_dir = File.join(test_env_dir, 'simp')
+    FileUtils.mkdir(test_env_dir)
+    FileUtils.cp_r(File.join(files_dir, 'environments', 'simp'), test_env_dir)
+
+    allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
+      :config => {
+        'codedir' => @tmp_dir,
+        'confdir' => @tmp_dir
+      },
+      :environment_path => test_env_dir,
+      :simp_environment_path => simp_env_dir,
+      :fake_ca_path => File.join(test_env_dir, 'simp', 'FakeCA')
+    } )
+
+    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return( File.join(simp_env_dir, 'data') )
+
     @yaml_file = File.join(@tmp_dir, 'answers.yaml')
+
+    @config = Simp::Cli::Commands::Config.new
   end
 
   after :each do
@@ -18,7 +37,7 @@ describe 'Simp::Cli::Commands::Config.read_answers_file' do
   end
 
   it 'raises exception when file to parse cannot be accessed' do
-    expect { Simp::Cli::Commands::Config.read_answers_file('oops.yaml') }.to raise_error(
+    expect { @config.read_answers_file('oops.yaml') }.to raise_error(
       Simp::Cli::ProcessingError, "ERROR: Could not access the file 'oops.yaml'!")
   end
 
@@ -41,13 +60,13 @@ describe 'Simp::Cli::Commands::Config.read_answers_file' do
       'network::gateway' => '1.2.3.1',
       'simp_options::dns::servers' => ['1.2.3.10']
     }
-    expect( Simp::Cli::Commands::Config.read_answers_file(@yaml_file) ).to eq expected
+    expect( @config.read_answers_file(@yaml_file) ).to eq expected
   end
 
   it 'returns empty hash when file is empty' do
     FileUtils.touch(@yaml_file)
     expected = {}
-    expect( Simp::Cli::Commands::Config.read_answers_file(@yaml_file) ).to eq expected
+    expect( @config.read_answers_file(@yaml_file) ).to eq expected
   end
 
   it 'returns empty hash when file is only comments' do
@@ -59,7 +78,7 @@ describe 'Simp::Cli::Commands::Config.read_answers_file' do
     expected = {}
     FileUtils.touch(@yaml_file)
     expected = {}
-    expect( Simp::Cli::Commands::Config.read_answers_file(@yaml_file) ).to eq expected
+    expect( @config.read_answers_file(@yaml_file) ).to eq expected
   end
 
   it 'raises exception when file contains malformed yaml' do
@@ -67,7 +86,7 @@ describe 'Simp::Cli::Commands::Config.read_answers_file' do
       file.puts('====')
       file.puts('simp_options::fips:')
     end
-    expect { Simp::Cli::Commands::Config.read_answers_file(@yaml_file) }.to raise_error(
+    expect { @config.read_answers_file(@yaml_file) }.to raise_error(
       Simp::Cli::ProcessingError, /ERROR: System configuration file '#{@yaml_file}' is corrupted/)
   end
 end

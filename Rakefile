@@ -50,11 +50,49 @@ SIMP_RPM_BUILD     when set, alters the gem produced by pkg:gem to be RPM-safe.
   }
 end
 
-desc "Run spec tests"
+desc 'Run spec tests'
 RSpec::Core::RakeTask.new(:spec) do |t|
   t.rspec_opts = ['--color']
   t.pattern = 'spec/**/*_spec.rb'
 end
+
+namespace :test do
+  desc <<-EOM
+  Copy SIMP-environment test files to user's local puppet environment
+
+   For a non-root user, this copies the simp environment used in unit
+   testing into HOME/.puppetlabs.  This allows you to run a **limited**
+   subset of 'simp config' commands via 'bundle exec bin/simp config',
+   for example, 'bundle exec bin/simp config --dry-run'.  This is useful
+   when you are updating test inputs/outputs, or want to see what the
+   text printed during 'simp config' looks like, without installing on
+   a SIMP system.
+  EOM
+  task :local_config_env_prep do
+    if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
+      raise('local_config_env_prep cannot be run as root user')
+    else
+      local_env_dir = File.join(ENV['HOME'], '.puppetlabs', 'etc', 'code', 'environments')
+      simp_env = File.join(local_env_dir, 'simp')
+      test_simp_env_dir = File.join('spec', 'lib', 'simp', 'cli', 'commands', 'files', 'environments', 'simp')
+      FileUtils.mkdir_p(local_env_dir)
+      puts "Copying #{test_simp_env_dir} to #{local_env_dir}"
+      FileUtils.cp_r(test_simp_env_dir, local_env_dir)
+    end
+  end
+
+  desc "Remove SIMP-environment test files from user's local puppet environment"
+  task :local_config_env_clean do
+    if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
+      raise('local_config_env_clean cannot be run as root user')
+    else
+      local_simp_env_dir = File.join(ENV['HOME'], '.puppetlabs', 'etc', 'code', 'environments', 'simp')
+      puts "Removing #{local_simp_env_dir}"
+      FileUtils.rm_rf(local_simp_env_dir)
+    end
+  end
+end
+
 
 namespace :pkg do
   @specfile_template = "rubygem-#{@package}.spec.template"

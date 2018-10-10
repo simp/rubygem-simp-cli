@@ -25,7 +25,7 @@ simp_options::ldap::bind_hash: "{SSHA}tx9ennniDQnmx83gPjCqhy6pknR89QsD"
 simp_options::ldap::bind_pw: "xXx}.9Xx9>x.x9OmbjG%%Exr0R3z8Mkm"
 simp_options::ldap::sync_dn: "cn=LDAPSync,ou=Hosts,dc=test,dc=local"
 simp_options::ldap::sync_hash: "{SSHA}AGGs+6v8hWpTPNCqWDh59QKQ99bV95hz"
-simp_options::ldap::sync_pw: "MCMD3u-iTXA8O6yCoD{ot}GPTeHd7{GI"
+simp_options::ldap::sync_pw: "MCM!3u-iTXA8O6yCoD{ot}GPTeHd7{GI"
 simp_options::ldap::master: "ldap://puppet.test.local"
 simp_options::ldap::uri: ["ldap://puppet.test.local"]
 simp_options::ntpd::servers: [ "time-a.nist.gov" ]

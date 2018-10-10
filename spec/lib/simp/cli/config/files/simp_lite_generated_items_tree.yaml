@@ -65,8 +65,8 @@
 - SetUpPuppetAutosignAction
 - UpdatePuppetConfAction
 - AddPuppetHostsEntryAction
-# Move the hieradata/hosts/puppet.your.domain.yaml template to
-# hieradata/hosts/<host>.yaml file (as appropriate) before
+# Move the <simp environment datadir>/hosts/puppet.your.domain.yaml template to
+# <simp environment datadir>/hosts/<host>.yaml file (as appropriate) before
 # dealing with any features that modify that file
 - CreateSimpServerFqdnYamlAction
 - SetServerPuppetDBMasterConfigAction

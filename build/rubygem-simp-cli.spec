@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.2.0
+%global cli_version 4.3.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -101,6 +101,18 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon Oct 01 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.3.0
+- Update 'simp config' to support environment-specific Hiera 5
+  configuration provided by SIMP-6.3.0.
+  - Assumes a legacy Hiera 3 configuration, when the 'simp'
+    environment only contains a 'hieradata' directory.
+  - Assumes a Hiera 5 configuration configuration, when the 'simp'
+    environment contains both a 'hiera.yaml' file and a 'data/'
+    directory.
+  - Fails to run otherwise, as neither stock SIMP configuration
+    has been found and 'simp config' cannot safely modify
+    hieradata.
+
 * Sun Jul 15 2018 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.2.0
 - Stripped trailing whitespace
 - Adjusted bootstrap to detect PE and avoid operations that are detrimental to
