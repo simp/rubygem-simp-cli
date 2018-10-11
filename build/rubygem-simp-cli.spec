@@ -101,6 +101,11 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Oct 09 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.3.0
+- Fixed `simp bootstrap` errors in puppetserver 5+:
+  - No longer overwrites `web-routes.conf` (fixes fatal configuration error)
+  - No longer adds `-XX:MaxPermSize` for Java >= 8 (fixes warnings at restart)
+
 * Mon Oct 01 2018 Liz Nemsick <lnemsick.simp@gmail.com> - 4.3.0
 - Update 'simp config' to support environment-specific Hiera 5
   configuration provided by SIMP-6.3.0.
