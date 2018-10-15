@@ -49,7 +49,8 @@ module Simp::Cli::Utils
         :environment_path => environment_path,
         :simp_environment_path => File.join(environment_path, 'simp'),
         :fake_ca_path => '/var/simp/environments/simp/FakeCA',
-        :puppet_group => config_hash['group']
+        :puppet_group => config_hash['group'],
+        :version => %x{puppet --version}.split(/\n/).last
       }
     end
 

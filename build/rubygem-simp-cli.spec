@@ -101,6 +101,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Oct 12 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.3.0
+- `simp config` removes the deprecated setting `trusted_server_facts`
+- Add `:version` to `Simp::Cli::Utils.puppet_info`
+
 * Tue Oct 09 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.3.0
 - Fixed `simp bootstrap` errors in puppetserver 5+:
   - No longer overwrites `web-routes.conf` (fixes fatal configuration error)
