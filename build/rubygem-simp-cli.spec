@@ -102,7 +102,7 @@ EOM
 
 %changelog
 * Tue Oct 12 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.3.0
-- `simp config` removes the deprecated setting `trusted_server_facts`
+- `simp config` removes the deprecated Puppet setting `trusted_server_facts`
 - Add `:version` to `Simp::Cli::Utils.puppet_info`
 
 * Tue Oct 09 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.3.0
