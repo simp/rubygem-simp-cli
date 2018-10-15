@@ -206,14 +206,14 @@ EOM
     end
 
     after :each do
-      FileUtils.remove_entry_secure @tmp_dir
+      FileUtils.remove_entry_secure @tmp_dir, true
     end
 
     describe '--list-env option' do
       it 'lists no environments, when no environments exist' do
         expected_output = <<EOM
 Environments:
-	
+\t
 
 EOM
         expect { @passgen.run(['--list-env']) }.to output(expected_output).to_stdout
@@ -225,9 +225,9 @@ EOM
         FileUtils.mkdir(File.join(@password_env_dir, 'env2'))
         expected_output = <<EOM
 Environments:
-	env1
-	env2
-	production
+\tenv1
+\tenv2
+\tproduction
 
 EOM
         expect { @passgen.run(['-E']) }.to output(expected_output).to_stdout
@@ -264,7 +264,7 @@ EOM
       it 'lists no password names, when no names exist' do
         expected_output = <<EOM
 production Names:
-	
+\t
 
 EOM
         expect { @passgen.run(['--list-name']) }.to output(expected_output).to_stdout
@@ -280,10 +280,10 @@ EOM
         FileUtils.touch(File.join(@default_password_dir, 'my.last.name'))
         expected_output = <<EOM
 production Names:
-	10.0.1.2
-	my.last.name
-	production_name
-	salt.and.pepper
+\t10.0.1.2
+\tmy.last.name
+\tproduction_name
+\tsalt.and.pepper
 
 EOM
         expect { @passgen.run(['-l']) }.to output(expected_output).to_stdout
@@ -295,7 +295,7 @@ EOM
         FileUtils.touch(File.join(password_dir, 'env1_name1'))
         expected_output = <<EOM
 env1 Names:
-	env1_name1
+\tenv1_name1
 
 EOM
         expect { @passgen.run(['-l', '-e', 'env1']) }.to output(expected_output).to_stdout
