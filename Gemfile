@@ -12,7 +12,7 @@ gemspec
 gem 'bundler'
 gem 'facter'
 gem 'highline', :path => 'ext/gems/highline'
-gem 'puppet', ENV.fetch('PUPPET_VERSION',  '~>4')
+gem 'puppet', ENV.fetch('PUPPET_VERSION',  '~>5')
 gem 'rake'
 gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', ['>= 5.5', '< 6.0'])
 gem 'simp-beaker-helpers', ENV.fetch('SIMP_BEAKER_HELPERS_VERSION', '~> 1.10')
@@ -42,4 +42,5 @@ group :development do
   gem 'gitlog-md'
 
   gem 'rubocop', '0.57.2'
+  gem 'travis'
 end

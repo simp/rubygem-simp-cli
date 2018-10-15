@@ -25,13 +25,17 @@ module Simp::Cli::Config
 
       debug( "Updating #{@file}" )
 
-      # sed only fails if file doesn't exist and we know @file exists
-      # because the copy above didn't fail
-      # TODO are these seds really needed?
+      # These seds remove options that have been deprecated and cause Puppet to
+      # emit `Setting ___ is deprecated` warning messages on each run:
       execute("sed -i '/^\s*server.*/d' #{@file}")
       execute("sed -i '/.*trusted_node_data.*/d' #{@file}")
       execute("sed -i '/.*digest_algorithm.*/d' #{@file}")
       execute("sed -i '/.*stringify_facts.*/d' #{@file}")
+
+      if Gem::Version.new(Simp::Cli::Utils.puppet_info[:version]) >= \
+         Gem::Version.new('5.0')
+        execute("sed -i '/.*trusted_server_facts.*/d' #{@file}")
+      end
 
       keylength = get_item( 'simp_options::fips' ).value ? '2048' : '4096'
 
@@ -60,7 +64,6 @@ module Simp::Cli::Config
         config_success = config_success && execute("puppet config set server #{puppet_server}")
         config_success = config_success && execute("puppet config set ca_server #{puppet_ca}")
         config_success = config_success && execute("puppet config set ca_port #{puppet_ca_port}")
-        config_success = config_success && execute("puppet config set trusted_server_facts true")
         config_success
       }
 

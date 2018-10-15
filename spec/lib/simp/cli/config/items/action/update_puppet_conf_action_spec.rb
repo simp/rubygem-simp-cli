@@ -47,11 +47,14 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
         expect(@ci).to receive(:execute).with(%(sed -i '/.*trusted_node_data.*/d' #{@ci.file}))
         expect(@ci).to receive(:execute).with(%(sed -i '/.*digest_algorithm.*/d' #{@ci.file}))
         expect(@ci).to receive(:execute).with(%(sed -i '/.*stringify_facts.*/d' #{@ci.file}))
+        unless Puppet.version.split('.').first <= '4'
+          expect(@ci).to receive(:execute).with(%(sed -i '/.*trusted_server_facts.*/d' #{@ci.file}))
+        end
+
         expect(@ci).to receive(:execute).with(%(puppet config set digest_algorithm sha256)).and_return(true)
         expect(@ci).to receive(:execute).with(%(puppet config set server #{@puppet_server})).and_return(true)
         expect(@ci).to receive(:execute).with(%(puppet config set ca_server #{@puppet_ca})).and_return(true)
         expect(@ci).to receive(:execute).with(%(puppet config set ca_port #{@puppet_ca_port})).and_return(true)
-        expect(@ci).to receive(:execute).with(%(puppet config set trusted_server_facts true)).and_return(true)
 
         @ci.config_items[ @item.key ] = @item
       end

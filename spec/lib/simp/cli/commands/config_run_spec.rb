@@ -52,7 +52,7 @@ describe 'Simp::Cli::Command::Config#run' do
     @input.close
     @output.close
     $terminal = @prev_terminal
-    FileUtils.remove_entry_secure @tmp_dir
+    FileUtils.remove_entry_secure @tmp_dir, true
     Facter.reset  # make sure this test's facts don't affect other tests
   end
 

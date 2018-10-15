@@ -248,7 +248,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     end
   end
 
-  # Return java major version or nil
+  # @return [String] if the Java major version is available
+  # @return [nil] if the Java major version is unavailable
   def java_major_version
     java_bindir = ENV['PATH'].split(':').find{|x| File.exists?(File.join(x,'java'))}
     cmd = %Q[#{File.join(java_bindir,'java')} -version]
@@ -301,6 +302,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       FileUtils.chown(vardir_stat.uid, vardir_stat.gid, server_conf_tmp)
       FileUtils.chmod(vardir_stat.mode & 0777, server_conf_tmp)
 
+      # Java 8 dropped -XX:MaxPermSize
       xx_args = (java_major_version && (java_major_version < 8)) ? ' -XX:MaxPermSize=256m' : ''
 
       command = "puppet resource simp_file_line puppetserver path='/etc/sysconfig/puppetserver'" +
