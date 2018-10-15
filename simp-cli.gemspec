@@ -43,8 +43,11 @@ Gem::Specification.new do |s|
   ### When the environment variable $SIMP_RPM_BUILD is set, the following
   ### dependencies will not be included in the .gemspec dependencies:
   #### ------------
-  if !ENV.fetch( 'SIMP_RPM_BUILD', false )
-    s.add_runtime_dependency 'puppet',   '~> 4'
+  unless (
+    ENV.fetch( 'SIMP_RPM_BUILD', false ) || \
+    ENV.fetch( 'SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION', false ) =~  /yes|true/
+  )
+    s.add_runtime_dependency 'puppet',   '~> 5'
   end
   #### ------------
 

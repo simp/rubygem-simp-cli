@@ -19,6 +19,7 @@ addons:
 before_install:
   - rm -f Gemfile.lock
 
+
 jobs:
   include:
     - stage: check
@@ -31,13 +32,19 @@ jobs:
     # Test with Ruby versions packaged with standard Puppet All-in-one installs
     - stage: spec
       rvm: 2.4.4
-      env: SIMP_SKIP_NON_SIMPOS_TESTS=1
+      env:
+        - PUPPET_VERSION="~> 5.5"
+        - SIMP_SKIP_NON_SIMPOS_TESTS=1
+        - SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION=yes
       script:
         - bundle exec rake spec
 
     - stage: spec
       rvm: 2.1.9
-      env: SIMP_SKIP_NON_SIMPOS_TESTS=1
+      env:
+        - PUPPET_VERSION="~> 4.10"
+        - SIMP_SKIP_NON_SIMPOS_TESTS=1
+        - SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION=yes
       script:
         - bundle exec rake spec
 
