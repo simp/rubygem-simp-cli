@@ -71,12 +71,17 @@ module Simp::Cli::Utils
   # Returns the (discovered) 'simp' environment data directory
   # Raises Simp::Cli::ProcessingError if a 'simp' environment data
   # directory for a stock SIMP system does not exist
-  def simp_env_datadir
+  #
+  # +allow_pre_env_copy_eval+: When true, if the simp environment is not
+  # found in the puppet environment path, but /usr/share/simp/environments/simp
+  # is found, this will return the value that would be appropriate, *assuming*
+  # that environment will be coplied into the puppet environment path.
+  def simp_env_datadir(allow_pre_env_copy_eval = true)
     unless @@simp_env_datadir.nil?
       return @@simp_env_datadir
     end
 
-    @@simp_env_datadir = get_stock_simp_env_datadir
+    @@simp_env_datadir = get_stock_simp_env_datadir(allow_pre_env_copy_eval)
 
     if @@simp_env_datadir.nil?
       err_msg = 'simp environment hieradata directory cannot be determined.'
@@ -96,21 +101,39 @@ module Simp::Cli::Utils
   # Beginning with SIMP-6.3.0, SIMP uses an environment-specific
   # Hiera 5 hiera.yaml file that is configured to find environment
   # hieradata in .../environments/simp/data.
-  def get_stock_simp_env_datadir
+  #
+  # +allow_pre_env_copy_eval+: When true, if the simp environment is not
+  # found in the puppet environment path, but /usr/share/simp/environments/simp
+  # is found, this will return the value that would be appropriate, *assuming*
+  # that environment will be coplied into the puppet environment path.
+  def get_stock_simp_env_datadir(allow_pre_env_copy_eval = true)
     stock_simp_env_datadir = nil
     # Check (weakly) for stock SIMP configurations.
-    env_hiera5_file = File.join(puppet_info[:simp_environment_path], 'hiera.yaml')
-    env_hiera5_dir = File.join(puppet_info[:simp_environment_path], 'data')
-    env_hiera3_dir = File.join(puppet_info[:simp_environment_path], 'hieradata')
-    if File.exist?(env_hiera5_file)
-      # Using environment-specific Hiera 5 configuration
-      if Dir.exist?(env_hiera5_dir)
-        # The data directory SIMP uses for Hiera 5 is in place, so we are
-        # ASSUMING this is a stock SIMP configuration.
-        stock_simp_env_datadir = env_hiera5_dir
+    if Dir.exist?(puppet_info[:simp_environment_path])
+      env_hiera5_file = File.join(puppet_info[:simp_environment_path], 'hiera.yaml')
+      env_hiera5_dir = File.join(puppet_info[:simp_environment_path], 'data')
+      env_hiera3_dir = File.join(puppet_info[:simp_environment_path], 'hieradata')
+      if File.exist?(env_hiera5_file)
+        # Using environment-specific Hiera 5 configuration
+        if Dir.exist?(env_hiera5_dir)
+          # The data directory SIMP uses for Hiera 5 is in place, so we are
+          # ASSUMING this is a stock SIMP configuration.
+          stock_simp_env_datadir = env_hiera5_dir
+        end
+      elsif Dir.exist?(env_hiera3_dir)
+        stock_simp_env_datadir = env_hiera3_dir
       end
-    elsif Dir.exist?(env_hiera3_dir)
-      stock_simp_env_datadir = env_hiera3_dir
+    elsif allow_pre_env_copy_eval
+      # This supports the scenario in which SIMP was installed via a non-ISO
+      # RPM install and 'simp config' is executed.  'simp config' needs to
+      # determine the 'simp' environment data dir before it has copied over
+      # that environment from /usr/share/simp/environments/simp into the
+      # puppet environment path.
+      if Dir.exist?('/usr/share/simp/environments/simp/data')
+        stock_simp_env_datadir = File.join(puppet_info[:simp_environment_path], 'data')
+      elsif Dir.exist?('/usr/share/simp/environments/simp/hieradata')
+        stock_simp_env_datadir = File.join(puppet_info[:simp_environment_path], 'hieradata')
+      end
     end
 
     stock_simp_env_datadir
