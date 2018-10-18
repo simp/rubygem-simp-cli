@@ -58,8 +58,28 @@ describe Simp::Cli::Utils do
       expect( Simp::Cli::Utils::get_stock_simp_env_datadir ).to be_nil
     end
 
-    it 'returns nil when neither an env-specific hieradata file or the expected Hiera 3 data dir exists' do
-      expect( Simp::Cli::Utils::get_stock_simp_env_datadir ).to be_nil
+    it 'returns Hiera 3 environment data dir when allow_pre_env_copy_eval=true and /usr/share/simp/environments/simp has a hieradata dir' do
+      allow(Dir).to receive(:exist?).with(@simp_env_dir).and_return(false)
+      allow(Dir).to receive(:exist?).with('/usr/share/simp/environments/simp/data').and_return(false)
+      allow(Dir).to receive(:exist?).with('/usr/share/simp/environments/simp/hieradata').and_return(true)
+      expect( Simp::Cli::Utils::get_stock_simp_env_datadir(true) ).to eq File.join(@simp_env_dir, 'hieradata')
+    end
+
+    it 'returns Hiera 5 environment data dir when allow_pre_env_copy_eval=true and /usr/share/simp/environments/simp has a data dir' do
+      allow(Dir).to receive(:exist?).with(@simp_env_dir).and_return(false)
+      allow(Dir).to receive(:exist?).with('/usr/share/simp/environments/simp/data').and_return(true)
+      expect( Simp::Cli::Utils::get_stock_simp_env_datadir(true) ).to eq File.join(@simp_env_dir, 'data')
+    end
+
+    it 'returns nil when allow_pre_env_copy_eval=true and no hieradata files or RPM-installed simp env data directories exist' do
+      allow(Dir).to receive(:exist?).with(@simp_env_dir).and_return(false)
+      allow(Dir).to receive(:exist?).with('/usr/share/simp/environments/simp/data').and_return(false)
+      allow(Dir).to receive(:exist?).with('/usr/share/simp/environments/simp/hieradata').and_return(false)
+      expect( Simp::Cli::Utils::get_stock_simp_env_datadir(true) ).to be_nil
+    end
+
+    it 'returns nil when allow_pre_env_copy_eval=false and no hireadata files exist' do
+      expect( Simp::Cli::Utils::get_stock_simp_env_datadir(false) ).to be_nil
     end
   end
 
