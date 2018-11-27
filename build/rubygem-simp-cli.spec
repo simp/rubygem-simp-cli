@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.3.0
+%global cli_version 4.3.1
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -22,6 +22,7 @@ Requires: puppet >= 3
 Requires: facter >= 2.2
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 Requires: pupmod-herculesteam-augeasproviders_grub >= 3.0.1
+Requires: pupmod-simp-network >= 6.0.2
 BuildRequires: ruby(rubygems)
 BuildRequires: ruby
 BuildArch: noarch
@@ -101,6 +102,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Nov 27 2018 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.3.1
+- added pupmod-simp-network in as dependency.
+
 * Tue Oct 12 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.3.0
 - `simp config` removes the deprecated Puppet setting `trusted_server_facts`
 - Add `:version` to `Simp::Cli::Utils.puppet_info`
