@@ -33,7 +33,6 @@ Requires: pupmod-simp-network >= 6.0.3
 Requires: pupmod-simp-resolv >= 0.1.1
 Requires: pupmod-simp-simplib >= 3.11.1
 Requires: puppet >= 5
-Requires: puppetserver >= 5
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 Requires: sed
 Requires: simp-adapter >= 0.1.0
