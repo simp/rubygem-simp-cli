@@ -12,17 +12,42 @@
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
 Version: %{cli_version}
-Release: 0
+Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
 URL: https://github.com/simp/rubygem-simp-cli
 Source0: %{name}-%{cli_version}-%{release}.tar.gz
 Source1: %{gemname}-%{cli_version}.gem
-Requires: puppet >= 3
-Requires: facter >= 2.2
-Requires: rubygem(%{gemname}-highline) >= %{highline_version}
+Requires: cracklib
+Requires: createrepo
+Requires: curl
+Requires: diffutils
+Requires: elinks
+Requires: facter >= 3
+Requires: grep
+Requires: iproute
+Requires: net-tools
+Requires: policycoreutils
 Requires: pupmod-herculesteam-augeasproviders_grub >= 3.0.1
-Requires: pupmod-simp-network >= 6.0.2
+Requires: pupmod-simp-network >= 6.0.3
+Requires: pupmod-simp-resolv >= 0.1.1
+Requires: pupmod-simp-simplib >= 3.11.1
+Requires: puppet >= 5
+Requires: puppetserver >= 5
+Requires: rubygem(%{gemname}-highline) >= %{highline_version}
+Requires: sed
+Requires: simp-adapter >= 0.1.0
+Requires: yum-utils
+
+%if 0%{?rhel} > 6
+Requires: libpwquality
+Requires: procps-ng
+Requires: hostname
+Requires: grub2-tools-minimal
+%else
+Requires: procps
+%endif
+
 BuildRequires: ruby(rubygems)
 BuildRequires: ruby
 BuildArch: noarch
@@ -103,7 +128,7 @@ EOM
 
 %changelog
 * Tue Nov 27 2018 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.3.1
-- added pupmod-simp-network in as dependency.
+- Added missing dependencies to the rubygem-simp-cli.spec file
 
 * Tue Oct 12 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.3.0
 - `simp config` removes the deprecated Puppet setting `trusted_server_facts`
