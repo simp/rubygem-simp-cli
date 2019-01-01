@@ -126,6 +126,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Jan 01 2019 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.3.2
+- Fixed error in Changelog
+
 * Tue Nov 27 2018 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.3.1
 - Added missing dependencies to the rubygem-simp-cli.spec file
 
