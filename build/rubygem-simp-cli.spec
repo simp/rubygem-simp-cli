@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.3.1
+%global cli_version 4.3.2
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -126,10 +126,13 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Jan 01 2019 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.3.2
+- Fixed error in Changelog
+
 * Tue Nov 27 2018 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.3.1
 - Added missing dependencies to the rubygem-simp-cli.spec file
 
-* Tue Oct 12 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.3.0
+* Fri Oct 12 2018 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.3.0
 - `simp config` removes the deprecated Puppet setting `trusted_server_facts`
 - Add `:version` to `Simp::Cli::Utils.puppet_info`
 
