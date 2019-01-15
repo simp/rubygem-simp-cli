@@ -8,12 +8,15 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 
   require 'facter'
 
+  DEFAULT_PUPPETSERVER_WAIT_MINUTES = 5
+
   def initialize
 
     @is_pe = Simp::Cli::Utils.puppet_info[:is_pe]
 
     @puppetserver_service = 'puppetserver'
     @puppetdb_service = 'puppetdb'
+    @puppetserver_wait_minutes = DEFAULT_PUPPETSERVER_WAIT_MINUTES
 
     if @is_pe
       @puppetserver_service = 'pe-puppetserver'
@@ -167,29 +170,51 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       opts.separator "Prior to modification, config files are backed up to #{Simp::Cli::SIMP_CLI_HOME}/simp_bootstrap.backup.*\n\n"
       opts.separator "OPTIONS:\n"
 
-      opts.on('-k', '--kill_agent',  'Ignore the status of agent_catalog_run_lockfile, and',
-                                     'force kill active puppet agents at the beginning of',
-                                     'bootstrap') do |k|
+      opts.on('-k', '--kill_agent',
+       'Ignore agent_catalog_run_lockfile',
+       'status and force kill active puppet',
+       'agents at the beginning of bootstrap.'
+      ) do |k|
         @kill_agent = true
       end
 
-      opts.on('-r', '--[no-]remove_ssldir', 'Remove the existing puppet ssldir. If unspecified',
-                                            'user will be prompted for action to take.') do |r|
+      opts.on('-r', '--[no-]remove_ssldir',
+        'Remove the existing puppet ssldir.',
+        'If unspecified, user will be prompted',
+        'for action to take.'
+      ) do |r|
         @remove_ssldir = r
       end
 
-      opts.on('-t', '--[no-]track', 'Enables/disables the tracker. Default is enabled.') do |t|
+      opts.on('-t', '--[no-]track',
+        'Enables/disables the tracker.',
+        'Default is enabled.'
+      ) do |t|
         @track = t
       end
 
-      opts.on('-u', '--unsafe', "Run bootstrap in 'unsafe' mode.  Interrupts are NOT ",
-                                'captured and ignored, which may result in a corrupt',
-                                'system. Useful for debugging. Default is SAFE.') do |u|
+      opts.on('-u', '--unsafe',
+        "Run bootstrap in 'unsafe' mode.",
+        'Interrupts are NOT captured and ignored,',
+        'which may result in a corrupt system.',
+        'Useful for debugging.',
+        'Default is SAFE.'
+      ) do |u|
         @unsafe = true
       end
 
-      opts.on('-v', '--[no-]verbose', 'Enables/disables verbose mode. Prints out verbose',
-                                      'information.') do |v|
+      opts.on('-w', '--puppetserver-wait-minutes MIN', Float,
+        'Number of minutes to wait for the',
+        'puppetserver to start.',
+        "Default is #{DEFAULT_PUPPETSERVER_WAIT_MINUTES} minutes."
+      ) do |w|
+        @puppetserver_wait_minutes = w
+      end
+
+      opts.on('-v', '--[no-]verbose',
+        'Enables/disables verbose mode. Prints out',
+        'verbose information.'
+      ) do |v|
         @verbose = true
       end
 
@@ -201,6 +226,11 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     end
 
     opt_parser.parse!(args)
+
+    unless @puppetserver_wait_minutes > 0
+      msg = "Invalid puppetserver wait minutes '#{@puppetserver_wait_minutes}'. Must be > 0"
+      raise OptionParser::ParseError.new(msg)
+    end
   end
 
 
@@ -445,12 +475,12 @@ EOM
       debug(curl_cmd)
       running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
       unless running
-        debug("System not running, attempting to restart puppetserver")
+        debug('System not running, attempting to restart puppetserver')
         system(%(puppet resource service #{@puppetserver_service} ensure="running" enable=true > /dev/null 2>&1 &))
         stages = ["\\",'|','/','-']
         rest = 0.1
-        timeout = 5
-        Timeout::timeout(timeout*60) {
+        debug("Waiting up to #{@puppetserver_wait_minutes} minutes for puppetserver to respond")
+        Timeout::timeout(@puppetserver_wait_minutes * 60) {
           while not running do
             running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
             stages.each{ |x|
@@ -463,7 +493,7 @@ EOM
         $stdout.flush
       end
     rescue Timeout::Error
-      fail("The Puppet Server did not start within #{timeout} minutes. Please start puppetserver by hand and inspect any issues.")
+      fail("The Puppet Server did not start within #{@puppetserver_wait_minutes} minutes. Please start puppetserver by hand and inspect any issues.")
     end
   end
 

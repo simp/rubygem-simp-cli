@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.3.2
+%global cli_version 4.4.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -126,6 +126,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Jan 15 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 4.4.0
+- Added a `simp bootstrap` option to set the wait time for the
+  puppetserver to start during the bootstrap process.
+
 * Tue Jan 01 2019 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 4.3.2
 - Fixed error in Changelog
 
