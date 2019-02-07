@@ -126,6 +126,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Feb 07 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.4.1
+- Fixed a typo in an info block that would cause 'simp bootstrap' to fail if it
+  had already been successfully run.
+
 * Tue Jan 15 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 4.4.0
 - Added a `simp bootstrap` option to set the wait time for the
   puppetserver to start during the bootstrap process.

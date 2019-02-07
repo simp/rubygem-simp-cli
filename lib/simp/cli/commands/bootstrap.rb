@@ -391,7 +391,7 @@ EOM
       execute("pkill -9 -f 'puppet agent' >& /dev/null")
       execute('puppet resource service puppet ensure=stopped >& /dev/null')
       FileUtils.rm_f(agent_run_lockfile)
-      info('Successfully removed agent lock file #{agent_run_lockfile}', 'green')
+      info("Successfully removed agent lock file #{agent_run_lockfile}", 'green')
     else
       run_locked = File.exists?(agent_run_lockfile)
       # TODO: make the following spinner a function; it's used in ensure_puppetserver_running as well.
