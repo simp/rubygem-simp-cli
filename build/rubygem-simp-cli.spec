@@ -127,6 +127,10 @@ EOM
 
 %changelog
 * Thu Feb 07 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.4.1
+- Fixed a bug where the web-routes.conf file was not being overwritten with a
+  pristine copy. This meant that multiple calls to `simp bootstrap` would fail
+  due to leftover CA entries in the file. The error provided is not clear and
+  has been provided upstream to Puppet, Inc.
 - Fixed a typo in an info block that would cause 'simp bootstrap' to fail if it
   had already been successfully run.
 

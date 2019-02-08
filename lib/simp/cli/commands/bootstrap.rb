@@ -302,9 +302,12 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
         fail( "Could not find directory #{puppetserver_conf_dir}" )
       end
 
-      conf_files = ["#{puppetserver_conf_dir}/webserver.conf",
-                    '/etc/sysconfig/puppetserver',
-                    '/etc/puppetlabs/puppet/auth.conf']
+      conf_files = [
+        "#{puppetserver_conf_dir}/webserver.conf",
+        "#{puppetserver_conf_dir}/web-routes.conf",
+        '/etc/sysconfig/puppetserver',
+        '/etc/puppetlabs/puppet/auth.conf'
+      ]
 
       conf_files.each do |file|
         if File.exists?(file)
@@ -348,13 +351,32 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 webserver: {
     access-log-config: /etc/puppetlabs/puppetserver/request-logging.xml
     client-auth: want
-    ssl-host = 0.0.0.0
-    ssl-port = 8150
+    ssl-host: 0.0.0.0
+    ssl-port: 8150
 }
 EOM
       end
       File.chmod(0644, webserver_conf)
       info("Successfully configured #{webserver_conf} with bootstrap settings", 'green')
+
+
+      # Reset the web-routes.conf file since the CA service is now gone
+      web_routes_conf = "#{puppetserver_conf_dir}/web-routes.conf"
+      File.open(web_routes_conf, 'w') do |file|
+        file.puts <<-EOM
+web-router-service: {
+  "puppetlabs.services.ca.certificate-authority-service/certificate-authority-service": "/puppet-ca"
+  "puppetlabs.services.legacy-routes.legacy-routes-service/legacy-routes-service": ""
+  "puppetlabs.services.master.master-service/master-service": "/puppet"
+  "puppetlabs.services.puppet-admin.puppet-admin-service/puppet-admin-service": "/puppet-admin-api"
+  "puppetlabs.trapperkeeper.services.metrics.metrics-service/metrics-webservice": "/metrics"
+  "puppetlabs.trapperkeeper.services.status.status-service/status-service": "/status"
+}
+EOM
+      end
+
+      File.chmod(0644, web_routes_conf)
+      info("Successfully configured #{web_routes_conf} with bootstrap settings", 'green')
 
     rescue => error
       fail( "Failed to configure the puppetserver with bootstrap settings: #{error.message}" )
