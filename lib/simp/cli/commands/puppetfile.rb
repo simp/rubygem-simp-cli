@@ -8,7 +8,7 @@ class Simp::Cli::Commands::Puppetfile < Simp::Cli::Commands::Command
     subcmd_files = Dir.glob(File.expand_path('puppetfile/*.rb',__dir__)).sort_by(&:to_s)
     subcmd_files.each { |file| require file }
     Simp::Cli::Commands::Puppetfile::constants.each do |constant|
-      cmd = constant.to_s.downcase
+      cmd = constant.to_s.gsub(/(?<!^)[A-Z]/) do "_#$&" end.downcase
       @sub_commands[cmd] = Simp::Cli::Commands::Puppetfile.const_get(constant)
     end
   end
@@ -26,14 +26,13 @@ class Simp::Cli::Commands::Puppetfile < Simp::Cli::Commands::Command
     sub_args = parse_command_line(args)
     cmd = sub_args.shift
     if @sub_commands.keys.include?(cmd)
-      puts "\n=== PUPPETFILE COMMAND: '#{cmd}'\n\n"
       sub_cmd = @sub_commands[cmd].new
       sub_cmd.run(sub_args)
     else
       if cmd || args.size > 0
-        warn("Did not recognize '#{cmd} #{args.join(' ')}'")
+        warn("WARNING: Did not recognize '#{cmd} #{args.join(' ')}'")
       else
-        warn("Did not provide sub-command")
+        warn("WARNING: Did not provide sub-command")
       end
 
       help

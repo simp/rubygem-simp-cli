@@ -14,6 +14,7 @@ module Simp::Cli::Utils
   module_function
 
   DEFAULT_PASSWORD_LENGTH = 32
+  REGEXP_UNIXPATH = %r{\A(?:\/[\w-]*\/?)+\z}
 
   @@puppet_info = nil
   @@simp_env_datadir = nil
