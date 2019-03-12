@@ -1,7 +1,7 @@
-require File.expand_path( 'errors', File.dirname(__FILE__) )
-require File.expand_path( 'items', File.dirname(__FILE__) )
-require File.expand_path( 'logging', File.dirname(__FILE__) )
-require File.expand_path( 'items_yaml_generator', File.dirname(__FILE__) )
+require File.expand_path( 'errors', __dir__ )
+require File.expand_path( 'items', __dir__ )
+require File.expand_path( 'logging', File.expand_path('..',__dir__) )
+require File.expand_path( 'items_yaml_generator', __dir__ )
 
 module Simp; end
 class Simp::Cli; end
@@ -30,7 +30,7 @@ class Simp::Cli::Config::ItemListFactory
     @answers_hash = answers_hash
 
     # Require the config items
-    rb_files = File.expand_path( '../config/item/*.rb', File.dirname(__FILE__))
+    rb_files = File.expand_path( '../config/item/*.rb', __dir__ )
     Dir.glob( rb_files ).sort_by(&:to_s).each { |file| require file }
 
     if items_yaml.nil?
