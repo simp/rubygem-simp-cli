@@ -10,7 +10,7 @@ module Simp::Cli::Config; end
 # Builds an Array of Config::Items
 class Simp::Cli::Config::ItemListFactory
 
-  include Simp::Cli::Config::Logging
+  include Simp::Cli::Logging
 
   def initialize( options )
     @options = {

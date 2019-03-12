@@ -5,25 +5,24 @@ require 'logger'
 
 module Simp; end
 class Simp::Cli; end
-module Simp::Cli::Config; end
 
-module Simp::Cli::Config::Logging
+module Simp::Cli::Logging
   def self.logger
-    @logger ||= Simp::Cli::Config::Logging::Logger.new
+    @logger ||= Simp::Cli::Logging::Logger.new
   end
 
   # for class methods of class including this module
   def self.included(base)
     class << base
       def logger
-        Simp::Cli::Config::Logging.logger
+        Simp::Cli::Logging.logger
       end
     end
   end
 
   # for instance methods of class including this module
   def logger
-    Simp::Cli::Config::Logging.logger
+    Simp::Cli::Logging.logger
   end
 
   class Logger

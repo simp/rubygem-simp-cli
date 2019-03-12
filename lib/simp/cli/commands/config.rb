@@ -13,7 +13,7 @@ require 'simp/cli/config/questionnaire'
 # Handle CLI interactions for "simp config"
 class Simp::Cli::Commands::Config  < Simp::Cli::Commands::Command
 
-  include Simp::Cli::Config::Logging
+  include Simp::Cli::Logging
 
   INTRO_TEXT = <<EOM
 #{'='*80}

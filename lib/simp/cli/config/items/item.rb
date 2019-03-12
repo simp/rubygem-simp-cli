@@ -10,7 +10,7 @@ module Simp::Cli::Config
 
   class Item
 
-    include Simp::Cli::Config::Logging
+    include Simp::Cli::Logging
 
     PAUSE_SECONDS = 2 # number of seconds to pause processing to allow
                       # an important logged message to be highlighted
