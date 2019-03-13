@@ -27,7 +27,6 @@ describe Simp::Cli::Puppetfile::LocalSimpPuppetModules do
     allow(File).to receive(:exist?).with(any_args).and_call_original
     allow(File).to receive(:read).with(any_args).and_call_original
     allow(Dir).to receive(:[]).with(any_args).and_call_original
-    allow(Dir).to receive(:[]).with(any_args).and_call_original
 
     allow(File).to receive(:directory?).with(USR_MOD_DIR).and_return(true)
     allow(Time).to receive(:now).and_return(
