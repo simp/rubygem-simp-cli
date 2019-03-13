@@ -69,7 +69,7 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
     if @puppetfile_type == :skeleton
       fail('ERROR: Not implemented')
     else
-      puts LocalSimpPuppetModules.new(
+      puts Simp::Cli::Puppetfile::LocalSimpPuppetModules.new(
         @simp_modules_install_path,
         @simp_modules_git_repos_path
       ).to_puppetfile
