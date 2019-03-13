@@ -6,15 +6,10 @@ module Simp::Cli::Puppetfile
       @data = metadata
 
       %w[name version].each do |field|
-        unless @data.key? field
+        unless @data.kind_of?(Hash) && @data.key?(field)
           fail("ERROR: Could not read '#{field}' from module metadata")
         end
       end
-
-      tag_exists_for_version? || fail(
-        "ERROR: Tag '#{@data['version']}' not found in local repo " \
-          "'#{local_git_repo_path}'"
-      )
     end
 
     # @return [String] module data as a line in a Puppetfile
@@ -32,10 +27,19 @@ module Simp::Cli::Puppetfile
     # @return [false] if there is no tags match
     def tag_exists_for_version?
       tags = []
+require 'pry'; binding.pry
       Dir.chdir(local_git_repo_path) do
         tags = %x(git tag -l).strip.split("\n").map(&:strip)
+        puts '$$$$$$$$ TAGS', tags.to_yaml
+require 'pry'; binding.pry
       end
-      tags.include? @data['version']
+puts '========= TAGS', tags.to_yaml
+require 'pry'; binding.pry
+      tags.include?(@data['version']) || fail(
+        "ERROR: Tag '#{@data['version']}' not found in local repo " \
+          "'#{local_git_repo_path}'"
+      )
+      true
     end
 
 
@@ -47,7 +51,7 @@ module Simp::Cli::Puppetfile
       @repo_path ||= File.join(@simp_modules_git_repos_path, "#{@data['name']}.git")
       unless File.directory?(@repo_path)
         # TODO: Should this be a warning + skip instead of a failure?
-        fail("ERROR: Cannot find local git repository at '#{@repo_path}'")
+        fail("ERROR: Missing local git repository at '#{@repo_path}'")
       end
       @repo_path
     end
