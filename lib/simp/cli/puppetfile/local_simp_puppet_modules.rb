@@ -15,8 +15,8 @@ module Simp::Cli::Puppetfile
       end
       mdj_files = Dir[File.join(@simp_modules_install_path, '*', 'metadata.json')]
       if mdj_files.empty?
-        fail( "ERROR: No modules with metadata.json files found in " \
-          "'#{@simp_modules_install_path}'" )
+        fail('ERROR: No modules with metadata.json files found in ' \
+          "'#{@simp_modules_install_path}'")
       end
       mdj_files
     end

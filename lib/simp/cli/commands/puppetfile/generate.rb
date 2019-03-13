@@ -41,18 +41,19 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
 
       opts.on('-s', '--skeleton',
               'Generate an empty Puppetfile that includes',
-              'Puppetfile.simp',
-      ){ @puppetfile_type = :skeleton }
+              'Puppetfile.simp') { @puppetfile_type = :skeleton }
 
       opts.on('--modulepath PATH', Simp::Cli::Utils::REGEXP_UNIXPATH,
               'Specify SIMP module installation path',
-              "(default: #{Simp::Cli::SIMP_MODULES_INSTALL_PATH})"
-      ){ |path| @simp_modules_install_path = path }
+              "(default: #{Simp::Cli::SIMP_MODULES_INSTALL_PATH})") do |path|
+                @simp_modules_install_path = path
+              end
 
       opts.on('--repopath PATH', Simp::Cli::Utils::REGEXP_UNIXPATH,
               'Specify SIMP module git repos path',
-              "(default: #{Simp::Cli::SIMP_MODULES_GIT_REPOS_PATH})"
-      ){ |path|  @simp_modules_git_repos_path = path }
+              "(default: #{Simp::Cli::SIMP_MODULES_GIT_REPOS_PATH})") do |path|
+                @simp_modules_git_repos_path = path
+              end
 
       opts.separator ''
       opts.on_tail('-h', '--help', 'Print this message') do
