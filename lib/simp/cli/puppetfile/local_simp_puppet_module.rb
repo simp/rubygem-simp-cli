@@ -6,7 +6,7 @@ module Simp::Cli::Puppetfile
       @data = metadata
 
       %w[name version].each do |field|
-        unless @data.kind_of?(Hash) && @data.key?(field)
+        unless @data.is_a?(Hash) && @data.key?(field)
           fail("ERROR: Could not read '#{field}' from module metadata")
         end
       end
@@ -14,7 +14,7 @@ module Simp::Cli::Puppetfile
 
     # @return [String] module data as a line in a Puppetfile
     def to_s
-      <<-TO_S.gsub(%r{^ {6}}, '')
+      <<-TO_S.gsub(%r{^ {8}}, '')
         mod '#{@data['name']}',
           :git => '#{local_git_repo_path}',
           :tag => '#{@data['version']}'
@@ -27,21 +27,15 @@ module Simp::Cli::Puppetfile
     # @return [false] if there is no tags match
     def tag_exists_for_version?
       tags = []
-require 'pry'; binding.pry
-      Dir.chdir(local_git_repo_path) do
+      Dir.chdir(local_git_repo_path) do |_dir|
         tags = %x(git tag -l).strip.split("\n").map(&:strip)
-        puts '$$$$$$$$ TAGS', tags.to_yaml
-require 'pry'; binding.pry
       end
-puts '========= TAGS', tags.to_yaml
-require 'pry'; binding.pry
       tags.include?(@data['version']) || fail(
         "ERROR: Tag '#{@data['version']}' not found in local repo " \
           "'#{local_git_repo_path}'"
       )
       true
     end
-
 
     # module's local git repository
     # @param [String] name Full Puppet module name (e.g., `simp-simplib`)
