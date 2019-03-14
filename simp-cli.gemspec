@@ -47,7 +47,7 @@ Gem::Specification.new do |s|
     ENV.fetch( 'SIMP_RPM_BUILD', false ) || \
     ENV.fetch( 'SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION', false ) =~  /yes|true/
   )
-    s.add_runtime_dependency 'puppet',   '~> 5'
+    s.add_runtime_dependency 'puppet',   '>= 4', '< 7'
   end
   #### ------------
 

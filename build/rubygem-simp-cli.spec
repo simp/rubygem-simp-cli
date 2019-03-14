@@ -126,6 +126,15 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon Mar 11 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.5.0
+- Added `simp puppetfile generate` command
+  - `simp puppetfile` command
+  - `simp puppetfile generate` sub-command
+- Fixed various annoyances that prevented local smoke tests with `bin/simp`
+  - Avoid using AIO Puppet with `USE_AIO_PUPPET=no`
+  - Load all `simp` commands without `simp config` failing in non-puppetserver
+    environments (`simp config` still fails as expected)
+
 * Thu Feb 07 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.4.1
 - Fixed a bug where the web-routes.conf file was not being overwritten with a
   pristine copy. This meant that multiple calls to `simp bootstrap` would fail

@@ -7,7 +7,7 @@ require 'simp/cli/commands/command'
 require 'simp/cli/config/errors'
 require 'simp/cli/config/items'
 require 'simp/cli/config/item_list_factory'
-require 'simp/cli/config/logging'
+require 'simp/cli/logging'
 require 'simp/cli/config/questionnaire'
 
 # Handle CLI interactions for "simp config"

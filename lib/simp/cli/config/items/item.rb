@@ -2,7 +2,7 @@ require 'highline/import'
 require 'puppet'
 require 'yaml'
 require 'simp/cli/config/errors'
-require 'simp/cli/config/logging'
+require 'simp/cli/logging'
 
 module Simp; end
 class Simp::Cli; end

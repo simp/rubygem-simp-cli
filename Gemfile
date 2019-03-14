@@ -43,4 +43,5 @@ group :development do
 
   gem 'rubocop', '0.57.2'
   gem 'travis'
+  gem 'rubocop-rspec'
 end
