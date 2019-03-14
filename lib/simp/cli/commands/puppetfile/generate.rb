@@ -1,6 +1,5 @@
 require 'simp/cli/commands/command'
 require 'simp/cli/commands/puppetfile'
-require 'simp/cli/puppetfile/local_simp_puppet_modules'
 
 # Cli command to print Puppetfile that deploys from local SIMP git repos
 class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
@@ -70,8 +69,10 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
   def run(args)
     parse_command_line(args)
     if @puppetfile_type == :skeleton
-      fail('ERROR: Not implemented')
+      require 'simp/cli/puppetfile/skeleton'
+      puts Simp::Cli::Puppetfile::Skeleton.to_puppetfile
     else
+      require 'simp/cli/puppetfile/local_simp_puppet_modules'
       puts Simp::Cli::Puppetfile::LocalSimpPuppetModules.new(
         @simp_modules_install_path,
         @simp_modules_git_repos_path
