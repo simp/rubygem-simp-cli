@@ -22,7 +22,6 @@ based on a pre-defined SIMP scenario.  These preparations include optional
 and required general system setup and required Puppet configuration. All changes
 will be logged to
 EOM
-  CONFIG_SETTINGS_FILE = 'simp_config_settings.yaml'
 
   def initialize
 
