@@ -2,6 +2,7 @@ require 'simp/cli/commands/command'
 require 'simp/cli/commands/puppetfile'
 require 'simp/cli/puppetfile/local_simp_puppet_modules'
 
+# Cli command to print Puppetfile that deploys from local SIMP git repos
 class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
   # @return [String] description of command
   def self.description
@@ -65,6 +66,7 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
   end
 
   # Run command logic
+  # @param args [Array<String>] ARGV-style args array
   def run(args)
     parse_command_line(args)
     if @puppetfile_type == :skeleton

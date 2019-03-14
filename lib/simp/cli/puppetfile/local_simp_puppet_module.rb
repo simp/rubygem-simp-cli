@@ -1,5 +1,8 @@
 require 'simp/cli'
 module Simp::Cli::Puppetfile
+  # Pupmod data
+  #   which can check a local git repo for a tag that matches its version
+  #   and outputs its String representation as a Puppetfile entry
   class LocalSimpPuppetModule
     def initialize(metadata, simp_modules_git_repos_path)
       @simp_modules_git_repos_path = simp_modules_git_repos_path
@@ -24,7 +27,7 @@ module Simp::Cli::Puppetfile
 
     # Return `true` if there is a tag matching the module's version
     # @return [true] if there is a tag
-    # @return [false] if there is no tags match
+    # @raise [RuntimeError] if no matching tag is found
     def tag_exists_for_version?
       tags = []
       Dir.chdir(local_git_repo_path) do |_dir|
@@ -38,9 +41,8 @@ module Simp::Cli::Puppetfile
     end
 
     # module's local git repository
-    # @param [String] name Full Puppet module name (e.g., `simp-simplib`)
     # @return [String] absolute pathname of local git repository
-    # @fail [RuntimeError] if local git repository can't be found
+    # @raise [RuntimeError] if local git repository can't be found
     def local_git_repo_path
       @repo_path ||= File.join(@simp_modules_git_repos_path, "#{@data['name']}.git")
       unless File.directory?(@repo_path)

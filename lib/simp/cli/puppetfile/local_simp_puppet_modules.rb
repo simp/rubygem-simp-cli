@@ -1,7 +1,10 @@
 require 'simp/cli/puppetfile/local_simp_puppet_module'
 require 'json'
 
+# Puppetfile helper namespace
 module Simp::Cli::Puppetfile
+  # A collection of SIMP Puppet modules found on the local filesystem
+  #   that can generate a working Puppetfile of its contents
   class LocalSimpPuppetModules
     def initialize(simp_modules_install_path, simp_modules_git_repos_path)
       @simp_modules_install_path   = simp_modules_install_path
@@ -21,7 +24,7 @@ module Simp::Cli::Puppetfile
       mdj_files
     end
 
-    # Parses a module's metadata.json file
+    # Parses a module's metadata.json file and returns the data
     # @return [Hash] module metadata
     def metadata(mdj_file)
       fail("ERROR: No metadata.json file at '#{mdj_file}'") unless File.exist?(mdj_file)
@@ -29,6 +32,7 @@ module Simp::Cli::Puppetfile
       JSON.parse(json)
     end
 
+    # @return [Array<LocalSimpPuppetModule>] local modules that had a `metadata.json`
     def modules
       return @modules if @modules
       modules = []
@@ -39,10 +43,12 @@ module Simp::Cli::Puppetfile
       @modules ||= modules
     end
 
+    # @return [String] UTC timestamp of now
     def timestamp
       Time.now.utc.strftime('%Y-%m-%d %H:%M:%SZ')
     end
 
+    # @return [String] all modules' data as a Puppetfile
     def to_puppetfile
       hr = '-' * 78
       <<-TO_S.gsub(%r{^ {8}}, '')
