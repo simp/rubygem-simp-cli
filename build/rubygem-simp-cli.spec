@@ -135,6 +135,10 @@ EOM
   - Load all `simp` commands without `simp config` failing in non-puppetserver
     environments (`simp config` still fails as expected)
 - Moved logger to `Simp::Cli::Logging`
+- Fixed gem depenency-related warning when `simp` is run on real OSes
+  - Updated dependency constraints in gemspec
+  - Removed unnecessary ENV wrapper from gemspec
+  - Documented changes in README.md
 
 * Thu Feb 07 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.5.0
 - Fixed a bug where the web-routes.conf file was not being overwritten with a
