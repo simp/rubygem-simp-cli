@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.4.1
+%global cli_version 4.5.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -136,7 +136,7 @@ EOM
     environments (`simp config` still fails as expected)
 - Moved logger to `Simp::Cli::Logging`
 
-* Thu Feb 07 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.4.1
+* Thu Feb 07 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.5.0
 - Fixed a bug where the web-routes.conf file was not being overwritten with a
   pristine copy. This meant that multiple calls to `simp bootstrap` would fail
   due to leftover CA entries in the file. The error provided is not clear and
