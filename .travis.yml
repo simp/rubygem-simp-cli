@@ -47,7 +47,6 @@ jobs:
       env:
         - PUPPET_VERSION="~> 4.10"
         - SIMP_SKIP_NON_SIMPOS_TESTS=1
-        - SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION=yes
       script:
         - bundle exec rake spec
 
@@ -57,7 +56,6 @@ jobs:
       env:
         - PUPPET_VERSION="~> 5.5"
         - SIMP_SKIP_NON_SIMPOS_TESTS=1
-        - SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION=yes
       script:
         - bundle exec rake spec
 
@@ -67,7 +65,6 @@ jobs:
       env:
         - PUPPET_VERSION="~> 6.0"
         - SIMP_SKIP_NON_SIMPOS_TESTS=1
-        - SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION=yes
       script:
         - bundle exec rake spec
 
