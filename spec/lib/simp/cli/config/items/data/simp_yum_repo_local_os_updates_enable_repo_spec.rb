@@ -4,7 +4,7 @@ require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SimpYumRepoLocalOsUpdatesEnableRepo do
   before :each do
-    @ci = Simp::Cli::Config::Item::Simp::Cli::Config::Item::SimpYumRepoLocalOsUpdatesEnableRepo.new
+    @ci = Simp::Cli::Config::Item::SimpYumRepoLocalOsUpdatesEnableRepo.new
   end
 
   context "#recommended_value" do
