@@ -45,6 +45,7 @@ describe 'Simp::Cli' do
                  "    - config\n" +
                  "    - doc\n" +
                  "    - passgen\n" +
+                 "    - puppetfile\n" +
                  "    - version\n" +
                  "    - help [command]\n\n"
       end

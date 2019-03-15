@@ -1,9 +1,9 @@
-require 'simp/cli/config/logging'
+require 'simp/cli/logging'
 require 'spec_helper'
 require 'tmpdir'
 
 class MyLogTesterA
-  include Simp::Cli::Config::Logging
+  include Simp::Cli::Logging
 
   def self.use_logger
     logger.debug("#{self.inspect}: this is an unformatted debug message with a {")
@@ -18,7 +18,7 @@ class MyLogTesterA
 end
 
 class MyLogTesterB
-  include Simp::Cli::Config::Logging
+  include Simp::Cli::Logging
 
   def use_logger
     logger.debug("#{self.class}: this is an unformatted debug message with a {")
@@ -37,11 +37,11 @@ def normalize_logfile(content)
   content.gsub(/[0-9]{4}-[0-9]{2}-[0-9]{2} ([0-9]{2}:){3} /,'')
 end
 
-describe Simp::Cli::Config::Logging do
+describe Simp::Cli::Logging do
   before :each do
     @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
     @log_file = File.join(@tmp_dir, 'log.txt')
-    Simp::Cli::Config::Logging.logger.open_logfile(@log_file)
+    Simp::Cli::Logging.logger.open_logfile(@log_file)
 
     @input = StringIO.new("\n")
     @output = StringIO.new
@@ -63,7 +63,7 @@ describe Simp::Cli::Config::Logging do
       # because we are dealing with a singleton, when this test is run within
       # the entire test suite, ::Logger may have already had its log levels
       # adjusted.  So, here, set the log levels to match the default levels.
-      Simp::Cli::Config::Logging.logger.levels(::Logger::ERROR, ::Logger::ERROR)
+      Simp::Cli::Logging.logger.levels(::Logger::ERROR, ::Logger::ERROR)
     end
 
     context 'when included Logging module used in a class method' do
@@ -111,7 +111,7 @@ EOM
 
   describe 'log to console and file allowing all log messages' do
     before :each do
-      Simp::Cli::Config::Logging.logger.levels(::Logger::DEBUG, ::Logger::DEBUG)
+      Simp::Cli::Logging.logger.levels(::Logger::DEBUG, ::Logger::DEBUG)
     end
 
     context 'when included Logging module used in a class method' do

@@ -111,11 +111,22 @@ bundle exec rake spec
 ```
 
 By default, the Gemfile prefers `PUPPET_VERSION="~> 5.5"`.  To specify another
-version of Puppet, run bundler with the preferred ``PUPPET_VERSION``, combined
-with ``SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION=yes``:
+version of Puppet, run bundler with the preferred ``PUPPET_VERSION``:
 
 ```sh
-SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION=yes PUPPET_VERSION="~> 4.10"
+PUPPET_VERSION="~> 4.10" bundle
+```
+
+If spec tests are failing with mysterious tmpdir-related errors, like:
+
+```
+Directory not empty @ dir_s_rmdir - /home/user/tmp/logging_spec.rb20190314-23352-epe3
+```
+
+Re-run the tests with the `TMPDIR` variable set to another location:
+
+```sh
+TMPDIR=/tmp  bundle exec rake spec
 ```
 
 See the [`.travis.yml`](.travis.yml) file for examples of these environment

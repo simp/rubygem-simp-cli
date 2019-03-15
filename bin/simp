@@ -1,13 +1,15 @@
 #!/usr/bin/env ruby
 
-# Check for Puppet 4 and use it if present
-if File.directory?('/opt/puppetlabs/puppet/lib/ruby')
-  $LOAD_PATH.unshift(Dir.glob('/opt/puppetlabs/puppet/lib/ruby/*'))
-  $LOAD_PATH.flatten!
-end
+# Set this env var to run without adding the AIO Puppet agent ruby paths
+unless ENV['USE_AIO_PUPPET'] == 'no'
+  # Check for AIO Puppet installation, and use it if present
+  if File.directory?('/opt/puppetlabs/puppet/lib/ruby')
+    $LOAD_PATH.unshift *Dir.glob('/opt/puppetlabs/puppet/lib/ruby/*')
+  end
 
-if File.directory?('/opt/puppetlabs/puppet/bin')
-  ENV['PATH'] = '/opt/puppetlabs/puppet/bin:' + ENV['PATH']
+  if File.directory?('/opt/puppetlabs/puppet/bin')
+    ENV['PATH'] = '/opt/puppetlabs/puppet/bin:' + ENV['PATH']
+  end
 end
 
 # This seems to have popped up at some point with Puppet 5, not sure why this
@@ -24,10 +26,10 @@ Gem.path.unshift(File.expand_path(File.join(File.dirname(__FILE__), '../../..'))
 # in the Fact path, as having extra or missing libraries in that path
 # doesn't hurt anything.
 fact_paths = [
-  %(/usr/share/simp/modules/stdlib/lib/facter),
-  %(/usr/share/simp/modules/simplib/lib/facter)
+  '/usr/share/simp/modules/stdlib/lib/facter',
+  '/usr/share/simp/modules/simplib/lib/facter'
 ]
-fact_paths << ENV['FACTER_PATH'] unless ENV['FACTER_PATH'].nil? or ENV['FACTER_PATH'].empty?
+fact_paths << ENV['FACTER_PATH'] unless ENV['FACTER_PATH'].nil? || ENV['FACTER_PATH'].empty?
 
 require 'simp/cli'
 require 'facter'
@@ -39,7 +41,7 @@ end
 
 Facter.loadfacts
 
-# This is needed for laters calls to facter via Puppet
+# This is needed for later calls to facter via Puppet
 ENV['FACTER_PATH'] = fact_paths.join(':')
 
 exit Simp::Cli.start
