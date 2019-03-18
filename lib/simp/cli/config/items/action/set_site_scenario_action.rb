@@ -1,4 +1,4 @@
-require File.expand_path( '../action_item', File.dirname(__FILE__) )
+require_relative '../action_item'
 require 'fileutils'
 require 'simp/cli/utils'
 

@@ -1,6 +1,6 @@
 require 'ipaddr'
 require 'resolv'
-require File.expand_path( '../list_item', File.dirname(__FILE__) )
+require_relative '../list_item'
 
 module Simp; end
 class Simp::Cli; end

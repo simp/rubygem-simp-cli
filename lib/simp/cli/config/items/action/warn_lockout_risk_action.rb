@@ -1,5 +1,5 @@
-require File.expand_path( '../../../defaults', File.dirname(__FILE__) )
-require File.expand_path( '../action_item', File.dirname(__FILE__) )
+require_relative '../../../defaults'
+require_relative '../action_item'
 require 'fileutils'
 
 module Simp; end

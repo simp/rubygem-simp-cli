@@ -33,7 +33,7 @@ describe Simp::Cli::Config::Item::CopySimpToEnvironmentsAction do
       @ci.adapter_config = @adapter_config
       @ci.source_dir = @source_dir
       @ci.dest_dir = @dest_dir
-      @ci.copy_script = File.join(File.dirname(__FILE__), 'files', 'simp_adapter',
+      @ci.copy_script = File.join(__dir__, 'files', 'simp_adapter',
         'mock_simp_rpm_helper.rb')
     end
 

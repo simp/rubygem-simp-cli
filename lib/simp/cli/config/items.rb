@@ -1,2 +1,2 @@
-rb_files = File.expand_path( 'items/**/*.rb', File.dirname(__FILE__))
+rb_files = File.expand_path( 'items/**/*.rb', __dir__)
 Dir.glob( rb_files ).sort_by(&:to_s).each { |file| require file }

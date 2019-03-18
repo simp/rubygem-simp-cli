@@ -18,7 +18,7 @@ describe Simp::Cli::Utils do
   end
 
   describe '.get_stock_simp_env_datadir' do
-    let(:files_dir) { File.join(File.dirname(__FILE__), 'commands', 'files') }
+    let(:files_dir) { File.join(__dir__, 'commands', 'files') }
     before(:each) do
       @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__) )
       @test_env_dir = File.join(@tmp_dir, 'environments')

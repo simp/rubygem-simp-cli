@@ -15,7 +15,7 @@ require 'yaml'
 #       calls are wrapped in a Timeout block.
 
 describe 'Simp::Cli::Command::Config#run' do
-  let(:files_dir) { File.join(File.dirname(__FILE__), 'files') }
+  let(:files_dir) { File.join(__dir__, 'files') }
   let(:max_config_run_seconds) { 60 }
 
   before(:each) do
