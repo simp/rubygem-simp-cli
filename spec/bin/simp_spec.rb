@@ -118,7 +118,7 @@ describe 'simp executable' do
     end
 
     it 'processes console input' do
-      stdin_file = File.join(__dir__, 'files', 'simp_config_full_stdin_file')
+      stdin_file = File.expand_path('files/simp_config_full_stdin_file', __dir__)
       results = execute("#{simp_exe} config #{@simp_config_args}", stdin_file)
       if results[:exitstatus] != 0
         puts '=============stdout===================='
@@ -135,7 +135,7 @@ describe 'simp executable' do
     end
 
     it 'gracefully handles console input termination' do
-      stdin_file = File.join(__dir__, 'files', 'simp_config_trunc_stdin_file')
+      stdin_file = File.expand_path('files/simp_config_trunc_stdin_file', __dir__)
       results = execute("#{simp_exe} config #{@simp_config_args}", stdin_file)
       expect(results[:exitstatus]).to eq 1
       expect(results[:stderr]).to match(/Input terminated! Exiting/)
