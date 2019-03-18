@@ -1,4 +1,4 @@
-require File.expand_path( '../yes_no_item', File.dirname(__FILE__) )
+require File.expand_path( '../yes_no_item', __dir__ )
 require 'etc'
 
 module Simp; end

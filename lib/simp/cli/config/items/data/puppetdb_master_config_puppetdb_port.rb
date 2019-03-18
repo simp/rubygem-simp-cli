@@ -1,4 +1,4 @@
-require File.expand_path( '../integer_item', File.dirname(__FILE__) )
+require File.expand_path( '../integer_item', __dir__ )
 
 module Simp; end
 class Simp::Cli; end

@@ -1,7 +1,7 @@
 require 'highline/import'
 require 'puppet'
 require 'yaml'
-require File.expand_path( 'item', File.dirname(__FILE__) )
+require File.expand_path( 'item', __dir__ )
 
 module Simp::Cli::Config
 

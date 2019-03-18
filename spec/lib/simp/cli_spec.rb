@@ -11,7 +11,7 @@ describe 'Simp::Cli' do
   end
 
   before(:each) do
-    files_dir = File.join(File.dirname(__FILE__), 'cli', 'commands', 'files')
+    files_dir = File.join(__dir__, 'cli', 'commands', 'files')
     @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__) )
     test_env_dir = File.join(@tmp_dir, 'environments')
     simp_env_dir = File.join(test_env_dir, 'simp')

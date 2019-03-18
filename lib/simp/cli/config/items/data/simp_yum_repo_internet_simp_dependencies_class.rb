@@ -1,4 +1,4 @@
-require File.expand_path( '../class_item', File.dirname(__FILE__) )
+require File.expand_path( '../class_item', __dir__ )
 
 module Simp; end
 class Simp::Cli; end

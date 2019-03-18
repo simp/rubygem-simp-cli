@@ -1,4 +1,4 @@
-require File.expand_path( 'errors', File.dirname(__FILE__) )
+require File.expand_path( 'errors', __dir__ )
 require 'yaml'
 
 module Simp; end
@@ -9,7 +9,7 @@ module Simp::Cli::Config; end
 class Simp::Cli::Config::ItemsYamlGenerator
 
 
-  def initialize(scenario, scenarios_dir=File.join(File.dirname(__FILE__), 'scenarios'))
+  def initialize(scenario, scenarios_dir=File.join(__dir__, 'scenarios'))
     @scenario = scenario
     @scenarios_dir = scenarios_dir
   end

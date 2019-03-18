@@ -1,5 +1,5 @@
-require File.expand_path( '../list_item',  File.dirname(__FILE__) )
-require File.expand_path( '../../utils', File.dirname(__FILE__) )
+require File.expand_path( '../list_item',  __dir__ )
+require File.expand_path( '../../utils', __dir__ )
 
 module Simp; end
 class Simp::Cli; end

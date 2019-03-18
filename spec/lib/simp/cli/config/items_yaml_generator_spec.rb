@@ -3,7 +3,7 @@ require 'rspec/its'
 require 'spec_helper'
 
 describe Simp::Cli::Config::ItemsYamlGenerator do
-  let (:files_dir) { File.join(File.dirname(__FILE__), 'files') }
+  let (:files_dir) { File.join(__dir__, 'files') }
   describe "#generate_yaml" do
     it 'constructs YAML from parts and substitutes variables' do
       expected = IO.read(File.join(files_dir, 'simp_generated_items_tree.yaml'))

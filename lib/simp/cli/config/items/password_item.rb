@@ -1,4 +1,4 @@
-require File.expand_path( 'item', File.dirname(__FILE__) )
+require File.expand_path( 'item', __dir__ )
 require 'simp/cli/utils'
 
 module Simp::Cli::Config

@@ -23,7 +23,7 @@ end
 
 RSpec.configure do |config|
 
-  $LOAD_PATH.unshift(File.expand_path( '../lib', File.dirname(__FILE__) ))
+  $LOAD_PATH.unshift(File.expand_path( '../lib', __dir__ ))
 
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
