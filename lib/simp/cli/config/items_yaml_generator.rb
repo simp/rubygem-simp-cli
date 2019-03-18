@@ -1,4 +1,4 @@
-require File.expand_path( 'errors', __dir__ )
+require_relative 'errors'
 require 'yaml'
 
 module Simp; end

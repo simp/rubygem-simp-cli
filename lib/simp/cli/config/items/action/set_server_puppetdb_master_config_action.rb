@@ -1,4 +1,4 @@
-require File.expand_path( '../set_server_hieradata_action_item', __dir__ )
+require_relative '../set_server_hieradata_action_item'
 
 module Simp; end
 class Simp::Cli; end

@@ -1,7 +1,7 @@
-require File.expand_path( 'errors', __dir__ )
-require File.expand_path( 'items', __dir__ )
+require_relative 'errors'
+require_relative 'items'
 require File.expand_path( 'logging', File.expand_path('..',__dir__) )
-require File.expand_path( 'items_yaml_generator', __dir__ )
+require_relative 'items_yaml_generator'
 
 module Simp; end
 class Simp::Cli; end

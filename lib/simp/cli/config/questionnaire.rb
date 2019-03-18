@@ -1,4 +1,4 @@
-require File.expand_path( 'items', __dir__ )
+require_relative 'items'
 
 # Builds a SIMP configuration profile based on an Array of Config::Items
 #
