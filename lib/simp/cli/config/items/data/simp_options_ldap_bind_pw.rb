@@ -1,4 +1,4 @@
-require File.expand_path( '../password_item',  __dir__ )
+require_relative '../password_item'
 
 module Simp; end
 class Simp::Cli; end

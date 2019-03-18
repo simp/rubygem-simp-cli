@@ -1,4 +1,4 @@
-require 'simp/cli/config/items/add_server_class_action_item'
+require_relative '../add_server_class_action_item'
 
 module Simp::Cli::Config
   class Item::AddYumServerClassToServerAction < AddServerClassActionItem

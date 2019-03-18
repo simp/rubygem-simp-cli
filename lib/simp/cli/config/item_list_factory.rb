@@ -1,6 +1,6 @@
 require_relative 'errors'
 require_relative 'items'
-require File.expand_path( 'logging', File.expand_path('..',__dir__) )
+require_relative '../logging'
 require_relative 'items_yaml_generator'
 
 module Simp; end
