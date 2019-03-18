@@ -18,7 +18,7 @@ def execute(command, input_file = nil)
   exitstatus = $?.nil? ? nil : $?.exitstatus
   stdout = IO.read(stdout_file) if File.exists?(stdout_file)
   if File.exists?(stderr_file)
-    stderr_raw = IO.read(stderr_file) 
+    stderr_raw = IO.read(stderr_file)
     # WORKAROUND
     stderr = stderr_raw.split("\n").delete_if do |line|
       # When we are running this test on a system in which
@@ -72,17 +72,16 @@ end
 # - handles stdin termination signals appropriately
 # - outputs to stdout and stderr appropriately
 describe 'simp executable' do
-  let(:simp_exe) { File.join(__dir__, '..', '..', 'bin','simp') }
+  let(:simp_exe) { File.expand_path('../../bin/simp', __dir__) }
 
   before :all do
-    env_files_dir = File.join(__dir__, '..', 'lib', 'simp',
-      'cli', 'commands', 'files')
-    code_dir = File.join(ENV['HOME'], '.puppetlabs', 'etc', 'code')
+    env_files_dir = File.expand_path('../lib/simp/cli/commands/files', __dir__)
+    code_dir = File.expand_path('.puppetlabs/etc/code',ENV['HOME'])
     @test_env_dir = File.join(code_dir, 'environments')
     FileUtils.mkdir_p(@test_env_dir)
 
 # FIXME without :verbose option, copy doesn't copy all....
-    FileUtils.cp_r(File.join(env_files_dir, 'environments', 'simp'), @test_env_dir, :verbose => true)
+    FileUtils.cp_r(File.expand_path('environments/simp', env_files_dir), @test_env_dir, :verbose => true)
   end
 
   before :each do
