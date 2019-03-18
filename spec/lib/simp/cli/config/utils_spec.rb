@@ -5,7 +5,6 @@ require 'spec_helper'
 describe Simp::Cli::Config::Utils do
   describe '.validate_fqdn' do
     it 'validates good FQDNs' do
-      expect( Simp::Cli::Config::Utils.validate_fqdn 'localhost' ).to eq true
       expect( Simp::Cli::Config::Utils.validate_fqdn 'simp.dev' ).to eq true
       expect( Simp::Cli::Config::Utils.validate_fqdn 'si-mp.dev' ).to eq true
 
@@ -17,9 +16,13 @@ describe Simp::Cli::Config::Utils do
 
       # complex domain from an AWS host
       expect( Simp::Cli::Config::Utils.validate_fqdn 'xyz-w-puppet.qrst-a1-b2' ).to eq true
+
+      # long multi-part domain
+      expect( Simp::Cli::Config::Utils.validate_fqdn 'xyz.w.puppet.qrst.a1.b2.' ).to eq true
     end
 
     it "doesn't validate bad FQDNs" do
+      expect( Simp::Cli::Config::Utils.validate_fqdn 'localhost' ).to eq false
       expect( Simp::Cli::Config::Utils.validate_fqdn 'a' ).to eq false
       expect( Simp::Cli::Config::Utils.validate_fqdn 'my_domain.com' ).to eq false
       expect( Simp::Cli::Config::Utils.validate_fqdn '0.0.0' ).to eq false

@@ -21,7 +21,7 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapBaseDn do
       expect( @ci.recommended_value ).to be_nil
     end
 
-    it 'returns no based on hostname when cli::is_ldap_server is true and hostname is not set' do
+    it 'returns no value when cli::is_ldap_server is true and hostname is not set' do
       item = Simp::Cli::Config::Item::CliIsLdapServer.new
       item.value = true
       @ci.config_items[item.key] = item

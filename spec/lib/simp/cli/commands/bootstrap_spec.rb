@@ -1,6 +1,6 @@
 require 'simp/cli/commands/bootstrap'
 
-describe 'Simp::Cli::Command::Bootstrap#run' do
+describe 'Simp::Cli::Command::Bootstrap' do
   let(:files_dir) { File.join(__dir__, 'files') }
 
   before(:each) do
@@ -35,9 +35,10 @@ describe 'Simp::Cli::Command::Bootstrap#run' do
     Facter.reset  # make sure this test's facts don't affect other tests
   end
 
-  context 'help' do
-    it 'prints help message' do
-      options_help = <<-EOM
+  context '#run' do
+    context 'help' do
+      it 'prints help message' do
+        options_help = <<-EOM
 OPTIONS:
     -k, --kill_agent                 Ignore agent_catalog_run_lockfile
                                      status and force kill active puppet
@@ -58,20 +59,38 @@ OPTIONS:
     -v, --[no-]verbose               Enables/disables verbose mode. Prints out
                                      verbose information.
     -h, --help                       Print out this message.
-      EOM
-      expected_regex = Regexp.new(Regexp.escape(options_help.strip))
-      expect{ @bootstrap.run(['-h']) }.to output(expected_regex).to_stdout
+        EOM
+        expected_regex = Regexp.new(Regexp.escape(options_help.strip))
+        expect{ @bootstrap.run(['-h']) }.to output(expected_regex).to_stdout
+      end
+    end
+
+    context 'invalid options' do
+      it 'fails unless --puppetserver-wait-minutes argument is > 0' do
+        expect{ @bootstrap.run(['--puppetserver-wait-minutes', '0']) }.to raise_error(/Invalid puppetserver wait minutes/)
+        expect{ @bootstrap.run(['-w', '-1']) }.to raise_error(/Invalid puppetserver wait minutes/)
+      end
+
+      it 'fails unless --puppetserver-wait-minutes argument parses to a number' do
+        expect{ @bootstrap.run(['--puppetserver-wait-minutes', 'oops']) }.to raise_error(OptionParser::InvalidArgument)
+      end
     end
   end
 
-  context 'invalid options' do
-    it 'fails unless --puppetserver-wait-minutes argument is > 0' do
-      expect{ @bootstrap.run(['--puppetserver-wait-minutes', '0']) }.to raise_error(/Invalid puppetserver wait minutes/)
-      expect{ @bootstrap.run(['-w', '-1']) }.to raise_error(/Invalid puppetserver wait minutes/)
+  context '#validate_host_sanity' do
+    it 'succeeds if the system is sane' do
+      expect(@bootstrap).to receive(:get_hostname).and_return('foo.bar.baz')
+      expect{@bootstrap.send(:validate_host_sanity)}.to_not raise_error
     end
 
-    it 'fails unless --puppetserver-wait-minutes argument parses to a number' do
-      expect{ @bootstrap.run(['--puppetserver-wait-minutes', 'oops']) }.to raise_error(OptionParser::InvalidArgument)
+    it 'fails if the system does not have a FQDN' do
+      # Override the fail method so that we can snag the message that is sent
+      @bootstrap.stub(:fail) do |message, options='', console_prefix=''|
+        message
+      end
+
+      expect(@bootstrap).to receive(:get_hostname).and_return('foo')
+      expect(@bootstrap.send(:validate_host_sanity)).to match(/fully qualified hostname/)
     end
   end
 end
