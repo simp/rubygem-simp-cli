@@ -31,8 +31,8 @@ module Simp::Cli::Config
         #     (e.g., tries to fix a typo by running again).
         @extra_host_yaml = Dir.glob(File.join(File.dirname(@host_yaml), '*.yaml'))
 
-        @extra_host_yaml.each do |file|
-                backup_host_yaml(file)
+        @extra_host_yaml.each do |extra_yaml|
+                backup_host_yaml(extra_yaml)
         end
 
         FileUtils.cp(@alt_file, @template_file)
@@ -96,7 +96,6 @@ Review and consider updating:
       'Creation of ' +
         "#{@host_yaml ? File.basename(@host_yaml) : 'SIMP server <host>.yaml'} #{@applied_status.to_s}" +
         "#{@applied_status_detail ? ":\n    #{@applied_status_detail}" : ''}"
-        "#{@extra_host_yaml ? "#{@extra_host_yaml.size} "'extra <host>.yaml files exist!' : ''}"
     end
 
     def backup_host_yaml(yaml_file)
