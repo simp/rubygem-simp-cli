@@ -32,7 +32,10 @@ module Simp::Cli::Config
         @extra_host_yaml = Dir.glob(File.join(File.dirname(@host_yaml), '*.yaml'))
 
         @extra_host_yaml.each do |extra_yaml|
-                backup_host_yaml(extra_yaml)
+          backup_file = "#{extra_yaml}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
+          debug( "Backing up #{extra_yaml} to #{backup_file}" )
+          FileUtils.mv(extra_yaml, backup_file)
+          FileUtils.chown(nil, @group, backup_file)
         end
 
         FileUtils.cp(@alt_file, @template_file)
@@ -59,7 +62,7 @@ Review and consider updating:
 
             # backup this file because we will be modifying settings and/or the
             # class list in it via other ActionItems
-            backup_host_yaml(@host_yaml)
+            backup_host_yaml
           end
         else
           File.rename( @template_file, @host_yaml )
@@ -84,7 +87,7 @@ Review and consider updating:
 
           # backup this file because we will be modifying settings and/or the
           # class list in it via other ActionItems
-          backup_host_yaml(@host_yaml)
+          backup_host_yaml
         else
           error( "\nERROR: Creation of #{File.basename(@host_yaml)} not possible. Neither template file " +
             "#{File.basename(@template_file)} or\n#{File.basename(@host_yaml)} exist.", [:RED] )
@@ -98,10 +101,10 @@ Review and consider updating:
         "#{@applied_status_detail ? ":\n    #{@applied_status_detail}" : ''}"
     end
 
-    def backup_host_yaml(yaml_file)
-      backup_file = "#{yaml_file}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-      debug( "Backing up #{yaml_file} to #{backup_file}" )
-      FileUtils.mv(yaml_file, backup_file)
+    def backup_host_yaml
+      backup_file = "#{@host_yaml}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
+      debug( "Backing up #{@host_yaml} to #{backup_file}" )
+      FileUtils.cp(@host_yaml, backup_file)
       FileUtils.chown(nil, @group, backup_file)
     end
   end
