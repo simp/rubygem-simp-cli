@@ -12,7 +12,7 @@ module Simp::Cli::Config
       @description = 'Create SIMP server <host>.yaml from template'
       @die_on_apply_fail = true
       @template_file = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts', 'puppet.your.domain.yaml')
-      @alt_file    = File.join('usr', 'share', 'simp', 'environments', 'simp',
+      @alt_file    = File.join('/', 'usr', 'share', 'simp', 'environments', 'simp',
         File.basename(Simp::Cli::Utils.simp_env_datadir), 'hosts', 'puppet.your.domain.yaml')
       @host_yaml    = nil
       @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
@@ -29,6 +29,12 @@ module Simp::Cli::Config
         # (1) RPM/ISO install (so /usr/share/simp exists)
         # (2) Operator runs simp config more than once but with different hostnames
         #     (e.g., tries to fix a typo by running again).
+        @extra_host_yaml = Dir.glob(File.join(File.dirname(@host_yaml), '*.yaml'))
+
+        @extra_host_yaml.each do |file|
+                backup_host_yaml(file)
+        end
+
         FileUtils.cp(@alt_file, @template_file)
       end
       debug( "Creating #{File.basename(@host_yaml)} from #{File.basename(@template_file)} template" )
@@ -53,7 +59,7 @@ Review and consider updating:
 
             # backup this file because we will be modifying settings and/or the
             # class list in it via other ActionItems
-            backup_host_yaml
+            backup_host_yaml(@host_yaml)
           end
         else
           File.rename( @template_file, @host_yaml )
@@ -78,7 +84,7 @@ Review and consider updating:
 
           # backup this file because we will be modifying settings and/or the
           # class list in it via other ActionItems
-          backup_host_yaml
+          backup_host_yaml(@host_yaml)
         else
           error( "\nERROR: Creation of #{File.basename(@host_yaml)} not possible. Neither template file " +
             "#{File.basename(@template_file)} or\n#{File.basename(@host_yaml)} exist.", [:RED] )
@@ -90,12 +96,13 @@ Review and consider updating:
       'Creation of ' +
         "#{@host_yaml ? File.basename(@host_yaml) : 'SIMP server <host>.yaml'} #{@applied_status.to_s}" +
         "#{@applied_status_detail ? ":\n    #{@applied_status_detail}" : ''}"
+        "#{@extra_host_yaml ? "#{@extra_host_yaml.size} "'extra <host>.yaml files exist!' : ''}"
     end
 
-    def backup_host_yaml
-      backup_file = "#{@host_yaml}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-      debug( "Backing up #{@host_yaml} to #{backup_file}" )
-      FileUtils.cp(@host_yaml, backup_file)
+    def backup_host_yaml(yaml_file)
+      backup_file = "#{yaml_file}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
+      debug( "Backing up #{yaml_file} to #{backup_file}" )
+      FileUtils.mv(yaml_file, backup_file)
       FileUtils.chown(nil, @group, backup_file)
     end
   end
