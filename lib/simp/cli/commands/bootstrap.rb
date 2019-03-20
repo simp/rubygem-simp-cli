@@ -48,6 +48,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     FileUtils.mkpath(logfilepath) unless File.exists?(logfilepath)
     @logfile = File.open(@bootstrap_log, 'w')
 
+    validate_host_sanity
     check_for_start_lock
     set_up_simp_environment
 
@@ -233,6 +234,17 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     end
   end
 
+  def get_hostname
+    %x(hostname -f).strip
+  end
+
+  # Check various things on the host that could cause us trouble
+  def  validate_host_sanity
+    # Need to have a domain on the system
+    if get_hostname.strip.split('.')[1..-1].empty?
+      fail('Your system must have a fully qualified hostname of the form "<hostname>.<domain>"')
+    end
+  end
 
   # Check for bootstrap start lock
   def check_for_start_lock
@@ -697,14 +709,17 @@ EOM
   def log_and_say(message, options, console_prefix, log_to_console = true)
     log_prefix = Time.now.strftime('%Y-%m-%d %H:%M:%S') + ': '
     message.split("\n").each do |line|
-      @logfile.puts "#{log_prefix}#{line}"
+      @logfile.puts %{#{log_prefix}#{line}}
       @logfile.flush
 
       if log_to_console
         if options.nil?
-          say "#{console_prefix}#{line}"
+          say %{#{console_prefix}#{line}}
         else
-          eval("say \"#{console_prefix}#{line}\".#{options}")
+          require 'shellwords'
+
+          safe_line = Shellwords.escape(%{#{console_prefix}#{line}})
+          eval(%{say "#{safe_line}".#{options}})
         end
       end
     end

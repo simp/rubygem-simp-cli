@@ -126,6 +126,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Mon Mar 18 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.5.0
+- Ensure that an FQDN is used when running `simp config`
+- Ensure that an FQDN is set when running `simp bootstrap`
+
 * Mon Mar 11 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.5.0
 - Added `simp puppetfile generate` command
   - `simp puppetfile` command

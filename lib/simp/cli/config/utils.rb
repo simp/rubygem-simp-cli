@@ -12,8 +12,13 @@ class Simp::Cli::Config::Utils
   class << self
 
     def validate_fqdn fqdn
-      # matches Simplib::Hostname custom type from pupmod-simp-simplib
-      regex = %r{^(?i-mx:(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]{2}|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])\.?)$}
+      # Variation on Simplib::Hostname custom type from pupmod-simp-simplib
+      #
+      # since we need to make sure we have a domain part on our FQDN
+      regex = %r{^(?ix-m:
+                (([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)+
+                ([A-Za-z0-9]{2}|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])\.?
+              )$}
       ((fqdn =~ regex) ? true : false )
     end
 
