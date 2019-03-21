@@ -29,10 +29,10 @@ module Simp::Cli::Config
         # (1) RPM/ISO install (so /usr/share/simp exists)
         # (2) Operator runs simp config more than once but with different hostnames
         #     (e.g., tries to fix a typo by running again).
-        @extra_host_yaml = Dir.glob(File.join(File.dirname(@host_yaml), '*.yaml'))
+        extra_host_yaml = Dir.glob(File.join(File.dirname(@host_yaml), '*.yaml'))
 
-        @extra_host_yaml.each do |extra_yaml|
-            debug("Extra <host>.yaml file found! #{extra_yaml}")
+        extra_host_yaml.each do |extra_yaml|
+            debug("Other <host>.yaml file found: #{extra_yaml}")
         end
 
         FileUtils.cp(@alt_file, @template_file)
