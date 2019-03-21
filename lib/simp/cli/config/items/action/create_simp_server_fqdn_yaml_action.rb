@@ -12,7 +12,7 @@ module Simp::Cli::Config
       @description = 'Create SIMP server <host>.yaml from template'
       @die_on_apply_fail = true
       @template_file = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts', 'puppet.your.domain.yaml')
-      @alt_file    = File.join('usr', 'share', 'simp', 'environments', 'simp',
+      @alt_file    = File.join('/', 'usr', 'share', 'simp', 'environments', 'simp',
         File.basename(Simp::Cli::Utils.simp_env_datadir), 'hosts', 'puppet.your.domain.yaml')
       @host_yaml    = nil
       @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
