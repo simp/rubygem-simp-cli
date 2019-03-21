@@ -12,7 +12,7 @@ module Simp::Cli::Config
       @description = 'Create SIMP server <host>.yaml from template'
       @die_on_apply_fail = true
       @template_file = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts', 'puppet.your.domain.yaml')
-      @alt_file    = File.join('usr', 'share', 'simp', 'environments', 'simp',
+      @alt_file    = File.join('/', 'usr', 'share', 'simp', 'environments', 'simp',
         File.basename(Simp::Cli::Utils.simp_env_datadir), 'hosts', 'puppet.your.domain.yaml')
       @host_yaml    = nil
       @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
@@ -29,6 +29,12 @@ module Simp::Cli::Config
         # (1) RPM/ISO install (so /usr/share/simp exists)
         # (2) Operator runs simp config more than once but with different hostnames
         #     (e.g., tries to fix a typo by running again).
+        extra_host_yaml = Dir.glob(File.join(File.dirname(@host_yaml), '*.yaml'))
+
+        extra_host_yaml.each do |extra_yaml|
+            debug("Other <host>.yaml file found: #{extra_yaml}")
+        end
+
         FileUtils.cp(@alt_file, @template_file)
       end
       debug( "Creating #{File.basename(@host_yaml)} from #{File.basename(@template_file)} template" )

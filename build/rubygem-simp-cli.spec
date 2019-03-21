@@ -126,6 +126,13 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Wed Mar 20 2019 Jim Anderson <thesemicolons@protonmail.com> - 4.5.0
+- Fixed bug in which 'simp config' failed to find the template
+  SIMP server host YAML file, puppet.your.domain.yaml, from
+  /usr/share simp/enviornments/simp.  This bug caused subsequent
+  'simp config' runs to fail, when the SIMP server hostname had
+  changed from the hostname used in the first 'simp config' run.
+
 * Mon Mar 18 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.5.0
 - Ensure that an FQDN is used when running `simp config`
 - Ensure that an FQDN is set when running `simp bootstrap`
