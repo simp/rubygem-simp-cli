@@ -87,6 +87,11 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     end
 
     # Reload the puppetserver
+    #
+    # TODO: Validate that the pupmod-simp-pupmod tests are properly checking
+    # for the server restart with a port switch. This has not traditionally
+    # been a problem and having this statement does no harm but it should not
+    # be required.
     execute('puppetserver reload')
 
     # - Firstrun is tagged and run against the bootstrap puppetserver port.
