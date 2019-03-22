@@ -12,6 +12,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 
   def initialize
 
+    ENV['PATH'] = '/opt/puppetlabs/bin:' + ENV['PATH']
+
     @is_pe = Simp::Cli::Utils.puppet_info[:is_pe]
 
     @puppetserver_service = 'puppetserver'
@@ -116,6 +118,15 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     linecounts << track_output("#{pupcmd} --tags pupmod,simp 2> /dev/null", pup_port)
 
     fix_file_contexts
+
+    # After the first run the puppetserver will normally come up on a different port,
+    # reloading puppetserver to apply this change
+    #
+    # TODO: Validate that the pupmod-simp-pupmod tests are properly checking
+    # for the server restart with a port switch. This has not traditionally
+    # been a problem and having this statement does no harm but it should not
+    # be required.
+    execute('puppetserver reload')
 
     # SIMP is not single-run idempotent.  Until it is, run puppet twice.
     info('Running puppet without tags', 'cyan')
