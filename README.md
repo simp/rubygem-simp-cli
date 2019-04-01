@@ -7,7 +7,6 @@
 A cli interface to configure SIMP and simplify administrative tasks.
 
 <!-- vim-markdown-toc GFM -->
-
 * [Description](#description)
   * [This is a SIMP project](#this-is-a-simp-project)
 * [Usage](#usage)
@@ -18,6 +17,8 @@ A cli interface to configure SIMP and simplify administrative tasks.
     * [Adminstration](#adminstration)
       * [`doc`](#doc)
       * [`passgen`](#passgen)
+      * [`puppetfile`](#puppetfile)
+        * [`puppetfile generate`](#puppetfile-generate)
     * [Recently removed](#recently-removed)
       * [`cleancerts` — _use `puppet cert clean CERTNAME` instead_](#cleancerts--_use-puppet-cert-clean-certname-instead)
       * [`runpuppet` — _use mcollective instead_](#runpuppet--_use-mcollective-instead)
@@ -72,6 +73,18 @@ Displays SIMP documentation in elinks.
 ##### `passgen`
 
 Controls user passwords.
+
+##### `puppetfile`
+
+Helper utility to maintain local SIMP Puppetfiles
+
+###### `puppetfile generate`
+
+Print a Puppetfile that deploys from local SIMP git repos
+
+    simp puppetfile generate > Puppetfile.simp
+
+    simp puppetfile generate --skeleton > Puppetfile
 
 #### Recently removed
 
