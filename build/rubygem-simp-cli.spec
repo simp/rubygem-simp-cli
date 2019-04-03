@@ -126,6 +126,11 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Wed Apr 03 2019 Jim Anderson <thesemicolons@protonmail.com> - 4.5.0
+- Added message to bootstrap.rb indicating that puppetserver has been
+  reconfigured to listen on a specific port. This message will be
+  displayed if the port is changed to 8140, or if it remains on 8150.
+
 * Wed Mar 20 2019 Jim Anderson <thesemicolons@protonmail.com> - 4.5.0
 - Fixed bug in which 'simp config' failed to find the template
   SIMP server host YAML file, puppet.your.domain.yaml, from
