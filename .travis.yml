@@ -28,13 +28,10 @@ before_install:
 
 
 jobs:
-  allow_failures:
-    - name: 'Ruby packaged with Puppet 6.x (allowed to fail)'
-
   include:
     - stage: check
       name: 'Syntax, style, and validation checks'
-      rvm: 2.4.4
+      rvm: 2.4.5
       script:
         - bundle exec rake pkg:compare_latest_tag
         - bundle exec rake pkg:create_tag_changelog
@@ -42,17 +39,8 @@ jobs:
 
     # Test with Ruby versions packaged with standard Puppet All-in-one installs
     - stage: spec
-      name: 'Ruby packaged with Puppet 4.x'
-      rvm: 2.1.9
-      env:
-        - PUPPET_VERSION="~> 4.10"
-        - SIMP_SKIP_NON_SIMPOS_TESTS=1
-      script:
-        - bundle exec rake spec
-
-    - stage: spec
       name: 'Ruby packaged with Puppet 5.x'
-      rvm: 2.4.4
+      rvm: 2.4.5
       env:
         - PUPPET_VERSION="~> 5.5"
         - SIMP_SKIP_NON_SIMPOS_TESTS=1
@@ -60,7 +48,7 @@ jobs:
         - bundle exec rake spec
 
     - stage: spec
-      name: 'Ruby packaged with Puppet 6.x (allowed to fail)'
+      name: 'Ruby packaged with Puppet 6.x'
       rvm: 2.5.1
       env:
         - PUPPET_VERSION="~> 6.0"
@@ -69,7 +57,7 @@ jobs:
         - bundle exec rake spec
 
     - stage: deploy
-      rvm: 2.4.4
+      rvm: 2.4.5
       script:
         - true
       before_deploy:

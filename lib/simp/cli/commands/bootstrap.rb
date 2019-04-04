@@ -107,6 +107,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       pup_port = '8150'
     end
 
+    info("Configuring the puppetserver to listen on port #{pup_port}", 'cyan')
+
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose" +
       " --no-splay --agent_disabled_lockfile=#{agent_lockfile}" +
       " --masterport=#{pup_port} --ca_port=#{pup_port}"
