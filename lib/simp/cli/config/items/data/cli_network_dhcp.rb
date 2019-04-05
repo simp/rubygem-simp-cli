@@ -7,7 +7,8 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'cli::network::dhcp'
-      @description = %q{Whether to use DHCP to set up your network ("static" or "dhcp").}
+      @description = %q{Whether to use DHCP to retrieve your network settings ("dhcp") or to
+use static network settings ("static").}
       @data_type   = :cli_params
     end
 

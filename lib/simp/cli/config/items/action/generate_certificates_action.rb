@@ -16,6 +16,7 @@ module Simp::Cli::Config
       @group             = Simp::Cli::Utils.puppet_info[:puppet_group]
       @die_on_apply_fail = true
       @hostname          = nil
+      @category          = :puppet_env
     end
 
     def apply

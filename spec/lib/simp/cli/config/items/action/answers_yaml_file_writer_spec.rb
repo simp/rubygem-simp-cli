@@ -99,8 +99,8 @@ describe Simp::Cli::Config::Item::AnswersYAMLFileWriter do
       actual_content = File.read( @tmp_file )
       expected_content = IO.read(File.join(@files_dir, 'answers_yaml_file_writer.yaml'))
       # fix version
-      expected_content.gsub!(/using simp-cli version ([0-9.])+/,
-        "using simp-cli version #{Simp::Cli::VERSION}")
+      expected_content.gsub!(/cli::version: "([0-9.])+"/,
+        "cli::version: \"#{Simp::Cli::VERSION}\"")
 
       expect( actual_content).to eq expected_content
     end

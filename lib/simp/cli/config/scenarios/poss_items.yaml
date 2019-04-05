@@ -14,15 +14,32 @@ includes:
 - initial_actions
 - network_setup
 - general_server_setup
-- puppet_setup
+- puppet_global_setup
+- puppet_env_setup
 - yum_setup
 - ldap_setup:
-  # simp::options::ldap is not present in the scenario, so a query
-  # is required (default behavior)
-  - ldap_query_options: ''
+  # When we are enabling SIMP LDAP, we are also enabling SSSD and setting
+  # the SSSD domain to the SIMP-provided 'LDAP' domain.  So, we need to set
+  # both simp_options::ldap and simp_options::sssd to true and sssd:domain
+  # to 'LDAP'.  The variables below affect those settings by silently using
+  # the Item defaults for both simp::options::ldap and simp::options::sssd
+  # (both true) and persisting both.  The persistence is required, because
+  # neither setting is provided for the scenario, which means each would
+  # otherwise default to its corresponding simp_options class default of
+  # false.
+  - ldap_true_ldap_query_options: 'SKIPQUERY SILENT'
+  - ldap_true_ldap_query_comment: 'default enables and overrides simp_options class default'
+  - ldap_true_sssd_query_options: 'SKIPQUERY SILENT'
+  - ldap_true_sssd_query_comment: 'default enables and overrides simp_options class default'
 
-  # simp::options::sssd is not present in the scenario, but we want
-  # to use the default
-  - sssd_query_options: 'SKIPQUERY SILENT'
+  # When we are disabling SIMP LDAP, in this scenario, we need to query the
+  # user about whether to enable SSSD, and if it is enabled, the domain to
+  # use. The variables below affect those settings by silently setting
+  # simp_options::ldap to false, querying the user for simp_options::sssd,
+  # and persisting both values to the output YAML files.
+  - ldap_false_ldap_query_options: 'SKIPQUERY SILENT VALUE=no NOYAML'
+  - ldap_false_ldap_query_comment: 'override default to match simp_options class default'
+  - ldap_false_sssd_query_options: ''
+  - ldap_false_sssd_query_comment: 'not in scenario so query'
 - misc_setup
 - user_setup

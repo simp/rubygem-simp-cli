@@ -3,10 +3,13 @@ require 'yaml'
 # Create StringIO corresponding to user input for the simp
 # scenario in which the default values are accepted.
 # FIXME:  This input is INCORRECT if /etc/yum.repos.d/simp_filesystem.repo exists.
-def generate_simp_input_accepting_defaults
+def generate_simp_input_accepting_defaults(ask_if_ready = true)
   input_io = StringIO.new
+  if ask_if_ready
+    input_io << "\n"                 # empty defaults to yes, we are ready for the questionnaire
+  end
   input_io                        <<
-    "\n"                          << # when empty defaults to 'simp' scenario
+    "\n"                          << # empty defaults to 'simp' scenario
     "\n"                          << # use suggested interface, as has to be a valid one
     "\n"                          << # activate the interface
     "\n"                          << # static IP
@@ -30,6 +33,9 @@ def generate_simp_input_accepting_defaults
     "\n"                          << # log servers
     "\n"                          << # securetty list
     "\n"                             # svckill warning mode
+  if ask_if_ready
+    input_io << "\n"                 # empty defaults to yes, we are ready to apply
+  end
   input_io.rewind
   input_io
 end
@@ -41,8 +47,9 @@ end
 def generate_simp_lite_input_setting_values
   input_io = StringIO.new
   input_io                                    <<
+    "yes\n"                                   << # we are ready for the questionnaire
     "simp_lite\n"                             << # 'simp_lite' scenario
-    "\n"                                      << # use suggested interface, as has to be a valid one
+    "enp0s3\n"                                << # use interface from mocked fact
     "no\n"                                    << # don't activate the interface
     "simp.test.local\n"                       << # FQDN of this system
     "1.2.3.4\n"                               << # IP addr of this system
@@ -56,18 +63,11 @@ def generate_simp_lite_input_setting_values
     "no\n"                                    << # don't set production env to simp
     "no\n"                                    << # don't use internet SIMP repos
     "no\n"                                    << # SIMP is not LDAP server
-    "dc=test,dc=local\n"                      << # LDAP base DN
-    "cn=hostAuth,ou=Hosts,dc=test,dc=local\n" << # LDAP bind DN
-    "xXx}.9Xx9>x.x9OmbjG%%Exr0R3z8Mkm\n"      << # LDAP bind password
-    "xXx}.9Xx9>x.x9OmbjG%%Exr0R3z8Mkm\n"      << # confirm LDAP bind password
-    "cn=LDAPSync,ou=Hosts,dc=test,dc=local\n" << # LDAP sync DN
-    "MCM!3u-iTXA8O6yCoD{ot}GPTeHd7{GI\n"      << # LDAP sync password
-    "MCM!3u-iTXA8O6yCoD{ot}GPTeHd7{GI\n"      << # confirm LDAP sync password
-    "ldap://puppet.test.local\n"              << # LDAP root master URI
-    "ldap://puppet.test.local\n"              << # OpenLDAP server URIs
+    "LOCAL\n"                                 << # sssd domain
     "1.2.3.11\n"                              << # log servers
     "1.2.3.12\n"                              << # failover log servers
-    "tty0\n"                                     # securetty list
+    "tty0\n"                                  << # securetty list
+    "yes\n"                                      # we are ready to apply
   input_io.rewind
   input_io
 end
@@ -80,8 +80,9 @@ end
 def generate_poss_input_setting_values
   input_io = StringIO.new
   input_io                <<
+    "yes\n"               << # we are ready for the questionnaire
     "poss\n"              << # 'poss' scenario
-    "\n"                  << # use suggested interface, as has to be a valid one
+    "enp0s3\n"            << # use interface from mocked fact
     "no\n"                << # don't activate the interface
     "simp.test.local\n"   << # FQDN of this system
     "1.2.3.4\n"           << # IP addr of this system
@@ -98,17 +99,16 @@ def generate_poss_input_setting_values
     "no\n"                << # use SSSD
     "1.2.3.11\n"          << # log servers
     "1.2.3.12\n"          << # failover log servers
-    "tty0\n"                 # securetty list
+    "tty0\n"              << # securetty list
+    "yes\n"                  # we are ready to apply
   input_io.rewind
   input_io
 end
 
-def config_normalize(file, other_keys_to_exclude = [])
+def config_normalize(file, other_keys_to_exclude = [], overrides = {})
   # These config items whose values cannot be arbitrarily set
   # and/or vary each time they run.
   min_exclude_set = Set.new [
-     'simp_options::fips',                 # set by FIPS mode on running system which we can't control
-     'cli::network::interface',            # depends upon actual interfaces available
      'grub::password',                     # hash value that varies from run-to-run with same password
      'simp_options::ldap::bind_hash',      # hash value that varies from run-to-run with same password
      'simp_options::ldap::sync_hash',      # hash value that varies from run-to-run with same password
@@ -129,16 +129,5 @@ def config_normalize(file, other_keys_to_exclude = [])
       end
     end
   end
-  yaml_hash
+  yaml_hash.merge(overrides).merge('cli::version' => Simp::Cli::VERSION)
 end
-
-def get_valid_interface
-   interfaces =  Facter.value('interfaces').split(',').delete_if{|x| x == 'lo'}.sort
-   (
-     interfaces.select{|x|  x.match(/^br/)}.first  ||
-     interfaces.select{|x|  x.match(/^eth/)}.first ||
-     interfaces.select{|x| x.match(/^em/)}.first   ||
-     interfaces.first
-   )
-end
-

@@ -1,5 +1,6 @@
 require_relative '../list_item'
 require_relative '../../utils'
+require_relative 'cli_network_gateway'
 
 module Simp; end
 class Simp::Cli; end
@@ -15,7 +16,7 @@ infrastructure, and thus your site security. **DO NOT** attempt to
 run multiple production systems using individual hardware clocks!
 }
       @no_ntp_warning  = %Q[Not specifying NTP servers in #{@key} can
-negatively impact your site security.]
+negatively impact your site security. PKI depends upon sync'd time.]
       @allow_empty_list = true
     end
 

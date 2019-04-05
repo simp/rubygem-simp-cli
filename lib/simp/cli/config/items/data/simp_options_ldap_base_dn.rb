@@ -1,4 +1,6 @@
 require_relative '../item'
+require_relative 'cli_is_simp_ldap_server'
+require_relative 'cli_network_hostname'
 
 module Simp; end
 class Simp::Cli; end
@@ -11,8 +13,8 @@ module Simp::Cli::Config
     end
 
     def get_recommended_value
-      if @config_items.key?( 'cli::is_ldap_server') and
-        @config_items.fetch( 'cli::is_ldap_server').value
+      if @config_items.key?( 'cli::is_simp_ldap_server') and
+        @config_items.fetch( 'cli::is_simp_ldap_server').value
 
         if item = @config_items.fetch( 'cli::network::hostname', nil )
           item.value.split('.')[1..-1].map{ |domain| "dc=#{domain}" }.join(',')

@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/data/simp_options_dns_servers'
-require 'simp/cli/config/items/data/cli_network_ipaddress'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SimpOptionsDNSServers do

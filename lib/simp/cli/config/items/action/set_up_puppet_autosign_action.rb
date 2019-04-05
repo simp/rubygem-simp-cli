@@ -9,6 +9,7 @@ module Simp::Cli::Config
       super
       @key         = 'puppet::autosign'
       @description = 'Set up Puppet autosign'
+      @category    = :puppet_global
       @file        = File.join(Simp::Cli::Utils.puppet_info[:config]['confdir'], 'autosign.conf')
       @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
     end

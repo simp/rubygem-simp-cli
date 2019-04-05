@@ -64,28 +64,49 @@ module Simp::Cli::Config
     include Simp::Cli::Config::SafeApplying
 
     attr_accessor :applied_status, :applied_time, :applied_detail
-    attr_accessor :skip_apply, :skip_apply_reason
+    attr_accessor :defer_apply, :skip_apply, :skip_apply_reason
     attr_accessor :die_on_apply_fail, :allow_user_apply
+    attr_reader   :category
+
+    # ActionItem categories in the order in which they should be
+    # applied, when deferred until after all data has been gathered.
+    # FIXME Should rework so that derived ActionItems can't
+    #       set this to some other value!
+    SORTED_CATEGORIES = [
+      :system,            # action to configure general system settings
+      :puppet_global,     # action to configure global Puppet properties
+      :puppet_env,        # action to configure the SIMP environment
+      :puppet_env_server, # action to configure the SIMP server in the SIMP environment
+      :other,             # miscellaneous configuration action
+      :sanity_check,      # action to check for possible system problems
+                          #   (YUM repo issues, user lockout issues, etc.)
+      :answers_writer     # action to write out the answers file
+    ]
 
     def initialize
       super
       @applied_status    = :unattempted  # status of an applied change
       @applied_time      = nil           # time at which applied change completed
       @applied_detail    = nil           # details about the apply to be conveyed to user
+      @defer_apply       = true          # defer the apply;  when false, the action
+                                         # item must be executed immediately
       @skip_apply        = false         # skip the apply
       @skip_apply_reason = nil           # optional description of reason for skipping the apply
       @data_type         = :none         # carries no data
       @die_on_apply_fail = false         # halt simp config if apply fails
       @allow_user_apply  = false         # allow non-superuser to apply
+
+      @category          = :other        # category which can be used to group actions when applied
+                                         # see SORTED_CATEGORIES above for recognized categories
     end
 
     # internal method to change the system (returns the result of the apply)
     def apply; nil; end
 
     # don't be interactive!
-    def validate( x ); true; end
-    def query;         nil;  end
-    def print_summary; nil;  end
-    def to_yaml_s;     nil;  end
+    def validate( x );                             true; end
+    def query;                                     nil;  end
+    def print_summary;                             nil;  end
+    def to_yaml_s( include_auto_warning = false ); nil;  end
   end
 end

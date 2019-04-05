@@ -29,7 +29,6 @@ simp_options::auditd: true
 simp_options::clamav: true
 simp_options::firewall: true
 simp_options::haveged: true
-simp_options::ldap: true
 simp_options::logrotate: true
 simp_options::pam: true
 simp_options::pki: simp
@@ -37,6 +36,10 @@ simp_options::sssd: true
 simp_options::stunnel: true
 simp_options::syslog: true
 simp_options::tcpwrappers: true
+
+# This setting is turned off by default because use of LDAP is not
+# required
+simp_options::ldap: false
 
 # Options that are not suggested to be turned on by default:
 simp_options::ipsec: false

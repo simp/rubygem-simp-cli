@@ -12,6 +12,7 @@ module Simp::Cli::Config
       super
       @key                = 'puppet::set_production_to_simp'
       @description        = "Set default Puppet environment to 'simp'"
+      @category           = :puppet_env
 
       # Normal Puppet environments path
       @primary_env_path   = Simp::Cli::Utils.puppet_info[:environment_path]

@@ -169,7 +169,7 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
       ci        = Simp::Cli::Config::Item::HieradataYAMLFileWriter.new
       ci.file = '/some/path/environments/simp/simp_config_overrides.yaml'
       expect(ci.apply_summary).to eq(
-        'Creation of .../environments/simp/simp_config_overrides.yaml unattempted')
+        'Creation of /etc/.../environments/simp/simp_config_overrides.yaml unattempted')
     end
   end
 

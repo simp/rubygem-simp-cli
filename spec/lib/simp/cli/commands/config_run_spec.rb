@@ -18,6 +18,26 @@ describe 'Simp::Cli::Command::Config#run' do
   let(:files_dir) { File.join(__dir__, 'files') }
   let(:max_config_run_seconds) { 60 }
 
+  let(:facts) { {
+    'fips_enabled'     => true,
+    'fqdn'             => 'server.example.com',
+    'ipaddress_enp0s3' => '10.0.2.10',
+    'netmask_enp0s3'   => '255.255.255.0',
+    'networking'       => {
+      'interfaces' => {
+        'enp0s3' => { 'ip' => '10.0.2.10' },
+        'lo'     => { 'ip' => '127.0.0.1' },
+      },
+      'ip'        => '10.0.2.10',
+      'primary'   => 'enp0s3'
+    },
+    'os'               => {
+      'release' => {
+        'major' => '7'
+      }
+     }
+  } }
+
   before(:each) do
     @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__) )
     test_env_dir = File.join(@tmp_dir, 'environments')
@@ -36,6 +56,19 @@ describe 'Simp::Cli::Command::Config#run' do
     } )
 
     allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return( File.join(simp_env_dir, 'data') )
+
+    [
+      'fips_enabled',
+      'fqdn',
+      'ipaddress_enp0s3',
+      'netmask_enp0s3',
+      'networking',
+      'os'
+    ].each do |fact_name|
+      allow(Facter).to receive(:value).with(fact_name).and_return(facts[fact_name])
+    end
+    allow(Simp::Cli::Config::Item::CliNetworkHostname).to receive(:`)
+      .with('hostname -A 2>/dev/null').and_return(facts['fqdn'])
 
     @input = StringIO.new
     @output = StringIO.new
@@ -56,12 +89,20 @@ describe 'Simp::Cli::Command::Config#run' do
     Facter.reset  # make sure this test's facts don't affect other tests
   end
 
+  # answers/hieradata values derived from facts when a test uses defaults
+  let(:keys_from_mocked_facts) { {
+    'cli::network::ipaddress' => '10.0.2.10',
+    'cli::network::netmask'   => '255.255.255.0',
+    'simp_options::trusted_nets' => [ '10.0.2.0/24' ]
+  } }
+
+  # answer/hieradata data that can't be mocked during a test using defaults:
+  # - password/password hashes generated during the test
+  # - default info derived from the actual server on which the unit test is
+  #   running (e.g. `hostname -A`)
   let(:extra_keys_to_exclude) { [
       'cli::network::gateway',
       'cli::network::hostname',
-      'cli::network::ipaddress',
-      'cli::network::netmask',
-      'cli::puppet::server::ip',
       'simp_options::dns::servers',
       'simp_options::dns::search',
       'simp_options::ldap::base_dn',
@@ -71,7 +112,6 @@ describe 'Simp::Cli::Command::Config#run' do
       'simp_options::ldap::uri',
       'simp_options::puppet::ca',
       'simp_options::puppet::server',
-      'simp_options::trusted_nets'
    ] }
 
   context 'creates SIMP global hieradata file when input is valid' do
@@ -83,6 +123,7 @@ describe 'Simp::Cli::Command::Config#run' do
   context 'creates answers YAML file when input is valid' do
 
     it "creates valid file for 'simp' scenario, interactively accepting all defaults" do
+
       @input.reopen(generate_simp_input_accepting_defaults)
       begin
         Timeout.timeout(max_config_run_seconds) do
@@ -97,8 +138,11 @@ describe 'Simp::Cli::Command::Config#run' do
       expect( File.exists?( @answers_output_file ) ).to be true
 
       # normalize out YAML keys that are not deterministic
-      expected = config_normalize(File.join(files_dir,
-        'simp_conf_accepting_defaults_simp_scenario.yaml'), extra_keys_to_exclude)
+      expected = config_normalize(
+        File.join(files_dir, 'simp_conf_accepting_defaults_simp_scenario.yaml'),
+        extra_keys_to_exclude,
+        keys_from_mocked_facts
+      )
       actual_simp_conf = config_normalize(@answers_output_file, extra_keys_to_exclude)
       expect( actual_simp_conf ).to eq expected
     end
@@ -170,7 +214,7 @@ describe 'Simp::Cli::Command::Config#run' do
         Timeout.timeout(max_config_run_seconds) do
           @config.run(['-o', @answers_output_file,
           '-l', @log_file, '--dry-run', '--force-defaults',
-          "cli::network::interface=#{get_valid_interface}",
+          'cli::network::interface=enp0s3',
           'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
           'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.' ])
         end
@@ -187,7 +231,7 @@ describe 'Simp::Cli::Command::Config#run' do
         Timeout.timeout(max_config_run_seconds) do
           @config.run(['-o', @answers_output_file,
           '-l', @log_file, '--dry-run', '--non-interactive',
-          "cli::network::interface=#{get_valid_interface}",
+          'cli::network::interface=enp0s3',
           'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
           'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.' ])
         end
@@ -200,10 +244,7 @@ describe 'Simp::Cli::Command::Config#run' do
     end
 
     it 'creates valid file from valid answers file using --apply-with-questions and no prompts' do
-      input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
-      input.gsub!(/oops_force_replacement/, get_valid_interface)
-      input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
-      File.open(input_answers_file,'w') { |file| file.puts(input) }
+      input_answers_file = File.join(files_dir, 'prev_simp_conf.yaml')
       begin
         Timeout.timeout(max_config_run_seconds) do
           @config.run([
@@ -217,14 +258,16 @@ describe 'Simp::Cli::Command::Config#run' do
         raise
       end
       expect( File.exists?( @answers_output_file ) ).to be true
+      # Only change we expect is for hardcoded cli::version to have been updated
       expected = YAML.load(File.read(input_answers_file))
+      expected['cli::version'] = Simp::Cli::VERSION
 
       actual_simp_conf = YAML.load(File.read(@answers_output_file))
       expect( actual_simp_conf ).to eq expected
     end
 
     it 'creates valid file from incomplete answers file using --apply-with-questions and prompts for only iteractive items' do
-      input_string = "\n" # use suggested interface, as has to be a valid one
+      input_string = "enp0s3\n" # interface, only interactive value that is incorrect
       @input.reopen(input_string)
       @input.rewind
       begin
@@ -240,28 +283,29 @@ describe 'Simp::Cli::Command::Config#run' do
         raise
       end
       expect( File.exists?( @answers_output_file ) ).to be true
-      # we expect normalized 'cli::network::interface' to be present
-      # along with missing, non-interactive puppetdb::master::config::puppetdb_port and
-      # puppetdb::master::config::puppetdb_server
+      # we expect
+      # - missing, non-interactive puppetdb::master::config::puppetdb_port and
+      #   puppetdb::master::config::puppetdb_server to have been added
+      # - interactive cli::network::interface to have been replaced with input value
+      # - hardcoded cli::version to have been updated
       expected = YAML.load(File.read(File.join(files_dir, 'prev_simp_conf.yaml')))
-      expected['cli::network::interface'] = 'value normalized'
+      expected['cli::version'] = Simp::Cli::VERSION
 
       actual_simp_conf = YAML.load(File.read(@answers_output_file))
       actual_simp_conf = {} if !actual_simp_conf.is_a?(Hash) # empty YAML file returns false
-      actual_simp_conf['cli::network::interface'] = 'value normalized'
 
       expect( actual_simp_conf ).to eq expected
     end
 
     it 'creates valid file answers file using --apply-with-questions, KEY=VALUE and prompts for invalid items' do
-      input_string = "\n" # use suggested interface, as has to be a valid one
+      input_string = "enp0s3\n"
       @input.reopen(input_string)
       @input.rewind
       begin
         Timeout.timeout(max_config_run_seconds) do
           @config.run([
             '-o', @answers_output_file,
-            '--apply-with-questions', File.join(files_dir, 'prev_simp_conf.yaml'),
+            '--apply-with-questions', File.join(files_dir, 'prev_simp_conf_invalid_interface.yaml'),
             '-l', @log_file, '--dry-run',
             'simp::runlevel=4',
             'simp_options::dns::servers=1.2.3.10,,1.2.3.11,,1.2.3.12'])
@@ -280,17 +324,14 @@ describe 'Simp::Cli::Command::Config#run' do
     end
 
     it 'creates valid file from valid answers file using --apply' do
-      input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
-      input.gsub!(/oops_force_replacement/, get_valid_interface)
-      input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
-      File.open(input_answers_file,'w') { |file| file.puts(input) }
+      input_answers_file = File.join(files_dir, 'prev_simp_conf.yaml')
       begin
         Timeout.timeout(max_config_run_seconds) do
           @config.run([
             '-o', @answers_output_file,
             '--apply', input_answers_file,
             '-l', @log_file, '--dry-run',
-            "cli::network::interface=#{get_valid_interface}"])
+            'cli::network::interface=enp0s3'])
         end
       rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
@@ -299,6 +340,7 @@ describe 'Simp::Cli::Command::Config#run' do
       end
       expect( File.exists?( @answers_output_file ) ).to be true
       expected = YAML.load(File.read(input_answers_file))
+      expected['cli::version'] = Simp::Cli::VERSION
 
       actual_simp_conf = YAML.load(File.read(@answers_output_file))
       expect( actual_simp_conf ).to eq expected
@@ -312,7 +354,7 @@ describe 'Simp::Cli::Command::Config#run' do
             '-o', @answers_output_file,
             '--apply', input_answers_file,
             '-l', @log_file, '--dry-run',
-            "cli::network::interface=#{get_valid_interface}"])
+            'cli::network::interface=enp0s3'])
         end
       rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
@@ -321,13 +363,11 @@ describe 'Simp::Cli::Command::Config#run' do
       end
       expect( File.exists?( @answers_output_file ) ).to be true
 
-      # only value we expect to be different is 'cli::network::interface'
       expected = YAML.load(File.read(input_answers_file))
-      expected['cli::network::interface'] = 'value normalized'
+      expected['cli::version'] = Simp::Cli::VERSION
 
       actual_simp_conf = YAML.load(File.read(@answers_output_file))
       actual_simp_conf = {} if !actual_simp_conf.is_a?(Hash) # empty YAML file returns false
-      actual_simp_conf['cli::network::interface'] = 'value normalized'
 
       expect( actual_simp_conf ).to eq expected
     end
@@ -354,35 +394,32 @@ describe 'Simp::Cli::Command::Config#run' do
         raise
       end
 
-      # only look at non-FIPS-related skip lines
-      # (FIPS mode is detected automatically and can't be assumed to be
-      #  on/off for the server running running this test)
       skip_lines = @output.string.split("\n").delete_if do |line|
-        !line.include?('Skipping apply[**user is not root**]') or
-          line.include?('digest algorithm to work with FIPS')
+        !line.include?('Skipping apply[**user is not root**]')
       end
 
       fmt_begin = "\e[35m\e[1m"
       fmt_end = "\e[0m"
       skip_msg = '(Skipping apply[**user is not root**])'
       expected_lines = [
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Set $simp_scenario in simp environment's site.pp",
+        "#{fmt_begin}#{skip_msg}#{fmt_end} Set Puppet digest algorithm to work with FIPS",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Set hostname",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Configure a network interface",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Set GRUB password",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Set default Puppet environment to 'simp'",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Set up Puppet autosign",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Update Puppet settings",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Ensure Puppet server /etc/hosts entry exists",
+        "#{fmt_begin}#{skip_msg}#{fmt_end} Set default Puppet environment to 'simp'",
+        "#{fmt_begin}#{skip_msg}#{fmt_end} Set $simp_scenario in simp environment's site.pp",
+        "#{fmt_begin}#{skip_msg}#{fmt_end} Generate interim certificates for SIMP server",
+        "#{fmt_begin}#{skip_msg}#{fmt_end} Write SIMP global hieradata to YAML file.",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Create SIMP server <host>.yaml from template",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Set PuppetDB master server & port in SIMP server <host>.yaml",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Add simp::yum::repo::internet_simp_server class to SIMP server <host>.yaml",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Add simp::server::ldap class to SIMP server <host>.yaml",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Set LDAP Root password hash in SIMP server <host>.yaml",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Generate interim certificates for SIMP server",
         "#{fmt_begin}#{skip_msg}#{fmt_end} Disallow inapplicable 'simp' user in SIMP server <host>.yaml",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Check for login lockout risk",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Write SIMP global hieradata to YAML file."
+        "#{fmt_begin}#{skip_msg}#{fmt_end} Check for login lockout risk"
       ]
 
       if expected_lines.size != skip_lines.size
@@ -419,25 +456,26 @@ describe 'Simp::Cli::Command::Config#run' do
       summary_lines.delete_if { |line| line.chomp.empty? } # get rid of empty lines
 
       expected_lines = [
-        %r{Setting of \$simp_scenario in the simp environment's site.pp skipped}m,
+        %r{Setting of Puppet digest algorithm to sha256 for FIPS skipped}m,
         %r{Setting of hostname skipped}m,
         %r{Configuration of a network interface skipped}m,
         %r{Setting of GRUB password skipped}m,
-        %r{Setting 'simp' to the Puppet default environment skipped}m,
         %r{Setup of autosign in #{@tmp_dir}/autosign.conf skipped}m,
         %r{Update to Puppet settings in #{@tmp_dir}/puppet.conf skipped}m,
         %r{Update to /etc/hosts to ensure puppet server entries exist skipped}m,
+        %r{Setting 'simp' to the Puppet default environment skipped}m,
+        %r{Setting of \$simp_scenario in the simp environment's site.pp skipped}m,
+        %r{Interim certificate generation for SIMP server skipped}m,
+        %r{Creation of #{@puppet_system_file} skipped}m,
         %r{Creation of SIMP server <host>.yaml skipped}m,
         %r{Setting of PuppetDB master server & port in SIMP server <host>.yaml skipped}m,
         %r{Addition of simp::yum::repo::internet_simp_server to SIMP server <host>.yaml class list skipped}m,
         %r{Addition of simp::server::ldap to SIMP server <host>.yaml class list skipped}m,
         %r{Setting of LDAP Root password hash in SIMP server <host>.yaml skipped}m,
-        %r{Interim certificate generation for SIMP server skipped}m,
         %r{Disallow of inapplicable, local 'simp' user in SIMP server <host>.yaml skipped}m,
         %r{Check for login lockout risk skipped}m,
-        %r{Creation of #{@puppet_system_file} skipped}m,
         %r{#{@answers_output_file} created}m,
-        %r{Detailed log written to #{@log_file}}m,
+        %r{Detailed log written to #{@log_file}}m
       ]
       if expected_lines.size != summary_lines.size
         puts "Expected:\n"
@@ -452,10 +490,10 @@ describe 'Simp::Cli::Command::Config#run' do
     end
 
     it 'logs debug output to the console when --verbose option selected' do
-      @input.reopen(generate_simp_input_accepting_defaults)
       begin
         Timeout.timeout(max_config_run_seconds) do
           @config.run(['-o', @answers_output_file,
+            '--apply-with-questions', File.join(files_dir, 'prev_simp_conf.yaml'),
             '-l', @log_file, '--dry-run', '--verbose'])
         end
       rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
@@ -464,11 +502,11 @@ describe 'Simp::Cli::Command::Config#run' do
         raise
       end
 
-      expect( @output.string ).to match /Loading answers from .*\/simp.yaml/
+      expect( @output.string ).to match /Loading answers from .*\/prev_simp_conf.yaml/
     end
 
     it 'logs no non-error output to the console when --quiet option selected' do
-      @input.reopen(generate_simp_input_accepting_defaults)
+      @input.reopen(generate_simp_input_accepting_defaults(false))
       begin
         Timeout.timeout(max_config_run_seconds) do
           @config.run(['-o', @answers_output_file,
@@ -490,10 +528,10 @@ describe 'Simp::Cli::Command::Config#run' do
 
   context 'creates detailed log file' do
     it 'logs detailed messages when normal verbosity specified' do
-      @input.reopen(generate_simp_input_accepting_defaults)
       begin
         Timeout.timeout(max_config_run_seconds) do
           @config.run(['-o', @answers_output_file,
+            '--apply-with-questions', File.join(files_dir, 'prev_simp_conf.yaml'),
             '-l', @log_file, '--dry-run'])
         end
       rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
@@ -506,14 +544,14 @@ describe 'Simp::Cli::Command::Config#run' do
 
       #FIXME validate full file content, not just that it contains debug-level messages
        content = IO.read(@log_file)
-       expect( content ).to match /Loading answers from .*\/simp.yaml/
+       expect( content ).to match /Loading answers from .*\/prev_simp_conf.yaml/
     end
 
     it 'logs detailed messages when quiet verbosity specified' do
-      @input.reopen(generate_simp_input_accepting_defaults)
       begin
         Timeout.timeout(max_config_run_seconds) do
           @config.run(['-o', @answers_output_file,
+            '--apply-with-questions', File.join(files_dir, 'prev_simp_conf.yaml'),
             '-p', @puppet_system_file, '-l', @log_file, '--dry-run',
             '--quiet'])
         end
@@ -527,7 +565,7 @@ describe 'Simp::Cli::Command::Config#run' do
 
       #FIXME validate full file content, not just that it contains debug-level messages
       content = IO.read(@log_file)
-      expect( content ).to match /Loading answers from .*\/simp.yaml/
+      expect( content ).to match /Loading answers from .*\/prev_simp_conf.yaml/
     end
   end
 
@@ -645,7 +683,7 @@ describe 'Simp::Cli::Command::Config#run' do
     it 'prompts when --apply-with-questions and input file has an invalid password' do
       bad_password = 'Un=3nCryPte6'  # should be encrypted in answers file
       input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
-      input.gsub!(/oops_force_replacement/, get_valid_interface)
+      input.gsub!(/oops_force_replacement/, 'enp0s3')
       input.gsub!(/simp_openldap::server::conf::rootpw: .*\n/,
          "simp_openldap::server::conf::rootpw: \"#{bad_password}\"\n")
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
@@ -684,7 +722,7 @@ describe 'Simp::Cli::Command::Config#run' do
       # valid password that does not match its encrypted value
       different_pw = 'Puy.c&48I1A8#PI1JW#&gX*4ugn!whg7'
       input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
-      input.gsub!(/oops_force_replacement/, get_valid_interface)
+      input.gsub!(/oops_force_replacement/, 'enp0s3')
       input.gsub!(/simp_options::ldap::bind_pw: .*\n/,
          "simp_options::ldap::bind_pw: \"#{different_pw}\"\n")
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
@@ -745,7 +783,7 @@ describe 'Simp::Cli::Command::Config#run' do
       # fixed via prompt or override
       expect {
         @config.run(['-o', @answers_output_file,
-          '--apply', File.join(files_dir, 'prev_simp_conf.yaml'),
+          '--apply', File.join(files_dir, 'prev_simp_conf_invalid_interface.yaml'),
           '-l', @log_file, '--dry-run'])
       }.to raise_error( Simp::Cli::ProcessingError,
           "FATAL: 'oops_force_replacement' is not a valid answer for 'cli::network::interface'")
@@ -753,7 +791,6 @@ describe 'Simp::Cli::Command::Config#run' do
 
     it 'raises an exception when --apply and input YAML has an invalid noninteractive value' do
       input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
-      input.gsub!(/oops_force_replacement/, get_valid_interface)
       input.gsub!('puppetdb::master::config::puppetdb_port: 8139',
         'puppetdb::master::config::puppetdb_port: 0')
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
@@ -791,7 +828,7 @@ describe 'Simp::Cli::Command::Config#run' do
           '-l', @log_file, '--dry-run',
           '--disable-queries',
           'cli::simp::scenario=simp_lite',
-          "cli::network::interface=#{get_valid_interface}",
+          'cli::network::interface=enp0s3',
           'cli::network::set_up_nic=false',
           'cli::network::hostname=simp.test.local',
           'cli::network::ipaddress=1.2.3.1',

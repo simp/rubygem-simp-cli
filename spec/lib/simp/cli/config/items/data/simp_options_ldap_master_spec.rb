@@ -1,6 +1,4 @@
 require 'simp/cli/config/items/data/simp_options_ldap_master'
-require 'simp/cli/config/items/data/cli_is_ldap_server'
-require 'simp/cli/config/items/data/cli_network_hostname'
 require 'rspec/its'
 require_relative '../spec_helper'
 
@@ -18,7 +16,7 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapMaster do
 
     context 'when is LDAP server and cli::network::hostname defined' do
       it 'sets master to SIMP server' do
-        item = Simp::Cli::Config::Item::CliIsLdapServer.new
+        item = Simp::Cli::Config::Item::CliIsSimpLdapServer.new
         item.value = true
         @ci.config_items[item.key] = item
         item = Simp::Cli::Config::Item::CliNetworkHostname.new
@@ -31,7 +29,7 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapMaster do
 
     context 'when is LDAP server and cli::network::hostname is not defined' do
       it 'sets master to FIXME' do
-        item = Simp::Cli::Config::Item::CliIsLdapServer.new
+        item = Simp::Cli::Config::Item::CliIsSimpLdapServer.new
         item.value = true
         @ci.config_items[item.key] = item
 
@@ -41,7 +39,7 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapMaster do
 
     context 'when is not LDAP server and cli::network::hostname defined' do
       it 'sets master to FIXME' do
-        item = Simp::Cli::Config::Item::CliIsLdapServer.new
+        item = Simp::Cli::Config::Item::CliIsSimpLdapServer.new
         item.value = false
         @ci.config_items[item.key] = item
         item = Simp::Cli::Config::Item::CliNetworkHostname.new

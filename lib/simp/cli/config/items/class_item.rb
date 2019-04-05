@@ -13,9 +13,9 @@ module Simp::Cli::Config
     end
 
     # don't be interactive!
-    def validate( x ); true; end
-    def query;         nil;  end
-    def print_summary; nil;  end
-    def to_yaml_s;     nil;  end
+    def validate( x );                             true; end
+    def query;                                     nil;  end
+    def print_summary;                             nil;  end
+    def to_yaml_s( include_auto_warning = false ); nil;  end
   end
 end

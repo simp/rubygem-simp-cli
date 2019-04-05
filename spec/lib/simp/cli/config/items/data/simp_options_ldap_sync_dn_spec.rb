@@ -8,19 +8,19 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapSyncDn do
   end
 
   describe '#recommended_value' do
-    it 'returns no value when cli::is_ldap_server is not present' do
+    it 'returns no value when cli::is_simp_ldap_server is not present' do
       expect( @ci.recommended_value ).to be_nil
     end
 
-    it 'returns no value when cli::is_ldap_server is false' do
-      item = Simp::Cli::Config::Item::CliIsLdapServer.new
+    it 'returns no value when cli::is_simp_ldap_server is false' do
+      item = Simp::Cli::Config::Item::CliIsSimpLdapServer.new
       item.value = false
       @ci.config_items[item.key] = item
       expect( @ci.recommended_value ).to be_nil
     end
 
-    it 'returns hiera-based value when cli::is_ldap_server is true' do
-      item = Simp::Cli::Config::Item::CliIsLdapServer.new
+    it 'returns hiera-based value when cli::is_simp_ldap_server is true' do
+      item = Simp::Cli::Config::Item::CliIsSimpLdapServer.new
       item.value = true
       @ci.config_items[item.key] = item
       expect( @ci.recommended_value ).to eq "cn=LDAPSync,ou=Hosts,%{hiera('simp_options::ldap::base_dn')}"

@@ -8,11 +8,12 @@ module Simp::Cli::Config
     attr_accessor :www_yum_dir, :yum_repos_d, :dir
     def initialize
       super
-      @key         = 'yum::repositories::update'
-      @description = 'Set up local YUM repositories for SIMP'
-      @www_yum_dir = '/var/www/yum/'
-      @yumpath     = nil
-      @yum_repos_d = '/etc/yum.repos.d'
+      @key              = 'yum::repositories::update'
+      @description      = 'Set up local YUM repositories for SIMP'
+      @category         = :system
+      @www_yum_dir      = '/var/www/yum/'
+      @yumpath          = nil
+      @yum_repos_d      = '/etc/yum.repos.d'
       @yum_update       = :unattempted
       @yum_repo_disable = :unattempted
     end

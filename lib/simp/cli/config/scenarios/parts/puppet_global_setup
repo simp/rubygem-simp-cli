@@ -1,0 +1,8 @@
+# ==== General Puppet configuration actions and corresponding data  ====
+- SimpOptionsPuppetServer        SKIPQUERY SILENT # default is correct
+- CliPuppetServerIP              SKIPQUERY SILENT # don't ever prompt, just discover current value
+- SimpOptionsPuppetCA            SKIPQUERY SILENT # default is correct
+- SimpOptionsPuppetCAPort        SKIPQUERY SILENT # default is correct
+- SetUpPuppetAutosignAction
+- UpdatePuppetConfAction
+- AddPuppetHostsEntryAction

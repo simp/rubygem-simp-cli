@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/data/sssd_domains'
-require 'simp/cli/config/items/data/simp_options_ldap'
 require 'rspec/its'
 require_relative '../spec_helper'
 

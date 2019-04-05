@@ -11,9 +11,10 @@ module Simp::Cli::Config
 
     def initialize
       super
-      @dir          = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts')
+      @dir         = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts')
       @description = "Add #{@class_to_add} class to SIMP server <host>.yaml"
-      @file         = nil
+      @file        = nil
+      @category    = :puppet_env_server
     end
 
     def apply

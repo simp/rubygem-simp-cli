@@ -3,13 +3,13 @@ cli::is_simp_ldap_server: true
 cli::network::dhcp: static
 cli::network::gateway: "1.2.3.1"
 cli::network::hostname: puppet.test.local
-cli::network::interface: enp0s3
+cli::network::interface: oops_force_replacement
 cli::network::ipaddress: "1.2.3.4"
 cli::network::netmask: "255.255.255.0"
 cli::network::set_up_nic: true
 cli::set_grub_password: true
 cli::set_production_to_simp: true
-cli::simp::scenario: simp
+cli::simp::scenario: simp_lite
 cli::use_internet_simp_yum_repos: true
 cli::version: "0.0.0"
 grub::password: "$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX."
@@ -38,5 +38,4 @@ simp_options::trusted_nets:
   - "1.2.3.0/24"
 sssd::domains:
   - LDAP
-svckill::mode: warning
 useradd::securetty: []

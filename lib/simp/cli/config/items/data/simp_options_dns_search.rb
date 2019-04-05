@@ -1,4 +1,5 @@
 require_relative '../list_item'
+require_relative 'cli_network_hostname'
 
 module Simp; end
 class Simp::Cli; end

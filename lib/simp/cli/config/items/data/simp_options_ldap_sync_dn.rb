@@ -1,4 +1,5 @@
 require_relative '../item'
+require_relative 'cli_is_simp_ldap_server'
 
 module Simp; end
 class Simp::Cli; end
@@ -19,8 +20,8 @@ module Simp::Cli::Config
     end
 
     def get_recommended_value
-      if @config_items.key?( 'cli::is_ldap_server') and
-        @config_items.fetch( 'cli::is_ldap_server').value
+      if @config_items.key?( 'cli::is_simp_ldap_server') and
+        @config_items.fetch( 'cli::is_simp_ldap_server').value
 
         "cn=LDAPSync,ou=Hosts,%{hiera('simp_options::ldap::base_dn')}"
       else

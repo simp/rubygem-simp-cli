@@ -5,17 +5,17 @@
    - CliNetworkDHCP:
       static:                # gather info first, then configure network
        - CliNetworkHostname
-       - SetHostnameAction      # apply this before DNS Items
+       - SetHostnameAction       IMMEDIATE # apply this before DNS Items
        - CliNetworkIPAddress
        - CliNetworkNetmask
        - CliNetworkGateway
        - SimpOptionsDNSServers
        - SimpOptionsDNSSearch
-       - ConfigureNetworkAction
+       - ConfigureNetworkAction  IMMEDIATE
       dhcp:                  # (minimally) configure network, then get info (silently)
-       - ConfigureNetworkAction
+       - ConfigureNetworkAction  IMMEDIATE
        - CliNetworkHostname
-       - SetHostnameAction       # apply this before DNS Items
+       - SetHostnameAction       IMMEDIATE # apply this before DNS Items
        - CliNetworkIPAddress     SKIPQUERY SILENT
        - CliNetworkNetmask       SKIPQUERY SILENT
        - CliNetworkGateway       SKIPQUERY SILENT

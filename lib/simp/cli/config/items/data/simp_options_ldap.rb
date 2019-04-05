@@ -7,13 +7,13 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'simp_options::ldap'
-      @description = %Q{Whether to use LDAP on this system.
+      @description = %Q{Whether to use SIMP LDAP support on this system.
 
 If you disable this, modules will not attempt to use LDAP where possible.}
     end
 
     def get_recommended_value
-      os_value || 'yes'
+      'yes'
     end
   end
 end

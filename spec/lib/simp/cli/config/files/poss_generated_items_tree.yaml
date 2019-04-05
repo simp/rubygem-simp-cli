@@ -2,15 +2,13 @@
 #
 ---
 # ==== Initial actions ====
-# These actions MUST be first
-- CliIsSimpEnvironmentInstalled  SKIPQUERY SILENT: # don't ever prompt, just discover current value
-   false:
-    - CopySimpToEnvironmentsAction  # Can't do our config, if this hasn't happened
-- CliSimpScenario SKIPQUERY SILENT # don't ever prompt; this value must already be set
-- SetSiteScenarioAction
+# These actions/settings MUST be first
+- CliSimpScenario SKIPQUERY SILENT  # don't ever prompt; this value MUST already be set;
+                                    # want it first so that the scenario is present in
+                                    # any safety-save answers file written
 - SimpOptionsFips SKIPQUERY SILENT: # don't ever prompt, just discover current setting
    true:
-    - SetPuppetDigestAlgorithmAction # digest algorithm affects any puppet actions, so do it first!
+    - SetPuppetDigestAlgorithmAction IMMEDIATE # digest algorithm affects any puppet actions, so do it first!
 
 # ==== Network actions and configuration ====
 - CliNetworkInterface
@@ -19,17 +17,17 @@
    - CliNetworkDHCP:
       static:                # gather info first, then configure network
        - CliNetworkHostname
-       - SetHostnameAction      # apply this before DNS Items
+       - SetHostnameAction       IMMEDIATE # apply this before DNS Items
        - CliNetworkIPAddress
        - CliNetworkNetmask
        - CliNetworkGateway
        - SimpOptionsDNSServers
        - SimpOptionsDNSSearch
-       - ConfigureNetworkAction
+       - ConfigureNetworkAction  IMMEDIATE
       dhcp:                  # (minimally) configure network, then get info (silently)
-       - ConfigureNetworkAction
+       - ConfigureNetworkAction  IMMEDIATE
        - CliNetworkHostname
-       - SetHostnameAction       # apply this before DNS Items
+       - SetHostnameAction       IMMEDIATE # apply this before DNS Items
        - CliNetworkIPAddress     SKIPQUERY SILENT
        - CliNetworkNetmask       SKIPQUERY SILENT
        - CliNetworkGateway       SKIPQUERY SILENT
@@ -45,30 +43,37 @@
 - SimpOptionsTrustedNets
 - SimpOptionsNTPServers
 
-# ==== General actions and related configuration ====
+# ==== General server setup actions and related configuration ====
 - CliSetGrubPassword:
    true:
     - GrubPassword
     - SetGrubPasswordAction
-- SimpRunLevel                   SKIPQUERY SILENT # this is needed for compliance mapping
+- SimpRunLevel                   SKIPQUERY SILENT # default is correct; needed for compliance mapping
 
-# ==== Puppet actions and related configuration ====
-- CliSetProductionToSimp:
-   true:
-    - SetProductionToSimpAction
-- SimpOptionsPuppetServer            SKIPQUERY SILENT # default is correct
-- CliPuppetServerIP                  SKIPQUERY SILENT # don't ever prompt, just discover current value
-- SimpOptionsPuppetCA                SKIPQUERY SILENT # default is correct
-- SimpOptionsPuppetCAPort            SKIPQUERY SILENT # default is correct
-- PuppetDBMasterConfigPuppetDBServer SKIPQUERY SILENT # default is correct
-- PuppetDBMasterConfigPuppetDBPort   SKIPQUERY SILENT # default is correct
+# ==== General Puppet configuration actions and corresponding data  ====
+- SimpOptionsPuppetServer        SKIPQUERY SILENT # default is correct
+- CliPuppetServerIP              SKIPQUERY SILENT # don't ever prompt, just discover current value
+- SimpOptionsPuppetCA            SKIPQUERY SILENT # default is correct
+- SimpOptionsPuppetCAPort        SKIPQUERY SILENT # default is correct
 - SetUpPuppetAutosignAction
 - UpdatePuppetConfAction
 - AddPuppetHostsEntryAction
+
+# ==== Initial actions to set up SIMP's Puppet environment and corresponding data  ====
+- CliIsSimpEnvironmentInstalled  SKIPQUERY SILENT: # don't ever prompt, just discover current value
+   false:
+    - CopySimpToEnvironmentsAction # Can't do our config, if this hasn't happened
+- CliSetProductionToSimp:
+   true:
+    - SetProductionToSimpAction
+- SetSiteScenarioAction
+
 # Move the <simp environment datadir>/hosts/puppet.your.domain.yaml template to
 # <simp environment datadir>/hosts/<host>.yaml file (as appropriate) before
 # dealing with any features that modify that file
 - CreateSimpServerFqdnYamlAction
+- PuppetDBMasterConfigPuppetDBServer SKIPQUERY SILENT # default is correct
+- PuppetDBMasterConfigPuppetDBPort   SKIPQUERY SILENT # default is correct
 - SetServerPuppetDBMasterConfigAction
 
 # ==== YUM actions and related configuration ====
@@ -97,45 +102,38 @@
         - WarnClientYumConfigAction  # can't check YUM for SIMP clients, so warn
 
 # ==== LDAP actions and related configuration ====
-- SimpOptionsLdap :
+- CliIsSimpLdapServer:
    true:
-    - SimpOptionsSSSD SKIPQUERY SILENT
-    - SssdDomains                    SKIPQUERY SILENT  # default is correct
-    - CliIsLdapServer:
+    - SimpOptionsLdap            SKIPQUERY SILENT # default enables and overrides simp_options class default
+    - SimpOptionsLdapBaseDn      SKIPQUERY SILENT       # default is correct
+    - SimpOptionsLdapBindPw      GENERATENOQUERY SILENT # automatically generate
+    - SimpOptionsLdapBindHash    SILENT                 # never queries
+    - SimpOptionsLdapSyncPw      GENERATENOQUERY SILENT # automatically generate
+    - SimpOptionsLdapSyncHash    SILENT                 # never queries
+    - SimpOpenldapServerConfRootpw
+    - AddLdapServerClassToServerAction
+    - SetServerLdapServerConfigAction
+    - SimpOptionsSSSD            SKIPQUERY SILENT: # default enables and overrides simp_options class default
        true:
-        - SimpOptionsLdapBaseDn      SKIPQUERY SILENT       # default is correct
-        - SimpOptionsLdapBindPw      GENERATENOQUERY SILENT # automatically generate
-        - SimpOptionsLdapBindHash    SILENT                 # never queries
-        - SimpOptionsLdapSyncPw      GENERATENOQUERY SILENT # automatically generate
-        - SimpOptionsLdapSyncHash    SILENT                 # never queries
-        - SimpOpenldapServerConfRootpw
-        - AddLdapServerClassToServerAction
-        - SetServerLdapServerConfigAction
-       false:
-        - SimpOptionsLdapBaseDn
-        - SimpOptionsLdapBindDn
-        - SimpOptionsLdapBindPw      NEVERGENERATE
-        - SimpOptionsLdapBindHash    SILENT #never queries
-        - SimpOptionsLdapSyncDn
-        - SimpOptionsLdapSyncPw      NEVERGENERATE
-        - SimpOptionsLdapSyncHash    SILENT # never queries
-        - SimpOptionsLdapMaster
-        - SimpOptionsLdapUri
+        - SssdDomains            SKIPQUERY SILENT       # default is correct
    false:
-     - SimpOptionsSSSD:
-        true:
-         - SssdDomains
+    - SimpOptionsLdap            SKIPQUERY SILENT VALUE=no NOYAML  # override default to match simp_options class default
+    - SimpOptionsSSSD            : # not in scenario so query
+       true:
+        - SssdDomains
 
 # ==== Miscellaneous actions and configuration ====
+# These Items are needed for the SIMP server, even if the scenario settings
+# disable simp_options::syslog and simp_options::pki for SIMP clients.
 - SimpOptionsSyslogLogServers
 - CliLogServersSpecified             SKIPQUERY SILENT: # don't ever prompt, just discover current value
    true:
     - SimpOptionsSyslogFailoverLogServers
-- GenerateCertificatesAction   # needed for SIMP server independent of scenario
+- GenerateCertificatesAction
 
 # ==== User actions ====
 - UseraddSecuretty
-- CliHasSimpLocalUser  SKIPQUERY SILENT: # don't ever prompt, just discover current value
+- CliHasSimpLocalUser         SKIPQUERY SILENT: # don't ever prompt, just discover current value
    false:
     - SimpServerAllowSimpUser SKIPQUERY SILENT # default is correct
     - DisallowSimpUserAction  # ISO-provided user does not exist, so don't allow!

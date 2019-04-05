@@ -15,12 +15,13 @@ module Simp::Cli::Config
       # 'simp cli' sets @file, so this default doesn't really matter
       @file            = File.join(Simp::Cli::Utils.simp_env_datadir, 'simp_config_settings.yaml')
       @group           = Simp::Cli::Utils.puppet_info[:puppet_group]
+      @category        = :puppet_env
     end
 
     # prints an hieradata file to an iostream
     def print_hieradata_yaml( iostream, answers )
       if @config_items['cli::simp::scenario']
-         scenario_info = "for #{@config_items['cli::simp::scenario'].value} scenario "
+         scenario_info = "for '#{@config_items['cli::simp::scenario'].value}' scenario "
       else
          scenario_info = ''
       end
@@ -91,7 +92,7 @@ module Simp::Cli::Config
     end
 
     def apply_summary
-      brief_filename = @file.gsub(%r{.*environments},'.../environments')
+      brief_filename = @file.gsub(%r{.*environments},'/etc/.../environments')
       if @applied_status == :succeeded
         "#{brief_filename} created"
       else

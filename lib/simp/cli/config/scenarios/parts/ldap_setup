@@ -1,29 +1,20 @@
 # ==== LDAP actions and related configuration ====
-- SimpOptionsLdap %ldap_query_options%:
+- CliIsSimpLdapServer:
    true:
-    - SimpOptionsSSSD %sssd_query_options%
-    - SssdDomains                    SKIPQUERY SILENT  # default is correct
-    - CliIsLdapServer:
+    - SimpOptionsLdap            %ldap_true_ldap_query_options% # %ldap_true_ldap_query_comment%
+    - SimpOptionsLdapBaseDn      SKIPQUERY SILENT       # default is correct
+    - SimpOptionsLdapBindPw      GENERATENOQUERY SILENT # automatically generate
+    - SimpOptionsLdapBindHash    SILENT                 # never queries
+    - SimpOptionsLdapSyncPw      GENERATENOQUERY SILENT # automatically generate
+    - SimpOptionsLdapSyncHash    SILENT                 # never queries
+    - SimpOpenldapServerConfRootpw
+    - AddLdapServerClassToServerAction
+    - SetServerLdapServerConfigAction
+    - SimpOptionsSSSD            %ldap_true_sssd_query_options%: # %ldap_true_sssd_query_comment%
        true:
-        - SimpOptionsLdapBaseDn      SKIPQUERY SILENT       # default is correct
-        - SimpOptionsLdapBindPw      GENERATENOQUERY SILENT # automatically generate
-        - SimpOptionsLdapBindHash    SILENT                 # never queries
-        - SimpOptionsLdapSyncPw      GENERATENOQUERY SILENT # automatically generate
-        - SimpOptionsLdapSyncHash    SILENT                 # never queries
-        - SimpOpenldapServerConfRootpw
-        - AddLdapServerClassToServerAction
-        - SetServerLdapServerConfigAction
-       false:
-        - SimpOptionsLdapBaseDn
-        - SimpOptionsLdapBindDn
-        - SimpOptionsLdapBindPw      NEVERGENERATE
-        - SimpOptionsLdapBindHash    SILENT #never queries
-        - SimpOptionsLdapSyncDn
-        - SimpOptionsLdapSyncPw      NEVERGENERATE
-        - SimpOptionsLdapSyncHash    SILENT # never queries
-        - SimpOptionsLdapMaster
-        - SimpOptionsLdapUri
+        - SssdDomains            SKIPQUERY SILENT       # default is correct
    false:
-     - SimpOptionsSSSD:
-        true:
-         - SssdDomains
+    - SimpOptionsLdap            %ldap_false_ldap_query_options%  # %ldap_false_ldap_query_comment%
+    - SimpOptionsSSSD            %ldap_false_sssd_query_options%: # %ldap_false_sssd_query_comment%
+       true:
+        - SssdDomains

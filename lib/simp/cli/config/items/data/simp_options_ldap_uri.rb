@@ -1,4 +1,6 @@
 require_relative '../list_item'
+require_relative 'cli_is_simp_ldap_server'
+require_relative 'cli_network_hostname'
 
 module Simp; end
 class Simp::Cli; end
@@ -13,8 +15,8 @@ module Simp::Cli::Config
 
     def get_recommended_value
       result = [ 'ldap://FIXME' ]
-      if @config_items.key?( 'cli::is_ldap_server') and
-        @config_items.fetch( 'cli::is_ldap_server').value
+      if @config_items.key?( 'cli::is_simp_ldap_server') and
+        @config_items.fetch( 'cli::is_simp_ldap_server').value
 
         if item = @config_items.fetch( 'cli::network::hostname', nil )
           result = [ "ldap://#{item.value}" ]

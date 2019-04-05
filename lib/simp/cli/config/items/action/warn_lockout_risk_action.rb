@@ -13,6 +13,7 @@ module Simp::Cli::Config
       super
       @key             = 'login::lockout::check'
       @description     = 'Check for login lockout risk'
+      @category        = :sanity_check
       @warning_file    = Simp::Cli::BOOTSTRAP_START_LOCK_FILE
       @warning_message_brief = 'Locking bootstrap due to potential login lockout.'
       @warning_message = <<DOC

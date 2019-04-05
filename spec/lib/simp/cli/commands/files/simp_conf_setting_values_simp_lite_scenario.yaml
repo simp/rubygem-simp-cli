@@ -1,5 +1,5 @@
 ---
-cli::is_ldap_server: false
+cli::is_simp_ldap_server: false
 cli::network::gateway: "1.2.3.1"
 cli::network::hostname: simp.test.local
 cli::network::interface: enp0s3
@@ -10,6 +10,7 @@ cli::set_grub_password: false
 cli::set_production_to_simp: false
 cli::simp::scenario: simp_lite
 cli::use_internet_simp_yum_repos: false
+cli::version: "0.0.0"
 puppetdb::master::config::puppetdb_port: 8139
 puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 3
@@ -18,16 +19,7 @@ simp_options::dns::search:
   - test.local
 simp_options::dns::servers:
   - "1.2.3.10"
-simp_options::fips: false
-simp_options::ldap::base_dn: "dc=test,dc=local"
-simp_options::ldap::bind_dn: "cn=hostAuth,ou=Hosts,dc=test,dc=local"
-simp_options::ldap::bind_hash: "{SSHA}tx9ennniDQnmx83gPjCqhy6pknR89QsD"
-simp_options::ldap::bind_pw: "xXx}.9Xx9>x.x9OmbjG%%Exr0R3z8Mkm"
-simp_options::ldap::sync_dn: "cn=LDAPSync,ou=Hosts,dc=test,dc=local"
-simp_options::ldap::sync_hash: "{SSHA}AGGs+6v8hWpTPNCqWDh59QKQ99bV95hz"
-simp_options::ldap::sync_pw: "MCM!3u-iTXA8O6yCoD{ot}GPTeHd7{GI"
-simp_options::ldap::master: "ldap://puppet.test.local"
-simp_options::ldap::uri: ["ldap://puppet.test.local"]
+simp_options::fips: true
 simp_options::ntpd::servers: [ "time-a.nist.gov" ]
 simp_options::puppet::ca: simp.test.local
 simp_options::puppet::ca_port: 8141
@@ -37,6 +29,6 @@ simp_options::syslog::log_servers: [ "1.2.3.11" ]
 simp_options::trusted_nets:
   - "1.2.0.0/16"
 sssd::domains:
-  - LDAP
+  - LOCAL
 useradd::securetty:
   - tty0

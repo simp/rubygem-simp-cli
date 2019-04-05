@@ -12,6 +12,7 @@ module Simp::Cli::Config
       @key         = 'puppet::hosts_entry'
       @description = 'Ensure Puppet server /etc/hosts entry exists'
       @file        = '/etc/hosts'
+      @category    = :puppet_env  # :system is also appropriate...
     end
 
     def apply

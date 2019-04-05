@@ -10,6 +10,7 @@ module Simp::Cli::Config
       @description       = 'Configure a network interface'
       @die_on_apply_fail = true
       @interface         = nil
+      @category          = :system
     end
 
     def apply

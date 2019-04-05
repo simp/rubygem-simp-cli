@@ -8,6 +8,7 @@ module Simp::Cli::Config
       super
       @key               = 'hostname::conf'
       @description       = 'Set hostname'
+      @category          = :system
       @die_on_apply_fail = true
       @fqdn              = nil
     end

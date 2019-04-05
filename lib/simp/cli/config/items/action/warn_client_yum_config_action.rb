@@ -9,6 +9,7 @@ module Simp::Cli::Config
       super
       @key             = 'yum::repositories::client::config::check'
       @description     = 'Check YUM configuration for SIMP clients'
+      @category        = :sanity_check
       @warning_message = <<DOC
 Unable to verify YUM configuration for SIMP clients.  Please
 manually verify prior to kickstarting SIMP clients.

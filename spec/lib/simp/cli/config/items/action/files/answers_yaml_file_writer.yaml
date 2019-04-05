@@ -1,8 +1,7 @@
 #========================================================================
 # simp config answers
 #
-# Generated for simp_lite scenario on 2017-01-13 11:42:03
-# using simp-cli version 2.0.1
+# Generated for 'simp_lite' scenario on 2017-01-13 11:42:03
 #------------------------------------------------------------------------
 # You can use these answers to quickly configure subsequent
 # simp installations by running the command:
@@ -11,16 +10,33 @@
 #
 # simp config will prompt for any missing items.
 #
-# NOTE: All YAML keys that begin with 'cli::' are used
-# by simp config, internally, and are not Puppet hieradata.
+# NOTE:
+# - All YAML keys that begin with 'cli::' are used by
+#   simp config, internally, and are not Puppet hieradata.
+#
+# - Any entry with the following comment is automatically,
+#   silently set by `simp config`.
+#
+#     >> VALUE SET BY `simp config` AUTOMATICALLY. <<
+#
+#   This means if you modify any of these entries in
+#   an answers file, and then feed that file back into
+#   `simp config`, your modifications will be lost!
 #========================================================================
 ---
+# === cli::version ===
+# The version of simp-cli used to generate this file.
+# >> VALUE SET BY `simp config` AUTOMATICALLY. <<
+cli::version: "0.0.0"
+
 # === cli::network::hostname ===
-# The FQDN of the system.
+# The Fully Qualified Domain Name (FQDN) of the system.
+#
+# This *MUST* contain a domain. Simple hostnames are not allowed.
 cli::network::hostname: myhost.test.local
 
 # === cli::simp::scenario ===
-# The SIMP scenario.
+# The SIMP scenario: Predetermined set of security features to apply.
 #
 # 'simp'      = Settings for a full SIMP system. Both the SIMP server
 #               (this host) and all clients will be running with
@@ -32,6 +48,9 @@ cli::network::hostname: myhost.test.local
 #               for the SIMP clients are disabled.  The SIMP server will
 #               be running with all security features enabled.
 #
+# NOTE:  If your site has different needs than provided by the predetermined
+# scenarios, you can always fine-tune the security settings after you have
+# bootstrapped your SIMP server.
 cli::simp::scenario: simp_lite
 
 # === simp::runlevel ===

@@ -1,6 +1,8 @@
 # ==== Miscellaneous actions and configuration ====
+# These Items are needed for the SIMP server, even if the scenario settings
+# disable simp_options::syslog and simp_options::pki for SIMP clients.
 - SimpOptionsSyslogLogServers
 - CliLogServersSpecified             SKIPQUERY SILENT: # don't ever prompt, just discover current value
    true:
     - SimpOptionsSyslogFailoverLogServers
-- GenerateCertificatesAction   # needed for SIMP server independent of scenario
+- GenerateCertificatesAction

@@ -17,6 +17,7 @@ module Simp::Cli::Config
       @source_dir        = '/usr/share/simp'
       @dest_dir          = File.join(Simp::Cli::Utils.puppet_info[:simp_environment_path])
       @copy_script       = '/usr/local/sbin/simp_rpm_helper'
+      @category          = :puppet_env
     end
 
     def apply

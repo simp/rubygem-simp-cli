@@ -14,8 +14,9 @@ module Simp::Cli::Config
       @template_file = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts', 'puppet.your.domain.yaml')
       @alt_file    = File.join('/', 'usr', 'share', 'simp', 'environments', 'simp',
         File.basename(Simp::Cli::Utils.simp_env_datadir), 'hosts', 'puppet.your.domain.yaml')
-      @host_yaml    = nil
+      @host_yaml   = nil
       @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
+      @category    = :puppet_env_server
     end
 
     def apply

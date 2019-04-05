@@ -13,6 +13,7 @@ module Simp::Cli::Config
       super
       @key             = 'yum::repositories::server::config::check'
       @description     = 'Check YUM configuration for SIMP server'
+      @category        = :sanity_check
       @warning_file    = Simp::Cli::BOOTSTRAP_START_LOCK_FILE
       @warning_message_brief = 'Locking bootstrap due to possibly incomplete YUM config'
       @warning_message = <<DOC
