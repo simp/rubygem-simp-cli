@@ -39,12 +39,12 @@ class Simp::Cli
   def self.start(args = ARGV)
     # grab the classes that are simp commands
     @commands = {}
-    Simp::Cli::Commands::constants.each{ |constant|
+    Simp::Cli::Commands::constants.each do |constant|
       obj = Simp::Cli::Commands.const_get(constant)
-      if obj.respond_to?(:superclass) and obj.superclass == Simp::Cli::Commands::Command
+      if obj.ancestors.include? Simp::Cli::Commands::Command
         @commands[constant.to_s.downcase] = obj.new
       end
-    }
+    end
     @commands['version'] = self
 
     result = 0

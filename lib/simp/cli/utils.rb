@@ -16,6 +16,14 @@ module Simp::Cli::Utils
   DEFAULT_PASSWORD_LENGTH = 32
   REGEXP_UNIXPATH = %r{\A(?:\/[\w-]*\/?)+\z}
 
+  # According to https://puppet.com/docs/puppet/5.5/environments_creating.html,
+  # This should be \A[a-z0-9_]+\Z.  However, there is currently a bug that prevents
+  # all-numeric environment names:
+  #
+  #   https://tickets.puppetlabs.com/browse/PUP-8289
+  #
+  REGEXP_PUPPET_ENV_NAME = %r{\A[a-z][a-z0-9_]*\Z}
+
   @@puppet_info = nil
   @@simp_env_datadir = nil
 
