@@ -6,5 +6,4 @@ class Simp::Cli::Commands::Environment < Simp::Cli::Commands::CommandFamily
   def self.description
     'Manage and coordinate SIMP omni-environments'
   end
-
 end

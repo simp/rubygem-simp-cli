@@ -13,7 +13,23 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # Parse command-line options for this simp command
   # @param args [Array<String>] ARGV-style args array
   def parse_command_line(args)
-    options = {}
+    options = {
+      action: :fresh,
+      types: {
+        puppet: {
+          action: false, # false, :copy, :link
+          puppetfile: false
+        },
+        secondary: {
+          action:  :link,
+          backend: :dir
+        },
+        writable: {
+          action:  :link,
+          backend: :dir
+        }
+      }
+    }
     opt_parser = OptionParser.new do |opts|
       opts.banner = '== simp environment new [options]'
       opts.separator <<-HELP_MSG.gsub(%r{^ {8}}, '')
@@ -51,35 +67,34 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
       opts.on('--fresh',
               '(default) Generate environments from skeleton templates.',
-              'Implies --puppetfile' ) do
-                 options[:action] = :fresh
-                 options[:puppetfile] = true
+              'Implies --puppetfile') do
+                options[:action] = :fresh
+                options[:puppetfile] = true
                 # TODO: implement
-                warn( "TODO: implement --fresh")
+                warn('TODO: implement --fresh')
               end
 
       opts.on('--copy ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
-              'Copy assets from ENVIRONMENT') do |src_env|
+              'Copy assets from ENVIRONMENT') do |_src_env|
                 # TODO: implement
-                warn( "TODO: implement --copy")
+                warn('TODO: implement --copy')
               end
 
       opts.on('--link ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Symlink Secondary and Writeable environment directories',
-              'from ENVIRONMENT') do |src_env|
+              'from ENVIRONMENT') do |_src_env|
                 # TODO: implement
-                warn( "TODO: implement --link" )
+                warn('TODO: implement --link')
               end
-      opts.on('--[no-]puppetfile', # Boolean,
+      opts.on('--[no-]puppetfile',
               'Generate Puppetfiles in Puppet env directory',
               '  * `Puppetfile` will only be created if missing',
               '* `Puppetfile.simp` will be generated from RPM/',
               '* implies `--puppet-env`') do |v|
-                warn( "========= v = '#{v}'" )
+                warn("========= v = '#{v}'")
                 # TODO: implement
                 # TODO: imply --puppet-env
-                warn( "TODO: implement --[no-]puppetfile")
-                 
+                warn('TODO: implement --[no-]puppetfile')
               end
 
       opts.separator ''
@@ -96,16 +111,16 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   def run(args)
     parse_command_line(args)
     if args.empty?
-      warn( "WARNING: 'ENVIRONMENT' is required.\n\n" )
+      warn("WARNING: 'ENVIRONMENT' is required.\n\n")
       help
     end
 
     env = args.shift
     unless env =~ Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME
-      fail( "ERROR: '#{env}' is not an acceptable environment name" )
+      fail("ERROR: '#{env}' is not an acceptable environment name")
     end
 
     # TODO: logic
-    warn("TODO: run(): **** simp environment new '#{env}' (#{args.map{|x| "'#{x}'"}.join(',')}) *** ")
+    warn("TODO: run(): **** simp environment new '#{env}' (#{args.map { |x| "'#{x}'" }.join(',')}) *** ")
   end
 end

@@ -5,18 +5,18 @@ class Simp::Cli::Commands::Puppetfile < Simp::Cli::Commands::Command
   # Load sub-commands
   def initialize
     @sub_commands = {}
-    subcmd_files = Dir.glob(File.expand_path('puppetfile/*.rb',__dir__)).sort_by(&:to_s)
+    subcmd_files = Dir.glob(File.expand_path('puppetfile/*.rb', __dir__)).sort_by(&:to_s)
     subcmd_files.each { |file| require file }
-    Simp::Cli::Commands::Puppetfile::constants.each do |constant|
-      cmd = constant.to_s.gsub(/(?<!^)[A-Z]/) do "_#$&" end.downcase
+    Simp::Cli::Commands::Puppetfile.constants.each do |constant|
+      cmd = constant.to_s.gsub(%r{(?<!^)[A-Z]}) { "_#{$&}" }.downcase
       @sub_commands[cmd] = Simp::Cli::Commands::Puppetfile.const_get(constant)
     end
   end
 
   # @return [String] list of subcommands and their descriptions
   def subcommand_list
-    max_chars = @sub_commands.keys.map{|x| x.size}.max
-    @sub_commands.map do |cmd_name,cmd|
+    max_chars = @sub_commands.keys.map(&:size).max
+    @sub_commands.map do |cmd_name, cmd|
       "    #{cmd_name.ljust(max_chars + 4)} #{cmd.description}"
     end.join("\n")
   end
@@ -25,14 +25,14 @@ class Simp::Cli::Commands::Puppetfile < Simp::Cli::Commands::Command
   def run(args)
     sub_args = parse_command_line(args)
     cmd = sub_args.shift
-    if @sub_commands.keys.include?(cmd)
+    if @sub_commands.key?(cmd)
       sub_cmd = @sub_commands[cmd].new
       sub_cmd.run(sub_args)
     else
-      if cmd || args.size > 0
+      if cmd || !args.empty?
         warn("WARNING: Did not recognize '#{cmd} #{args.join(' ')}'")
       else
-        warn("WARNING: Did not provide sub-command")
+        warn('WARNING: Did not provide sub-command')
       end
 
       help
@@ -41,9 +41,8 @@ class Simp::Cli::Commands::Puppetfile < Simp::Cli::Commands::Command
 
   # Run the command's `--help` action
   def help
-    parse_command_line( [ '--help' ] )
+    parse_command_line(['--help'])
   end
-
 
   # Parse command-line options for the command
   #   (Leaves sub-command options alone)
@@ -75,5 +74,4 @@ class Simp::Cli::Commands::Puppetfile < Simp::Cli::Commands::Command
     end
     opt_parser.order!(args)
   end
-
 end
