@@ -15,20 +15,27 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # Parse command-line options for this simp command
   # @param args [Array<String>] ARGV-style args array
   def parse_command_line(args)
+
+    # TODO: simp cli should read a config file that can override
+    # these options (preferrable mimicking cmd-line args)
     options = {
-      action:   :new,
+      action:   :create,
       strategy: :fresh,
       types: {
         puppet: {
-          strategy: false, # false, :copy, :link
+          enabled:     true,
+          strategy:   :skeleton, # :ignore, :skeleton, :copy
           puppetfile: false,
+          deploy:     false,
           backend:    :directory,
         },
         secondary: {
+          enabled:    true,
           strategy: :link,
           backend:  :directory,
         },
         writable: {
+          enabled:    true,
           strategy: :link,
           backend:  :directory,
         }
@@ -75,20 +82,22 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
                 options[:strategy] = :fresh
                 options[:puppetfile] = true
                 # TODO: implement
-                warn('TODO: implement --fresh')
+                fail NotImplementedError, 'TODO: implement --fresh'
               end
 
       opts.on('--copy ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Copy assets from ENVIRONMENT') do |_src_env|
                 # TODO: implement
-                warn('TODO: implement --copy')
+                fail NotImplementedError, 'TODO: implement --copy'
               end
 
       opts.on('--link ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Symlink Secondary and Writeable environment directories',
-              'from ENVIRONMENT') do |_src_env|
+              'to ENVIRONMENT.  If --puppet-env is set, the Puppet',
+              'environment will --copy.') do |_src_env|
                 # TODO: implement
-                warn('TODO: implement --link')
+                # TODO: implement --puppet-env => --copy logic
+                fail NotImplementedError, 'TODO: implement --link'
               end
       opts.on('--[no-]puppetfile',
               'Generate Puppetfiles in Puppet env directory',
@@ -98,8 +107,23 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
                 warn("========= v = '#{v}'")
                 # TODO: implement
                 # TODO: imply --puppet-env
-                warn('TODO: implement --[no-]puppetfile')
+                fail NotImplementedError, 'TODO: implement --[no-]puppetfile'
               end
+
+      opts.on('--[no-]puppet-env',
+              'Includes Puppet environment when `--puppet-env`',
+              '(default: --no-puppet-env)'
+             ) { |v| options[:types][:puppet][:enabled] = v }
+
+      opts.on('--[no-]secondary-env',
+              'Includes Secondary environment when `--secondary-env`',
+              '(default: --secondary-env)'
+             ) { |v| options[:types][:secondary][:enabled] = v }
+
+      opts.on('--[no-]writable-env',
+              'Includes writable environment when `--writable-env`',
+              '(default: --writable-env)'
+             ) { |v| options[:types][:writable][:enabled] = v }
 
       opts.separator ''
       opts.on_tail('-h', '--help', 'Print this message') do
@@ -115,18 +139,23 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # @param args [Array<String>] ARGV-style args array
   def run(args)
     options = parse_command_line(args)
+    action  = options.delete(:action)
+
     if args.empty?
-      warn("WARNING: 'ENVIRONMENT' is required.\n\n")
+      warn('','-'*80,'WARNING: \'ENVIRONMENT\' is required.','-'*80,'')
+      sleep 1
       help
     end
 
     env = args.shift
+
     unless env =~ Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME
       fail("ERROR: '#{env}' is not an acceptable environment name")
     end
 
-    # TODO: logic
-    warn("TODO: run(): **** simp environment new '#{env}' (#{args.map { |x| "'#{x}'" }.join(',')}) *** ")
-    _omni = Simp::Cli::Environment::OmniEnvController.new( options, env ).create
+    require 'yaml'
+    puts options.to_yaml
+    omni_controller = Simp::Cli::Environment::OmniEnvController.new( options, env )
+    omni_controller.send(action)
   end
 end

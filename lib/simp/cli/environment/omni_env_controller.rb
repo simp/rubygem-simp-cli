@@ -1,4 +1,5 @@
 require 'simp/cli/environment/env'
+require 'simp/cli/environment/puppet_dir_env'
 
 # Puppetfile helper namespace
 module Simp::Cli::Environment
@@ -6,17 +7,30 @@ module Simp::Cli::Environment
   class OmniEnvController
     def initialize(opts={}, env=nil)
       @opts = opts
-      @environments = {
-        puppet:    Env.new(env, opts),  # TODO: get PuppetEnv env factory
-        secondary: Env.new(env, opts),  # TODO: get SecondaryEnv env factory, support backends
-        writable:  Env.new(env, opts),  # TODO: get WritableEnv env factory, support backends
-      }
+      @environments = {}
+      @opts[:types].each do |type, data|
+        #TODO: different initialization per each type
+        #TODO: honor backends
+        case type
+        when :puppet
+          @environments[:puppet] = PuppetDirEnv.new(env,data)
+        else
+          @environments[type] = Env.new(env,data)
+          warn("⋆⋆⋆★☆★ WARNING: IMPLEMENT <#{type}>Env")
+        end
+      end
     end
 
-    # Create a new environment
+    # Create a new environment for each environment type
     def create()
-      @environments.each do |env_name, env_obj|
-         env_obj.create
+      @environments.each do |env_type, env_obj|
+        unless @opts[:types][env_type][:enabled]
+          puts( "INFO: skipping #{env_type} environment" )
+          next
+        end
+        puts "=== #{env_type} environment .create()"
+        puts  @opts[:types][env_type].to_yaml
+        env_obj.create
       end
     end
 
