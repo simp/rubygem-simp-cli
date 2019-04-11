@@ -4,30 +4,38 @@ require 'simp/cli/utils'
 module Simp::Cli::Environment
   # Abstract environment class
   class Env
-    def initialize( name, opts )
+    def initialize(name, opts)
       unless name =~ Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME
-        fail( "ERROR: Illegal environment name: '#{name}'",'',
-          'See: https://puppet.com/docs/puppet/6.4/environments_creating.html#concept-5441')
+        fail("ERROR: Illegal environment name: '#{name}'", '',
+             'See: https://puppet.com/docs/puppet/6.4/environments_creating.html#concept-5441')
       end
       @name = name
       @opts = opts
     end
 
     # Create a new environment
-    def create(); raise NotImplementedError; end
+    def create
+      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+    end
 
     # Update environment
-    def update(); raise NotImplementedError; end
+    def update
+      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+    end
 
     # Remove environment
-    def remove(); raise NotImplementedError; end
+    def remove
+      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+    end
 
     # Validate consistency of environment
-    def validate(); raise NotImplementedError; end
+    def validate
+      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+    end
 
     # Fix consistency of environment
-    def fix(); raise NotImplementedError; end
-
+    def fix
+      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+    end
   end
 end
-

@@ -1,6 +1,10 @@
 require 'simp/cli/commands/command'
 require 'simp/cli/environment/omni_env_controller'
 
+# Cli command to create a new Extra/Omni environment
+#
+# TODO: As more `simp environment` sub-commands are added, a lot of this code
+#      could probably be abstracted into a common class or mixin
 class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # @return [String] description of command
   def self.description
@@ -15,7 +19,6 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # Parse command-line options for this simp command
   # @param args [Array<String>] ARGV-style args array
   def parse_command_line(args)
-
     # TODO: simp cli should read a config file that can override
     # these options (preferrable mimicking cmd-line args)
     options = {
@@ -24,23 +27,26 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       types: {
         puppet: {
           enabled:     true,
-          strategy:   :skeleton, # :ignore, :skeleton, :copy
+          strategy:   :skeleton, # :skeleton, :copy
           puppetfile: false,
+          puppetfile_install: false,
           deploy:     false,
           backend:    :directory,
+          environmentpath:  Simp::Cli::Utils.puppet_info[:config]['environmentpath']
         },
         secondary: {
           enabled:    true,
-          strategy: :link,
-          backend:  :directory,
+          strategy: :link,       # :skeleton, :copy, :link
+          backend:  :directory
         },
         writable: {
           enabled:    true,
-          strategy: :link,
-          backend:  :directory,
+          strategy: :link,       # :skeleton, :copy, :link
+          backend:  :directory
         }
       }
     }
+
     opt_parser = OptionParser.new do |opts|
       opts.banner = '== simp environment new [options]'
       opts.separator <<-HELP_MSG.gsub(%r{^ {8}}, '')
@@ -99,31 +105,38 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
                 # TODO: implement --puppet-env => --copy logic
                 fail NotImplementedError, 'TODO: implement --link'
               end
+
       opts.on('--[no-]puppetfile',
               'Generate Puppetfiles in Puppet env directory',
               '  * `Puppetfile` will only be created if missing',
-              '* `Puppetfile.simp` will be generated from RPM/',
-              '* implies `--puppet-env`') do |v|
-                warn("========= v = '#{v}'")
-                # TODO: implement
-                # TODO: imply --puppet-env
-                fail NotImplementedError, 'TODO: implement --[no-]puppetfile'
-              end
+              '  * `Puppetfile.simp` will be generated from RPM/',
+              '  * implies `--puppet-env`') do |v|
+        if (options[:types][:puppet][:puppetfile] = v)
+          options[:types][:puppet][:enabled] = true
+        end
+      end
+
+      opts.on('--[no-]puppetfile-install',
+              'Automatically deploys Puppetfile in Puppet environment',
+              'directory after creating it',
+              '  * implies `--puppet-env`',
+              '  * Does NOT imply `--puppetfile`') do |v|
+        if (options[:types][:puppet][:puppetfile_install] = v)
+          options[:types][:puppet][:enabled] = true
+        end
+      end
 
       opts.on('--[no-]puppet-env',
               'Includes Puppet environment when `--puppet-env`',
-              '(default: --no-puppet-env)'
-             ) { |v| options[:types][:puppet][:enabled] = v }
+              '(default: --no-puppet-env)') { |v| options[:types][:puppet][:enabled] = v }
 
       opts.on('--[no-]secondary-env',
               'Includes Secondary environment when `--secondary-env`',
-              '(default: --secondary-env)'
-             ) { |v| options[:types][:secondary][:enabled] = v }
+              '(default: --secondary-env)') { |v| options[:types][:secondary][:enabled] = v }
 
       opts.on('--[no-]writable-env',
               'Includes writable environment when `--writable-env`',
-              '(default: --writable-env)'
-             ) { |v| options[:types][:writable][:enabled] = v }
+              '(default: --writable-env)') { |v| options[:types][:writable][:enabled] = v }
 
       opts.separator ''
       opts.on_tail('-h', '--help', 'Print this message') do
@@ -142,7 +155,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     action  = options.delete(:action)
 
     if args.empty?
-      warn('','-'*80,'WARNING: \'ENVIRONMENT\' is required.','-'*80,'')
+      warn('', '-' * 80, 'WARNING: \'ENVIRONMENT\' is required.', '-' * 80, '')
       sleep 1
       help
     end
@@ -155,7 +168,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
     require 'yaml'
     puts options.to_yaml
-    omni_controller = Simp::Cli::Environment::OmniEnvController.new( options, env )
+    omni_controller = Simp::Cli::Environment::OmniEnvController.new(options, env)
     omni_controller.send(action)
   end
 end
