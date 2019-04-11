@@ -1,11 +1,13 @@
 require 'simp/cli/commands/command'
+require 'simp/cli/environment/omni_env_controller'
+
 class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # @return [String] description of command
   def self.description
     'Create a new SIMP "Extra" (default) or "omni" environment'
   end
 
-  # Run the command's `--help` action
+  # Run the command's `--help` strategy
   def help
     parse_command_line(['--help'])
   end
@@ -14,19 +16,21 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # @param args [Array<String>] ARGV-style args array
   def parse_command_line(args)
     options = {
-      action: :fresh,
+      action:   :new,
+      strategy: :fresh,
       types: {
         puppet: {
-          action: false, # false, :copy, :link
-          puppetfile: false
+          strategy: false, # false, :copy, :link
+          puppetfile: false,
+          backend:    :directory,
         },
         secondary: {
-          action:  :link,
-          backend: :dir
+          strategy: :link,
+          backend:  :directory,
         },
         writable: {
-          action:  :link,
-          backend: :dir
+          strategy: :link,
+          backend:  :directory,
         }
       }
     }
@@ -68,7 +72,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       opts.on('--fresh',
               '(default) Generate environments from skeleton templates.',
               'Implies --puppetfile') do
-                options[:action] = :fresh
+                options[:strategy] = :fresh
                 options[:puppetfile] = true
                 # TODO: implement
                 warn('TODO: implement --fresh')
@@ -104,12 +108,13 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       end
     end
     opt_parser.parse!(args)
+    options
   end
 
   # Run command logic
   # @param args [Array<String>] ARGV-style args array
   def run(args)
-    parse_command_line(args)
+    options = parse_command_line(args)
     if args.empty?
       warn("WARNING: 'ENVIRONMENT' is required.\n\n")
       help
@@ -122,5 +127,6 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
     # TODO: logic
     warn("TODO: run(): **** simp environment new '#{env}' (#{args.map { |x| "'#{x}'" }.join(',')}) *** ")
+    _omni = Simp::Cli::Environment::OmniEnvController.new( options, env ).create
   end
 end
