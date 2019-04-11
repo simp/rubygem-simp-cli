@@ -35,7 +35,6 @@ module Simp::Cli::Environment
 
       # ensure environment is correct after creating it
       fix
-      fail NotImplementedError
     end
 
     # Update environment

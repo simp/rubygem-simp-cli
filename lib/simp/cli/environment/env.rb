@@ -6,8 +6,8 @@ module Simp::Cli::Environment
   class Env
     def initialize(name, opts)
       unless name =~ Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME
-        fail("ERROR: Illegal environment name: '#{name}'", '',
-             'See: https://puppet.com/docs/puppet/6.4/environments_creating.html#concept-5441')
+        fail(ArgumentError, "ERROR: Illegal environment name: '#{name}'" + \
+             "\n\nSee: https://puppet.com/docs/puppet/6.4/environments_creating.html#concept-5441")
       end
       @name = name
       @opts = opts

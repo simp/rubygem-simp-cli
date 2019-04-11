@@ -19,12 +19,12 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # Parse command-line options for this simp command
   # @param args [Array<String>] ARGV-style args array
   def parse_command_line(args)
-    # TODO: simp cli should read a config file that can override
+    # TODO: simp cli should read a config file that can override these defaults
     # these options (preferrable mimicking cmd-line args)
     default_strategy = :skeleton
     options = {
       action:   :create,
-      strategy: :fresh,
+      strategy: :skeleton,
       types: {
         puppet: {
           enabled:    true,
@@ -62,14 +62,14 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
         By default, this command will:
 
-          * create a new environment (–-fresh)
+          * create a new environment (–-skeleton)
           * raise an error if an environment directory already exists
 
         It can create a complete SIMP omni-environment with --puppet-env
 
         Examples:
 
-             # Create a fresh new development environment
+             # Create a skeleton new development environment
              simp env new development
 
              # Link staging's Secondary and Writable env dirs to production
@@ -85,13 +85,13 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
       HELP_MSG
 
-      opts.on('--fresh',
+      opts.on('--skeleton',
               '(default) Generate environments from skeleton templates.',
               'Implies --puppetfile') do
-                options[:strategy] = :fresh
+                options[:strategy] = :skeleton
                 options[:puppetfile] = true
                 # TODO: implement
-                fail NotImplementedError, 'TODO: implement --fresh'
+                fail NotImplementedError, 'TODO: implement --skeleton'
               end
 
       opts.on('--copy ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,

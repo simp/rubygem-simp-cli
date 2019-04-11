@@ -1,6 +1,6 @@
 require: rubocop-rspec
 AllCops:
-  TargetRubyVersion: 2.1
+  TargetRubyVersion: 2.4
   Include:
     - '*.rb'
     - 'rakelib/*.rake'
@@ -499,9 +499,6 @@ Metrics/AbcSize:
 # 'Complexity' is very relative
 Metrics/PerceivedComplexity:
   Enabled: False
-
-Lint/UselessAssignment:
-  Enabled: True
 
 Layout/ClosingParenthesisIndentation:
   Enabled: True

@@ -38,10 +38,8 @@ group :development do
   gem 'pry-byebug'
   gem 'pry-doc'
 
-  # Generate HISTORY.md from git tags (experimental, but promising)
-  gem 'gitlog-md'
-
-  gem 'rubocop', '0.57.2'
-  gem 'travis'
+  gem 'rubocop'
+  gem 'rubocop-performance'
   gem 'rubocop-rspec'
+  gem 'travis'
 end
