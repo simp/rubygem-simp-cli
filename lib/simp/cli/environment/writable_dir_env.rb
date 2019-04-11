@@ -2,8 +2,9 @@ require 'simp/cli/environment/env'
 
 # Environment helper namespace
 module Simp::Cli::Environment
-  # Abstract environment class
-  class PuppetDirEnv < Env
+  # Manages a "Writable" SIMP directory environment
+  # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/760840207/Environments
+  class WritableDirEnv < Env
     def initialize(name, base_environments_path, opts)
       super(name, opts)
       @base_environments_path = base_environments_path
@@ -17,36 +18,19 @@ module Simp::Cli::Environment
         - [ ] if environment is already deployed (#{@directory_path}/modules/*/ exist)
            - [ ] THEN FAIL WITH HELPFUL MESSAGE
         - [ ] else
-          - [ ] create directory from skeleton
-            - TODO: should we ship w/a basic skeleton source and optionally
-              reference one from filesystem?
-        - [ ] (option-driven) generate Puppetfile
-        - [ ] (option-driven) deploy modules (r10k puppetfile install)
+          - [ ] A1.2 create directory from skeleton
 
       TODO
     end
 
-    # Update environment
-    def update
-      fail NotImplementedError
-    end
-
-    # Remove environment
-    def remove
-      fail NotImplementedError
-    end
-
-    # Validate consistency of environment
-    def validate
-      fail NotImplementedError
-    end
-
     # Fix consistency of environment
+    #   @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
     def fix
       puts <<-TODO.gsub(%r{^ {6}}, '')
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
           - [ ] A2.3 applies Puppet user settings & groups to
-            - [ ] $codedir/environments/$ENVIRONMENT/
+            - [ ] /opt/puppetlabs/server/data/puppetserver/simp/environments/$ENVIRONMENT/
+          - [ ] B3.2 ensure the correct puppet permissions at /opt/puppetlabs/
 
       TODO
     end

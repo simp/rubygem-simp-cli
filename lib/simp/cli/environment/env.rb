@@ -1,6 +1,6 @@
 require 'simp/cli/utils'
 
-# Puppetfile helper namespace
+# Environment helper namespace
 module Simp::Cli::Environment
   # Abstract environment class
   class Env

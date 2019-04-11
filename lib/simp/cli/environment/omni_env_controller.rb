@@ -1,5 +1,7 @@
 require 'simp/cli/environment/env'
 require 'simp/cli/environment/puppet_dir_env'
+require 'simp/cli/environment/secondary_dir_env'
+require 'simp/cli/environment/writable_dir_env'
 
 # Puppetfile helper namespace
 module Simp::Cli::Environment
@@ -9,28 +11,31 @@ module Simp::Cli::Environment
       @opts = opts
       @environments = {}
       @opts[:types].each do |type, data|
-        # TODO: different initialization per each type
         # TODO: honor backends
+        # TODO: refactor into a Factory
+        base_env_path = data[:environmentpath] || fail(ArgumentError, 'ERROR: no :environmentpath in opts')
         case type
         when :puppet
-          @environments[:puppet] = PuppetDirEnv.new(env, data)
+          @environments[:puppet] = PuppetDirEnv.new(env, base_env_path, data)
+        when :secondary
+          @environments[:secondary] = SecondaryDirEnv.new(env, base_env_path, data)
+        when :writable
+          @environments[:writable] = WritableDirEnv.new(env, base_env_path, data)
         else
-          @environments[type] = Env.new(env, data)
+          fail( "ERROR: Unrecognized environment type '#{env_type}'" )
         end
       end
     end
 
     # Create a new environment for each environment type
     def create
-      @environments.each do |env_type, env_obj|
-        unless @opts[:types][env_type][:enabled]
-          puts("INFO: skipping #{env_type} environment")
-          next
-        end
-        puts "=== #{env_type} environment .create()"
-        puts @opts[:types][env_type].to_yaml
+      each_environment do |env_type, env_obj|
         env_obj.create
       end
+
+      # ensure environment is correct after creating it
+      fix
+      fail NotImplementedError
     end
 
     # Update environment
@@ -50,12 +55,31 @@ module Simp::Cli::Environment
 
     # Fix consistency of environment
     def fix
-      fail NotImplementedError
+      each_environment do |env_type, env_obj|
+        env_obj.fix
+      end
     end
 
     # Validate consistency of environment
     def validate
       fail NotImplementedError
+    end
+
+    private
+
+    # Safely iterate through each environment
+    # @param [String, nil] action_label  Optional string label to describle
+    # @yieldparam [Symbol] env_type                     The type of environment
+    # @yieldparam [Simp::Cli::Environment::Env] env_obj The environment object
+    def each_environment(action_label=nil)
+      @environments.each do |env_type, env_obj|
+        label = action_label ? "(action: #{action_label}) " : ''
+        unless @opts[:types][env_type][:enabled]
+          puts("INFO: #{label}skipping #{env_type} environment ")
+          next
+        end
+        yield env_type, env_obj
+      end
     end
   end
 end

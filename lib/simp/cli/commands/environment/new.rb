@@ -21,13 +21,14 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   def parse_command_line(args)
     # TODO: simp cli should read a config file that can override
     # these options (preferrable mimicking cmd-line args)
+    default_strategy = :skeleton
     options = {
       action:   :create,
       strategy: :fresh,
       types: {
         puppet: {
-          enabled:     true,
-          strategy:   :skeleton, # :skeleton, :copy
+          enabled:    true,
+          strategy:   default_strategy, # :skeleton, :copy
           puppetfile: false,
           puppetfile_install: false,
           deploy:     false,
@@ -35,14 +36,16 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
           environmentpath:  Simp::Cli::Utils.puppet_info[:config]['environmentpath']
         },
         secondary: {
-          enabled:    true,
-          strategy: :link,       # :skeleton, :copy, :link
-          backend:  :directory
+          enabled:  true,
+          strategy: default_strategy,   # :skeleton, :copy, :link
+          backend:  :directory,
+          environmentpath:  Simp::Cli::Utils.puppet_info[:secondary_environment_path]
         },
         writable: {
-          enabled:    true,
-          strategy: :link,       # :skeleton, :copy, :link
-          backend:  :directory
+          enabled:  true,
+          strategy: default_strategy,   # :skeleton, :copy, :link
+          backend:  :directory,
+          environmentpath:  Simp::Cli::Utils.puppet_info[:writable_environment_path]
         }
       }
     }
@@ -167,7 +170,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     end
 
     require 'yaml'
-    puts options.to_yaml
+    puts options.to_yaml, '', ''
     omni_controller = Simp::Cli::Environment::OmniEnvController.new(options, env)
     omni_controller.send(action)
   end
