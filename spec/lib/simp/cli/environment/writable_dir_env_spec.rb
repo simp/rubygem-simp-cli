@@ -1,15 +1,12 @@
-require 'simp/cli/environment/puppet_dir_env'
+require 'simp/cli/environment/writable_dir_env'
 require 'spec_helper'
 
-describe Simp::Cli::Environment::PuppetDirEnv do
+describe Simp::Cli::Environment::WritableDirEnv do
   let(:omni_opts){ YAML.load_file(File.join(__dir__,'files/omni_env_controller_opts.yaml')) }
   let(:opts){{
     enabled: true,
-    puppetfile: false,
-    puppetfile_install: false,
-    deploy: false,
     backend: :directory,
-    environmentpath: "/etc/puppetlabs/code/environments",
+    environmentpath: "/var/simp/environments"
   }}
   let(:env_path){ opts[:environmentpath] }
 
