@@ -8,35 +8,16 @@ require 'spec_helper'
 require 'yaml'
 
 describe Simp::Cli::Environment::OmniEnvController do
-  OPTS_YAML = <<-OPTS.gsub(%r{^ {4}}, '')
-    ---
-    :strategy: :skeleton
-    :types:
-      :puppet:
-        :enabled: true
-        :puppetfile: false
-        :puppetfile_install: false
-        :deploy: false
-        :backend: :directory
-        :environmentpath: "/etc/puppetlabs/code/environments"
-      :secondary:
-        :enabled: true
-        :backend: :directory
-        :environmentpath: "/var/simp/environments"
-      :writable:
-        :enabled: true
-        :backend: :directory
-        :environmentpath: "/opt/puppetlabs/server/data/puppetserver/simp"
-  OPTS
+  let(:opts_yaml){ File.read(File.join(__dir__,'files/omni_env_controller_opts.yaml')) }
 
   subject(:described_object) { described_class.new(opts, 'foo') }
 
   let(:opts) do
-    YAML.load(OPTS_YAML)
+    YAML.load(opts_yaml)
   end
 
   let(:opts_pup_disabled) do
-    opts = YAML.load(OPTS_YAML)
+    opts = YAML.load(opts_yaml)
     opts[:types][:puppet][:enabled] = false
     opts
   end
