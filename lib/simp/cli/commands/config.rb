@@ -11,7 +11,7 @@ require 'simp/cli/logging'
 require 'simp/cli/config/questionnaire'
 
 # Handle CLI interactions for "simp config"
-class Simp::Cli::Commands::Config  < Simp::Cli::Commands::Command
+class Simp::Cli::Commands::Config < Simp::Cli::Commands::Command
 
   include Simp::Cli::Logging
 
@@ -20,22 +20,22 @@ class Simp::Cli::Commands::Config  < Simp::Cli::Commands::Command
   INTRO_TEXT_PART1 = <<EOM
 #{SECTION_SEPARATOR}
 `simp config` will take you through preparing your infrastructure for bootstrap
-based on a pre-defined SIMP scenario you select.  These preparations include
+based on a pre-defined SIMP scenario, that you select. These preparations include
 optional and required general system setup and required Puppet configuration.
 All changes will be logged to
 EOM
 
   INTRO_TEXT_PART2 = <<EOM
-You will be prompted to enter setup information.  Each prompt will be prefaced
+You will be prompted to enter setup information. Each prompt will be prefaced
 by a detailed description of the information requested, along with the OS value
 and/or recommended value for that item, if available.
 
-At any time, you can exit `simp config` by entering <CTRL-C>.  By default,
+At any time, you can exit `simp config` by entering <CTRL-C>. By default,
 if you exit early, the configuration you entered will be saved to
 EOM
 
   INTRO_TEXT_PART3 = <<EOM
-The next time you run `simp config, you will be given the option to continue
+The next time you run `simp config`, you will be given the option to continue
 where you left off or to start all over.
 #{SECTION_SEPARATOR}
 EOM
@@ -48,7 +48,7 @@ EOM
                                     #  0 = INFO and above
                                     # >0 = DEBUG and above
       :allow_queries          => true,
-      :force_defaults         => false, # true  = use valid defaults, preemptively
+      :force_defaults         => false, # true = use valid defaults, preemptively
       :dry_run                => false,
 
       :answers_input_file     => nil,
@@ -158,7 +158,7 @@ EOM
   end
 
   def parse_command_line(args)
-    @default_hiera_outfile   = File.join(
+    @default_hiera_outfile = File.join(
       Simp::Cli::Utils::simp_env_datadir,
      'simp_config_settings.yaml'
     )
@@ -166,7 +166,7 @@ EOM
 
     @opt_parser      = OptionParser.new do |opts|
       opts_separator = ' '*4 + '-'*76
-      opts.banner = "\n=== The SIMP Configuration Tool ==="
+      opts.banner    = "\n=== The SIMP Configuration Tool ==="
       opts.separator ''
       opts.separator 'The SIMP Configuration Tool sets up the server configuration'
       opts.separator 'required for bootstrapping the SIMP system. It performs two'
@@ -176,7 +176,7 @@ EOM
       opts.separator '   (2) application of system configurations.'
       opts.separator ''
       opts.separator 'By default, the SIMP Configuration Tool interactively gathers'
-      opts.separator 'input from the user.  However, this input can also be read in'
+      opts.separator 'input from the user. However, this input can also be read in'
       opts.separator 'from an existing, complete answers YAML file; an existing,'
       opts.separator 'partial, answers YAML file and/or command line key/value'
       opts.separator 'arguments.'
@@ -190,7 +190,7 @@ EOM
       opts.on('-o', '--answers-output FILE',
               'The answers FILE where the created/edited',
               "system configuration used by 'simp config'",
-              'will be written.  Defaults to',
+              'will be written. Defaults to',
               "'#{@default_answers_outfile}'") do |file|
         @options[:answers_output_file] = file
       end
@@ -198,7 +198,7 @@ EOM
       opts.on('-p', '--puppet-output FILE',
               'The Puppet system FILE where the',
               'created/edited system hieradata will be',
-              'written.  Defaults to',
+              'written. Defaults to',
               "'#{@default_hiera_outfile}'") do |file|
         @options[:puppet_system_file] = file
       end
@@ -220,8 +220,8 @@ EOM
       end
 
       opts.on('--non-interactive',
-              'DEPRECATED:  This has been deprecated by --force-defaults',
-              'for clarity and will be removed in a future release.') do  |x|
+              'DEPRECATED: This has been deprecated by --force-defaults',
+              'for clarity and will be removed in a future release.') do |x|
         @options[:force_defaults] = true
       end
 
@@ -233,7 +233,7 @@ EOM
       end
 
       opts.on('-l', '--log-file FILE',
-              'Log file.  Defaults to',
+              'Log file. Defaults to',
               File.join(Simp::Cli::SIMP_CLI_HOME, 'simp_config.log.<timestamp>')) do |file|
         @options[:log_file] = file
       end
@@ -257,11 +257,11 @@ EOM
         @options[:dry_run] = true
       end
 
-      opts.on('-s', '--skip-safety-save',         'Ignore any safety-save files') do
+      opts.on('-s', '--skip-safety-save', 'Ignore any safety-save files') do
         @options[:use_safety_save] = false
       end
 
-      opts.on('-S', '--accept-safety-save',  'Automatically apply any safety-save files') do
+      opts.on('-S', '--accept-safety-save', 'Automatically apply any safety-save files') do
         @options[:autoaccept_safety_save] = true
       end
 
@@ -377,7 +377,7 @@ EOM
   # of the questions 'simp config' asks (Item values), as well as
   # values 'simp config' automatically sets
   def read_answers_file(file)
-    answers_hash = {}    # Read the input file
+    answers_hash = {} # Read the input file
 
     unless File.exist?(file)
       raise Simp::Cli::ProcessingError.new("ERROR: Could not access the file '#{file}'!")
@@ -415,7 +415,7 @@ EOM
 
     # Retrieve set of answers set at command line via tag=value pairs
     cli_answers = {}
-    cli_answers  = Hash[ args.map{ |x| x.split '=' } ]
+    cli_answers = Hash[ args.map{ |x| x.split '=' } ]
     unless cli_answers.empty?
       @options[:clean_session] = false
       @options[:user_overrides] = true
@@ -441,9 +441,9 @@ EOM
     greet_user
 
     if !answers_hash['cli::simp::scenario']
-      # ItemListFactory requires this in order to build the decision tree.  However,
+      # ItemListFactory requires this in order to build the decision tree. However,
       # in order to persist the 'cli::simp::scenario' key in the output answers
-      # YAML file, CliSimpScenario must also be in the Item decision tree.  Furthermoe,
+      # YAML file, CliSimpScenario must also be in the Item decision tree. Furthermoe,
       # to prevent the user from being prompted twice, the Item MUST be configured in
       # that tree to quietly use the default value.
       #
@@ -451,11 +451,11 @@ EOM
       # should handle this automatically.
       item = Simp::Cli::Config::Item::CliSimpScenario.new
       if options[:force_defaults]
-        answers_hash['cli::simp::scenario'] =  item.default_value_noninteractive
+        answers_hash['cli::simp::scenario'] = item.default_value_noninteractive
       elsif options[:allow_queries]
         item.query
         item.print_summary
-        answers_hash['cli::simp::scenario'] =  item.value
+        answers_hash['cli::simp::scenario'] = item.value
       else
         err_msg = "FATAL: No valid answer found for 'cli::simp::scenario'"
         raise Simp::Cli::Config::ValidationError.new(err_msg)
