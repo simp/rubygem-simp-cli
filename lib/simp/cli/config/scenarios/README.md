@@ -197,7 +197,7 @@ as follows:
   - Never ask the user for information that can be derived automatically.
     Instead, silently determine the value for the user.
   - Don't log information about automatically determined settings, as
-    this is super confusing to the user. This should be true not only to
+    this is super confusing to the user. This should be true not only for
     `simp config` runs with full queries, but, if possible, runs using
     answers files for which there may be no queries at all.
 
