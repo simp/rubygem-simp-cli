@@ -44,6 +44,7 @@ describe 'Simp::Cli' do
                  "    - bootstrap\n" +
                  "    - config\n" +
                  "    - doc\n" +
+                 "    - environment\n" +
                  "    - passgen\n" +
                  "    - puppetfile\n" +
                  "    - version\n" +

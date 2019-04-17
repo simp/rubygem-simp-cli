@@ -40,6 +40,7 @@ class Simp::Cli
     # grab the classes that are simp commands
     @commands = {}
     Simp::Cli::Commands::constants.each do |constant|
+      next if (constant == :Command) || (constant == :CommandFamily)
       obj = Simp::Cli::Commands.const_get(constant)
       if obj.ancestors.include? Simp::Cli::Commands::Command
         @commands[constant.to_s.downcase] = obj.new
