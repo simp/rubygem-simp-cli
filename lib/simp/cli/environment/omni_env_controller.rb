@@ -16,11 +16,11 @@ module Simp::Cli::Environment
         base_env_path = data[:environmentpath] || fail(ArgumentError, 'ERROR: no :environmentpath in opts')
         case type
         when :puppet
-          @environments[:puppet] = PuppetDirEnv.new(env, base_env_path, data)
+          @environments[:puppet]    = PuppetDirEnv.new(env, base_env_path, data)
         when :secondary
           @environments[:secondary] = SecondaryDirEnv.new(env, base_env_path, data)
         when :writable
-          @environments[:writable] = WritableDirEnv.new(env, base_env_path, data)
+          @environments[:writable]  = WritableDirEnv.new(env, base_env_path, data)
         else
           fail( "ERROR: Unrecognized environment type '#{env_type}'" )
         end
