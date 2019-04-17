@@ -36,9 +36,9 @@ module Simp::Cli::Config
     # NOTE: when used from query_ask, the highline_question_type lamba doesn't
     # always cast internal type of @value to a boolean.  As a workaround, we
     # cast it here before it is committed to the super's YAML output.
-    def to_yaml_s
+    def to_yaml_s(include_auto_warning = false)
       @value = highline_question_type.call @value
-      super
+      super(include_auto_warning)
     end
 
     def next_items

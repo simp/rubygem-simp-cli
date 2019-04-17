@@ -1,4 +1,5 @@
 require 'simp/cli/config/items/data/cli_simp_scenario'
+require 'simp/cli/utils'
 require 'fileutils'
 require_relative '../spec_helper'
 
@@ -44,6 +45,14 @@ describe Simp::Cli::Config::Item::CliSimpScenario do
 
     after :each do
       FileUtils.remove_entry_secure @tmp_dir
+    end
+  end
+
+  context '#to_yaml_s custom behavior' do
+    it 'never returns auto warning message' do
+      auto_warning = @ci.auto_warning
+      expect( @ci.to_yaml_s(false) ).to_not match(/#{auto_warning}/)
+      expect( @ci.to_yaml_s(true) ).to_not match(/#{auto_warning}/)
     end
   end
 

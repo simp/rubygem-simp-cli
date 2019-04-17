@@ -35,7 +35,7 @@ end
 group :development do
   # enhanced REPL + debugging environment
   gem 'pry'
-  gem 'pry-byebug', '~> 3.4.2'
+  gem 'pry-byebug'
   gem 'pry-doc'
 
   # Generate HISTORY.md from git tags (experimental, but promising)

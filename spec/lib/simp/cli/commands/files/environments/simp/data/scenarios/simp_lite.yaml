@@ -28,13 +28,16 @@ simp::scenario: 'simp_lite'
 simp_options::auditd: true
 simp_options::clamav: true
 simp_options::haveged: true
-simp_options::ldap: true
 simp_options::logrotate: true
 simp_options::pam: true
 simp_options::pki: simp
 simp_options::sssd: true
 simp_options::stunnel: true
 simp_options::syslog: true
+
+# This setting is turned off by default because use of LDAP is not
+# required
+simp_options::ldap: false
 
 # These settings explicitly turned off
 simp_options::firewall: false

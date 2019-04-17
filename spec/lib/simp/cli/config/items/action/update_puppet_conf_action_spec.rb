@@ -1,8 +1,4 @@
 require 'simp/cli/config/items/action/update_puppet_conf_action'
-require 'simp/cli/config/items/data/simp_options_puppet_ca'
-require 'simp/cli/config/items/data/simp_options_puppet_ca_port'
-require 'simp/cli/config/items/data/simp_options_puppet_server'
-require 'simp/cli/config/items/data/simp_options_fips'
 require 'fileutils'
 
 require_relative '../spec_helper'

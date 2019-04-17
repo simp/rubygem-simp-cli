@@ -27,7 +27,7 @@ class Simp::Cli::Config::ItemListFactory
 
 
   def process( answers_hash={}, items_yaml = nil )
-    @answers_hash = answers_hash
+    @answers_hash = answers_hash.dup
 
     # Require the config items
     rb_files = File.expand_path( '../config/item/*.rb', __dir__ )
@@ -80,6 +80,7 @@ class Simp::Cli::Config::ItemListFactory
     parts = item_string.split( /\s+/ )
     name  = parts.shift
     item  = Simp::Cli::Config::Item.const_get(name).new
+    override_value = nil
 
     # set item options
     #   ...based on YAML keywords
@@ -90,21 +91,28 @@ class Simp::Cli::Config::ItemListFactory
         parts = []
         next
       end
-      item.silent           = true if part == 'SILENT'
-      item.skip_query       = true if part == 'SKIPQUERY'
-      item.skip_yaml        = true if part == 'NOYAML'
+      item.silent           = true  if part == 'SILENT'
+      item.skip_query       = true  if part == 'SKIPQUERY'
+      item.skip_yaml        = true  if part == 'NOYAML'
       if item.respond_to?(:safe_apply)
-        item.skip_apply       = true if part == 'NOAPPLY'
-        item.allow_user_apply = true if part == 'USERAPPLY'
+        item.skip_apply       = true  if part == 'NOAPPLY'
+        item.allow_user_apply = true  if part == 'USERAPPLY'
+        item.defer_apply      = false if part == 'IMMEDIATE'
       end
       if part == 'GENERATENOQUERY'
-        item.skip_query    = true
+        item.skip_query      = true
         item.generate_option = :generate_no_query
       end
       item.generate_option  = :never_generate if part == 'NEVERGENERATE'
       dry_run_apply         = true            if part == 'DRYRUNAPPLY'
       if part =~ /^FILE=(.+)/
         item.file = $1
+      end
+      if part =~ /^VALUE=(.+)/
+        # This **ASSUMES** the Item can handle any transformations of
+        # this value (e.g., 'yes' => true), even when the Item's
+        # skip_query is true.
+        override_value = $1
       end
 
     end
@@ -120,6 +128,10 @@ class Simp::Cli::Config::ItemListFactory
 
     # pre-assign item value from various sources, if available
     item = assign_value_from_hash( @answers_hash, item )
+
+    # override the pre-assigns, as needed, sigh
+    item.value = override_value if override_value
+    item
   end
 
 
@@ -154,12 +166,12 @@ class Simp::Cli::Config::ItemListFactory
 
   # create a YAML writer that will "safety save" after each answer
   def create_safety_writer_item
-    if file =  @options.fetch( :answers_output_file, nil)
+    if file =  @options.fetch( :safety_save_file, nil)
       FileUtils.mkdir_p File.dirname( file ), :verbose => false
       writer = Simp::Cli::Config::Item::AnswersYAMLFileWriter.new
-      file   = File.join( File.dirname( file ), ".#{File.basename( file )}" )
       writer.file             = file
       writer.allow_user_apply = true
+      writer.defer_apply      = false  # make sure we apply immediately
       writer.silent           = true  if @options.fetch(:verbose, 0) < 2
       writer.start_time       = @options.fetch( :start_time, Time.now )
       # don't sort the output so we figure out the last item answered

@@ -13,9 +13,9 @@ module Simp::Cli::Config
   class IntegerItem < Item
     # Ensure value set externally is converted to an integer
     # before being written to YAML
-    def to_yaml_s
+    def to_yaml_s(include_auto_warning = false)
       @value = @value.to_i
-      super
+      super(include_auto_warning)
     end
 
     # Ensure queried item is converted to an integer

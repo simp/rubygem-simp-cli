@@ -1,4 +1,8 @@
 require_relative '../action_item'
+require_relative '../data/simp_options_fips'
+require_relative '../data/simp_options_puppet_ca'
+require_relative '../data/simp_options_puppet_ca_port'
+require_relative '../data/simp_options_puppet_server'
 require 'simp/cli/utils'
 
 module Simp; end
@@ -12,6 +16,7 @@ module Simp::Cli::Config
       @file        = File.join(Simp::Cli::Utils.puppet_info[:config]['confdir'], 'puppet.conf')
       @key         = 'puppet::conf'
       @description = "Update Puppet settings"
+      @category    = :puppet_global
     end
 
     def apply

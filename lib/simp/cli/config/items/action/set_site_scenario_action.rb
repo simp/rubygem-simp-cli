@@ -12,6 +12,7 @@ module Simp::Cli::Config
       super
       @key                   = 'puppet::site::scenario'
       @description           = "Set $simp_scenario in simp environment's site.pp"
+      @category              = :puppet_env
       @simp_environment_path = Simp::Cli::Utils.puppet_info[:simp_environment_path]
     end
 

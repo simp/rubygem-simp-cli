@@ -8,7 +8,9 @@ module Simp::Cli::Config
     def initialize
       super
       @key         = 'cli::network::hostname'
-      @description = %q{The FQDN of the system.}
+      @description = %q{The Fully Qualified Domain Name (FQDN) of the system.
+
+This *MUST* contain a domain. Simple hostnames are not allowed.}
       @data_type   = :cli_params
       @fact        = 'fqdn'
     end
@@ -24,13 +26,21 @@ module Simp::Cli::Config
       # here, so we can present the user with a better recommended value.
       # NOTE: `hostname -A` can return a list of hostnames.  Since we have
       # have no way of determining the most appropriate list entry, we
-      # arbitrarily select the first entry.
-      network_hostname = `hostname -A 2>/dev/null`.split[0]
-      if network_hostname and validate( network_hostname )
-        network_hostname
-      else
-        validate( os_value ) ? os_value : 'puppet.change.me'
+      # iterate through the hostnames provided to find the first one that
+      # validates.
+      network_hostname = nil
+      `hostname -A 2>/dev/null`.split.each do |hostname|
+        if validate( hostname )
+          network_hostname = hostname
+          break
+        end
       end
+
+      unless network_hostname
+        network_hostname = (validate( os_value ) ? os_value : 'puppet.change.me')
+      end
+
+      network_hostname
     end
   end
 end

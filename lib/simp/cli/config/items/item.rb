@@ -78,6 +78,7 @@ module Simp::Cli::Config
       #   'answer1' => [ Item1, Item2, .. ]
       #   'answer2' => [ Item3, Item4, .. ]
       @next_items_tree   = {}
+
     end
 
 
@@ -141,12 +142,21 @@ module Simp::Cli::Config
     #  Pretty stdout/stdin methods
     # --------------------------------------------------------------------------
 
+    # Warning message to add to the Item's YAML comments when this Item
+    # has been automatically set by `simp config`
+    def auto_warning
+      ">> VALUE SET BY `simp config` AUTOMATICALLY. <<\n"
+    end
+
     # String in yaml answer file format, with comments (if any)
-    def to_yaml_s
+    def to_yaml_s(include_auto_warning = false)
       raise InternalError.new( "@key is empty for #{self.class}" ) if "#{@key}".empty?
 
       x =  "=== #{@key} ===\n"
       x += "#{(description || 'FIXME: NO DESCRIPTION GIVEN')}\n"
+      if include_auto_warning && @skip_query && @silent
+        x += auto_warning
+      end
 
       # comment every line that describes the item:
       x =  x.each_line.map{ |y| "# #{y}" }.join
@@ -170,7 +180,6 @@ module Simp::Cli::Config
       # inspect is a work around for Ruby 1.8.7 Array.to_s garbage
       info( "    - os value:          #{os_value.inspect}", [:CYAN] )          if os_value
       info( "    - recommended value: #{recommended_value.inspect}", [:CYAN] ) if recommended_value
-      info( "    - chosen value:      #{@value.inspect}"           , [:CYAN] ) if @value
     end
 
 
@@ -214,8 +223,19 @@ module Simp::Cli::Config
     end
 
     def determine_value_from_default
-      # default value requires no validation
       @value = default_value_noninteractive
+      # The default value *should* not require validation. However, if it is
+      # computed from other Item values and ends up being invalid (typically
+      # because the other Items were different than the developers had
+      # anticipated and, thus, did not have adequate validation), this
+      # failure will be hidden by `simp config`, and invariably will cause
+      # `simp bootstrap` to fail.
+      unless validate(@value)
+        # Unfortunatey, there is no way for the user to fix this problem.
+        # The best we can do is spew enough information for a developer to debug.
+        err_msg = "Default, noninteractive value for #{@key} is invalid: '#{@value}'."
+        raise InternalError.new(err_msg)
+      end
       @alt_source = :noninteractive
     end
 
@@ -302,10 +322,10 @@ module Simp::Cli::Config
     # ask an interactive question
     def query_ask
       # NOTE: The trailing space at the end of the ask() parameter
-      # obliquely instructs HighLine to keep the prompt on the same
-      # line as the question.  If the String did not end with a space
-      # or tab, HighLine would move the input prompt to the next line
-      # (which, for our purposes, looks confusing).
+      # obliquely instructs HighLine to remain on the prompt line when
+      # gathering user input.  If the String did not end with a space
+      # or tab, HighLine would move to the next line (which, for our
+      # purposes, looks confusing).
 
 # FIXME:  When the more-intelligible, string color methods are
 # used here instead of the ERB template, the unit tests that examine

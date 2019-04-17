@@ -1,4 +1,6 @@
 require_relative '../item'
+require_relative '../../utils'
+require_relative 'cli_network_interface'
 
 module Simp; end
 class Simp::Cli; end

@@ -85,7 +85,7 @@ OPTIONS:
 
     it 'fails if the system does not have a FQDN' do
       # Override the fail method so that we can snag the message that is sent
-      @bootstrap.stub(:fail) do |message, options='', console_prefix=''|
+      allow(@bootstrap).to receive(:fail) do |message, options='', console_prefix=''|
         message
       end
 

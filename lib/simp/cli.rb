@@ -78,24 +78,12 @@ class Simp::Cli
         # user has terminated an interactive query
         $stderr.puts "\nInput terminated! Exiting.\n".red
         result = 1
+      rescue Interrupt => e
+        $stderr.puts "\nProcessing interrupted! Exiting.\n\n".red
+        result = 1
       rescue SignalException => e
-        # SignalException is a bit messy.
-        # - SIGINT
-        #   Ruby 1.8.7                                 Ruby > 1.8.7
-        #   e.inspect -> 'Interrupt'                   e.inspect -> 'Interrupt'
-        #   e.signo   -> nil                           e.signo   -> 2
-        #   e.message -> nil                           e.message -> nil
-        # - All other signals
-        #   Ruby 1.8.7                                 Ruby > 1.8.7
-        #   e.inspect -> '#<SignalException: SIGxxx>'  e.inspect -> '#<SignalException: SIGxxx>'
-        #   e.signo   -> nil                           e.signo   -> <signal number>
-        #   e.message -> 'SIGxxx'                      e.message -> 'SIGxxx'
-        if e.inspect == 'Interrupt'
-          $stderr.puts "\nProcessing interrupted! Exiting.\n\n".red
-        else
-          $stderr.puts "\nProcess received signal #{e.message}. Exiting!\n\n".red
-          e.backtrace.first(10).each{|l| $stderr.puts l }
-        end
+        $stderr.puts "\nProcess received signal #{e.message}. Exiting!\n\n".red
+        e.backtrace.first(10).each{|l| $stderr.puts l }
         result = 1
       rescue Simp::Cli::ProcessingError => e
         $stderr.puts "\n#{e.message}\n\n".red

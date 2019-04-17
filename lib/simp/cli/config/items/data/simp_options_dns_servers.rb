@@ -1,5 +1,6 @@
 require_relative '../list_item'
 require_relative '../../utils'
+require_relative 'cli_network_ipaddress'
 
 module Simp; end
 class Simp::Cli; end

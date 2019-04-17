@@ -1,6 +1,6 @@
 # ==== User actions ====
 - UseraddSecuretty
-- CliHasSimpLocalUser  SKIPQUERY SILENT: # don't ever prompt, just discover current value
+- CliHasSimpLocalUser         SKIPQUERY SILENT: # don't ever prompt, just discover current value
    false:
     - SimpServerAllowSimpUser SKIPQUERY SILENT # default is correct
     - DisallowSimpUserAction  # ISO-provided user does not exist, so don't allow!

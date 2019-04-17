@@ -126,6 +126,37 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Apr 16 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 4.5.0
+- 'simp config' updates:
+  - Reworked questionnaire to allow the user to opt out
+    of LDAP all together
+  - Removed code that loaded the scenario YAML files
+  - Defer most actions until after all information has been
+    gathered, instead of running them immediately.
+    - When queries are appropriate, ask the user if they want to
+      apply the configuration.
+    - Group the deferred actions logically, so that the sequence
+      of actions makes sense to the user.
+  - Improved introductory text and descriptions of a few items
+    that have been confusing for users
+  - In the answers YAML file, provide an 'automatically set'
+    comment for each an Item for which 'simp config' generates
+    the answer. Thes are items that a user cannot preconfigure
+    in an input answers file.
+  - Removed the ability for a non-root user to set the Puppet
+    digest algorithm.  This was a bug.
+  - In cli::network::interface item, try to recommend an
+    interface that has an IPv4 address set.  Also print out the
+    list of available interfaces and their corresponding IPv4
+    addresses (when set) in the description.
+  - In cli::network::hostname item, when `hostname -A` returns
+    more than one entry, iterate through all entries to try to
+    find one that passes FQDN validation, instead of grabbing
+    the first one.
+  - Fail when the default, non-interactive value for a data item
+    fails validation.
+  - Added simp-cli version to the answers file as a YAML entry.
+
 * Wed Apr 03 2019 Jim Anderson <thesemicolons@protonmail.com> - 4.5.0
 - Added message to bootstrap.rb indicating that puppetserver has been
   reconfigured to listen on a specific port. This message will be

@@ -1,5 +1,5 @@
 ---
-cli::is_ldap_server: true
+cli::is_simp_ldap_server: true
 cli::network::dhcp: static
 cli::network::gateway: "1.2.3.1"
 cli::network::hostname: puppet.test.local
@@ -11,6 +11,7 @@ cli::set_grub_password: true
 cli::set_production_to_simp: true
 #OOPS,THIS IS REQUIRED --> cli::simp::scenario: simp_lite
 cli::use_internet_simp_yum_repos: true
+cli::version: "0.0.0"
 grub::password: "$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX."
 simp::runlevel: 3
 simp::server::allow_simp_user: false
@@ -19,7 +20,8 @@ simp_options::dns::search:
   - test.local
 simp_options::dns::servers:
   - "1.2.3.10"
-simp_options::fips: false
+simp_options::fips: true
+simp_options::ldap: true
 simp_options::ldap::base_dn: "dc=test,dc=local"
 simp_options::ldap::bind_hash: "{SSHA}tx9ennniDQnmx83gPjCqhy6pknR89QsD"
 simp_options::ldap::bind_pw: "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm"

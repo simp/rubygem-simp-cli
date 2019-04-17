@@ -8,12 +8,15 @@ describe Simp::Cli::Config::ItemsYamlGenerator do
     it 'constructs YAML from parts and substitutes variables' do
       expected = IO.read(File.join(files_dir, 'simp_generated_items_tree.yaml'))
       expect( Simp::Cli::Config::ItemsYamlGenerator.new('simp').generate_yaml ).to eq expected
+      YAML.load(expected)   # make sure YAML is valid...will raise if parsing fails
 
       expected = IO.read(File.join(files_dir, 'simp_lite_generated_items_tree.yaml'))
       expect( Simp::Cli::Config::ItemsYamlGenerator.new('simp_lite').generate_yaml ).to eq expected
+      YAML.load(expected)   # make sure YAML is valid...will raise if parsing fails
 
       expected = IO.read(File.join(files_dir, 'poss_generated_items_tree.yaml'))
       expect( Simp::Cli::Config::ItemsYamlGenerator.new('poss').generate_yaml ).to eq expected
+      YAML.load(expected)   # make sure YAML is valid...will raise if parsing fails
     end
 
     it 'fails when scenario is invalid' do

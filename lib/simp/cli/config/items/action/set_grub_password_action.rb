@@ -16,8 +16,9 @@ module Simp::Cli::Config
 
     def initialize
       super
-      @key         = 'set_grub_password_action'
-      @description = 'Set GRUB password'
+      @key            = 'set_grub_password_action'
+      @description    = 'Set GRUB password'
+      @category       = :system
       @applied_status = :unattempted
     end
 

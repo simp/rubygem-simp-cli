@@ -7,16 +7,18 @@ module Simp::Cli::Config
 
     def initialize
       super
-      @key         = 'fips_digest'
-      @description = 'Set Puppet digest algorithm to work with FIPS'
-      @allow_user_apply = true
-      @applied_status = :unattempted
+      @key              = 'fips_digest'
+      @description      = 'Set Puppet digest algorithm to work with FIPS'
+      @category         = :puppet_global
+      @applied_status   = :unattempted
       @digest_algorithm = 'sha256'
     end
 
     def apply
       @applied_status = :failed
-      # This is a one-off prep item needed to handle Puppet certs w/FIPS mode
+      # This is a one-off prep item needed to ensure any `puppet apply's` used
+      # in configuration prior to setting up Puppet config (which also sets
+      # the digest algorithm to sha256) use the correct digest algorithm.
       result = execute( %Q(puppet config set digest_algorithm #{@digest_algorithm}) )
       @applied_status = :succeeded if result
     end

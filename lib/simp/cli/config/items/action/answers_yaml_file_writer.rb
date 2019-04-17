@@ -14,12 +14,13 @@ module Simp::Cli::Config
       @description     = %Q{Write answers to YAML file.}
       @file            = '~/.simp/simp_conf.yaml'
       @sort_output     = true
+      @category        = :answers_writer
     end
 
     # prints an answers file to an iostream
     def print_answers_yaml( iostream, answers )
       if @config_items['cli::simp::scenario']
-         scenario_info = "for #{@config_items['cli::simp::scenario'].value} scenario "
+         scenario_info = "for '#{@config_items['cli::simp::scenario'].value}' scenario "
       else
          scenario_info = ''
       end
@@ -27,7 +28,6 @@ module Simp::Cli::Config
       iostream.puts "# simp config answers"
       iostream.puts "#"
       iostream.puts "# Generated #{scenario_info}on #{@start_time.strftime('%F %T')}"
-      iostream.puts "# using simp-cli version #{Simp::Cli::VERSION}"
       iostream.puts "#" + '-'*72
       iostream.puts "# You can use these answers to quickly configure subsequent
                      # simp installations by running the command:
@@ -36,11 +36,26 @@ module Simp::Cli::Config
                      #
                      # simp config will prompt for any missing items.
                      #
-                     # NOTE: All YAML keys that begin with 'cli::' are used
-                     # by simp config, internally, and are not Puppet hieradata.
+                     # NOTE:
+                     # - All YAML keys that begin with 'cli::' are used by
+                     #   simp config, internally, and are not Puppet hieradata.
+                     #
+                     # - Any entry with the following comment is automatically,
+                     #   silently set by `simp config`.
+                     #
+                     #     #{Item.new.auto_warning}
+                     #
+                     #   This means if you modify any of these entries in
+                     #   an answers file, and then feed that file back into
+                     #   `simp config`, your modifications will be lost!
                      ".gsub(/^\s+/, '').strip
       iostream.puts "#" + '='*72
-      iostream.puts "---"
+      iostream.puts '---'
+      iostream.puts '# === cli::version ==='
+      iostream.puts '# The version of simp-cli used to generate this file.'
+      iostream.puts "# #{Item.new.auto_warning}"
+      iostream.puts "cli::version: \"#{Simp::Cli::VERSION}\""
+      iostream.puts
 
       if @sort_output
         answers = answers.sort.to_h
@@ -48,7 +63,7 @@ module Simp::Cli::Config
 
       answers.each do |k,v|
         if v.data_type and v.data_type != :internal
-          if yaml = v.to_yaml_s  # filter out nil results for items whose YAML is suppressed
+          if yaml = v.to_yaml_s(true)  # filter out nil results for items whose YAML is suppressed
             # get rid of trailing whitespace
             yaml.split("\n").each { |line| iostream.puts line.rstrip }
             iostream.puts
