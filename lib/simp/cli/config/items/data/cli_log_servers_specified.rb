@@ -1,11 +1,12 @@
 require_relative '../yes_no_item'
+require_relative 'simp_options_syslog_log_servers'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CliLogServersSpecified < YesNoItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'cli::log::servers:specified'
       @description = %Q{Whether syslog log servers are specified.
 

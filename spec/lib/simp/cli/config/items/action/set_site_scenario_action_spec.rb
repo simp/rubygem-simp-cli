@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/action/set_site_scenario_action'
-require 'simp/cli/config/items/data/cli_simp_scenario'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SetSiteScenarioAction do
@@ -8,26 +7,19 @@ describe Simp::Cli::Config::Item::SetSiteScenarioAction do
 
   before :each do
     @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
-    test_env_dir = File.join(@tmp_dir, 'environments')
-    @site_pp = File.join(test_env_dir, 'simp', 'manifests', 'site.pp')
+    FileUtils.cp_r(File.join(env_files_dir, 'environments', 'simp'), @tmp_dir)
+    @site_pp = File.join(@tmp_dir, 'simp', 'manifests', 'site.pp')
 
-    allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
-      :config => {
-        'codedir' => @tmp_dir,
-        'confdir' => @tmp_dir
-      },
-      :environment_path => test_env_dir,
-      :simp_environment_path => File.join(test_env_dir, 'simp'),
-      :fake_ca_path => File.join(test_env_dir, 'simp', 'FakeCA')
-    } )
-    FileUtils.mkdir(test_env_dir)
-    FileUtils.cp_r(File.join(env_files_dir, 'environments', 'simp'), test_env_dir)
+    puppet_env_info = {
+      :puppet_config  => { 'modulepath' => '/does/not/matter' },
+      :puppet_env_dir => File.join(@tmp_dir, 'simp')
+    }
 
-    @ci        = Simp::Cli::Config::Item::SetSiteScenarioAction.new
+    @ci        = Simp::Cli::Config::Item::SetSiteScenarioAction.new(puppet_env_info)
     @ci.silent = true
     @ci.start_time = Time.new(2017, 1, 13, 11, 42, 3)
 
-    item       = Simp::Cli::Config::Item::CliSimpScenario.new
+    item       = Simp::Cli::Config::Item::CliSimpScenario.new(puppet_env_info)
     item.value = 'simp_lite'
     @ci.config_items[item.key] = item
   end

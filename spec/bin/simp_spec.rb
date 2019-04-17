@@ -62,19 +62,9 @@ end
 describe 'simp executable' do
   let(:simp_exe) { File.expand_path('../../bin/simp', __dir__) }
 
-  before :all do
-    env_files_dir = File.expand_path('../lib/simp/cli/commands/files', __dir__)
-    code_dir = File.expand_path('.puppetlabs/etc/code',ENV['HOME'])
-    @test_env_dir = File.join(code_dir, 'environments')
-    FileUtils.mkdir_p(@test_env_dir)
-
-# FIXME without :verbose option, copy doesn't copy all....
-    FileUtils.cp_r(File.expand_path('environments/simp', env_files_dir), @test_env_dir, :verbose => true)
-  end
-
   before :each do
 
-    # Before each test, make sure that the current  ruby interpreter will be
+    # Before each test, make sure that the current ruby interpreter will be
     # used when `bin/simp` is executed.  This prevents environmental pollution
     # when running tests on a system with AIO puppet installed.
     adjusted_path = File.join(RbConfig::CONFIG['bindir']) + ':' + ENV['PATH']
@@ -90,17 +80,12 @@ describe 'simp executable' do
     @simp_config_args = [
       '--dry-run',  # do NOT inadvertently make any changes on the test system
       '-o', File.join(@tmp_dir, 'simp_conf.yaml'),
-      '-p', File.join(@tmp_dir, 'simp_config_settings.yaml'),
       '-l', File.join(@tmp_dir, 'simp_config.log')
       ].join(' ')
   end
 
   after :each do
     FileUtils.remove_entry_secure(@tmp_dir) if @tmp_dir
-  end
-
-  after :all do
-    FileUtils.remove_entry_secure(@test_env_dir)
   end
 
   context 'when run' do

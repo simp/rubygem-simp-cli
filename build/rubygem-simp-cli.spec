@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.5.0
+%global cli_version 5.0.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -126,6 +126,34 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Fri Apr 26 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
+- 'simp' change:
+  - Fixed bug in which the wrong Facter environment variable was set
+- 'simp config' changes:
+  - Use of 'simp environment' code to set up the initial SIMP puppet
+    and secondary environments.
+  - Now require the user to use a new command line option,
+    '--force-config', when the user wants to re-configure
+    an existing SIMP puppet environment
+  - Changed default environment from 'simp' (with corresponding
+    'production' link) to 'production'
+  - Restricted non-root user to only be able to run in '--dry-run'
+    mode.  This was all that the user could actually do, but,
+    without enforcement, lead to unexpected failures.
+  - Fixed a bug in which the check for Puppet Enterprise was
+    incorrect.  This resulted in incorrect puppetserver ports.
+- 'simp bootstrap' changes:
+    (with 'production' links), if they do not exist.  Instead, checks
+    for the existence of SIMP Puppet and secondary 'production'
+    environments and fails if both are not present.
+  - Checks validity of manifests in the 'production' environment,
+    not 'simp' environment, as the link that made them
+    equivalent is OBE.
+  - Fixed a bug in which the check for Puppet Enterprise was
+    incorrect.  This would result in Puppet FOSS-specific bootstrap
+    operations being executed.
+  - Added more log messages to make bootstrap process more clear
+
 * Tue Apr 16 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 4.5.0
 - 'simp config' updates:
   - Reworked questionnaire to allow the user to opt out

@@ -6,8 +6,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CliNetworkIPAddress < Item
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'cli::network::ipaddress'
       @description = 'The IP address of the system.'
       @data_type   = :cli_params

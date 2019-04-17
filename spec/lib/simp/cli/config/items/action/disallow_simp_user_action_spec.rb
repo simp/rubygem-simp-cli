@@ -1,6 +1,4 @@
 require 'simp/cli/config/items/action/disallow_simp_user_action'
-require 'simp/cli/config/items/data/cli_network_hostname'
-require 'simp/cli/config/items/data/simp_server_allow_simp_user'
 require 'fileutils'
 require_relative '../spec_helper'
 
@@ -14,9 +12,13 @@ describe Simp::Cli::Config::Item::DisallowSimpUserAction do
 
     @fqdn = 'hostname.domain.tld'
     @host_file = File.join( @hosts_dir, "#{@fqdn}.yaml" )
-    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return(@tmp_dir)
 
-    @ci        = Simp::Cli::Config::Item::DisallowSimpUserAction.new
+    @puppet_env_info = {
+      :puppet_config      => { 'modulepath' => '/does/not/matter' },
+      :puppet_env_datadir => @tmp_dir
+    }
+
+    @ci        = Simp::Cli::Config::Item::DisallowSimpUserAction.new(@puppet_env_info)
     @ci.silent = true
   end
 
@@ -26,11 +28,11 @@ describe Simp::Cli::Config::Item::DisallowSimpUserAction do
 
   context '#apply' do
     before :each do
-      item       = Simp::Cli::Config::Item::CliNetworkHostname.new
+      item       = Simp::Cli::Config::Item::CliNetworkHostname.new(@puppet_env_info)
       item.value = @fqdn
       @ci.config_items[item.key] = item
 
-      item       = Simp::Cli::Config::Item::SimpServerAllowSimpUser.new
+      item       = Simp::Cli::Config::Item::SimpServerAllowSimpUser.new(@puppet_env_info)
       item.value = false
       @ci.config_items[item.key] = item
     end

@@ -1,12 +1,13 @@
 require_relative '../list_item'
 require_relative '../../utils'
+require_relative 'cli_has_simp_filesystem_yum_repo'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpYumRepoLocalOsUpdatesServers < ListItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'simp::yum::repo::local_os_updates::servers'
       @description = %Q{The YUM server(s) for SIMP-managed, OS Update packages.}
     end

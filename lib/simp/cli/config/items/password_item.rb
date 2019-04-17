@@ -10,8 +10,8 @@ module Simp::Cli::Config
   #   - optional password generation
   class PasswordItem < Item
     attr_accessor :generate_option
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       # :never_generate         = don't give user option to auto-generate
       # :generate_no_query      = auto-generate and accept; should only be used when
       #                           a password will be persisted to hieradata

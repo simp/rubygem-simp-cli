@@ -1,11 +1,14 @@
 require_relative '../action_item'
+require_relative '../data/cli_network_dhcp'
+require_relative '../data/cli_network_hostname'
+require_relative '../data/cli_network_interface'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SetHostnameAction < ActionItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key               = 'hostname::conf'
       @description       = 'Set hostname'
       @category          = :system

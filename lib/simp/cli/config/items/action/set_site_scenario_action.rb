@@ -1,26 +1,24 @@
 require_relative '../action_item'
+require_relative '../data/cli_simp_scenario'
 require 'fileutils'
-require 'simp/cli/utils'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SetSiteScenarioAction < ActionItem
-    attr_accessor :simp_environment_path
 
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key                   = 'puppet::site::scenario'
       @description           = "Set $simp_scenario in simp environment's site.pp"
       @category              = :puppet_env
-      @simp_environment_path = Simp::Cli::Utils.puppet_info[:simp_environment_path]
     end
 
     def apply
       @applied_status = :failed
 
       simp_scenario = get_item('cli::simp::scenario').value
-      site_pp = File.join(@simp_environment_path, 'manifests', 'site.pp')
+      site_pp = File.join(@puppet_env_info[:puppet_env_dir], 'manifests', 'site.pp')
       if File.exists?(site_pp)
         backup_file = "#{site_pp}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
         debug( "Backing up #{site_pp} to #{backup_file}" )

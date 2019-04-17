@@ -1,4 +1,5 @@
 require_relative '../action_item'
+require_relative '../data/grub_password'
 
 module Simp; end
 class Simp::Cli; end
@@ -14,8 +15,8 @@ class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SetGrubPasswordAction < ActionItem
 
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key            = 'set_grub_password_action'
       @description    = 'Set GRUB password'
       @category       = :system

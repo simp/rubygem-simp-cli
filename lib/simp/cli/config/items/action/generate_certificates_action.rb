@@ -1,19 +1,19 @@
-require_relative('../action_item')
+require_relative '../action_item'
+require_relative '../data/cli_network_hostname'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::GenerateCertificatesAction < ActionItem
-    attr_accessor :dirs, :group
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key               = 'certificates'
       @description       = 'Generate interim certificates for SIMP server'
       @dirs              = {
-        :keydist    => '/var/simp/environments/simp/site_files/pki_files/files/keydist',
-        :fake_ca    => Simp::Cli::Utils.puppet_info[:fake_ca_path]
+        :keydist    => "#{@puppet_env_info[:secondary_env_dir]}/site_files/pki_files/files/keydist",
+        :fake_ca    => "#{@puppet_env_info[:secondary_env_dir]}/FakeCA"
       }
-      @group             = Simp::Cli::Utils.puppet_info[:puppet_group]
+      @group             = @puppet_env_info[:puppet_group]
       @die_on_apply_fail = true
       @hostname          = nil
       @category          = :puppet_env
@@ -24,7 +24,7 @@ module Simp::Cli::Config
       @applied_status = :failed
       @hostname = get_item( 'cli::network::hostname' ).value
       debug( "Checking system for '#{@hostname}' certificates" )
-      setup_directories unless File.exist?(@dirs[:keydist])
+      set_up_directories unless File.exist?(@dirs[:keydist])
       if !(
         File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pub") &&
         File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pem")
@@ -56,7 +56,7 @@ module Simp::Cli::Config
           # NOTE:  The script only sets ownership and permissions for
           # keydist/ and below. It leaves the parent directories of
           # keydist/ unchanged.
-          result = execute('./gencerts_nopass.sh auto')
+          result = execute("./#{Simp::Cli::CERTIFICATE_GENERATOR} auto")
 
           # blank file so subsequent runs don't re-key our hosts
           File.open('togen', 'w'){ |file| file.truncate(0) }
@@ -67,7 +67,7 @@ module Simp::Cli::Config
       result
     end
 
-    def setup_directories
+    def set_up_directories
       # Shouldn't get here if simp-environment RPM >= 6.2.8 has been
       # installed. However, if this is an R10k-based installation and
       # the user did not set up the pki_files tree, create it here to

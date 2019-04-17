@@ -4,8 +4,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CliNetworkDHCP < Item
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'cli::network::dhcp'
       @description = %q{Whether to use DHCP to retrieve your network settings ("dhcp") or to
 use static network settings ("static").}

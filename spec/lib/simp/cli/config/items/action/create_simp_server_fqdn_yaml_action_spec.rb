@@ -1,43 +1,44 @@
 require 'simp/cli/config/items/action/create_simp_server_fqdn_yaml_action'
-require 'simp/cli/config/items/data/cli_network_hostname'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::CreateSimpServerFqdnYamlAction do
   before :each do
-    # Since we are using the setters for template_file and alt_template_file
-    # this value doesn't matter.  However, we do need to mock it so the
-    # actual Simp::Cli::Utils doesn't run and raise an exception because
-    # it can't find the expected file/directory structure.
-    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return('/unused/dir')
+    @files_dir         = File.expand_path( 'files', File.dirname( __FILE__ ) )
 
-    @ci            = Simp::Cli::Config::Item::CreateSimpServerFqdnYamlAction.new
+    @tmp_dir   = Dir.mktmpdir( File.basename(__FILE__) )
+    @hosts_dir = File.join(@tmp_dir, 'hosts')
+    FileUtils.mkdir(@hosts_dir)
+
+    @fqdn              = 'hostname.domain.tld'
+    @file              = File.join( @files_dir,'puppet.your.domain.yaml')
+    @template_file     = File.join( @hosts_dir, 'puppet.your.domain.yaml' )
+    @alt_template_file = File.join( @tmp_dir, 'alt_puppet.your.domain.yaml' )
+
+    @puppet_env_info = {
+      :puppet_config      => { 'modulepath' => '/does/not/matter' },
+      :puppet_group       => `groups`.split[0],
+      :puppet_env_datadir => @tmp_dir
+    }
+
+    @ci            = Simp::Cli::Config::Item::CreateSimpServerFqdnYamlAction.new(@puppet_env_info)
     @ci.silent     = true
-    @ci.group      = `groups`.split[0]
     @ci.start_time = Time.new(2017, 1, 13, 11, 42, 3)
   end
 
   describe '#apply_summary' do
     it 'reports unattempted status when #apply not called' do
-      @ci.template_file = 'puppet.your.domain.yaml'
       expect( @ci.apply_summary ).to eq 'Creation of SIMP server <host>.yaml unattempted'
     end
   end
 
   describe '#apply' do
     before :each do
-      @fqdn              = 'hostname.domain.tld'
-      @files_dir         = File.expand_path( 'files', File.dirname( __FILE__ ) )
-      @tmp_dir           = Dir.mktmpdir( File.basename(__FILE__) )
-      @file              = File.join( @files_dir,'puppet.your.domain.yaml')
-      @template_file     = File.join( @tmp_dir, 'puppet.your.domain.yaml' )
-      @alt_template_file = File.join( @tmp_dir, 'alt_puppet.your.domain.yaml' )
-      @ci.template_file  = @template_file
       @ci.alt_file       = @alt_template_file
 
-      item               = Simp::Cli::Config::Item::CliNetworkHostname.new
+      item               = Simp::Cli::Config::Item::CliNetworkHostname.new(@puppet_env_info)
       item.value         = @fqdn
       @ci.config_items[item.key] = item
-      @host_yaml         = File.join( @tmp_dir, "#{@fqdn}.yaml" )
+      @host_yaml         = File.join( @hosts_dir, "#{@fqdn}.yaml" )
       @backup_host_yaml  = "#{@host_yaml}.20170113T114203"
     end
 

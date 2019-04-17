@@ -1,16 +1,16 @@
 require_relative '../set_server_hieradata_action_item'
+require_relative '../data/simp_server_allow_simp_user'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::DisallowSimpUserAction < SetServerHieradataActionItem
-    attr_accessor :host_dir
 
-    def initialize
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       @hiera_to_add = [
         'simp::server::allow_simp_user'
       ]
-      super
+      super(puppet_env_info)
       @key            = 'disallow::simp::server'
 
       # override with a shorter message

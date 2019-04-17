@@ -3,6 +3,3 @@
 - CliSimpScenario SKIPQUERY SILENT  # don't ever prompt; this value MUST already be set;
                                     # want it first so that the scenario is present in
                                     # any safety-save answers file written
-- SimpOptionsFips SKIPQUERY SILENT: # don't ever prompt, just discover current setting
-   true:
-    - SetPuppetDigestAlgorithmAction IMMEDIATE # digest algorithm affects any puppet actions, so do it first!

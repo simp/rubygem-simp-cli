@@ -4,5 +4,7 @@
 - SimpOptionsPuppetCA            SKIPQUERY SILENT # default is correct
 - SimpOptionsPuppetCAPort        SKIPQUERY SILENT # default is correct
 - SetUpPuppetAutosignAction
+- SimpOptionsFips                SKIPQUERY SILENT # don't ever prompt, just discover current setting;
+                                                  # needed for UpdatePuppetConfAction
 - UpdatePuppetConfAction
 - AddPuppetHostsEntryAction

@@ -148,7 +148,8 @@ module Simp::Cli::Logging
       if formatted_message[-1] != ' '
         formatted_message += "\n"
       end
-      [plain_message, formatted_message]
+      # some messages come in already formatted, so be sure to remove it
+      [plain_message.uncolor, formatted_message]
     end
 
     def say(message)

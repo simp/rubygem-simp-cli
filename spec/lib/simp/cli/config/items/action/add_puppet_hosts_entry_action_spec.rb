@@ -1,6 +1,4 @@
 require 'simp/cli/config/items/action/add_puppet_hosts_entry_action'
-require 'simp/cli/config/items/data/cli_puppet_server_ip'
-require 'simp/cli/config/items/data/simp_options_puppet_server'
 require 'rspec/its'
 require_relative '../spec_helper'
 

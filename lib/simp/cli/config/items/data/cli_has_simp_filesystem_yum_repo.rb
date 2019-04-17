@@ -5,8 +5,8 @@ class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CliHasSimpFilesystemYumRepo < YesNoItem
     attr_accessor :local_repo
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'cli::has_simp_filesystem_yum_repo'
       @description = %q{Whether the server can provide on-server,
 OS, SIMP, and SIMP dependency packages.

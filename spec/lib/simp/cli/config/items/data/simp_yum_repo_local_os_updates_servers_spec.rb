@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/data/simp_yum_repo_local_os_updates_servers'
-require 'simp/cli/config/items/data/cli_has_simp_filesystem_yum_repo'
 require 'rspec/its'
 require_relative '../spec_helper'
 

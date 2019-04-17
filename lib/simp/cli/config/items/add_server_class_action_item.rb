@@ -1,5 +1,5 @@
 require 'simp/cli/config/items/action_item'
-require 'simp/cli/utils'
+require 'simp/cli/config/items/data/cli_network_hostname'
 
 module Simp::Cli::Config
 
@@ -7,11 +7,10 @@ module Simp::Cli::Config
   # <host>.yaml file
   # Derived class must set @key and @class_to_add
   class AddServerClassActionItem < ActionItem
-    attr_accessor :dir
 
-    def initialize
-      super
-      @dir         = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts')
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
+      @dir         = File.join(@puppet_env_info[:puppet_env_datadir], 'hosts')
       @description = "Add #{@class_to_add} class to SIMP server <host>.yaml"
       @file        = nil
       @category    = :puppet_env_server
