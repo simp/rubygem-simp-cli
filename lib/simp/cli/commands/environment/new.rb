@@ -27,25 +27,25 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       strategy: :skeleton,
       types: {
         puppet: {
-          enabled:    true,
-          strategy:   default_strategy, # :skeleton, :copy
-          puppetfile: false,
+          enabled:            true,
+          strategy:           default_strategy, # :skeleton, :copy
+          puppetfile:         false,
           puppetfile_install: false,
-          deploy:     false,
-          backend:    :directory,
-          environmentpath:  Simp::Cli::Utils.puppet_info[:config]['environmentpath']
+          deploy:             false,
+          backend:            :directory,
+          environmentpath:    Simp::Cli::Utils.puppet_info[:config]['environmentpath']
         },
         secondary: {
-          enabled:  true,
-          strategy: default_strategy,   # :skeleton, :copy, :link
-          backend:  :directory,
-          environmentpath:  Simp::Cli::Utils.puppet_info[:secondary_environment_path]
+          enabled:         true,
+          strategy:        default_strategy,   # :skeleton, :copy, :link
+          backend:         :directory,
+          environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path]
         },
         writable: {
-          enabled:  true,
-          strategy: default_strategy,   # :skeleton, :copy, :link
-          backend:  :directory,
-          environmentpath:  Simp::Cli::Utils.puppet_info[:writable_environment_path]
+          enabled:         true,
+          strategy:        default_strategy,   # :skeleton, :copy, :link
+          backend:         :directory,
+          environmentpath: Simp::Cli::Utils.puppet_info[:writable_environment_path]
         }
       }
     }
@@ -88,7 +88,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       opts.on('--skeleton',
               '(default) Generate environments from skeleton templates.',
               'Implies --puppetfile') do
-                options[:strategy] = :skeleton
+                options[:strategy]   = :skeleton
                 options[:puppetfile] = true
                 # TODO: implement
                 fail NotImplementedError, 'TODO: implement --skeleton'
