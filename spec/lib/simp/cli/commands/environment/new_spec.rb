@@ -24,9 +24,9 @@ describe Simp::Cli::Commands::Environment::New do
         described_class.new.run(['foo'])
         expect(Simp::Cli::Environment::OmniEnvController).to have_received(:new).with(hash_including({
           types: hash_including({
-            puppet: hash_including({ backend: :directory }),
+            puppet:    hash_including({ backend: :directory }),
             secondary: hash_including({ backend: :directory }),
-            writable: hash_including({ backend: :directory }),
+            writable:  hash_including({ backend: :directory }),
           })
         }), 'foo')
         expect(spy).to have_received(:create)
