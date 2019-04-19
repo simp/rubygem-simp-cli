@@ -48,7 +48,7 @@ module Simp::Cli::Utils
 
       puppet_environment_path    = config_hash['environmentpath']
       secondary_environment_path = '/var/simp/environments'
-      writable_environment_path  = File.expand_path('../simp', config_hash['statedir'])
+      writable_environment_path  = File.expand_path('../simp/environments', config_hash['statedir'])
 
       @system_puppet_info = {
         :config                     => config_hash,
