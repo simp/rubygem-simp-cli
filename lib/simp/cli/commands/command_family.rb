@@ -38,18 +38,19 @@ class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
   # Run sub-command or provide help
   def run(args)
     sub_args = parse_command_line(args)
+    return if @help_requested
     cmd = sub_args.shift
     if @sub_commands.key?(cmd)
       sub_cmd = @sub_commands[cmd].new
       sub_cmd.run(sub_args)
     else
-      if cmd || !args.empty?
-        warn("WARNING: Did not recognize '#{cmd} #{args.join(' ')}'")
-      else
-        warn('WARNING: Did not provide sub-command')
-      end
-
       help
+
+      if cmd || !args.empty?
+        fail(Simp::Cli::ProcessingError, "ERROR: Did not recognize '#{cmd} #{args.join(' ')}'")
+      else
+        fail(Simp::Cli::ProcessingError, 'ERROR: Did not provide sub-command')
+      end
     end
   end
 
@@ -80,7 +81,7 @@ class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
 
       opts.on('-h', '--help', 'Print this message') do
         puts opts, ''
-        exit
+        @help_requested = true
       end
     end
     opt_parser.order!(args)

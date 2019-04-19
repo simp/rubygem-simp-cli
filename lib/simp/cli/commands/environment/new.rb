@@ -144,7 +144,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       opts.separator ''
       opts.on_tail('-h', '--help', 'Print this message') do
         puts opts
-        exit
+        @help_requested = true
       end
     end
     opt_parser.parse!(args)
@@ -155,6 +155,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # @param args [Array<String>] ARGV-style args array
   def run(args)
     options = parse_command_line(args)
+    return if @help_requested
     action  = options.delete(:action)
 
     if args.empty?
