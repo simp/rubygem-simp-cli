@@ -105,6 +105,8 @@ describe 'simp executable' do
   context 'when run' do
     it 'handles lack of command line arguments' do
       results = execute(simp_exe)
+      warn("=== stderr: #{results[:stderr]}") unless (results[:stderr]).empty?
+      warn("=== stderr: #{results[:stderr]}") unless (results[:stderr]).empty?
       expect(results[:exitstatus]).to eq 0
       expect(results[:stdout]).to match(/Usage: simp \[command\]/)
       expect(results[:stderr]).to be_empty
