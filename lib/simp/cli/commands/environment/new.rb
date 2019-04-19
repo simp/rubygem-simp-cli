@@ -166,7 +166,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     env = args.shift
 
     unless env =~ Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME
-      fail("ERROR: '#{env}' is not an acceptable environment name")
+      fail(Simp::Cli::ProcessingError, "ERROR: '#{env}' is not an acceptable environment name")
     end
 
     require 'yaml'
