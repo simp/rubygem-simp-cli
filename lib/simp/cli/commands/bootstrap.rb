@@ -12,8 +12,6 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 
   def initialize
 
-    ENV['PATH'] = '/opt/puppetlabs/bin:' + ENV['PATH']
-
     @is_pe = Simp::Cli::Utils.puppet_info[:is_pe]
 
     @puppetserver_service = 'puppetserver'
