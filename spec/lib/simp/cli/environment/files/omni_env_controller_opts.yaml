@@ -1,0 +1,18 @@
+---
+:strategy: :skeleton
+:types:
+  :puppet:
+    :enabled: true
+    :puppetfile: false
+    :puppetfile_install: false
+    :deploy: false
+    :backend: :directory
+    :environmentpath: "/etc/puppetlabs/code/environments"
+  :secondary:
+    :enabled: true
+    :backend: :directory
+    :environmentpath: "/var/simp/environments"
+  :writable:
+    :enabled: true
+    :backend: :directory
+    :environmentpath: "/opt/puppetlabs/server/data/puppetserver/simp"

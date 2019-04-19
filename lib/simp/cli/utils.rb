@@ -16,6 +16,14 @@ module Simp::Cli::Utils
   DEFAULT_PASSWORD_LENGTH = 32
   REGEXP_UNIXPATH = %r{\A(?:\/[\w-]*\/?)+\z}
 
+  # According to https://puppet.com/docs/puppet/5.5/environments_creating.html,
+  # This should be \A[a-z0-9_]+\Z.  However, there is currently a bug that prevents
+  # all-numeric environment names:
+  #
+  #   https://tickets.puppetlabs.com/browse/PUP-8289
+  #
+  REGEXP_PUPPET_ENV_NAME = %r{\A[a-z][a-z0-9_]*\Z}
+
   @@puppet_info = nil
   @@simp_env_datadir = nil
 
@@ -38,20 +46,19 @@ module Simp::Cli::Utils
         config_hash[param] = value
       end
 
-      # Check for Puppet 4 paths first
-      if config_hash['codedir']
-        environment_path = File.join(config_hash['codedir'], 'environments')
-      else
-        environment_path = File.join(config_hash['confdir'], 'environments')
-      end
+      puppet_environment_path    = config_hash['environmentpath']
+      secondary_environment_path = '/var/simp/environments'
+      writable_environment_path  = File.expand_path('../simp/environments', config_hash['statedir'])
 
       @system_puppet_info = {
-        :config => config_hash,
-        :environment_path => environment_path,
-        :simp_environment_path => File.join(environment_path, 'simp'),
-        :fake_ca_path => '/var/simp/environments/simp/FakeCA',
-        :puppet_group => config_hash['group'],
-        :version => %x{puppet --version}.split(/\n/).last
+        :config                     => config_hash,
+        :environment_path           => puppet_environment_path,
+        :simp_environment_path      => File.join(puppet_environment_path, 'simp'),
+        :fake_ca_path               => '/var/simp/environments/simp/FakeCA',
+        :secondary_environment_path => secondary_environment_path,
+        :writable_environment_path  => writable_environment_path,
+        :puppet_group               => config_hash['group'],
+        :version                    => %x{puppet --version}.split(/\n/).last
       }
     end
 
