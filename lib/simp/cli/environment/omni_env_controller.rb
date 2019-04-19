@@ -33,7 +33,7 @@ module Simp::Cli::Environment
         env_obj.create
       end
 
-      # ensure environment is correct after creating it
+      # ensure environments are correct after creating them
       fix
     end
 
@@ -47,7 +47,7 @@ module Simp::Cli::Environment
       fail NotImplementedError
     end
 
-    # List current environments
+    # @return [Hash<Simp::Cli::Environment::Env>] current environments
     def list
       fail NotImplementedError
     end
