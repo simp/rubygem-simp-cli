@@ -2,27 +2,15 @@ require 'simp/cli/commands/command'
 
 # This class is the API for a Command Family.
 class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
-  # @return the banner to be displayed with the command help
-  # The derived class must implement this method
-  def banner
-    raise("banner() not implemented by #{self.class} ")
-  end
-
-  # @return the description to be displayed with the command help
-  # The derived class must implement this method
-  def description
-    raise("description() not implemented by #{self.class} ")
-  end
-
   # @return [String] "snake-case" name of command
   def snakecase_name
     self.class.to_s.split('::').last.gsub(%r{(?<!^)[A-Z]}) { "_#{$&}" }.downcase
   end
 
+  # @return [Hash<Simp::Cli::Commands::Command>] memoized hash of sub commands
   def sub_commands
     return @sub_commands if @sub_commands
     @sub_commands = {}
-    subcmd_files = Dir.glob(File.expand_path("#{snakecase_name}/*.rb", __dir__)).sort_by(&:to_s)
 
     self.class.constants.each do |constant|
       obj = self.class.const_get(constant)
