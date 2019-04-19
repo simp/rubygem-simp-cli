@@ -10,7 +10,17 @@ describe Simp::Cli::Commands::Environment::New do
       it 'requires an ENVIRONMENT argument' do
         allow($stdout).to receive(:write)
         allow($stderr).to receive(:write)
-        expect{ run.call }.to raise_error(SystemExit)
+        expect{ run.call }.to raise_error(Simp::Cli::ProcessingError, /ENVIRONMENT.*is required/)
+      end
+    end
+
+    context 'with an invalid environment' do
+      it 'requires a valid ENVIRONMENT argument' do
+        allow($stdout).to receive(:write)
+        allow($stderr).to receive(:write)
+        expect{ described_class.new.run(['.40ris']) }.to raise_error(
+          Simp::Cli::ProcessingError, /is not an acceptable environment name/
+        )
       end
     end
 
@@ -22,6 +32,7 @@ describe Simp::Cli::Commands::Environment::New do
         allow($stderr).to receive(:write)
 
         described_class.new.run(['foo'])
+
         expect(Simp::Cli::Environment::OmniEnvController).to have_received(:new).with(hash_including({
           types: hash_including({
             puppet:    hash_including({ backend: :directory }),
