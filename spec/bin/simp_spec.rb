@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'timeout'
 require 'tmpdir'
+require 'rbconfig'
 
 def execute(command, input_file = nil)
   log_tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
@@ -11,26 +12,13 @@ def execute(command, input_file = nil)
   else
     spawn_args = [:out => stdout_file, :err => stderr_file]
   end
-  pid = spawn(command, *spawn_args)
+  pid = spawn(ENV.to_h, command, *spawn_args)
 
   # in case we have screwed up our test
   Timeout::timeout(30) { Process.wait(pid) }
   exitstatus = $?.nil? ? nil : $?.exitstatus
   stdout = IO.read(stdout_file) if File.exists?(stdout_file)
-  if File.exists?(stderr_file)
-    stderr_raw = IO.read(stderr_file)
-    # WORKAROUND
-    stderr = stderr_raw.split("\n").delete_if do |line|
-      # When we are running this test on a system in which
-      # /opt/puppetlabs/puppet/lib/ruby exists and our environment
-      # points to a different ruby (e.g., rvm), multiple rubies will
-      # be in the Ruby load path due to kludgey logic in bin/simp.
-      # This causes problems. For example, we will get warnings
-      # about already initialized constants in pathname.rb.
-      line.include?('warning: already initialized constant') or
-      line.include?('warning: previous definition of')
-    end.join("\n")
-  end
+  stderr = IO.read(stderr_file) if File.exists?(stderr_file)
   { :exitstatus => exitstatus, :stdout => stdout, :stderr => stderr }
 ensure
   FileUtils.remove_entry_secure(log_tmp_dir) if log_tmp_dir
@@ -41,7 +29,7 @@ def execute_and_signal(command, signal_type)
   stdout_file = File.join(log_tmp_dir,'stdout.txt')
   stderr_file = File.join(log_tmp_dir,'stderr.txt')
   pipe_r, pipe_w = IO.pipe
-  pid = spawn(command, :out => stdout_file, :err => stderr_file, :in => pipe_r)
+  pid = spawn(ENV.to_h, command, :out => stdout_file, :err => stderr_file, :in => pipe_r)
   pipe_r.close
 
   # Wait for bytes on stdout.txt, as this tells us the spawned process
@@ -85,6 +73,19 @@ describe 'simp executable' do
   end
 
   before :each do
+
+    # Before each test, make sure that the current  ruby interpreter will be
+    # used when `bin/simp` is executed.  This prevents environmental pollution
+    # when running tests on a system with AIO puppet installed.
+    adjusted_path = File.join(RbConfig::CONFIG['bindir']) + ':' + ENV['PATH']
+    env_hash = ENV.to_h
+    env_hash['PATH'] = adjusted_path
+    env_hash['USE_AIO_PUPPET'] = 'no'
+    allow(ENV).to receive(:[]).with(any_args).and_call_original
+    allow(ENV).to receive(:[]).with('PATH').and_return(adjusted_path)
+    allow(ENV).to receive(:[]).with('USE_AIO_PUPPET').and_return('no')
+    allow(ENV).to receive(:to_h).and_return(env_hash)
+
     @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
     @simp_config_args = [
       '--dry-run',  # do NOT inadvertently make any changes on the test system
@@ -106,7 +107,7 @@ describe 'simp executable' do
     it 'handles lack of command line arguments' do
       results = execute(simp_exe)
       warn("=== stderr: #{results[:stderr]}") unless (results[:stderr]).empty?
-      warn("=== stderr: #{results[:stderr]}") unless (results[:stderr]).empty?
+      warn("=== stdout: #{results[:stdout]}") unless (results[:stdout]).empty?
       expect(results[:exitstatus]).to eq 0
       expect(results[:stdout]).to match(/Usage: simp \[command\]/)
       expect(results[:stderr]).to be_empty
