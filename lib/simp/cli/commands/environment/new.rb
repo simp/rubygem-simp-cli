@@ -158,19 +158,21 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     action  = options.delete(:action)
 
     if args.empty?
-      warn('', '-' * 80, 'WARNING: \'ENVIRONMENT\' is required.', '-' * 80, '')
-      sleep 1
-      help
+      fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.")
     end
 
     env = args.shift
 
     unless env =~ Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME
-      fail(Simp::Cli::ProcessingError, "ERROR: '#{env}' is not an acceptable environment name")
+      fail(
+        Simp::Cli::ProcessingError,
+        "ERROR: '#{env}' is not an acceptable environment name"
+      )
     end
 
     require 'yaml'
     puts options.to_yaml, '', ''
+
     omni_controller = Simp::Cli::Environment::OmniEnvController.new(options, env)
     omni_controller.send(action)
   end
