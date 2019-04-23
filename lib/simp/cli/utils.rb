@@ -7,8 +7,8 @@ module Simp::Cli::Utils
 
   ###################################################################
   # Let's be DRY.  Before adding methods to this file, first see if
-  # Simp::Cli::Utils::Config has what you need and, if so, move
-  # that common functionality here!
+  # Simp::Cli::Config::Utils has what you need and, if so, move that
+  # common functionality here!
   ###################################################################
 
   module_function
@@ -165,4 +165,34 @@ module Simp::Cli::Utils
       raise Simp::Cli::PasswordError, "Invalid Password: #{result}"
     end
   end
+
+  # Display an ASCII, spinning progress spinner for the action in a block
+  # and return the result of that block
+  # Example,
+  #    result = show_wait_spinner {
+  #      system('createrepo -q -p --update .')
+  #    }
+  #
+  # Lifted from
+  # http://stackoverflow.com/questions/10262235/printing-an-ascii-spinning-cursor-in-the-console
+  #
+  # FIXME:  This is a duplicate of code in simp/cli/config/items/item.rb.
+  # Need to share that code.
+  def show_wait_spinner(frames_per_second=5)
+    chars = %w[| / - \\]
+    delay = 1.0/frames_per_second
+    iter = 0
+    spinner = Thread.new do
+      while iter do  # Keep spinning until told otherwise
+        print chars[(iter+=1) % chars.length]
+        sleep delay
+        print "\b"
+      end
+    end
+    yield.tap {      # After yielding to the block, save the return value
+      iter = false   # Tell the thread to exit, cleaning up after itself
+      spinner.join   # and wait for it to do so.
+    }                # Use the block's return value as the method's
+  end
+
 end

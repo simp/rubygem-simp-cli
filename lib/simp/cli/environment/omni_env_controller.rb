@@ -29,7 +29,7 @@ module Simp::Cli::Environment
 
     # Create a new environment for each environment type
     def create
-      each_environment do |env_type, env_obj|
+      each_environment 'create' do |env_type, env_obj|
         env_obj.create
       end
 
@@ -54,7 +54,7 @@ module Simp::Cli::Environment
 
     # Fix consistency of environment
     def fix
-      each_environment do |env_type, env_obj|
+      each_environment 'fix' do |env_type, env_obj|
         env_obj.fix
       end
     end
@@ -68,8 +68,8 @@ module Simp::Cli::Environment
 
     # Safely iterate through each environment
     # @param [String, nil] action_label  Optional string label to describle
-    # @yieldparam [Symbol] env_type                     The type of environment
-    # @yieldparam [Simp::Cli::Environment::Env] env_obj The environment object
+    # @yieldparam [Symbol] env_type  The type of environment
+    # @yieldparam [Simp::Cli::Environment::Env] env_obj  The environment object
     def each_environment(action_label=nil)
       @environments.each do |env_type, env_obj|
         label = action_label ? "(action: #{action_label}) " : ''

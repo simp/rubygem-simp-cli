@@ -19,12 +19,10 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # Parse command-line options for this simp command
   # @param args [Array<String>] ARGV-style args array
   def parse_command_line(args)
+    default_strategy = :skeleton
     # TODO: simp cli should read a config file that can override these defaults
     # these options (preferrable mimicking cmd-line args)
-    default_strategy = :skeleton
     options = {
-      action:   :create,
-      strategy: :skeleton,
       types: {
         puppet: {
           enabled:            true,
@@ -33,22 +31,25 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
           puppetfile_install: false,
           deploy:             false,
           backend:            :directory,
-          environmentpath:    Simp::Cli::Utils.puppet_info[:config]['environmentpath']
+          environmentpath:    Simp::Cli::Utils.puppet_info[:config]['environmentpath'],
+          skeleton_path:      '/usr/share/simp/environments/simp'
         },
         secondary: {
           enabled:         true,
           strategy:        default_strategy,   # :skeleton, :copy, :link
           backend:         :directory,
-          environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path]
+          environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path],
+          skeleton_path:      '/usr/share/simp/environments/simp/site_files' #TODO: separate this from Puppet env dir
         },
         writable: {
           enabled:         true,
-          strategy:        default_strategy,   # :skeleton, :copy, :link
+          strategy:        default_strategy,   # :fresh, :copy, :link
           backend:         :directory,
           environmentpath: Simp::Cli::Utils.puppet_info[:writable_environment_path]
         }
       }
     }
+    options[:action] = :create
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = '== simp environment new [options]'
@@ -88,25 +89,28 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       opts.on('--skeleton',
               '(default) Generate environments from skeleton templates.',
               'Implies --puppetfile') do
-                options[:strategy]   = :skeleton
-                options[:puppetfile] = true
-                # TODO: implement
-                fail NotImplementedError, 'TODO: implement --skeleton'
+                options[:types][:puppet][:strategy]    = :skeleton
+                options[:types][:secondary][:strategy] = :skeleton
+                options[:types][:writable][:strategy]  = :fresh
+                options[:types][:puppet][:puppetfile]  = true
               end
 
       opts.on('--copy ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Copy assets from ENVIRONMENT') do |_src_env|
-                # TODO: implement
-                fail NotImplementedError, 'TODO: implement --copy'
+                options[:types][:puppet][:strategy]    = :copy
+                options[:types][:secondary][:strategy] = :copy
+                options[:types][:writable][:strategy]  = :copy
+                options[:src_env] = _src_env
               end
 
       opts.on('--link ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Symlink Secondary and Writeable environment directories',
               'to ENVIRONMENT.  If --puppet-env is set, the Puppet',
               'environment will --copy.') do |_src_env|
-                # TODO: implement
-                # TODO: implement --puppet-env => --copy logic
-                fail NotImplementedError, 'TODO: implement --link'
+                options[:types][:puppet][:strategy]    = :copy
+                options[:types][:secondary][:strategy] = :copy
+                options[:types][:writable][:strategy]  = :copy
+                options[:src_env] = _src_env
               end
 
       opts.on('--[no-]puppetfile',
