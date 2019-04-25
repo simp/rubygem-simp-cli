@@ -126,6 +126,11 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Fri Apr 26 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
+- Added `simp environment` command
+  - `simp environment new` command
+  - `simp environment fix` command
+
 * Fri Apr 26 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
 - 'simp' change:
   - Fixed bug in which the wrong Facter environment variable was set
