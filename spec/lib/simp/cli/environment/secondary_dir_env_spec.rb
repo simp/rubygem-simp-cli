@@ -18,15 +18,56 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
     end
   end
 
-  context 'with abstract methods' do
-    subject(:described_object) { described_class.new('acceptable_name', env_path, opts) }
+  context 'with methods' do
+
+    let(:mod_name){ 'acceptable_name' }
+    let(:mod_dir){ File.join(opts[:environmentpath],mod_name) }
+    let(:site_files_dir){ File.join(mod_dir,'site_files') }
+    subject(:described_object) { described_class.new(mod_name, env_path, opts) }
+
+    before(:each) do
+      # Pass through partial mocks when we don't need them
+      allow(File).to receive(:directory?).with(any_args).and_call_original
+      allow(File).to receive(:exist?).with(any_args).and_call_original
+      ###allow(File).to receive(:read).with(any_args).and_call_original
+      ###allow(Dir).to receive(:[]).with(any_args).and_call_original
+      ###allow(Dir).to receive(:chdir).with(any_args).and_call_original
+      allow(File).to receive(:directory?).with(opts[:environmentpath]).and_return(true)
+      allow(File).to receive(:exist?).with(opts[:environmentpath]).and_return(true)
+      #allow(described_object).to receive(:selinux_fix_file_contexts).with(any_args).and_call_original
+    end
 
     describe '#create' do
       it{ expect{ described_object.create }.not_to raise_error }
     end
 
     describe '#fix' do
-      it{ expect{ described_object.fix }.not_to raise_error }
+      before(:each){ allow(File).to receive(:exist?).with(mod_dir).and_return(true) }
+
+      context 'when secondary environment directory is present' do
+        before(:each) do
+          puts "site_file_dirs = '#{site_files_dir}'"
+          allow(described_object).to receive(:selinux_fix_file_contexts).with([mod_dir])
+          allow(described_object).to receive(:apply_puppet_permissions).with(site_files_dir,false,true)
+        end
+        it{ expect{ described_object.fix }.not_to raise_error }
+        it{
+          expect( described_object ).to receive(:selinux_fix_file_contexts).with([mod_dir]).once
+          described_object.fix
+        }
+        it{
+          expect( described_object ).to receive(:apply_puppet_permissions).with(site_files_dir,false,true).once
+          described_object.fix
+        }
+      end
+
+      context 'when secondary environment directory is missing' do
+        before(:each){ allow(File).to receive(:exist?).with(mod_dir).and_return(false) }
+        it{ expect{ described_object.fix }.to raise_error(
+          Simp::Cli::ProcessingError,
+          /directory not found at '#{mod_dir}'/
+        )}
+      end
     end
 
     describe '#update' do

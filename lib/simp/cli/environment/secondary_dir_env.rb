@@ -1,8 +1,14 @@
 require 'simp/cli/environment/env'
+require 'simp/cli/logging'
+require 'facter'
+require 'fileutils'
 
 # Environment helper namespace
 module Simp::Cli::Environment
   class DirEnv < Env
+    include Simp::Cli::Logging
+    include Simp::Cli::Utils
+
     def initialize(name, base_environments_path, opts)
       super(name, opts)
       @base_environments_path = base_environments_path
@@ -10,25 +16,42 @@ module Simp::Cli::Environment
       @skeleton_path  = '' # FIXME: set skeleton path
     end
 
-
+    # @return [Boolean] true if the DirEnv exists
     def exists?
-      File.exists? @directory_path
+      File.exist? @directory_path
     end
 
     # If selinux is enabled, relabel the filesystem.
-    def fix_file_contexts(dirs=[])
+    # TODO: implement and test
+    def selinux_fix_file_contexts(paths=[])
       if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? &&
           (Facter.value(:selinux_current_mode) != 'disabled')
-        info('Relabeling filesystem for selinux (this may take a while...)', 'cyan')
         # This is silly, but there does not seem to be a way to get fixfiles
         # to shut up without specifying a logfile.  Stdout/err still make it to
         # the our logfile.
-        show_wait_spinner {
-          execute("fixfiles -l /dev/null -f relabel 2>&1 >> #{@logfile.path}")
+        Simp::Cli::Utils.show_wait_spinner {
+          execute("load_policy")
+          paths.each do |path|
+            info("Relabeling '#{path}' for selinux (this may take a while...)", 'cyan')
+            execute("fixfiles -F restore -l /dev/null -f relabel 2>&1 >> #{@logfile.path}")
+          end
         }
+      else
+        info("SELinux is disabled; skipping context fixfiles for '#{path}'", 'yellow')
       end
     end
 
+    # Apply Puppet permissions to a path and its contents
+    # @param [String] path   path to apply permissions
+    # @param [Boolean] user  apply Puppet user permissions when `true`
+    # @param [Boolean] group  apply Puppet group permissions when `true`
+    def apply_puppet_permissions(path, user=false, group=true )
+      summary = [(user ? 'user' : nil), group ? 'group' : nil ].compact.join(" + ")
+      logger.info "Applying Puppet permissions (#{summary}) under '#{path}"
+      pup_user  = user ? puppet_info[:config]['user'] : nil
+      pup_group = group ? puppet_info[:puppet_group] : nil
+      FileUtils.chown_R(pup_user, pup_group, path)
+    end
   end
 
   # Manages a "Secondary" SIMP directory environment
@@ -56,8 +79,7 @@ module Simp::Cli::Environment
       if exists?
         fail(
           Simp::Cli::ProcessingError,
-          "ERROR: Can't create secondary directory at '#{@directory_path}'\n" \
-          'directory already exists!'
+          "ERROR: Directory already exists at '#{@directory_path}'\n"
         )
       end
     end
@@ -69,9 +91,9 @@ module Simp::Cli::Environment
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
           - [x] if environment is not available (#{@directory_path} exists)
              - [x] THEN FAIL WITH HELPFUL MESSAGE
-          - [ ] A2.2 apply SELinux fixfiles restore to the ${ENVIRONMENT}/ + subdirectories
-            - [ ] A2.3 apply the correct SELinux contexts on demand
-          - [ ] A3.2 apply Puppet user settings & groups to $ENVIRONMENT/site_files/
+          - [x] A2.2 apply SELinux fixfiles restore to the ${ENVIRONMENT}/ + subdirectories
+            - [x] A2.3 apply the correct SELinux contexts on demand
+          - [x] A3.2 apply Puppet group ownership to $ENVIRONMENT/site_files/
           - [ ] C3.2 ensure correct FACLS
 
       TODO
@@ -79,6 +101,18 @@ module Simp::Cli::Environment
       unless exists?
         fail(Simp::Cli::ProcessingError, "ERROR: secondary directory not found at '#{@directory_path}'")
       end
+
+      # apply SELinux fixfiles restore to the ${ENVIRONMENT}/ + subdirectories
+      #
+      #   previous impl: https://github.com/simp/simp-environment-skeleton/blob/6.3.0/build/simp-environment.spec#L185-L190
+      #
+      selinux_fix_file_contexts([@directory_path])
+
+      # apply Puppet group ownership to $ENVIRONMENT/site_files/
+      #
+      #   previous impl: https://github.com/simp/simp-environment-skeleton/blob/6.3.0/build/simp-environment.spec#L181
+      #
+      apply_puppet_permissions(File.join(@directory_path, 'site_files'), false, true)
     end
   end
 end

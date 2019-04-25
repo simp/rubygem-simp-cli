@@ -2,6 +2,7 @@ require 'simp/cli/utils'
 
 # Environment helper namespace
 module Simp::Cli::Environment
+
   # Abstract environment class
   class Env
     def initialize(name, opts)
@@ -9,9 +10,12 @@ module Simp::Cli::Environment
         fail(ArgumentError, "ERROR: Illegal environment name: '#{name}'" + \
              "\n\nSee: https://puppet.com/docs/puppet/6.4/environments_creating.html#concept-5441")
       end
+
       @name = name
       @opts = opts
     end
+
+    include Simp::Cli::Utils
 
     # Create a new environment
     def create
