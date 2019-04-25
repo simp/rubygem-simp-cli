@@ -1,67 +1,17 @@
 # frozen_string_literal: true
 
-require 'simp/cli/environment/env'
-require 'simp/cli/logging'
-require 'simp/cli/utils'
-require 'facter'
+require 'simp/cli/environment/dir_env'
 require 'fileutils'
 
 # Environment helper namespace
 module Simp::Cli::Environment
-  class DirEnv < Env
-    include Simp::Cli::Logging
-    include Simp::Cli::Utils
-
-    def initialize(name, base_environments_path, opts)
-      super(name, opts)
-      @base_environments_path = base_environments_path
-      @directory_path = File.join(@base_environments_path, name)
-      @skeleton_path  = '' # FIXME: set skeleton path
-    end
-
-    # @return [Boolean] true if the DirEnv exists
-    def exists?
-      File.exist? @directory_path
-    end
-
-    # If selinux is enabled, relabel the filesystem.
-    # TODO: implement and test
-    def selinux_fix_file_contexts(paths = [])
-      if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? &&
-         (Facter.value(:selinux_current_mode) != 'disabled')
-        # This is silly, but there does not seem to be a way to get fixfiles
-        # to shut up without specifying a logfile.  Stdout/err still make it to
-        # the our logfile.
-        Simp::Cli::Utils.show_wait_spinner do
-          execute('load_policy')
-          paths.each do |path|
-            info("Relabeling '#{path}' for selinux (this may take a while...)", 'cyan')
-            execute("fixfiles -F restore -l /dev/null -f relabel 2>&1 >> #{@logfile.path}")
-          end
-        end
-      else
-        info("SELinux is disabled; skipping context fixfiles for '#{path}'", 'yellow')
-      end
-    end
-
-    # Apply Puppet permissions to a path and its contents
-    # @param [String] path   path to apply permissions
-    # @param [Boolean] user  apply Puppet user permissions when `true`
-    # @param [Boolean] group  apply Puppet group permissions when `true`
-    def apply_puppet_permissions(path, user = false, group = true)
-      summary = [(user ? 'user' : nil), group ? 'group' : nil].compact.join(' + ')
-      logger.info "Applying Puppet permissions (#{summary}) under '#{path}"
-      pup_user  = user ? puppet_info[:config]['user'] : nil
-      pup_group = group ? puppet_info[:puppet_group] : nil
-      FileUtils.chown_R(pup_user, pup_group, path)
-    end
-  end
-
   # Manages a "Secondary" SIMP directory environment
   # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/760840207/Environments
   class SecondaryDirEnv < DirEnv
     def initialize(name, base_environments_path, opts)
       super(name, base_environments_path, opts)
+      @rsync_skeleton_path = opts[:rsync_skeleton_path] or fail(ArgumentError, 'No :rsync_skeleton_path in opts')
+      @rsync_path = File.join(@directory_path, 'rsync')
     end
 
     # Create a new environment
@@ -80,10 +30,10 @@ module Simp::Cli::Environment
 
       TODO
 
-      if exists?
+      if File.exist? @directory_path
         fail(
           Simp::Cli::ProcessingError,
-          "ERROR: Directory already exists at '#{@directory_path}'\n"
+          "ERROR: Secondary environment directory already exists at '#{@directory_path}'\n"
         )
       end
 
@@ -104,7 +54,12 @@ module Simp::Cli::Environment
 
       TODO
 
-      fail(Simp::Cli::ProcessingError, "ERROR: secondary directory not found at '#{@directory_path}'") unless exists?
+      unless File.directory? @directory_path
+        fail(
+          Simp::Cli::ProcessingError,
+          "ERROR: secondary directory not found at '#{@directory_path}'"
+        )
+      end
 
       # apply SELinux fixfiles restore to the ${ENVIRONMENT}/ + subdirectories
       #
@@ -122,21 +77,20 @@ module Simp::Cli::Environment
       #
       #   previous impl: https://github.com/simp/simp-rsync-skeleton/blob/6.2.1/build/simp-rsync.spec#L98-L99
       #
-      rsync_path = File.join(@directory_path, 'rsync')
-      apply_facls(rsync_path, File.join(rsync_path, '.rsync.facl'))
+      apply_facls(@rsync_path, File.join(@rsync_path, '.rsync.facl'))
     end
 
     # Apply FACL permissions to a path using a file for `setfacl --restore`
     # @param [String] path       absolute path set FACLs
     # @param [String] facl_file  absolutre path to rsync facl rules
     def apply_facls(path, facl_file)
-      unless File.exist? path
+      unless File.exist? @directory_path
         fail(
           Simp::Cli::ProcessingError,
           "ERROR: Path does not exist to set FACLS: '#{path}'"
         )
       end
-      fail(Simp::Cli::ProcessingError, "ERROR: No FACL file at '#{facl_file}'") unless File.exist? facl_file
+      fail(Simp::Cli::ProcessingError, "ERROR: No FACL file at '#{facl_file}'") unless File.exist?(facl_file)
 
       logger.info "Applying FACL rules to #{rsync_path}"
       %x("cd #{path} && setfacl --restore=#{facl_file} 2>/dev/null")
