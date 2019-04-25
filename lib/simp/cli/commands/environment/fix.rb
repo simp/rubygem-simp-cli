@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/environment/omni_env_controller'
 
@@ -21,25 +23,24 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
   def parse_command_line(args)
     # TODO: simp cli should read a config file that can override these defaults
     # these options (preferrable mimicking cmd-line args)
-    default_strategy = :skeleton
     options = {
-      action:   :fix,
+      action: :fix,
       types: {
         puppet: {
-          enabled:         true,
-          backend:         :directory,
+          enabled: true,
+          backend: :directory,
           environmentpath: Simp::Cli::Utils.puppet_info[:config]['environmentpath']
         },
         secondary: {
-          enabled:         true,
-          backend:         :directory,
-          environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path]
-          skeleton_path:       '/usr/share/simp/environments/secondary',
+          enabled: true,
+          backend: :directory,
+          environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path],
+          skeleton_path: '/usr/share/simp/environments/secondary',
           rsync_skeleton_path: '/usr/share/simp/environments/rsync'
         },
         writable: {
-          enabled:         true,
-          backend:         :directory,
+          enabled: true,
+          backend: :directory,
           environmentpath: Simp::Cli::Utils.puppet_info[:writable_environment_path]
         }
       }
@@ -92,15 +93,14 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
   def run(args)
     options = parse_command_line(args)
     return if @help_requested
-    action  = options.delete(:action)
 
-    if args.empty?
-      fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.")
-    end
+    action = options.delete(:action)
+
+    fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.") if args.empty?
 
     env = args.shift
 
-    unless env =~ Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME
+    unless Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME.match?(env)
       fail(
         Simp::Cli::ProcessingError,
         "ERROR: '#{env}' is not an acceptable environment name"

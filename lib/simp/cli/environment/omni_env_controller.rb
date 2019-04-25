@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/environment/env'
 require 'simp/cli/environment/puppet_dir_env'
 require 'simp/cli/environment/secondary_dir_env'
@@ -22,14 +24,14 @@ module Simp::Cli::Environment
         when :writable
           @environments[:writable]  = WritableDirEnv.new(env, base_env_path, data)
         else
-          fail( "ERROR: Unrecognized environment type '#{env_type}'" )
+          fail("ERROR: Unrecognized environment type '#{env_type}'")
         end
       end
     end
 
     # Create a new environment for each environment type
     def create
-      each_environment 'create' do |env_type, env_obj|
+      each_environment 'create' do |_env_type, env_obj|
         env_obj.create
       end
 
@@ -54,7 +56,7 @@ module Simp::Cli::Environment
 
     # Fix consistency of environment
     def fix
-      each_environment 'fix' do |env_type, env_obj|
+      each_environment 'fix' do |_env_type, env_obj|
         env_obj.fix
       end
     end
@@ -70,7 +72,7 @@ module Simp::Cli::Environment
     # @param [String, nil] action_label  Optional string label to describle
     # @yieldparam [Symbol] env_type  The type of environment
     # @yieldparam [Simp::Cli::Environment::Env] env_obj  The environment object
-    def each_environment(action_label=nil)
+    def each_environment(action_label = nil)
       @environments.each do |env_type, env_obj|
         label = action_label ? "(action: #{action_label}) " : ''
         unless @opts[:types][env_type][:enabled]

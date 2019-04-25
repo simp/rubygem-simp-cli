@@ -1,13 +1,14 @@
+# frozen_string_literal: true
+
 require 'simp/cli/utils'
 
 # Environment helper namespace
 module Simp::Cli::Environment
-
   # Abstract environment class
   class Env
     def initialize(name, opts)
-      unless name =~ Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME
-        fail(ArgumentError, "ERROR: Illegal environment name: '#{name}'" + \
+      unless Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME.match?(name)
+        fail(ArgumentError, "ERROR: Illegal environment name: '#{name}'" \
              "\n\nSee: https://puppet.com/docs/puppet/6.4/environments_creating.html#concept-5441")
       end
 

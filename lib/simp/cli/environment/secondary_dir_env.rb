@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/environment/env'
 require 'simp/cli/logging'
 require 'simp/cli/utils'
@@ -24,19 +26,19 @@ module Simp::Cli::Environment
 
     # If selinux is enabled, relabel the filesystem.
     # TODO: implement and test
-    def selinux_fix_file_contexts(paths=[])
+    def selinux_fix_file_contexts(paths = [])
       if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? &&
-          (Facter.value(:selinux_current_mode) != 'disabled')
+         (Facter.value(:selinux_current_mode) != 'disabled')
         # This is silly, but there does not seem to be a way to get fixfiles
         # to shut up without specifying a logfile.  Stdout/err still make it to
         # the our logfile.
-        Simp::Cli::Utils.show_wait_spinner {
-          execute("load_policy")
+        Simp::Cli::Utils.show_wait_spinner do
+          execute('load_policy')
           paths.each do |path|
             info("Relabeling '#{path}' for selinux (this may take a while...)", 'cyan')
             execute("fixfiles -F restore -l /dev/null -f relabel 2>&1 >> #{@logfile.path}")
           end
-        }
+        end
       else
         info("SELinux is disabled; skipping context fixfiles for '#{path}'", 'yellow')
       end
@@ -46,8 +48,8 @@ module Simp::Cli::Environment
     # @param [String] path   path to apply permissions
     # @param [Boolean] user  apply Puppet user permissions when `true`
     # @param [Boolean] group  apply Puppet group permissions when `true`
-    def apply_puppet_permissions(path, user=false, group=true )
-      summary = [(user ? 'user' : nil), group ? 'group' : nil ].compact.join(" + ")
+    def apply_puppet_permissions(path, user = false, group = true)
+      summary = [(user ? 'user' : nil), group ? 'group' : nil].compact.join(' + ')
       logger.info "Applying Puppet permissions (#{summary}) under '#{path}"
       pup_user  = user ? puppet_info[:config]['user'] : nil
       pup_group = group ? puppet_info[:puppet_group] : nil
@@ -77,12 +79,15 @@ module Simp::Cli::Environment
                - Should this also be in fix()?
 
       TODO
+
       if exists?
         fail(
           Simp::Cli::ProcessingError,
           "ERROR: Directory already exists at '#{@directory_path}'\n"
         )
       end
+
+      puts 'create!'
     end
 
     # Fix consistency of environment
@@ -99,9 +104,7 @@ module Simp::Cli::Environment
 
       TODO
 
-      unless exists?
-        fail(Simp::Cli::ProcessingError, "ERROR: secondary directory not found at '#{@directory_path}'")
-      end
+      fail(Simp::Cli::ProcessingError, "ERROR: secondary directory not found at '#{@directory_path}'") unless exists?
 
       # apply SELinux fixfiles restore to the ${ENVIRONMENT}/ + subdirectories
       #
@@ -120,32 +123,29 @@ module Simp::Cli::Environment
       #   previous impl: https://github.com/simp/simp-rsync-skeleton/blob/6.2.1/build/simp-rsync.spec#L98-L99
       #
       rsync_path = File.join(@directory_path, 'rsync')
-      apply_facls(rsync_path,  File.join(rsync_path,'.rsync.facl'))
+      apply_facls(rsync_path, File.join(rsync_path, '.rsync.facl'))
     end
 
     # Apply FACL permissions to a path using a file for `setfacl --restore`
     # @param [String] path       absolute path set FACLs
     # @param [String] facl_file  absolutre path to rsync facl rules
     def apply_facls(path, facl_file)
-      unless File.exists? path
+      unless File.exist? path
         fail(
           Simp::Cli::ProcessingError,
           "ERROR: Path does not exist to set FACLS: '#{path}'"
         )
       end
-      unless File.exists? facl_file
-        fail(Simp::Cli::ProcessingError, "ERROR: No FACL file at '#{facl_file}'")
-      end
+      fail(Simp::Cli::ProcessingError, "ERROR: No FACL file at '#{facl_file}'") unless File.exist? facl_file
 
       logger.info "Applying FACL rules to #{rsync_path}"
       %x("cd #{path} && setfacl --restore=#{facl_file} 2>/dev/null")
+      return if $CHILD_STATUS.success?
 
-      unless $?.success?
-        fail(
-          Simp::Cli::ProcessingError,
-          "ERROR: `setfacl --restore=#{facl_file}` failed at '#{path}'"
-        )
-      end
+      fail(
+        Simp::Cli::ProcessingError,
+        "ERROR: `setfacl --restore=#{facl_file}` failed at '#{path}'"
+      )
     end
   end
 end

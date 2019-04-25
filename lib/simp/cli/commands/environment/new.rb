@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/environment/omni_env_controller'
 
@@ -25,27 +27,27 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     options = {
       types: {
         puppet: {
-          enabled:            true,
-          strategy:           default_strategy, # :skeleton, :copy
-          puppetfile:         false,
+          enabled: true,
+          strategy: default_strategy, # :skeleton, :copy
+          puppetfile: false,
           puppetfile_install: false,
-          deploy:             false,
-          backend:            :directory,
-          environmentpath:    Simp::Cli::Utils.puppet_info[:config]['environmentpath'],
-          skeleton_path:      '/usr/share/simp/environments/simp'
+          deploy: false,
+          backend: :directory,
+          environmentpath: Simp::Cli::Utils.puppet_info[:config]['environmentpath'],
+          skeleton_path: '/usr/share/simp/environments/simp'
         },
         secondary: {
-          enabled:         true,
-          strategy:        default_strategy,   # :skeleton, :copy, :link
-          backend:         :directory,
+          enabled: true,
+          strategy: default_strategy,   # :skeleton, :copy, :link
+          backend: :directory,
           environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path],
-          skeleton_path:       '/usr/share/simp/environments/secondary',
+          skeleton_path: '/usr/share/simp/environments/secondary',
           rsync_skeleton_path: '/usr/share/simp/environments/rsync'
         },
         writable: {
-          enabled:         true,
-          strategy:        default_strategy,   # :fresh, :copy, :link
-          backend:         :directory,
+          enabled: true,
+          strategy: default_strategy,   # :fresh, :copy, :link
+          backend: :directory,
           environmentpath: Simp::Cli::Utils.puppet_info[:writable_environment_path]
         }
       }
@@ -97,21 +99,21 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               end
 
       opts.on('--copy ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
-              'Copy assets from ENVIRONMENT') do |_src_env|
+              'Copy assets from ENVIRONMENT') do |src_env|
                 options[:types][:puppet][:strategy]    = :copy
                 options[:types][:secondary][:strategy] = :copy
                 options[:types][:writable][:strategy]  = :copy
-                options[:src_env] = _src_env
+                options[:src_env] = src_env
               end
 
       opts.on('--link ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Symlink Secondary and Writeable environment directories',
               'to ENVIRONMENT.  If --puppet-env is set, the Puppet',
-              'environment will --copy.') do |_src_env|
+              'environment will --copy.') do |src_env|
                 options[:types][:puppet][:strategy]    = :copy
                 options[:types][:secondary][:strategy] = :copy
                 options[:types][:writable][:strategy]  = :copy
-                options[:src_env] = _src_env
+                options[:src_env] = src_env
               end
 
       opts.on('--[no-]puppetfile',
@@ -119,9 +121,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               '  * `Puppetfile` will only be created if missing',
               '  * `Puppetfile.simp` will be generated from RPM/',
               '  * implies `--puppet-env`') do |v|
-        if (options[:types][:puppet][:puppetfile] = v)
-          options[:types][:puppet][:enabled] = true
-        end
+        options[:types][:puppet][:enabled] = true if (options[:types][:puppet][:puppetfile] = v)
       end
 
       opts.on('--[no-]puppetfile-install',
@@ -129,9 +129,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               'directory after creating it',
               '  * implies `--puppet-env`',
               '  * Does NOT imply `--puppetfile`') do |v|
-        if (options[:types][:puppet][:puppetfile_install] = v)
-          options[:types][:puppet][:enabled] = true
-        end
+        options[:types][:puppet][:enabled] = true if (options[:types][:puppet][:puppetfile_install] = v)
       end
 
       opts.on('--[no-]puppet-env',
@@ -161,15 +159,14 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   def run(args)
     options = parse_command_line(args)
     return if @help_requested
-    action  = options.delete(:action)
 
-    if args.empty?
-      fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.")
-    end
+    action = options.delete(:action)
+
+    fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.") if args.empty?
 
     env = args.shift
 
-    unless env =~ Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME
+    unless Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME.match?(env)
       fail(
         Simp::Cli::ProcessingError,
         "ERROR: '#{env}' is not an acceptable environment name"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 
 # This class is the API for a Command Family.
@@ -10,6 +12,7 @@ class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
   # @return [Hash<Simp::Cli::Commands::Command>] memoized hash of sub commands
   def sub_commands
     return @sub_commands if @sub_commands
+
     @sub_commands = {}
 
     self.class.constants.each do |constant|
@@ -39,6 +42,7 @@ class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
   def run(args)
     sub_args = parse_command_line(args)
     return if @help_requested
+
     cmd = sub_args.shift
     if @sub_commands.key?(cmd)
       sub_cmd = @sub_commands[cmd].new
@@ -47,10 +51,13 @@ class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
       help
 
       if cmd || !args.empty?
-        fail(Simp::Cli::ProcessingError, "ERROR: Did not recognize '#{cmd} #{args.join(' ')}'")
-      else
-        fail(Simp::Cli::ProcessingError, 'ERROR: Did not provide sub-command')
+        fail(
+          Simp::Cli::ProcessingError,
+          "ERROR: Did not recognize '#{cmd} #{args.join(' ')}'"
+        )
       end
+
+      fail(Simp::Cli::ProcessingError, 'ERROR: Did not provide sub-command')
     end
   end
 
