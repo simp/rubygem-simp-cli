@@ -1,5 +1,6 @@
 require 'simp/cli/environment/env'
 require 'simp/cli/logging'
+require 'simp/cli/utils'
 require 'facter'
 require 'fileutils'
 
@@ -94,7 +95,7 @@ module Simp::Cli::Environment
           - [x] A2.2 apply SELinux fixfiles restore to the ${ENVIRONMENT}/ + subdirectories
             - [x] A2.3 apply the correct SELinux contexts on demand
           - [x] A3.2 apply Puppet group ownership to $ENVIRONMENT/site_files/
-          - [ ] C3.2 ensure correct FACLS
+          - [x] C3.2 ensure correct FACLS
 
       TODO
 
@@ -113,6 +114,38 @@ module Simp::Cli::Environment
       #   previous impl: https://github.com/simp/simp-environment-skeleton/blob/6.3.0/build/simp-environment.spec#L181
       #
       apply_puppet_permissions(File.join(@directory_path, 'site_files'), false, true)
+
+      # ensure correct FACLS on rsync/ files
+      #
+      #   previous impl: https://github.com/simp/simp-rsync-skeleton/blob/6.2.1/build/simp-rsync.spec#L98-L99
+      #
+      rsync_path = File.join(@directory_path, 'rsync')
+      apply_facls(rsync_path,  File.join(rsync_path,'.rsync.facl'))
+    end
+
+    # Apply FACL permissions to a path using a file for `setfacl --restore`
+    # @param [String] path       absolute path set FACLs
+    # @param [String] facl_file  absolutre path to rsync facl rules
+    def apply_facls(path, facl_file)
+      unless File.exists? path
+        fail(
+          Simp::Cli::ProcessingError,
+          "ERROR: Path does not exist to set FACLS: '#{path}'"
+        )
+      end
+      unless File.exists? facl_file
+        fail(Simp::Cli::ProcessingError, "ERROR: No FACL file at '#{facl_file}'")
+      end
+
+      logger.info "Applying FACL rules to #{rsync_path}"
+      %x("cd #{path} && setfacl --restore=#{facl_file} 2>/dev/null")
+
+      unless $?.success?
+        fail(
+          Simp::Cli::ProcessingError,
+          "ERROR: `setfacl --restore=#{facl_file}` failed at '#{path}'"
+        )
+      end
     end
   end
 end

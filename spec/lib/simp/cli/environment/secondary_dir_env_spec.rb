@@ -20,21 +20,19 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
 
   context 'with methods' do
 
-    let(:mod_name){ 'acceptable_name' }
+    let(:mod_name){ 'test_env_name' }
     let(:mod_dir){ File.join(opts[:environmentpath],mod_name) }
     let(:site_files_dir){ File.join(mod_dir,'site_files') }
+    let(:rsync_dir){ File.join(mod_dir,'rsync') }
+    let(:rsync_facl_file){ File.join(rsync_dir,'.rsync.facl') }
     subject(:described_object) { described_class.new(mod_name, env_path, opts) }
 
     before(:each) do
       # Pass through partial mocks when we don't need them
       allow(File).to receive(:directory?).with(any_args).and_call_original
       allow(File).to receive(:exist?).with(any_args).and_call_original
-      ###allow(File).to receive(:read).with(any_args).and_call_original
-      ###allow(Dir).to receive(:[]).with(any_args).and_call_original
-      ###allow(Dir).to receive(:chdir).with(any_args).and_call_original
       allow(File).to receive(:directory?).with(opts[:environmentpath]).and_return(true)
       allow(File).to receive(:exist?).with(opts[:environmentpath]).and_return(true)
-      #allow(described_object).to receive(:selinux_fix_file_contexts).with(any_args).and_call_original
     end
 
     describe '#create' do
@@ -49,6 +47,7 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
           puts "site_file_dirs = '#{site_files_dir}'"
           allow(described_object).to receive(:selinux_fix_file_contexts).with([mod_dir])
           allow(described_object).to receive(:apply_puppet_permissions).with(site_files_dir,false,true)
+          allow(described_object).to receive(:apply_facls).with(rsync_dir,rsync_facl_file)
         end
         it{ expect{ described_object.fix }.not_to raise_error }
         it{
@@ -57,6 +56,10 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
         }
         it{
           expect( described_object ).to receive(:apply_puppet_permissions).with(site_files_dir,false,true).once
+          described_object.fix
+        }
+        it{
+          expect( described_object ).to receive(:apply_facls).with(rsync_dir,rsync_facl_file).once
           described_object.fix
         }
       end

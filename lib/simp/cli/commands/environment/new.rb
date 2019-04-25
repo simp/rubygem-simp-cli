@@ -39,7 +39,8 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
           strategy:        default_strategy,   # :skeleton, :copy, :link
           backend:         :directory,
           environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path],
-          skeleton_path:      '/usr/share/simp/environments/simp/site_files' #TODO: separate this from Puppet env dir
+          skeleton_path:       '/usr/share/simp/environments/secondary',
+          rsync_skeleton_path: '/usr/share/simp/environments/rsync'
         },
         writable: {
           enabled:         true,

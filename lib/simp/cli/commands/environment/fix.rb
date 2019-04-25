@@ -34,6 +34,8 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
           enabled:         true,
           backend:         :directory,
           environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path]
+          skeleton_path:       '/usr/share/simp/environments/secondary',
+          rsync_skeleton_path: '/usr/share/simp/environments/rsync'
         },
         writable: {
           enabled:         true,
