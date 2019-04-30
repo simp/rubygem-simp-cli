@@ -30,14 +30,14 @@ module Simp::Cli::Environment
         # to shut up without specifying a logfile.  Stdout/err still make it to
         # our logfile.
         Simp::Cli::Utils.show_wait_spinner do
-          execute('load_policy')
+          # TODO? test restorecon dry run to query if the policy matches what we expect it do be
           paths.each do |path|
-            @logger.info("Restoring SELinux contexts under '#{path}' (this may take a while...)", 'cyan')
+            logger.info("Restoring SELinux contexts under '#{path}' (this may take a while...)", 'cyan')
             execute("restorecon -R -F -p #{path} 2>&1 >> #{@logfile.path}")
           end
         end
       else
-        @logger.info("SELinux is disabled; skipping context fixfiles for '#{path}'", 'yellow')
+        logger.info("SELinux is disabled; skipping context fixfiles for '#{path}'", 'yellow')
       end
     end
 

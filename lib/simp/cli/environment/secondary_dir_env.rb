@@ -45,15 +45,16 @@ module Simp::Cli::Environment
     def fix
       puts <<-TODO.gsub(%r{^ {6}}, '')
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
-          - [x] if environment is not available (#{@directory_path} exists)
+          - [x] if environment is not available (#{@directory_path} not found)
              - [x] THEN FAIL WITH HELPFUL MESSAGE
           - [x] A2.2 apply SELinux fixfiles restore to the ${ENVIRONMENT}/ + subdirectories
-            - [x] A2.3 apply the correct SELinux contexts on demand
-          - [x] A3.2 apply Puppet group ownership to $ENVIRONMENT/site_files/
+          - [x] A2.3 apply the correct SELinux contexts on demand
+          - [x] A3.2.2 apply Puppet group ownership to $ENVIRONMENT/site_files/
           - [x] C3.2 ensure correct FACLS
 
       TODO
 
+      # if environment is not available, fail with helpful message
       unless File.directory? @directory_path
         fail(
           Simp::Cli::ProcessingError,
