@@ -8,10 +8,15 @@
     :deploy: false
     :backend: :directory
     :environmentpath: "/etc/puppetlabs/code/environments"
+    :skeleton_path:   "/usr/share/simp/environments/simp"
+    :module_repos_path: "/usr/share/simp/git/puppet_modules"
+    :skeleton_modules_path: "/usr/share/simp/modules"
   :secondary:
     :enabled: true
     :backend: :directory
     :environmentpath: "/var/simp/environments"
+    :skeleton_path:       "/usr/share/simp/environments/secondary"
+    :rsync_skeleton_path: "/usr/share/simp/environments/rsync"
   :writable:
     :enabled: true
     :backend: :directory

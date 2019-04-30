@@ -8,13 +8,13 @@ require 'spec_helper'
 require 'yaml'
 
 describe Simp::Cli::Environment::OmniEnvController do
-  let(:opts_yaml){ File.read(File.join(__dir__,'files/omni_env_controller_opts.yaml')) }
+  OMNI_ENVIRONMENT  = %i[puppet secondary writable].freeze
+  EXTRA_ENVIRONMENT = %i[secondary writable].freeze
 
   subject(:described_object) { described_class.new(opts, 'foo') }
 
-  let(:opts) do
-    YAML.load(opts_yaml)
-  end
+  let(:opts_yaml) { File.read(File.join(__dir__, 'files/omni_env_controller_opts.yaml')) }
+  let(:opts) { YAML.load(opts_yaml) }
 
   let(:opts_pup_disabled) do
     opts = YAML.load(opts_yaml)
@@ -22,18 +22,39 @@ describe Simp::Cli::Environment::OmniEnvController do
     opts
   end
 
-  shared_examples 'it delegates to enabled Env objects' do |method, num|
-    it "invokes #{method}() on #{num} environments" do
-      # rubocop:disable RSpec/VerifiedDoubles
-      spy = spy('shared environment spy')
-      # rubocop:enable RSpec/VerifiedDoubles
-      allow(Simp::Cli::Environment::PuppetDirEnv).to receive(:new).and_return(spy)
-      allow(Simp::Cli::Environment::SecondaryDirEnv).to receive(:new).and_return(spy)
-      allow(Simp::Cli::Environment::WritableDirEnv).to receive(:new).and_return(spy)
-      allow($stdout).to receive(:write)
+  shared_examples 'it delegates to enabled Env objects' do |method, expected_envs|
+    let(:spies) do
+      {
+        # rubocop:disable RSpec/VerifiedDoubles
+        puppet: spy('puppet environment spy'),
+        secondary: spy('secondary environment spy'),
+        writable: spy('writable environment spy')
+        # rubocop:enable RSpec/VerifiedDoubles
+      }
+    end
 
+    before(:each) do
+      allow(Simp::Cli::Environment::PuppetDirEnv).to receive(:new).and_return(spies[:puppet])
+      allow(Simp::Cli::Environment::SecondaryDirEnv).to receive(:new).and_return(spies[:secondary])
+      allow(Simp::Cli::Environment::WritableDirEnv).to receive(:new).and_return(spies[:writable])
+      allow($stdout).to receive(:write)
+    end
+
+    it "calls #{method}() for enabled environments: #{expected_envs.map(&:to_s).join(', ')}" do
       subject.call
-      expect(spy).to have_received(method.to_sym).exactly(num).times
+      spies.select { |k, _v| expected_envs.include?(k) }.each do |_env, spy|
+        expect(spy).to have_received(method).once
+      end
+    end
+
+    disabled_envs = OMNI_ENVIRONMENT - expected_envs
+    unless disabled_envs.empty?
+      it "does not call #{method}() for disabled environment: #{disabled_envs.join(', ')}" do
+        subject.call
+        spies.select { |k, _v| expected_envs.include?(k) }.each do |_env, spy|
+          expect(spy).to have_received(method).once
+        end
+      end
     end
   end
 
@@ -47,24 +68,24 @@ describe Simp::Cli::Environment::OmniEnvController do
   describe '#create' do
     subject(:create) { proc { described_object.create } }
 
-    it_behaves_like 'it delegates to enabled Env objects', :create, 3
-    it_behaves_like 'it delegates to enabled Env objects', :fix, 3
+    it_behaves_like 'it delegates to enabled Env objects', :create, OMNI_ENVIRONMENT
+    it_behaves_like 'it delegates to enabled Env objects', :fix, EXTRA_ENVIRONMENT
     context 'when the Puppet environment is not enabled' do
       let(:opts) { opts_pup_disabled }
 
-      it_behaves_like 'it delegates to enabled Env objects', :create, 2
-      it_behaves_like('it delegates to enabled Env objects', :fix, 2)
+      it_behaves_like 'it delegates to enabled Env objects', :create, %i[secondary writable]
+      it_behaves_like('it delegates to enabled Env objects', :fix, %i[secondary writable])
     end
   end
 
   describe '#fix' do
-    subject(:create) { proc { described_object.create } }
+    subject(:fix) { proc { described_object.create } }
 
-    it_behaves_like 'it delegates to enabled Env objects', :fix, 3
+    it_behaves_like 'it delegates to enabled Env objects', :fix, %i[puppet secondary writable]
     context 'when the Puppet environment is not enabled' do
       let(:opts) { opts_pup_disabled }
 
-      it_behaves_like('it delegates to enabled Env objects', :fix, 2)
+      it_behaves_like('it delegates to enabled Env objects', :fix, EXTRA_ENVIRONMENT)
     end
   end
 end
