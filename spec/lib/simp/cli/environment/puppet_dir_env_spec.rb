@@ -6,7 +6,6 @@ describe Simp::Cli::Environment::PuppetDirEnv do
     skel_dir =  '/var/simp/environments'
     share_dir = '/usr/share/simp'
     {
-      enabled: true,
       puppetfile: false,
       puppetfile_install: false,
       deploy: false,
@@ -39,6 +38,7 @@ describe Simp::Cli::Environment::PuppetDirEnv do
     end
     before(:each) do
       allow(described_object).to receive(:`).with(rsync_cmd)
+      allow($CHILD_STATUS).to receive(:success?).and_return(true)
     end
     example do
       described_object.copy_skeleton_files(opts[:skeleton_path],env_dir,'puppet')
@@ -47,7 +47,7 @@ describe Simp::Cli::Environment::PuppetDirEnv do
   end
 
   context 'with methods' do
-    describe '#create' do
+    describe '#create', :skip => 'TODO: implement' do
       context 'when puppet environment directory is empty (not deployed)' do
         before(:each) do
           allow(Dir).to receive(:glob).with(any_args).and_call_original
@@ -80,7 +80,10 @@ describe Simp::Cli::Environment::PuppetDirEnv do
     end
 
     describe '#fix' do
-      before(:each) { allow(File).to receive(:directory?).with(env_dir).and_return(true) }
+      before(:each) do
+        allow(File).to receive(:directory?).with(env_dir).and_return(true)
+        allow($stdout).to receive(:write)
+      end
 
       context 'when puppet environment directory is present' do
         before(:each) do

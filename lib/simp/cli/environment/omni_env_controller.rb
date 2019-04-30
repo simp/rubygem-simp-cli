@@ -16,13 +16,14 @@ module Simp::Cli::Environment
         # TODO: honor backends
         # TODO: refactor into a Factory
         base_env_path = data[:environmentpath] || fail(ArgumentError, 'ERROR: no :environmentpath in opts')
+        opts_data = data.reject{|k,v| k == :enabled}
         case type
         when :puppet
-          @environments[:puppet]    = PuppetDirEnv.new(env, base_env_path, data)
+          @environments[:puppet]    = PuppetDirEnv.new(env, base_env_path, opts_data)
         when :secondary
-          @environments[:secondary] = SecondaryDirEnv.new(env, base_env_path, data)
+          @environments[:secondary] = SecondaryDirEnv.new(env, base_env_path, opts_data)
         when :writable
-          @environments[:writable]  = WritableDirEnv.new(env, base_env_path, data)
+          @environments[:writable]  = WritableDirEnv.new(env, base_env_path, opts_data)
         else
           fail("ERROR: Unrecognized environment type '#{env_type}'")
         end

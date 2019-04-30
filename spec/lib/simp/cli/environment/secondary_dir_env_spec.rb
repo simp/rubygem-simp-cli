@@ -6,9 +6,8 @@ require 'spec_helper'
 # rubocop:disable RSpec/SubjectStub
 describe Simp::Cli::Environment::SecondaryDirEnv do
   let(:opts) do
-    skel_dir =  '/var/simp/environments'
+    skel_dir =  '/usr/share/simp/environments'
     {
-      enabled: true,
       backend: :directory,
       environmentpath:     '/var/simp/environments',
       skeleton_path:       "#{skel_dir}/secondary",
@@ -40,13 +39,16 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
       allow(File).to receive(:exist?).with(opts[:environmentpath]).and_return(true)
     end
 
-    describe '#create' do
+    describe '#create', :skip => 'TODO implement' do
       before(:each) { allow(File).to receive(:exist?).with(env_dir).and_return(false) }
       it { expect { described_object.create }.not_to raise_error }
     end
 
     describe '#fix' do
-      before(:each) { allow(File).to receive(:directory?).with(env_dir).and_return(true) }
+      before(:each) do
+        allow(File).to receive(:directory?).with(env_dir).and_return(true)
+        allow($stdout).to receive(:write)
+      end
 
       context 'when secondary environment directory is present' do
         before(:each) do

@@ -18,11 +18,10 @@ module Simp::Cli::Environment
       super(name, opts)
       @base_environments_path = base_environments_path
       @directory_path = File.join(@base_environments_path, name)
-      @skeleton_path  = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
     end
 
     # If selinux is enabled, relabel the filesystem.
-    # TODO: implement and test
+    # @param [Array<String>] paths   Absolute paths to apply SELinux permission
     def selinux_fix_file_contexts(paths = [])
       if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? &&
          (Facter.value(:selinux_current_mode) != 'disabled')
@@ -30,7 +29,7 @@ module Simp::Cli::Environment
         # to shut up without specifying a logfile.  Stdout/err still make it to
         # our logfile.
         Simp::Cli::Utils.show_wait_spinner do
-          # TODO? test restorecon dry run to query if the policy matches what we expect it do be
+          # IDEA: test restorecon dry run to query if the policy matches what we expect it do be
           paths.each do |path|
             logger.info("Restoring SELinux contexts under '#{path}' (this may take a while...)", 'cyan')
             execute("restorecon -R -F -p #{path} 2>&1 >> #{@logfile.path}")
