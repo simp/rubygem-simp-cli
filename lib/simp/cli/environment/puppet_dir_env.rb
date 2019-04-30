@@ -44,7 +44,7 @@ module Simp::Cli::Environment
 
       # (option-driven) generate Puppetfile
       if @opts[:generate_puppetfile]
-        require 'pry'; binding.pry
+        binding.pry
       end
       fail NotImplementedError
     end
@@ -87,13 +87,13 @@ module Simp::Cli::Environment
       warn("Executing: #{cmd}")
       output = %x(#{cmd})
       warn("Output:\n#{output}")
-      unless $CHILD_STATUS.success?
-        fail(
-          "ERROR: Copy of '#{src_dir}' into '#{dest_dir}' using '#{cmd}' " \
-          "failed with the following error:\n" \
-          "    #{output.gsub("\n", "\n    ")}"
-        )
-      end
+      return if $CHILD_STATUS.success?
+
+      fail(
+        "ERROR: Copy of '#{src_dir}' into '#{dest_dir}' using '#{cmd}' " \
+        "failed with the following error:\n" \
+        "    #{output.gsub("\n", "\n    ")}"
+      )
     end
 
     # Update environment

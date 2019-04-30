@@ -10,8 +10,8 @@ module Simp::Cli::Environment
   class SecondaryDirEnv < DirEnv
     def initialize(name, base_environments_path, opts)
       super(name, base_environments_path, opts)
-      @skeleton_path  = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
-      @rsync_skeleton_path = opts[:rsync_skeleton_path] or fail(ArgumentError, 'No :rsync_skeleton_path in opts')
+      @skeleton_path = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
+      (@rsync_skeleton_path = opts[:rsync_skeleton_path]) || fail(ArgumentError, 'No :rsync_skeleton_path in opts')
       @rsync_path = File.join(@directory_path, 'rsync')
     end
 

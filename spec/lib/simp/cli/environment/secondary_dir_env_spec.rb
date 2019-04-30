@@ -3,15 +3,15 @@
 require 'simp/cli/environment/secondary_dir_env'
 require 'spec_helper'
 
-# rubocop:disable RSpec/SubjectStub
 describe Simp::Cli::Environment::SecondaryDirEnv do
+  # rubocop:disable RSpec/SubjectStub
   let(:opts) do
-    skel_dir =  '/usr/share/simp/environments'
+    skel_dir = '/usr/share/simp/environments'
     {
       backend: :directory,
-      environmentpath:     '/var/simp/environments',
-      skeleton_path:       "#{skel_dir}/secondary",
-      rsync_skeleton_path: "#{skel_dir}/rsync",
+      environmentpath: '/var/simp/environments',
+      skeleton_path: "#{skel_dir}/secondary",
+      rsync_skeleton_path: "#{skel_dir}/rsync"
     }
   end
   let(:base_env_path) { opts[:environmentpath] }
@@ -23,13 +23,13 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
   end
 
   context 'with methods' do
+    subject(:described_object) { described_class.new(env_name, base_env_path, opts) }
+
     let(:env_name) { 'test_env_name' }
     let(:env_dir) { File.join(opts[:environmentpath], env_name) }
     let(:site_files_dir) { File.join(env_dir, 'site_files') }
     let(:rsync_dir) { File.join(env_dir, 'rsync') }
     let(:rsync_facl_file) { File.join(rsync_dir, '.rsync.facl') }
-
-    subject(:described_object) { described_class.new(env_name, base_env_path, opts) }
 
     before(:each) do
       # Pass through partial mocks when we don't need them
@@ -95,5 +95,5 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
       it { expect { described_object.remove }.to raise_error(NotImplementedError) }
     end
   end
+  # rubocop:enable RSpec/SubjectStub
 end
-# rubocop:enable RSpec/SubjectStub

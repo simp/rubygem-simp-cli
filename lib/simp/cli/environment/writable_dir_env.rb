@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/environment/dir_env'
 require 'fileutils'
 
@@ -22,14 +24,14 @@ module Simp::Cli::Environment
       TODO
 
       # Safety feature: Don't clobber a Puppet environment directory that already has content
-      unless Dir.glob(File.join(@directory_path,'*')).empty?
+      unless Dir.glob(File.join(@directory_path, '*')).empty?
         fail(
           Simp::Cli::ProcessingError,
           "ERROR: A Writable environment directory with content already exists at '#{@directory_path}'"
         )
       end
 
-      raise NotImplementedError, 'copy files or link directory'
+      fail NotImplementedError, 'copy files or link directory'
     end
 
     # Fix consistency of Puppet directory environment
