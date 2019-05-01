@@ -94,8 +94,8 @@ module Simp::Cli::Environment
       end
       fail(Simp::Cli::ProcessingError, "ERROR: No FACL file at '#{facl_file}'") unless File.exist?(facl_file)
 
-      logger.info "Applying FACL rules to #{rsync_path}"
-      %x("cd #{path} && setfacl --restore=#{facl_file} 2>/dev/null")
+      say "Applying FACL rules to #{path}".cyan
+      system("cd #{path} && setfacl --restore=#{facl_file} 2>/dev/null")
       return if $CHILD_STATUS.success?
 
       fail(

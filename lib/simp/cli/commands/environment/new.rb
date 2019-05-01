@@ -24,6 +24,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     default_strategy = :skeleton
     # TODO: simp cli should read a config file that can override these defaults
     # these options (preferrable mimicking cmd-line args)
+    # TODO: centralize these defs across `simp environment` sub-commands
     options = {
       types: {
         puppet: {

@@ -24,18 +24,13 @@ module Simp::Cli::Environment
     def selinux_fix_file_contexts(paths = [])
       if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? &&
          (Facter.value(:selinux_current_mode) != 'disabled')
-        # This is silly, but there does not seem to be a way to get fixfiles
-        # to shut up without specifying a logfile.  Stdout/err still make it to
-        # our logfile.
-        Simp::Cli::Utils.show_wait_spinner do
-          # IDEA: test restorecon dry run to query if the policy matches what we expect it do be
-          paths.each do |path|
-            logger.info("Restoring SELinux contexts under '#{path}' (this may take a while...)", 'cyan')
-            execute("restorecon -R -F -p #{path} 2>&1 >> #{@logfile.path}")
-          end
+        # IDEA: test restorecon dry run to query if the policy matches what we expect it do be
+        paths.each do |path|
+          say("Restoring SELinux contexts under '#{path}' (this may take a while...)".cyan)
+          system("restorecon -R -F -p #{path} 2>&1")
         end
       else
-        logger.info("SELinux is disabled; skipping context fixfiles for '#{path}'", 'yellow')
+        say("SELinux is disabled; skipping context fixfiles for '#{path}'".yellow)
       end
     end
 
