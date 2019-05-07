@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/data/cli_network_ipaddress'
-require 'simp/cli/config/items/data/cli_network_interface'
 require 'rspec/its'
 require_relative '../spec_helper'
 

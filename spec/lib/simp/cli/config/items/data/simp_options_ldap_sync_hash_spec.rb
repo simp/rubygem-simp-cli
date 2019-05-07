@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/data/simp_options_ldap_sync_hash'
-require 'simp/cli/config/items/data/simp_options_ldap_sync_pw'
 require 'rspec/its'
 require_relative '../spec_helper'
 

@@ -6,8 +6,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CliNetworkNetmask < Item
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'cli::network::netmask'
       @description = %q{The netmask of the system.}
       @data_type   = :cli_params

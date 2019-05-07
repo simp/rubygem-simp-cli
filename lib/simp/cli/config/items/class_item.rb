@@ -6,8 +6,8 @@ module Simp::Cli::Config
   # is written to a class list in a global hiera file
   class ClassItem < Item
 
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @data_type   = :global_class  # carries class value instead of a parameter
       @description = "'#{@key}' class to be added"
     end

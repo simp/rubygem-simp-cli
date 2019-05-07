@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/action/set_hostname_action'
-require 'simp/cli/config/items/data/cli_network_hostname'
 
 require_relative '../spec_helper'
 

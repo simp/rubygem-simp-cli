@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/action/answers_yaml_file_writer'
-require 'simp/cli/config/items'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::AnswersYAMLFileWriter do

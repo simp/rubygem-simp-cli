@@ -7,7 +7,6 @@ cli::network::ipaddress: "1.2.3.4"
 cli::network::netmask: "255.255.255.0"
 cli::network::set_up_nic: false
 cli::set_grub_password: false
-cli::set_production_to_simp: false
 cli::simp::scenario: poss
 cli::use_internet_simp_yum_repos: false
 cli::version: "0.0.0"

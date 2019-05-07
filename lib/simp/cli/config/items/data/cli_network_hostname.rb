@@ -5,8 +5,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CliNetworkHostname < Item
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'cli::network::hostname'
       @description = %q{The Fully Qualified Domain Name (FQDN) of the system.
 

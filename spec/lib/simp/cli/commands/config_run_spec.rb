@@ -21,6 +21,7 @@ describe 'Simp::Cli::Command::Config#run' do
   let(:facts) { {
     'fips_enabled'     => true,
     'fqdn'             => 'server.example.com',
+    'is_pe'            => false,
     'ipaddress_enp0s3' => '10.0.2.10',
     'netmask_enp0s3'   => '255.255.255.0',
     'networking'       => {
@@ -40,35 +41,11 @@ describe 'Simp::Cli::Command::Config#run' do
 
   before(:each) do
     @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__) )
-    test_env_dir = File.join(@tmp_dir, 'environments')
-    simp_env_dir = File.join(test_env_dir, 'simp')
-    FileUtils.mkdir(test_env_dir)
-    FileUtils.cp_r(File.join(files_dir, 'environments', 'simp'), test_env_dir)
 
-    allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
-      :config => {
-        'codedir' => @tmp_dir,
-        'confdir' => @tmp_dir
-      },
-      :environment_path => test_env_dir,
-      :simp_environment_path => simp_env_dir,
-      :fake_ca_path => File.join(test_env_dir, 'simp', 'FakeCA')
-    } )
-
-    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return( File.join(simp_env_dir, 'data') )
-
-    [
-      'fips_enabled',
-      'fqdn',
-      'ipaddress_enp0s3',
-      'netmask_enp0s3',
-      'networking',
-      'os'
-    ].each do |fact_name|
+    allow(Facter).to receive(:loadfacts).and_return(nil)
+    facts.keys.each do |fact_name|
       allow(Facter).to receive(:value).with(fact_name).and_return(facts[fact_name])
     end
-    allow(Simp::Cli::Config::Item::CliNetworkHostname).to receive(:`)
-      .with('hostname -A 2>/dev/null').and_return(facts['fqdn'])
 
     @input = StringIO.new
     @output = StringIO.new
@@ -379,60 +356,14 @@ describe 'Simp::Cli::Command::Config#run' do
       skip('This requires an integration test, as modifies system')
     end
 
-    it 'when user is not root, does not apply actions only allowed by root' do
+    it 'when user is not root, fails if --dry-run is not selected' do
       not_safe_msg  = "To prevent inadvertent system changes, this test will not be run when 'root' user"
       skip(not_safe_msg) if ENV['USER'] == 'root' or ENV['HOME'] == '/root'
-      @input.reopen(generate_simp_input_accepting_defaults)
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run(['-o', @answers_output_file,
-            '-l', @log_file])
-        end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
 
-      skip_lines = @output.string.split("\n").delete_if do |line|
-        !line.include?('Skipping apply[**user is not root**]')
-      end
-
-      fmt_begin = "\e[35m\e[1m"
-      fmt_end = "\e[0m"
-      skip_msg = '(Skipping apply[**user is not root**])'
-      expected_lines = [
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Set Puppet digest algorithm to work with FIPS",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Set hostname",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Configure a network interface",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Set GRUB password",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Set up Puppet autosign",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Update Puppet settings",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Ensure Puppet server /etc/hosts entry exists",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Set default Puppet environment to 'simp'",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Set $simp_scenario in simp environment's site.pp",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Generate interim certificates for SIMP server",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Write SIMP global hieradata to YAML file.",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Create SIMP server <host>.yaml from template",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Set PuppetDB master server & port in SIMP server <host>.yaml",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Add simp::yum::repo::internet_simp_server class to SIMP server <host>.yaml",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Add simp::server::ldap class to SIMP server <host>.yaml",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Set LDAP Root password hash in SIMP server <host>.yaml",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Disallow inapplicable 'simp' user in SIMP server <host>.yaml",
-        "#{fmt_begin}#{skip_msg}#{fmt_end} Check for login lockout risk"
-      ]
-
-      if expected_lines.size != skip_lines.size
-        puts "Expected:\n"
-        expected_lines.each { |line| puts "\t" + line.inspect }
-        puts "Actual:\n"
-        skip_lines.each { |line| puts "\t" + line.inspect }
-      end
-      expect(skip_lines.size).to eq expected_lines.size
-
-      skip_lines.each_index do |index|
-        expect(skip_lines[index]).to eq expected_lines[index]
-      end
+      expect {
+        @config.run(['-o', @answers_output_file, '-l', @log_file])
+      }.to raise_error( Simp::Cli::ProcessingError,
+       /Non\-root users must use \-\-dry\-run option/)
     end
   end
 
@@ -456,14 +387,12 @@ describe 'Simp::Cli::Command::Config#run' do
       summary_lines.delete_if { |line| line.chomp.empty? } # get rid of empty lines
 
       expected_lines = [
-        %r{Setting of Puppet digest algorithm to sha256 for FIPS skipped}m,
         %r{Setting of hostname skipped}m,
         %r{Configuration of a network interface skipped}m,
         %r{Setting of GRUB password skipped}m,
-        %r{Setup of autosign in #{@tmp_dir}/autosign.conf skipped}m,
-        %r{Update to Puppet settings in #{@tmp_dir}/puppet.conf skipped}m,
+        %r{Setup of autosign in /etc/puppetlabs/puppet/autosign.conf skipped}m,
+        %r{Update to Puppet settings in /etc/puppetlabs/puppet/puppet.conf skipped}m,
         %r{Update to /etc/hosts to ensure puppet server entries exist skipped}m,
-        %r{Setting 'simp' to the Puppet default environment skipped}m,
         %r{Setting of \$simp_scenario in the simp environment's site.pp skipped}m,
         %r{Interim certificate generation for SIMP server skipped}m,
         %r{Creation of #{@puppet_system_file} skipped}m,
@@ -839,7 +768,6 @@ describe 'Simp::Cli::Command::Config#run' do
           'simp_options::trusted_nets=1.2.3.0/24',
           'simp_options::ntpd::servers=time-a.nist.gov',
           'cli::set_grub_password=false',
-          'cli::set_production_to_simp=false',
           'puppetdb::master::config::puppetdb_port=0'])
 
       }.to raise_error( Simp::Cli::ProcessingError,

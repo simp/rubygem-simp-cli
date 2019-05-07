@@ -1,6 +1,6 @@
 require 'yaml'
 require 'simp/cli/config/items/action_item'
-require 'simp/cli/utils'
+require 'simp/cli/config/items/data/cli_network_hostname'
 
 module Simp::Cli::Config
   # An ActionItem that adds/updates a hieradata key in the SIMP server's
@@ -9,9 +9,9 @@ module Simp::Cli::Config
   # unique and @hiera_to_add is an array of hiera keys
   class SetServerHieradataActionItem < ActionItem
 
-    def initialize
-      super
-      @dir         = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts')
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
+      @dir         = File.join(@puppet_env_info[:puppet_env_datadir], 'hosts')
       @description = "Set #{@hiera_to_add.join(', ')} in SIMP server <host>.yaml"
       @file        = nil
       @category    = :puppet_env_server

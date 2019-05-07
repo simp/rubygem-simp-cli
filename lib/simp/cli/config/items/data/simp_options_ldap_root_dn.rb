@@ -5,8 +5,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpOptionsLdapRootDn < Item
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'simp_options::ldap::root_dn'
       @description = %Q{The LDAP Root Distinguished Name.}
     end

@@ -5,8 +5,8 @@ class Simp::Cli; end
 module Simp::Cli::Config
 
   class Item::CliNetworkInterface < Item
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key               = 'cli::network::interface'
       @description       = 'The network interface to use to connect the SIMP server to the network.'
       @data_type         = :cli_params

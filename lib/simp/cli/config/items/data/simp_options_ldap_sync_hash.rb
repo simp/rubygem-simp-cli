@@ -1,12 +1,13 @@
 require_relative '../item'
 require_relative '../../utils'
+require_relative 'simp_options_ldap_sync_pw'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpOptionsLdapSyncHash < Item
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'simp_options::ldap::sync_hash'
       @description = %Q{}
       @skip_query  = true # generated from another Item, so no query required

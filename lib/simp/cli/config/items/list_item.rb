@@ -8,8 +8,8 @@ module Simp::Cli::Config
   class ListItem < Item
     attr_accessor :allow_empty_list
 
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @allow_empty_list = false
     end
 

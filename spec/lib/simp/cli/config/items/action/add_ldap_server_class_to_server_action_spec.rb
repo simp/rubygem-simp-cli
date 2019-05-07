@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/action/add_ldap_server_class_to_server_action'
-require 'simp/cli/config/items/data/cli_network_hostname'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::AddLdapServerClassToServerAction do
@@ -12,9 +11,13 @@ describe Simp::Cli::Config::Item::AddLdapServerClassToServerAction do
 
     @fqdn = 'hostname.domain.tld'
     @host_file = File.join( @hosts_dir, "#{@fqdn}.yaml" )
-    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return(@tmp_dir)
 
-    @ci        = Simp::Cli::Config::Item::AddLdapServerClassToServerAction.new
+    @puppet_env_info = {
+      :puppet_config      => { 'modulepath' => '/does/not/matter' },
+      :puppet_env_datadir => @tmp_dir
+    }
+
+    @ci        = Simp::Cli::Config::Item::AddLdapServerClassToServerAction.new(@puppet_env_info)
     @ci.silent = true
   end
 
@@ -26,7 +29,7 @@ describe Simp::Cli::Config::Item::AddLdapServerClassToServerAction do
 
     context 'with a valid fqdn' do
       before :each do
-        item       = Simp::Cli::Config::Item::CliNetworkHostname.new
+        item       = Simp::Cli::Config::Item::CliNetworkHostname.new(@puppet_env_info)
         item.value = @fqdn
         @ci.config_items[item.key] = item
       end

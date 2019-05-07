@@ -1,17 +1,19 @@
 require 'simp/cli/config/items/action/set_grub_password_action'
-require 'simp/cli/config/items/data/grub_password'
 require 'rspec/its'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SetGrubPasswordAction do
   before :each do
-    @ci = Simp::Cli::Config::Item::SetGrubPasswordAction.new
+    @puppet_env_info = {
+      :puppet_config => { 'modulepath' => '/some/module/path' }
+    }
+    @ci = Simp::Cli::Config::Item::SetGrubPasswordAction.new(@puppet_env_info)
   end
 
   # TODO: test successes with acceptance tests
   describe '#apply' do
     let(:grub_password) {
-      grub_password = Simp::Cli::Config::Item::GrubPassword.new
+      grub_password = Simp::Cli::Config::Item::GrubPassword.new(@puppet_env_info)
       grub_password.value = 'vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm'
       grub_password
     }
@@ -66,7 +68,13 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
 
       it 'calls puppet apply and sets applied_status to :success' do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(@ci).to receive(:execute).with(%Q(puppet apply  -e "grub_user { 'root': password => '#{grub_password.value}', superuser => true }")).and_return(true)
+        apply_command = [
+          'puppet apply',
+          '--modulepath=/some/module/path',
+          '--digest_algorithm=sha256',
+          "-e \"grub_user { 'root': password => '#{grub_password.value}', superuser => true }\""
+        ].join(' ')
+        allow(@ci).to receive(:execute).with(apply_command).and_return(true)
 
         @ci.config_items = { grub_password.key => grub_password }
         @ci.apply

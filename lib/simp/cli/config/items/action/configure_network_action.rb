@@ -1,11 +1,19 @@
 require_relative '../action_item'
+require_relative '../data/cli_network_dhcp'
+require_relative '../data/cli_network_gateway'
+require_relative '../data/cli_network_hostname'
+require_relative '../data/cli_network_interface'
+require_relative '../data/cli_network_ipaddress'
+require_relative '../data/cli_network_netmask'
+require_relative '../data/simp_options_dns_search'
+require_relative '../data/simp_options_dns_servers'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::ConfigureNetworkAction < ActionItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key               = 'network::conf'
       @description       = 'Configure a network interface'
       @die_on_apply_fail = true

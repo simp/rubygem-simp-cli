@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 4.5.0
+%global cli_version 5.0.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -12,7 +12,7 @@
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
 Version: %{cli_version}
-Release: 0%{?dist}
+Release: Alpha%{?dist}
 Group: Development/Languages
 License: Apache-2.0
 URL: https://github.com/simp/rubygem-simp-cli
@@ -126,8 +126,25 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Tue Apr 16 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 4.5.0
-- 'simp config' updates:
+* Fri Apr 26 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
+- 'simp' change:
+  - Fixed bug in which the wrong Facter environment variable was set
+- 'simp config' changes:
+  - Created a placeholder for where the OmniEnvController from the
+    future 'simp environment' command would be used to set up the
+    initial SIMP puppet and secondary environments.
+  - Mock use of 'simp environment' code to set up the initial SIMP
+    puppet and secondary environments.
+  - Now require the user to use a new command line option,
+    '--force-config', when the user wants to re-configure
+    an existing SIMP puppet environment
+  - Changed default environment from 'simp' (with corresponding
+    'production' link) to 'production'
+  - Restricted non-root user to only be able to run in '--dry-run'
+    mode.  This was all that the user could actually do, but,
+    without enforcement, lead to unexpected failures.
+  - Fixed a bug in which the check for Puppet Enterprise was
+    incorrect.  This resulted in incorrect puppetserver ports.
   - Reworked questionnaire to allow the user to opt out
     of LDAP all together
   - Removed code that loaded the scenario YAML files
@@ -156,24 +173,35 @@ EOM
   - Fail when the default, non-interactive value for a data item
     fails validation.
   - Added simp-cli version to the answers file as a YAML entry.
+- 'simp bootstrap' changes:
+    (with 'production' links), if they do not exist.  Instead, checks
+    for the existence of SIMP Puppet and secondary 'production'
+    environments and fails if both are not present.
+  - Checks validity of manifests in the 'production' environment,
+    not 'simp' environment, as the link that made them
+    equivalent is OBE.
+  - Fixed a bug in which the check for Puppet Enterprise was
+    incorrect.  This would result in Puppet FOSS-specific bootstrap
+    operations being executed.
+  - Added more log messages to make bootstrap process more clear
 
-* Wed Apr 03 2019 Jim Anderson <thesemicolons@protonmail.com> - 4.5.0
+* Wed Apr 03 2019 Jim Anderson <thesemicolons@protonmail.com> - 5.0.0
 - Added message to bootstrap.rb indicating that puppetserver has been
   reconfigured to listen on a specific port. This message will be
   displayed if the port is changed to 8140, or if it remains on 8150.
 
-* Wed Mar 20 2019 Jim Anderson <thesemicolons@protonmail.com> - 4.5.0
+* Wed Mar 20 2019 Jim Anderson <thesemicolons@protonmail.com> - 5.0.0
 - Fixed bug in which 'simp config' failed to find the template
   SIMP server host YAML file, puppet.your.domain.yaml, from
   /usr/share simp/enviornments/simp.  This bug caused subsequent
   'simp config' runs to fail, when the SIMP server hostname had
   changed from the hostname used in the first 'simp config' run.
 
-* Mon Mar 18 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.5.0
+* Mon Mar 18 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 5.0.0
 - Ensure that an FQDN is used when running `simp config`
 - Ensure that an FQDN is set when running `simp bootstrap`
 
-* Mon Mar 11 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 4.5.0
+* Mon Mar 11 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
 - Added `simp puppetfile generate` command
   - `simp puppetfile` command
   - `simp puppetfile generate` sub-command
@@ -187,7 +215,7 @@ EOM
   - Removed unnecessary ENV wrapper from gemspec
   - Documented changes in README.md
 
-* Thu Feb 07 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 4.5.0
+* Thu Feb 07 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 5.0.0
 - Fixed a bug where the web-routes.conf file was not being overwritten with a
   pristine copy. This meant that multiple calls to `simp bootstrap` would fail
   due to leftover CA entries in the file. The error provided is not clear and

@@ -5,8 +5,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpOptionsSyslogFailoverLogServers < ListItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'simp_options::syslog::failover_log_servers'
       @description = 'Failover log server(s) in case your log servers(s) fail.'
       @allow_empty_list = true

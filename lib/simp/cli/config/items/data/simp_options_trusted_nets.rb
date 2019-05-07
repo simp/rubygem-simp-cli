@@ -1,13 +1,15 @@
 require 'ipaddr'
 require 'resolv'
 require_relative '../list_item'
+require_relative 'cli_network_ipaddress'
+require_relative 'cli_network_netmask'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpOptionsTrustedNets < ListItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'simp_options::trusted_nets'
       @description = %Q{A list of subnets to permit, in CIDR notation.
 

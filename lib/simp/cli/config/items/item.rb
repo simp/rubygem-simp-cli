@@ -2,6 +2,7 @@ require 'highline/import'
 require 'puppet'
 require 'yaml'
 require 'simp/cli/config/errors'
+require 'simp/cli/defaults'
 require 'simp/cli/logging'
 
 module Simp; end
@@ -16,15 +17,37 @@ module Simp::Cli::Config
                       # an important logged message to be highlighted
                       # on the screen
 
-    attr_reader   :key, :description, :data_type, :fact, :puppet_apply_cmd
+    # This constant show a stock SIMP environment set up and documents
+    # the minimal Puppet env hash required to support all Items
+    DEFAULT_PUPPET_ENV_INFO = {
+      :puppet_config      => {
+        'autosign'   => '/etc/puppetlabs/puppet/autosign.conf',
+        'config'     => '/etc/puppetlabs/puppet/puppet.conf',
+        'modulepath' => [
+          "/etc/puppetlabs/code/environments/#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}/modules",
+          "/var/simp/environments/#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}/site_files",
+          '/etc/puppetlabs/code/modules',
+          '/opt/puppetlabs/puppet/modules'
+        ].join(':')
+      },
+      :puppet_group       => 'puppet',
+      :puppet_env         => Simp::Cli::BOOTSTRAP_PUPPET_ENV,
+      :puppet_env_dir     => "/etc/puppetlabs/code/environments/#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}",
+      :puppet_env_datadir => "/etc/puppetlabs/code/environments/#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}/data",
+      :secondary_env_dir  => "/var/simp/environments/#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}"
+    }
+
+    attr_reader   :key, :description, :data_type, :fact
+    attr_reader   :puppet_env_info
+
     attr_accessor :value
     attr_accessor :start_time
     attr_accessor :skip_query, :skip_yaml, :silent
     attr_accessor :config_items
     attr_accessor :next_items_tree
 
-    # Derive Item classes must set @key
-    def initialize
+    # Derived Item classes must set @key
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       @key               = nil           # answers file key for the config Item
       @value             = nil           # value (decided by user)
       @value_os          = nil           # value extracted from the system
@@ -56,20 +79,7 @@ module Simp::Cli::Config
                                          #   :noninteractive = default value
                                          #   :answered       = pre-assigned value
 
-      possible_module_paths = [
-        '/usr/share/simp/modules',
-        '/etc/puppetlabs/code/environments/simp/modules',
-        '/etc/puppet/environments/simp/modules'
-      ]
-
-      possible_module_paths.each do |modpath|
-        if File.directory?(modpath)
-          @puppet_apply_cmd = "puppet apply --modulepath=#{modpath} "
-          break
-        end
-      end
-
-      @puppet_apply_cmd ||= 'puppet apply '
+      @puppet_env_info   = puppet_env_info # Hash of information about SIMP's Puppet environment
 
       @config_items      = {}          # a hash of all previous Config::Items
       # a Hash of additional Items whose value this Item may need to use.
@@ -78,7 +88,6 @@ module Simp::Cli::Config
       #   'answer1' => [ Item1, Item2, .. ]
       #   'answer2' => [ Item3, Item4, .. ]
       @next_items_tree   = {}
-
     end
 
 
@@ -88,7 +97,7 @@ module Simp::Cli::Config
 
     # whether this Item sets a data value
     def value_required?
-      if @data_type == :none or @data_type == :global_class
+      if (@data_type == :none) || (@data_type == :global_class)
         return false
       else
         return true
@@ -231,7 +240,7 @@ module Simp::Cli::Config
       # failure will be hidden by `simp config`, and invariably will cause
       # `simp bootstrap` to fail.
       unless validate(@value)
-        # Unfortunatey, there is no way for the user to fix this problem.
+        # Unfortunately, there is no way for the user to fix this problem.
         # The best we can do is spew enough information for a developer to debug.
         err_msg = "Default, noninteractive value for #{@key} is invalid: '#{@value}'."
         raise InternalError.new(err_msg)
@@ -387,22 +396,6 @@ module Simp::Cli::Config
     # --------------------------------------------------------------------------
     # miscellaneous methods
     # --------------------------------------------------------------------------
-
-    def status_color
-      case (@applied_status)
-      when :succeeded
-        color = :GREEN
-      when :unattempted, :skipped, :unnecessary
-        color = :MAGENTA
-      when :deferred  # operator intervention recommended
-        color = :YELLOW
-      when :failed
-        color = :RED
-      else
-        color = :RED
-      end
-      color
-    end
 
     # Execute a command in a child process, log failure and return
     # whether command succeeded.

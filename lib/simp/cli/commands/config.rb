@@ -7,34 +7,39 @@ require 'simp/cli/commands/command'
 require 'simp/cli/config/errors'
 require 'simp/cli/config/items'
 require 'simp/cli/config/item_list_factory'
-require 'simp/cli/logging'
 require 'simp/cli/config/questionnaire'
+require 'simp/cli/config/simp_puppet_env_helper'
+require 'simp/cli/logging'
 
 # Handle CLI interactions for "simp config"
 class Simp::Cli::Commands::Config < Simp::Cli::Commands::Command
 
   include Simp::Cli::Logging
 
-  SECTION_SEPARATOR = '='*80
-
-  INTRO_TEXT_PART1 = <<EOM
+  # Intro is broken into 3 parts so that we can inject filenames
+  # between the parts and use different font formatting for those
+  # filenames.
+  # @see greet_user
+  SECTION_SEPARATOR  = '='*80
+  INTRO_TEXT_PART1   = <<EOM
 #{SECTION_SEPARATOR}
 `simp config` will take you through preparing your infrastructure for bootstrap
-based on a pre-defined SIMP scenario, that you select. These preparations include
+based on a pre-defined SIMP scenario you select. These preparations include
 optional and required general system setup and required Puppet configuration.
 All changes will be logged to
 EOM
 
-  INTRO_TEXT_PART2 = <<EOM
-You will be prompted to enter setup information. Each prompt will be prefaced
-by a detailed description of the information requested, along with the OS value
-and/or recommended value for that item, if available.
+  INTRO_TEXT_PART2   = <<EOM
+First, `simp config` will ensure you have a SIMP omni-environment in place.
+Then, you will be prompted to enter setup information. Each prompt will be
+prefaced by a detailed description of the information requested, along with the
+OS value and/or recommended value for that item, if available.
 
 At any time, you can exit `simp config` by entering <CTRL-C>. By default,
 if you exit early, the configuration you entered will be saved to
 EOM
 
-  INTRO_TEXT_PART3 = <<EOM
+  INTRO_TEXT_PART3   = <<EOM
 The next time you run `simp config`, you will be given the option to continue
 where you left off or to start all over.
 #{SECTION_SEPARATOR}
@@ -42,18 +47,24 @@ EOM
 
   def initialize
 
-    @default_answers_outfile = File.join(Simp::Cli::SIMP_CLI_HOME, 'simp_conf.yaml')
+    # default run options
     @options =  {
-      :verbose                => 0, # <0 = ERROR and above
-                                    #  0 = INFO and above
-                                    # >0 = DEBUG and above
+      :puppet_env             => Simp::Cli::BOOTSTRAP_PUPPET_ENV,
+      :puppet_env_info        => nil, # will be set once we have ensured we
+                                      # have the Puppet environment in place
+      :force_config           => false,
       :allow_queries          => true,
-      :force_defaults         => false, # true = use valid defaults, preemptively
+      :force_defaults         => false, # true = use valid Item defaults, preemptively,
+                                        # instead of querying
       :dry_run                => false,
 
+
       :answers_input_file     => nil,
-      :answers_output_file    => File.expand_path( @default_answers_outfile ),
-      :puppet_system_file     => nil,
+      :answers_output_file    => Simp::Cli::CONFIG_ANSWERS_OUTFILE,
+      :hiera_output_file      => nil, # will be set once we determine the
+                                      # correct Puppet environment and correct
+                                      # directory name for hieradata in the
+                                      # environment
 
       :use_safety_save        => true,
       :autoaccept_safety_save => false,
@@ -62,13 +73,20 @@ EOM
       :log_file               => nil,
       :clean_session          => true,  # whether we are starting the questionnaire
                                         # from the beginning and queries are allowed
-      :user_overrides         => false  # whether user has provided overrides via
+      :user_overrides         => false, # whether user has provided overrides via
                                         # an answers input file or KEY=VALUE pairs
+      :verbose                => 0  # <0 = ERROR and above
+                                    #  0 = INFO and above
+                                    # >0 = DEBUG and above
     }
 
-    @version         = Simp::Cli::VERSION
+    @version = Simp::Cli::VERSION
 
   end
+
+  #####################################################
+  # Simp::Cli::Commands::Command API methods
+  #####################################################
 
   def help
     parse_command_line( [ '--help' ] )
@@ -79,21 +97,11 @@ EOM
     return if @help_requested
 
     set_up_global_logger
+    greet_user
+    ensure_puppet_env
+    add_custom_facts
 
-    # Ensure that custom facts are available before the first pluginsync
-    if Simp::Cli::Utils.puppet_info[:config]['modulepath']  # nil in spec tests with Puppet 4
-      Simp::Cli::Utils.puppet_info[:config]['modulepath'].split(':').each do |dir|
-        next unless File.directory?(dir)
-        Find.find(dir) do |mod_path|
-          fact_path = File.expand_path('lib/facter', mod_path)
-          Facter.search(fact_path) if File.directory?(fact_path)
-          Find.prune unless mod_path == dir
-        end
-      end
-    end
-
-    # Load all pre-set answers (predetermined Item values), querying
-    # the user for the scenario, as appropriate.
+    # Load all pre-set answers (predetermined Item values)
     answers_hash = load_pre_set_answers(args, @options)
 
     # Generate the 'list' of Items based on the scenario selected, and
@@ -137,33 +145,103 @@ EOM
     raise Simp::Cli::ProcessingError.new(e.message)
   end
 
-  def greet_user
-    logger.info( "\n#{INTRO_TEXT_PART1}", [:GREEN] )
-    logger.info( "#{' '*15}#{@options[:log_file]}")
-    logger.info( "\n#{INTRO_TEXT_PART2}", [:GREEN] )
-    logger.info( "#{' '*15}#{@options[:safety_save_file]}")
-    logger.info( "\n#{INTRO_TEXT_PART3}", [:GREEN] )
+  #####################################################
+  # Custom methods
+  #####################################################
 
-    first_interactive_session = @options[:clean_session] &&
-      @options[:allow_queries] && !@options[:force_defaults]
+  # Ensure that custom facts from the Puppet's configured modulepath and the
+  # SIMP Puppet environment are available before the first pluginsync
+  def add_custom_facts
+    modulepaths = []
+    if @options[:puppet_env_info][:puppet_config]['modulepath']  # nil in spec tests
+      modulepaths += @options[:puppet_env_info][:puppet_config]['modulepath'].split(':')
+    end
 
-    if first_interactive_session
-      # space at end of question tells HighLine to remain on the prompt line
-      # when gathering user input
-      question = 'Ready to start the questionnaire? (no = exit program):'.bold + ' '
-      unless agree( question ) { |q| q.default = 'yes' }
-        raise Simp::Cli::ProcessingError.new('Exiting: User terminated processing prior to questionnaire.')
+    modulepaths << Simp::Cli::SIMP_MODULES_INSTALL_PATH
+    Simp::Cli::Utils::load_custom_facts(modulepaths, true)
+  end
+
+  # Ensure the Puppet environment exists and loads Puppet configuration
+  # for it.
+  #
+  # @raises if an existing, minimially validated, Puppet environment
+  #         already exists and the configuration overwrite has not been
+  #         enabled by the user.
+  # @raises if an invalid Puppet environment already exists
+  def ensure_puppet_env
+    env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(@options[:puppet_env])
+
+    if @options[:dry_run]
+      msg = "Skipping creation of SIMP omni-environment for '#{@options[:puppet_env]}': --dry-run enabled"
+      logger.info(msg.magenta.bold)
+      # Assume stock SIMP environment setup, since we can't necessarily extract
+      # the correct Puppet env info
+      @options[:puppet_env_info] = Simp::Cli::Config::Item::DEFAULT_PUPPET_ENV_INFO
+    else
+      status_code, status_details =  env_helper.env_status
+      details_msg = status_details.split("\n").map { |line| '  >> ' + line }.join("\n")
+      if status_code == :creatable
+        first_interactive_session = @options[:clean_session] &&
+          @options[:allow_queries] && !@options[:force_defaults]
+
+        # give user time to read intro before first real action is applied
+        if first_interactive_session
+          # space at end of question tells HighLine to remain on the prompt line
+          # when gathering user input
+          question = 'Ready to create the SIMP omni-environment? (no = exit program):'.bold + ' '
+          unless agree( question ) { |q| q.default = 'yes' }
+            raise Simp::Cli::ProcessingError.new('Exiting: User terminated processing prior to creating SIMP omni-environment.')
+          end
+        end
+        logger.info("Creating SIMP omni-environment for '#{@options[:puppet_env]}'")
+        logger.debug(details_msg)
+        @options[:puppet_env_info] = env_helper.create
+
+        # verify environment was successfully created
+        status_code, status_details =  env_helper.env_status
+        unless status_code == :exists
+          msg = "Creation of SIMP omni-environment for '#{@options[:puppet_env]}' failed:\n"
+          msg += status_details.split("\n").map { |line| '  >> ' + line }.join("\n")
+          raise Simp::Cli::ProcessingError.new(msg)
+        end
+      elsif status_code == :exists
+        if @options[:force_config]
+          msg = "Modifying existing SIMP omni-environment for '#{@options[:puppet_env]}'"
+          logger.warn(msg.yellow.bold)
+          logger.debug(details_msg.yellow)
+          @options[:puppet_env_info] = env_helper.env_info
+        else
+          msg = "An existing SIMP omni-environment for '#{@options[:puppet_env]}' exists:\n"
+          msg += details_msg
+          msg += "\nUse --force-config to allow '#{@options[:puppet_env]}'environment modification"
+          raise Simp::Cli::ProcessingError.new(msg)
+        end
+      else
+        msg = "Unabled to configure: Invalid SIMP omni-environment for '#{@options[:puppet_env]}' exists:\n"
+        msg += details_msg
+        raise Simp::Cli::ProcessingError.new(msg)
+      end
+
+      # Set remaining @options based on the Puppet environment
+      unless @options[:hiera_output_file]
+        @options[:hiera_output_file] = File.join(
+            @options[:puppet_env_info][:puppet_env_datadir],
+            Simp::Cli::CONFIG_GLOBAL_HIERA_FILENAME
+        )
       end
     end
   end
 
-  def parse_command_line(args)
-    @default_hiera_outfile = File.join(
-      Simp::Cli::Utils::simp_env_datadir,
-     'simp_config_settings.yaml'
-    )
-     @options[:puppet_system_file] = File.expand_path( @default_hiera_outfile )
+  def greet_user
+    indent = ' '*15
+    logger.info( "\n#{INTRO_TEXT_PART1}".rstrip, [:GREEN] )
+    logger.info( "#{indent}#{@options[:log_file]}")
+    logger.info( "\n#{INTRO_TEXT_PART2}".rstrip, [:GREEN] )
+    logger.info( "#{indent}#{@options[:safety_save_file]}")
+    logger.info( "\n#{INTRO_TEXT_PART3}".rstrip, [:GREEN] )
+  end
 
+  def parse_command_line(args)
     @opt_parser      = OptionParser.new do |opts|
       opts_separator = ' '*4 + '-'*76
       opts.banner    = "\n=== The SIMP Configuration Tool ==="
@@ -187,23 +265,48 @@ EOM
       opts.separator "OPTIONS:\n"
       opts.separator opts_separator
 
+=begin
+TODO Either name of env (assumed to be in puppet environment) or fully qualified
+path to some other place?  Until we separate actions out into 'simp config apply',
+env within /etc/puppetlabs/code/environments only makes sense, since we will
+be modifying its corresponding secondary env using FakeCA in action to generate
+certificates.
+
+      opts.on('-e', '--puppet-env ENV',
+              'The name of the SIMP Puppet environment.',
+              "Defaults to '#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}'") do |puppet_env|
+        @options[:puppet_env] = puppet_env
+      end
+=end
+
+      opts.on('--force-config',
+              "Allow 'simp config' to apply config changes",
+              'when the Puppet environment to be created',
+              'already exists. Allows **ALL** config',
+              'actions to be applied (system, Puppet',
+              'global, Puppet environment).') do
+        @options[:force_config] = true
+      end
+
       opts.on('-o', '--answers-output FILE',
               'The answers FILE where the created/edited',
               "system configuration used by 'simp config'",
               'will be written. Defaults to',
-              "'#{@default_answers_outfile}'") do |file|
-        @options[:answers_output_file] = file
+              "'#{Simp::Cli::CONFIG_ANSWERS_OUTFILE}'") do |file|
+        @options[:answers_output_file] = File.expand_path(file)
       end
 
       opts.on('-p', '--puppet-output FILE',
-              'The Puppet system FILE where the',
-              'created/edited system hieradata will be',
-              'written. Defaults to',
-              "'#{@default_hiera_outfile}'") do |file|
-        @options[:puppet_system_file] = file
+              'The output FILE where the global',
+              'hieradata for the SIMP environment will',
+              'be written. Defaults to a file named',
+              "'#{Simp::Cli::CONFIG_GLOBAL_HIERA_FILENAME}' in the SIMP",
+              "environment's data directory") do |file|
+        @options[:hiera_output_file] = file
       end
 
-      opts.on('-a', '--apply FILE', 'Apply answers FILE (fails on missing/invalid items)') do |file|
+      opts.on('-a', '--apply FILE',
+              'Apply answers FILE (fails on missing/invalid items)') do |file|
         @options[:answers_input_file] = file
         @options[:allow_queries] = false
       end
@@ -232,13 +335,13 @@ EOM
         @options[:allow_queries] = false
       end
 
+      opts.separator opts_separator
+
       opts.on('-l', '--log-file FILE',
               'Log file. Defaults to',
               File.join(Simp::Cli::SIMP_CLI_HOME, 'simp_config.log.<timestamp>')) do |file|
-        @options[:log_file] = file
+        @options[:log_file] = File.expand_path(file)
       end
-
-      opts.separator opts_separator
 
       opts.on('-v', '--verbose', 'Verbose output (stacks)') do
         @options[:verbose] += 1
@@ -261,7 +364,8 @@ EOM
         @options[:use_safety_save] = false
       end
 
-      opts.on('-S', '--accept-safety-save', 'Automatically apply any safety-save files') do
+      opts.on('-S', '--accept-safety-save',
+              'Automatically apply any safety-save files') do
         @options[:autoaccept_safety_save] = true
       end
 
@@ -272,7 +376,7 @@ EOM
         @help_requested = true
       end
       opts.separator "\nKEY/VALUE ARGUMENTS:"
-      opts.separator 'The values for any of the answers file YAML keys can be set '
+      opts.separator 'The values for any of the answers file YAML keys can be set'
       opts.separator 'via key/value command line arguments:'
       opts.separator ''
       opts.separator 'KEY=VALUE syntax specifies a mapped, scalar node. For example,'
@@ -289,6 +393,8 @@ EOM
     @options[:safety_save_file] = File.join(
       File.dirname( @options[:answers_output_file] ),
       ".#{File.basename( @options[:answers_output_file] )}" )
+
+    validate_options unless @help_requested
   end
 
 
@@ -309,7 +415,7 @@ EOM
   # run, when safety-save is enabled
   def saved_session
     result = {}
-    if @options.fetch( :use_safety_save, false ) && file = @options.fetch( :safety_save_file )
+    if @options[:use_safety_save] && file = @options[:safety_save_file]
       _file = @options[:safety_save_file]
       if File.file?( _file )
         lines      = File.open( _file, 'r' ).readlines
@@ -327,7 +433,7 @@ EOM
 
         color = :YELLOW
         message = %Q{WARNING: interrupted session detected!}
-        logger.warn( "*** #{message} ***\n", [color, :BOLD] )
+        logger.warn( "\n*** #{message} ***\n", [color, :BOLD] )
         logger.warn( 'An automatic safety-save file from a previous session has been found at:',
           [color] )
         logger.warn("      #{_file}\n", [:BOLD] )
@@ -407,9 +513,6 @@ EOM
   # 2. answers from an interrupted session
   # 3. answers from the input answers file
   #
-  # Also queries user for cli::simp::scenario, if not present and
-  # queries are allowed
-  #
   # returns answers hash
   def load_pre_set_answers(args, options)
 
@@ -436,38 +539,13 @@ EOM
     # Merge what has been read in
     answers_hash = (file_answers.merge(interrupted_session_answers)).merge(cli_answers)
 
-    # Greet the user now, because in the 'if' block that follows, we may
-    # be starting the questionnaire with a query for cli::simp::scenario
-    greet_user
-
-    if !answers_hash['cli::simp::scenario']
-      # ItemListFactory requires this in order to build the decision tree. However,
-      # in order to persist the 'cli::simp::scenario' key in the output answers
-      # YAML file, CliSimpScenario must also be in the Item decision tree. Furthermoe,
-      # to prevent the user from being prompted twice, the Item MUST be configured in
-      # that tree to quietly use the default value.
-      #
-      # FIXME This coupling is a design flaw in tree construction. ItemListFactory
-      # should handle this automatically.
-      item = Simp::Cli::Config::Item::CliSimpScenario.new
-      if options[:force_defaults]
-        answers_hash['cli::simp::scenario'] = item.default_value_noninteractive
-      elsif options[:allow_queries]
-        item.query
-        item.print_summary
-        answers_hash['cli::simp::scenario'] = item.value
-      else
-        err_msg = "FATAL: No valid answer found for 'cli::simp::scenario'"
-        raise Simp::Cli::Config::ValidationError.new(err_msg)
-      end
-    end
-
     answers_hash
   end
 
   def set_up_global_logger
     unless @options[:log_file]
-      @options[:log_file] = File.join(Simp::Cli::SIMP_CLI_HOME, "simp_config.log.#{@options[:start_time].strftime('%Y%m%dT%H%M%S')}")
+      log_file = "simp_config.log.#{@options[:start_time].strftime('%Y%m%dT%H%M%S')}"
+      @options[:log_file] = File.join(Simp::Cli::SIMP_CLI_HOME, log_file)
     end
     FileUtils.mkdir_p(File.dirname(@options[:log_file]))
     logger.open_logfile(@options[:log_file])
@@ -481,5 +559,11 @@ EOM
     end
     file_log_level = ::Logger::DEBUG       # always log action details to file
     logger.levels(console_log_level, file_log_level)
+  end
+end
+
+def validate_options
+  if (ENV.fetch('USER') != 'root') && !@options[:dry_run]
+    raise Simp::Cli::Config::ValidationError.new('Non-root users must use --dry-run option.')
   end
 end

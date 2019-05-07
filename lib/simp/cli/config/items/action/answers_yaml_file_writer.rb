@@ -1,4 +1,5 @@
 require_relative '../action_item'
+require_relative '../../items'
 require 'fileutils'
 
 module Simp; end
@@ -7,8 +8,8 @@ module Simp::Cli::Config
   class Item::AnswersYAMLFileWriter < ActionItem
     attr_accessor :file, :sort_output
 
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
 
       @key             = 'yaml::answers_file_writer'
       @description     = %Q{Write answers to YAML file.}

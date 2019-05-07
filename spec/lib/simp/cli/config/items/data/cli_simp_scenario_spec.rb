@@ -1,11 +1,24 @@
 require 'simp/cli/config/items/data/cli_simp_scenario'
-require 'simp/cli/utils'
 require 'fileutils'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::CliSimpScenario do
   before :each do
-    @ci = Simp::Cli::Config::Item::CliSimpScenario.new
+    env_files_dir = File.expand_path('../../../commands/files', __dir__)
+
+    @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
+    FileUtils.cp_r(File.join(env_files_dir, 'environments', 'simp'), @tmp_dir)
+    @puppet_env_dir = File.join(@tmp_dir, 'simp')
+
+    puppet_env_info = {
+      :puppet_env_dir => @puppet_env_dir
+    }
+
+    @ci = Simp::Cli::Config::Item::CliSimpScenario.new(puppet_env_info)
+  end
+
+  after :each do
+    FileUtils.remove_entry_secure @tmp_dir
   end
 
   context '#recommended_value' do
@@ -15,37 +28,16 @@ describe Simp::Cli::Config::Item::CliSimpScenario do
   end
 
   context '#os_value' do
-    let(:env_files_dir) { File.expand_path('../../../commands/files', __dir__) }
-
-    before :each do
-      @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
-      test_env_dir = File.join(@tmp_dir, 'environments')
-
-      allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
-        :config => {
-          'codedir' => @tmp_dir,
-          'confdir' => @tmp_dir
-        },
-        :environment_path => test_env_dir,
-        :simp_environment_path => File.join(test_env_dir, 'simp'),
-        :fake_ca_path => File.join(test_env_dir, 'simp', 'FakeCA')
-      } )
-      FileUtils.mkdir(test_env_dir)
-      FileUtils.cp_r(File.join(env_files_dir, 'environments', 'simp'), test_env_dir)
-    end
 
     it 'returns value in site.pp' do
       expect( @ci.os_value ).to eq('simp')
     end
 
     it 'returns nil when site.pp does not exist' do
-      FileUtils.rm_rf(File.join(@tmp_dir, 'environments'))
+      FileUtils.rm_rf(File.join(@puppet_env_dir, 'manifests'))
       expect( @ci.os_value ).to eq nil
     end
 
-    after :each do
-      FileUtils.remove_entry_secure @tmp_dir
-    end
   end
 
   context '#to_yaml_s custom behavior' do

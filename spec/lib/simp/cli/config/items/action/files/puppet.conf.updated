@@ -1,9 +1,4 @@
 ca_server = puppet.test.local
-server = puppet.test.local
-trusted_server_facts = true
-trusted_node_data = true
-digest_algorithm = md5
-stringify_facts = false
 
 [master]
 vardir = /opt/puppetlabs/server/data/puppetserver
@@ -14,11 +9,6 @@ pidfile = /var/run/puppetlabs/puppetserver/puppetserver.pid
 [main]
 logdir = /var/log/puppet
 ca_server = puppet.test.local
-server = puppet.test.local
-digest_algorithm = md5
-stringify_facts = false
-server_datadir
 
 [agent]
 daemonize = true
-server_list = [ puppet1.test.local puppet2.test.local ]

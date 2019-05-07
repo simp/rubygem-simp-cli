@@ -1,7 +1,5 @@
 require 'simp/cli/config/items/data/simp_options_trusted_nets'
 
-require 'simp/cli/config/items/data/cli_network_ipaddress'
-require 'simp/cli/config/items/data/cli_network_netmask'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SimpOptionsTrustedNets do

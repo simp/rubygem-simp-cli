@@ -12,18 +12,22 @@ simp::runlevel: 2
 # === simp_options::fips ===
 # Prepare system to use FIPS mode.
 #
-# simp_options::fips enforces strict compliance with FIPS-140-2.  All core SIMP modules
-# can support this configuration. Enabling simp_options::fips here will enable
-# FIPS on this puppet environment.
+# simp_options::fips enforces strict compliance with FIPS-140-2.  All core SIMP
+# modules can support this configuration. Enabling simp_options::fips will
+# enable FIPS on this puppet environment.
 #
 # IMPORTANT:
 # (1) Be sure you know the security tradeoffs of FIPS-140-2 compliance.
-#     FIPS mode disables the use of MD5 and may require weaker ciphers or key
+#     FIPS mode disables the use of MD5, but may require weaker ciphers or key
 #     lengths than your security policies allow.
 # (2) If the system is currently in FIPS mode and you set this option to false,
-#     the system will still work.  The reverse is not necessarily true.  See
-#     SIMP documentation for instructions on how to safely convert a non-FIPS
-#     system to a FIPS system.
+#     the system will still work.  ***The reverse is not necessarily true.***
+#     See SIMP documentation for manual instructions on how to safely convert
+#     a non-FIPS system to a FIPS system.
+# (3) When set from `simp config`, this value is the actual system setting
+#     at the time `simp config` was run, and cannot be overriden by any
+#     command line/answers file input to `simp config`. This behavior is to
+#     protect the user from unintended system corruption described in (2).
 #
 simp_options::fips: false
 

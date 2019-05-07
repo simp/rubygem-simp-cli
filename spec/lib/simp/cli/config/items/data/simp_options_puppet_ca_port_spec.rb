@@ -25,24 +25,20 @@ describe Simp::Cli::Config::Item::SimpOptionsPuppetCAPort do
     end
 
     context 'when in FOSS' do
-      before(:each) do
-        allow(Simp::Cli::Utils).to receive(:puppet_info).and_return({:is_pe => false})
-        allow_any_instance_of(Simp::Cli::Utils).to receive(:puppet_info).and_return({:is_pe => false})
-      end
-
       it 'returns 8141' do
-        expect( Simp::Cli::Config::Item::SimpOptionsPuppetCAPort.new.recommended_value ).to eq 8141
+        allow(Facter).to receive(:value).with('is_pe').and_return(false)
+
+        item = Simp::Cli::Config::Item::SimpOptionsPuppetCAPort.new
+        expect( item.recommended_value ).to eq 8141
       end
     end
 
     context 'when in PE' do
-      before(:each) do
-        allow(Simp::Cli::Utils).to receive(:puppet_info).and_return({:is_pe => true})
-        allow_any_instance_of(Simp::Cli::Utils).to receive(:puppet_info).and_return({:is_pe => true})
-      end
-
       it 'returns 8140' do
-        expect( Simp::Cli::Config::Item::SimpOptionsPuppetCAPort.new.recommended_value ).to eq 8140
+        allow(Facter).to receive(:value).with('is_pe').and_return(true)
+
+        item = Simp::Cli::Config::Item::SimpOptionsPuppetCAPort.new
+        expect( item.recommended_value ).to eq 8140
       end
     end
   end

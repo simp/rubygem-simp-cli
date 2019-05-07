@@ -1,13 +1,13 @@
 require 'simp/cli/config/items/action_item'
-require 'simp/cli/utils'
+require 'simp/cli/config/items/data/cli_network_hostname'
 
 module Simp::Cli::Config
   class Item::UpdateOsYumRepositoriesAction < ActionItem
     class YumRepoError < RuntimeError; end
 
-    attr_accessor :www_yum_dir, :yum_repos_d, :dir
-    def initialize
-      super
+    attr_accessor :www_yum_dir, :yum_repos_d
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key              = 'yum::repositories::update'
       @description      = 'Set up local YUM repositories for SIMP'
       @category         = :system
