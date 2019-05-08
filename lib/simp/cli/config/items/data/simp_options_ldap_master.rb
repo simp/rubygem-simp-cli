@@ -6,8 +6,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpOptionsLdapMaster < Item
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'simp_options::ldap::master'
       @description = %Q{The LDAP master in URI form (ldap://server or ldaps:://server).}
     end

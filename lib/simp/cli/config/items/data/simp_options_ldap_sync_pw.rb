@@ -5,8 +5,8 @@ class Simp::Cli; end
 
 module Simp::Cli::Config
   class Item::SimpOptionsLdapSyncPw < PasswordItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key           = 'simp_options::ldap::sync_pw'
       @description   = %Q{The LDAP Sync password.}
       @password_name = 'LDAP Sync'

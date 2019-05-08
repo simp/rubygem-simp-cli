@@ -6,9 +6,6 @@
 - CliSimpScenario SKIPQUERY SILENT  # don't ever prompt; this value MUST already be set;
                                     # want it first so that the scenario is present in
                                     # any safety-save answers file written
-- SimpOptionsFips SKIPQUERY SILENT: # don't ever prompt, just discover current setting
-   true:
-    - SetPuppetDigestAlgorithmAction IMMEDIATE # digest algorithm affects any puppet actions, so do it first!
 
 # ==== Network actions and configuration ====
 - CliNetworkInterface
@@ -56,16 +53,12 @@
 - SimpOptionsPuppetCA            SKIPQUERY SILENT # default is correct
 - SimpOptionsPuppetCAPort        SKIPQUERY SILENT # default is correct
 - SetUpPuppetAutosignAction
+- SimpOptionsFips                SKIPQUERY SILENT # don't ever prompt, just discover current setting;
+                                                  # needed for UpdatePuppetConfAction
 - UpdatePuppetConfAction
 - AddPuppetHostsEntryAction
 
 # ==== Initial actions to set up SIMP's Puppet environment and corresponding data  ====
-- CliIsSimpEnvironmentInstalled  SKIPQUERY SILENT: # don't ever prompt, just discover current value
-   false:
-    - CopySimpToEnvironmentsAction # Can't do our config, if this hasn't happened
-- CliSetProductionToSimp:
-   true:
-    - SetProductionToSimpAction
 - SetSiteScenarioAction
 
 # Move the <simp environment datadir>/hosts/puppet.your.domain.yaml template to

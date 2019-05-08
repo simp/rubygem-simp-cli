@@ -4,8 +4,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpOptionsSSSD < YesNoItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'simp_options::sssd'
       @description = %q{Whether to use SSSD.}
     end

@@ -3,17 +3,15 @@ require_relative '../data/simp_options_fips'
 require_relative '../data/simp_options_puppet_ca'
 require_relative '../data/simp_options_puppet_ca_port'
 require_relative '../data/simp_options_puppet_server'
-require 'simp/cli/utils'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::UpdatePuppetConfAction < ActionItem
-    attr_accessor :file
 
-    def initialize
-      super
-      @file        = File.join(Simp::Cli::Utils.puppet_info[:config]['confdir'], 'puppet.conf')
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
+      @file        = File.join(@puppet_env_info[:puppet_config]['config'])
       @key         = 'puppet::conf'
       @description = "Update Puppet settings"
       @category    = :puppet_global
@@ -36,35 +34,15 @@ module Simp::Cli::Config
       execute("sed -i '/.*trusted_node_data.*/d' #{@file}")
       execute("sed -i '/.*digest_algorithm.*/d' #{@file}")
       execute("sed -i '/.*stringify_facts.*/d' #{@file}")
-
-      if Gem::Version.new(Simp::Cli::Utils.puppet_info[:version]) >= \
-         Gem::Version.new('5.0')
-        execute("sed -i '/.*trusted_server_facts.*/d' #{@file}")
-      end
+      execute("sed -i '/.*trusted_server_facts.*/d' #{@file}")
 
       keylength = get_item( 'simp_options::fips' ).value ? '2048' : '4096'
-
-      # do not die if config items aren't found
-      puppet_server  = 'puppet.change.me'
-      puppet_ca      = 'puppetca.change.me'
-      if Simp::Cli::Utils.puppet_info[:is_pe]
-        puppet_ca_port = '8140'
-      else
-        puppet_ca_port = '8141'
-      end
-
-      if item = @config_items.fetch( 'simp_options::puppet::server', nil )
-        puppet_server  = item.value
-      end
-      if item = @config_items.fetch( 'simp_options::puppet::ca', nil )
-        puppet_ca      = item.value
-      end
-      if item = @config_items.fetch( 'simp_options::puppet::ca_port', nil )
-        puppet_ca_port = item.value
-      end
+      puppet_server = get_item( 'simp_options::puppet::server' ).value
+      puppet_ca = get_item( 'simp_options::puppet::ca' ).value
+      puppet_ca_port = get_item( 'simp_options::puppet::ca_port' ).value
 
       success = show_wait_spinner {
-        config_success = execute('puppet config set digest_algorithm sha256')
+        config_success = execute("puppet config set digest_algorithm #{Simp::Cli::PUPPET_DIGEST_ALGORITHM}")
         config_success = config_success && execute("puppet config set keylength #{keylength}")
         config_success = config_success && execute("puppet config set server #{puppet_server}")
         config_success = config_success && execute("puppet config set ca_server #{puppet_ca}")

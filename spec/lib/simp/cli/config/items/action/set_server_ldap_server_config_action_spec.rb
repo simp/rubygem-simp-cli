@@ -1,6 +1,4 @@
 require 'simp/cli/config/items/action/set_server_ldap_server_config_action'
-require 'simp/cli/config/items/data/cli_network_hostname'
-require 'simp/cli/config/items/data/simp_openldap_server_conf_rootpw'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
@@ -13,9 +11,13 @@ describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
 
     @fqdn = 'hostname.domain.tld'
     @host_file = File.join( @hosts_dir, "#{@fqdn}.yaml" )
-    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return(@tmp_dir)
 
-    @ci        = Simp::Cli::Config::Item::SetServerLdapServerConfigAction.new
+    @puppet_env_info = {
+      :puppet_config      => { 'modulepath' => '/does/not/matter' },
+      :puppet_env_datadir => @tmp_dir
+    }
+
+    @ci        = Simp::Cli::Config::Item::SetServerLdapServerConfigAction.new(@puppet_env_info)
     @ci.silent = true
   end
 
@@ -25,11 +27,11 @@ describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
 
   describe '#apply' do
     before :each do
-      item       = Simp::Cli::Config::Item::CliNetworkHostname.new
+      item       = Simp::Cli::Config::Item::CliNetworkHostname.new(@puppet_env_info)
       item.value = @fqdn
       @ci.config_items[item.key] = item
 
-      item       = Simp::Cli::Config::Item::SimpOpenldapServerConfRootpw.new
+      item       = Simp::Cli::Config::Item::SimpOpenldapServerConfRootpw.new(@puppet_env_info)
       item.value = '{SSHA}deadbeefDEADBEEFdeadbeefDEADBEEF'
       @ci.config_items[item.key] = item
     end

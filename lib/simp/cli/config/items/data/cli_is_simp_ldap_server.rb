@@ -4,8 +4,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CliIsSimpLdapServer < YesNoItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'cli::is_simp_ldap_server'
       @description = %q{Whether the SIMP server will also be a SIMP-provided LDAP server.
 

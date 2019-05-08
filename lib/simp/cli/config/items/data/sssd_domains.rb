@@ -5,8 +5,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SssdDomains < ListItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'sssd::domains'
       @description = %Q{A list of domains for SSSD to use.
 

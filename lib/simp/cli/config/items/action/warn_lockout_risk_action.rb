@@ -9,8 +9,8 @@ module Simp::Cli::Config
     attr_accessor :warning_file
     attr_reader :warning_message
 
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key             = 'login::lockout::check'
       @description     = 'Check for login lockout risk'
       @category        = :sanity_check

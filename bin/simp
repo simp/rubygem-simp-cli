@@ -20,28 +20,5 @@ Gem.clear_paths
 $LOAD_PATH.unshift(File.expand_path(File.join(File.dirname(__FILE__), '../lib')))
 Gem.path.unshift(File.expand_path(File.join(File.dirname(__FILE__), '../../..')))
 
-# Simp::Cli uses facts from SIMP's stdlib and simplib modules, so make
-# sure these are available by pointing to their install directories. We
-# don't have to worry if copies of these installed libraries are also
-# in the Fact path, as having extra or missing libraries in that path
-# doesn't hurt anything.
-fact_paths = [
-  '/usr/share/simp/modules/stdlib/lib/facter',
-  '/usr/share/simp/modules/simplib/lib/facter'
-]
-fact_paths << ENV['FACTER_PATH'] unless ENV['FACTER_PATH'].nil? || ENV['FACTER_PATH'].empty?
-
 require 'simp/cli'
-require 'facter'
-
-# This is needed for calls to the Facter module directly
-fact_paths.each do |fpath|
-  Facter.search(fpath)
-end
-
-Facter.loadfacts
-
-# This is needed for later calls to facter via Puppet
-ENV['FACTER_PATH'] = fact_paths.join(':')
-
 exit Simp::Cli.start

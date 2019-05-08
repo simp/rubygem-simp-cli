@@ -1,7 +1,4 @@
 require 'simp/cli/config/items/action/set_server_puppetdb_master_config_action'
-require 'simp/cli/config/items/data/cli_network_hostname'
-require 'simp/cli/config/items/data/puppetdb_master_config_puppetdb_port'
-require 'simp/cli/config/items/data/puppetdb_master_config_puppetdb_server'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction do
@@ -14,9 +11,13 @@ describe Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction do
 
     @fqdn = 'hostname.domain.tld'
     @host_file = File.join( @hosts_dir, "#{@fqdn}.yaml" )
-    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return(@tmp_dir)
 
-    @ci        = Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction.new
+    @puppet_env_info = {
+      :puppet_config      => { 'modulepath' => '/does/not/matter' },
+      :puppet_env_datadir => @tmp_dir
+    }
+
+    @ci        = Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction.new(@puppet_env_info)
     @ci.silent = true
   end
 
@@ -26,15 +27,15 @@ describe Simp::Cli::Config::Item::SetServerPuppetDBMasterConfigAction do
 
   describe '#apply' do
     before :each do
-      item       = Simp::Cli::Config::Item::CliNetworkHostname.new
+      item       = Simp::Cli::Config::Item::CliNetworkHostname.new(@puppet_env_info)
       item.value = @fqdn
       @ci.config_items[item.key] = item
 
-      item       = Simp::Cli::Config::Item::PuppetDBMasterConfigPuppetDBServer.new
+      item       = Simp::Cli::Config::Item::PuppetDBMasterConfigPuppetDBServer.new(@puppet_env_info)
       item.value = 'puppet.test.local'
       @ci.config_items[item.key] = item
 
-      item       = Simp::Cli::Config::Item::PuppetDBMasterConfigPuppetDBPort.new
+      item       = Simp::Cli::Config::Item::PuppetDBMasterConfigPuppetDBPort.new(@puppet_env_info)
       item.value = 8139
       @ci.config_items[item.key] = item
     end

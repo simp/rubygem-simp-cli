@@ -4,84 +4,155 @@ require 'fileutils'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
-  before :context do
-    @ci             = Simp::Cli::Config::Item::UpdatePuppetConfAction.new
+  before :each do
+    @file_dir = File.expand_path( 'files',  File.dirname( __FILE__ ) )
+
+    @tmp_dir = Dir.mktmpdir( File.basename(__FILE__))
+    @puppet_conf = File.join(@tmp_dir, 'puppet.conf')
+
+    @puppet_env_info = {
+      :puppet_config     => {
+        'modulepath' => '/does/not/matter',
+        'config'     => @puppet_conf
+      },
+    }
+
+    FileUtils.cp(File.join(@file_dir, 'puppet.conf'), @puppet_conf)
+
+    @ci             = Simp::Cli::Config::Item::UpdatePuppetConfAction.new(@puppet_env_info)
     @ci.start_time  = Time.new(2017, 1, 13, 11, 42, 3)
-    @ci.file        = 'test'
 
     @puppet_server  = 'puppet.nerd'
     @puppet_ca      = 'puppetca.nerd'
     @puppet_ca_port = '9999'
 
     previous_items = {}
-    s = Simp::Cli::Config::Item::SimpOptionsPuppetServer.new
+    s = Simp::Cli::Config::Item::SimpOptionsPuppetServer.new(@puppet_env_info)
     s.value = @puppet_server
     previous_items[ s.key ] = s
-    s = Simp::Cli::Config::Item::SimpOptionsPuppetCA.new
+    s = Simp::Cli::Config::Item::SimpOptionsPuppetCA.new(@puppet_env_info)
     s.value = @puppet_ca
     previous_items[ s.key ] = s
-    s = Simp::Cli::Config::Item::SimpOptionsPuppetCAPort.new
+    s = Simp::Cli::Config::Item::SimpOptionsPuppetCAPort.new(@puppet_env_info)
     s.value = @puppet_ca_port
     previous_items[ s.key ] = s
 
     @ci.config_items = previous_items
+
+    @backup_conf = @puppet_conf + '.' + @ci.start_time.strftime('%Y%m%dT%H%M%S')
   end
 
   describe "#apply" do
     context 'updates puppet configuration' do
       before(:each) do
-        @item = Simp::Cli::Config::Item::SimpOptionsFips.new
-
-        backup_file = @ci.file + '.' + @ci.start_time.strftime('%Y%m%dT%H%M%S')
-        expect(FileUtils).to receive(:cp).with(@ci.file, backup_file)
-
-        current_dir_stat = File.stat(Dir.pwd)
-        expect(File).to receive(:stat).with(@ci.file).and_return(current_dir_stat)
-        expect(File).to receive(:chown).with(nil, current_dir_stat.gid, backup_file)
-
-        expect(@ci).to receive(:execute).with(%(sed -i '/^\s*server.*/d' #{@ci.file}))
-        expect(@ci).to receive(:execute).with(%(sed -i '/.*trusted_node_data.*/d' #{@ci.file}))
-        expect(@ci).to receive(:execute).with(%(sed -i '/.*digest_algorithm.*/d' #{@ci.file}))
-        expect(@ci).to receive(:execute).with(%(sed -i '/.*stringify_facts.*/d' #{@ci.file}))
-        unless Puppet.version.split('.').first <= '4'
-          expect(@ci).to receive(:execute).with(%(sed -i '/.*trusted_server_facts.*/d' #{@ci.file}))
-        end
-
+        allow(@ci).to receive(:execute).with(any_args).and_call_original
         expect(@ci).to receive(:execute).with(%(puppet config set digest_algorithm sha256)).and_return(true)
         expect(@ci).to receive(:execute).with(%(puppet config set server #{@puppet_server})).and_return(true)
         expect(@ci).to receive(:execute).with(%(puppet config set ca_server #{@puppet_ca})).and_return(true)
         expect(@ci).to receive(:execute).with(%(puppet config set ca_port #{@puppet_ca_port})).and_return(true)
 
-        @ci.config_items[ @item.key ] = @item
+        @fips_item = Simp::Cli::Config::Item::SimpOptionsFips.new(@puppet_env_info)
+        @ci.config_items[ @fips_item.key ] = @fips_item
       end
 
       it 'backs up config file and configures server for FIPS mode' do
         expect(@ci).to receive(:execute).with(%(puppet config set keylength 2048)).and_return(true)
-
-        @item.value = true
+        @fips_item.value = true
 
         @ci.apply
 
         expect(@ci.applied_status).to eq :succeeded
+        expected_content = File.read( File.join( @file_dir, 'puppet.conf.updated' ) )
+        actual_content = File.read( @puppet_conf )
+        expect( actual_content ).to eq expected_content
+
+        expect( File ).to exist( @backup_conf )
+        expected_backup_content = File.read( File.join( @file_dir, 'puppet.conf') )
+        actual_backup_content = File.read( @backup_conf )
+        expect( actual_backup_content ).to eq expected_backup_content
       end
 
       it 'backs up config file and configures server for non-FIPS mode' do
         expect(@ci).to receive(:execute).with(%(puppet config set keylength 4096)).and_return(true)
-
-        @item.value = false
+        @fips_item.value = false
 
         @ci.apply
 
         expect(@ci.applied_status).to eq :succeeded
+        expected_content = File.read( File.join( @file_dir, 'puppet.conf.updated' ) )
+        actual_content = File.read( @puppet_conf )
+        expect( actual_content ).to eq expected_content
+
+        expect( File ).to exist( @backup_conf )
+        expected_backup_content = File.read( File.join( @file_dir, 'puppet.conf') )
+        actual_backup_content = File.read( @backup_conf )
+        expect( actual_backup_content ).to eq expected_backup_content
+      end
+    end
+
+    context 'puppet config failures' do
+      before(:each) do
+        allow(@ci).to receive(:execute).with(any_args).and_call_original
+        fips_item = Simp::Cli::Config::Item::SimpOptionsFips.new(@puppet_env_info)
+        fips_item.value = false
+        @ci.config_items[ fips_item.key ] = fips_item
+      end
+
+      it 'returns failed status when the puppet set digest_algorithm fails' do
+        expect(@ci).to receive(:execute).with(%(puppet config set digest_algorithm sha256)).and_return(false)
+
+        @ci.apply
+
+        expect(@ci.applied_status).to eq :failed
+      end
+
+      it 'returns failed status when the puppet set keylength fails' do
+        expect(@ci).to receive(:execute).with(%(puppet config set digest_algorithm sha256)).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set keylength 4096)).and_return(false)
+
+        @ci.apply
+
+        expect(@ci.applied_status).to eq :failed
+      end
+
+      it 'returns failed status when the puppet set server fails' do
+        expect(@ci).to receive(:execute).with(%(puppet config set digest_algorithm sha256)).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set keylength 4096)).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set server #{@puppet_server})).and_return(false)
+
+        @ci.apply
+
+        expect(@ci.applied_status).to eq :failed
+      end
+
+      it 'returns failed status when the puppet set ca_server fails' do
+        expect(@ci).to receive(:execute).with(%(puppet config set digest_algorithm sha256)).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set keylength 4096)).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set server #{@puppet_server})).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set ca_server #{@puppet_ca})).and_return(false)
+
+        @ci.apply
+
+        expect(@ci.applied_status).to eq :failed
+      end
+
+      it 'returns failed status when the puppet set ca_port fails' do
+        expect(@ci).to receive(:execute).with(%(puppet config set digest_algorithm sha256)).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set keylength 4096)).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set server #{@puppet_server})).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set ca_server #{@puppet_ca})).and_return(true)
+        expect(@ci).to receive(:execute).with(%(puppet config set ca_port #{@puppet_ca_port})).and_return(false)
+
+        @ci.apply
+
+        expect(@ci.applied_status).to eq :failed
       end
     end
   end
 
   describe "#apply_summary" do
     it 'reports unattempted status when #apply not called' do
-      ci = Simp::Cli::Config::Item::UpdatePuppetConfAction.new
-      ci.file = 'puppet.conf'
-      expect(ci.apply_summary).to eq 'Update to Puppet settings in puppet.conf unattempted'
+      expect(@ci.apply_summary).to eq "Update to Puppet settings in #{@puppet_conf} unattempted"
     end
   end
 

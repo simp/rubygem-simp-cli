@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/data/cli_log_servers_specified'
-require 'simp/cli/config/items/data/simp_options_syslog_log_servers'
 require 'rspec/its'
 require_relative '../spec_helper'
 

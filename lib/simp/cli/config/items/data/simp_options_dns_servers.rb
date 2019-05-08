@@ -7,8 +7,8 @@ class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpOptionsDNSServers < ListItem
     attr_accessor :file
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'simp_options::dns::servers'
       @description = %Q{A list of DNS servers for the managed hosts.
 

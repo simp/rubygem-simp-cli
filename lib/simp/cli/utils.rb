@@ -16,14 +16,21 @@ module Simp::Cli::Utils
   DEFAULT_PASSWORD_LENGTH = 32
   REGEXP_UNIXPATH = %r{\A(?:\/[\w-]*\/?)+\z}
 
-  @@puppet_info = nil
-  @@simp_env_datadir = nil
+  # According to https://puppet.com/docs/puppet/5.5/environments_creating.html,
+  # This should be \A[a-z0-9_]+\Z.  However, there is currently a bug that prevents
+  # all-numeric environment names:
+  #
+  #   https://tickets.puppetlabs.com/browse/PUP-8289
+  #
+  REGEXP_PUPPET_ENV_NAME = %r{\A[a-z][a-z0-9_]*\Z}
+
+  @@puppet_info = {}
 
   class PuppetInfo
     attr_reader :system_puppet_info
 
-    def initialize
-      config = get_config
+    def initialize(environment)
+      config = get_config(environment)
 
       # Kill the comments and blanks if any exists
       config_hash = Hash.new
@@ -38,106 +45,34 @@ module Simp::Cli::Utils
         config_hash[param] = value
       end
 
-      # Check for Puppet 4 paths first
-      if config_hash['codedir']
-        environment_path = File.join(config_hash['codedir'], 'environments')
-      else
-        environment_path = File.join(config_hash['confdir'], 'environments')
-      end
+      puppet_environment_path    = config_hash['environmentpath']
+      secondary_environment_path = '/var/simp/environments'
+      writable_environment_path  = File.expand_path('../simp/environments', config_hash['statedir'])
 
       @system_puppet_info = {
-        :config => config_hash,
-        :environment_path => environment_path,
-        :simp_environment_path => File.join(environment_path, 'simp'),
-        :fake_ca_path => '/var/simp/environments/simp/FakeCA',
-        :puppet_group => config_hash['group'],
-        :version => %x{puppet --version}.split(/\n/).last
+        :config                     => config_hash,
+        :environment_path           => puppet_environment_path,
+        :secondary_environment_path => secondary_environment_path,
+        :writable_environment_path  => writable_environment_path,
+        :puppet_group               => config_hash['group'],
+        :version                    => %x{puppet --version}.split(/\n/).last
       }
     end
 
-    def get_config(section='master')
+    def get_config(environment='production', section='master')
       # Get the master section by default in case things are overridden from
       # main or don't match the agent settings
 
-      return %x{puppet config print --section=#{section}}.lines
+      return %x{puppet config print --environment=#{environment} --section=#{section}}.lines
     end
   end
 
-  def puppet_info
-    @@puppet_info ||= PuppetInfo.new
-
-    return @@puppet_info.system_puppet_info
-  end
-
-  # Returns the (discovered) 'simp' environment data directory
-  # Raises Simp::Cli::ProcessingError if a 'simp' environment data
-  # directory for a stock SIMP system does not exist
-  #
-  # +allow_pre_env_copy_eval+: When true, if the simp environment is not
-  # found in the puppet environment path, but /usr/share/simp/environments/simp
-  # is found, this will return the value that would be appropriate, *assuming*
-  # that environment will be coplied into the puppet environment path.
-  def simp_env_datadir(allow_pre_env_copy_eval = true)
-    unless @@simp_env_datadir.nil?
-      return @@simp_env_datadir
+  def puppet_info(environment = 'production')
+    unless @@puppet_info.key?(environment)
+      @@puppet_info[environment] = PuppetInfo.new(environment)
     end
 
-    @@simp_env_datadir = get_stock_simp_env_datadir(allow_pre_env_copy_eval)
-
-    if @@simp_env_datadir.nil?
-      err_msg = 'simp environment hieradata directory cannot be determined.'
-      raise Simp::Cli::ProcessingError.new(err_msg)
-    end
-    @@simp_env_datadir
-  end
-
-  # Returns the 'simp' environment data directory, when one of the
-  # standard SIMP installations has been detected.
-  # Returns nil otherwise.
-  #
-  # SIMP-6.0.0 through SIMP-6.2.0 use a global Hiera 3
-  # hiera.yaml file that is configured to find environment hieradata
-  # in .../environments/simp/hieradata.
-  #
-  # Beginning with SIMP-6.3.0, SIMP uses an environment-specific
-  # Hiera 5 hiera.yaml file that is configured to find environment
-  # hieradata in .../environments/simp/data.
-  #
-  # +allow_pre_env_copy_eval+: When true, if the simp environment is not
-  # found in the puppet environment path, but /usr/share/simp/environments/simp
-  # is found, this will return the value that would be appropriate, *assuming*
-  # that environment will be coplied into the puppet environment path.
-  def get_stock_simp_env_datadir(allow_pre_env_copy_eval = true)
-    stock_simp_env_datadir = nil
-    # Check (weakly) for stock SIMP configurations.
-    if Dir.exist?(puppet_info[:simp_environment_path])
-      env_hiera5_file = File.join(puppet_info[:simp_environment_path], 'hiera.yaml')
-      env_hiera5_dir = File.join(puppet_info[:simp_environment_path], 'data')
-      env_hiera3_dir = File.join(puppet_info[:simp_environment_path], 'hieradata')
-      if File.exist?(env_hiera5_file)
-        # Using environment-specific Hiera 5 configuration
-        if Dir.exist?(env_hiera5_dir)
-          # The data directory SIMP uses for Hiera 5 is in place, so we are
-          # ASSUMING this is a stock SIMP configuration.
-          stock_simp_env_datadir = env_hiera5_dir
-        end
-      elsif Dir.exist?(env_hiera3_dir)
-        stock_simp_env_datadir = env_hiera3_dir
-      end
-    elsif allow_pre_env_copy_eval
-      # This supports the scenario in which SIMP was installed via a non-ISO
-      # RPM install and 'simp config' is executed.  'simp config' needs to
-      # determine the 'simp' environment data dir before it has copied over
-      # that environment from /usr/share/simp/environments/simp into the
-      # puppet environment path.
-      if Dir.exist?('/usr/share/simp/environments/simp/data')
-        stock_simp_env_datadir = File.join(puppet_info[:simp_environment_path], 'data')
-      elsif Dir.exist?('/usr/share/simp/environments/simp/hieradata')
-        stock_simp_env_datadir = File.join(puppet_info[:simp_environment_path], 'hieradata')
-      end
-    end
-
-    stock_simp_env_datadir
+    return @@puppet_info[environment].system_puppet_info
   end
 
   def generate_password(length = DEFAULT_PASSWORD_LENGTH )
@@ -159,6 +94,35 @@ module Simp::Cli::Utils
       retry
     end
     password
+  end
+
+  # Add custom facts to the Facter search path and then reload the facts
+  #
+  # +module_paths+: Array of module paths in which to find custom facts
+  # +add_to_env+:   Whether to add the custom fact paths to the FACTERLIB
+  #   environment variable, in addition, so that the facts available to
+  #   any spawned processes that use FACTERLIB, (e.g. `puppet apply`)
+  def load_custom_facts(module_paths, add_to_env = false)
+    fact_paths = []
+    Facter.clear  # Facter.loadfacts won't reload without this
+    module_paths.each do |dir|
+      next unless File.directory?(dir)
+      Find.find(dir) do |mod_path|
+        fact_path = File.expand_path('lib/facter', mod_path)
+        if File.directory?(fact_path)
+          Facter.search(fact_path)
+          fact_paths << fact_path
+        end
+        Find.prune unless mod_path == dir
+      end
+    end
+    Facter.loadfacts
+
+    if add_to_env
+      fact_paths << ENV['FACTERLIB'] unless ENV['FACTERLIB'].nil? || ENV['FACTERLIB'].empty?
+      ENV['FACTERLIB'] = fact_paths.join(':')
+    end
+
   end
 
   # Validates a password using available system tools

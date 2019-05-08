@@ -4,8 +4,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CliSimpScenario < Item
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'cli::simp::scenario'
 #TODO Generate description and validation based on available
 # scenarios/*_items.yaml
@@ -28,11 +28,7 @@ bootstrapped your SIMP server.}
     end
 
     def get_os_value
-      site_pp = File.join(Simp::Cli::Utils.puppet_info[:simp_environment_path],
-        'manifests', 'site.pp')
-
-      # If SIMP has not be copied over to the Puppet environments yet, (RPM install
-      # not ISO or R10K install), this file won't be present
+      site_pp = File.join(@puppet_env_info[:puppet_env_dir], 'manifests', 'site.pp')
       return nil unless File.exist?(site_pp)
 
       scenario_lines = IO.readlines(site_pp).delete_if do |line|

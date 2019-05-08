@@ -1,5 +1,5 @@
 require 'simp/cli/commands/command'
-require 'simp/cli/config/items/action/set_production_to_simp_action'
+require 'simp/cli/config/simp_puppet_env_helper'
 require 'highline/import'
 
 class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
@@ -12,18 +12,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 
   def initialize
 
-    ENV['PATH'] = '/opt/puppetlabs/bin:' + ENV['PATH']
-
-    @is_pe = Simp::Cli::Utils.puppet_info[:is_pe]
-
-    @puppetserver_service = 'puppetserver'
-    @puppetdb_service = 'puppetdb'
+    @is_pe = nil  # set from stdlib fact loaded after puppet env validated
     @puppetserver_wait_minutes = DEFAULT_PUPPETSERVER_WAIT_MINUTES
-
-    if @is_pe
-      @puppetserver_service = 'pe-puppetserver'
-      @puppetdb_service = 'pe-puppetdb'
-    end
 
     @start_time = Time.now
     @start_time_formatted = @start_time.strftime('%Y%m%dT%H%M%S')
@@ -37,6 +27,10 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     @verbose = false
   end
 
+  #####################################################
+  # Simp::Cli::Commands::Command API methods
+  #####################################################
+
   def help
     parse_command_line( [ '--help' ] )
   end
@@ -45,49 +39,11 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     parse_command_line(args)
     return if @help_requested
 
-    # Open log file
-    logfilepath = File.dirname(File.expand_path(@bootstrap_log))
-    FileUtils.mkpath(logfilepath) unless File.exists?(logfilepath)
-    @logfile = File.open(@bootstrap_log, 'w')
+    set_up_logger
+    print_intro
+    verify_setup
 
-    validate_host_sanity
-    check_for_start_lock
-    set_up_simp_environment
-
-    FileUtils.mkdir(@bootstrap_backup)
-
-    # Print intro
-    system('clear')
-    info('=== Starting SIMP Bootstrap ===', 'yellow.bold', '')
-    info("The log can be found at '#{@logfile.path}'\n")
-
-    ensure_puppet_agent_stopped
-
-    if @unsafe
-      warn('Any interrupts may cause system instability.', 'red.bold')
-    else
-      # From this point on, capture interrupts
-      signals = ['INT','HUP','USR1','USR2']
-      signals.each do |sig|
-        Signal.trap(sig) { say "\nSafe mode enabled, ignoring interrupt - PID is #{Process.pid}".magenta }
-      end
-      info('Interrupts will be captured and ignored to ensure bootstrap integrity.', 'magenta.bold')
-    end
-
-    if @is_pe
-      info('Puppet Enterprise found, preserving existing configuration.')
-    else
-      # These items are all handled by the PE installer so need to be done for
-      # the FOSS version independently.
-
-      ensure_puppet_processes_stopped
-      handle_existing_puppet_certs
-      validate_site_puppet_code
-      configure_bootstrap_puppetserver
-    end
-
-    # Reload the puppetserver
-    execute('puppetserver reload')
+    prep_for_first_puppet_run
 
     # - Firstrun is tagged and run against the bootstrap puppetserver port.
     #   This run will configure puppetserver and puppetdb; all subsequent runs
@@ -96,28 +52,15 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     #   puppet runs during bootstrap.
     agent_lockfile = "#{File.dirname(Simp::Cli::Utils.puppet_info[:config]['agent_disabled_lockfile'])}/bootstrap.lock"
 
-    # This can't be abstracted because the use of 8150 is ephemeral and will
-    # not be reflected in the configuration consistently over time.
-    if @is_pe
-      pup_port = '8140'
-    else
-      # The FOSS version will use 8150 and then switch to 8140 automatically if
-      # all goes well. The server remaining on 8150 is an almost guaranteed
-      # sign that something has gone wrong.
-      pup_port = '8150'
-    end
-
-    info("Configuring the puppetserver to listen on port #{pup_port}", 'cyan')
-
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose" +
       " --no-splay --agent_disabled_lockfile=#{agent_lockfile}" +
-      " --masterport=#{pup_port} --ca_port=#{pup_port}"
+      " --masterport=#{@initial_puppetserver_port} --ca_port=#{@initial_puppetserver_port}"
 
-    info('Running puppet agent, with --tags pupmod,simp', 'cyan')
+    info('First run: Running puppet agent with --tags pupmod,simp...', 'cyan')
 
     # Firstrun is tagged and run against the bootstrap puppetserver port
     linecounts = Array.new
-    linecounts << track_output("#{pupcmd} --tags pupmod,simp 2> /dev/null", pup_port)
+    linecounts << track_output("#{pupcmd} --tags pupmod,simp 2> /dev/null", @initial_puppetserver_port)
 
     fix_file_contexts
 
@@ -128,15 +71,18 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     # for the server restart with a port switch. This has not traditionally
     # been a problem and having this statement does no harm but it should not
     # be required.
+    info('Reloading puppetserver', 'cyan')
     execute('puppetserver reload')
 
-    # SIMP is not single-run idempotent.  Until it is, run puppet twice.
-    info('Running puppet without tags', 'cyan')
+    # SIMP is not single-run idempotent.  Until it is, run puppet multiple times.
+    num_runs = 3
+    info("Running puppet agent without tags #{num_runs} times...", 'cyan')
     pupcmd = 'puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay' +
       " --agent_disabled_lockfile=#{agent_lockfile}"
     # This is ugly, but until we devise an intelligent way to determine when your system
     # is 'bootstrapped', we're going to run puppet in a loop.
-    (0..1).each do
+    (1..num_runs).each do |run_num|
+      info("Standard agent run #{run_num}:", 'cyan')
       track_output(pupcmd)
     end
 
@@ -144,118 +90,30 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       ensure_bootstrap_puppetserver_process_stopped
     end
 
-    # Print closing banner
-    info('=== SIMP Bootstrap Finished! ===', 'yellow', '')
-    info("Duration of complete bootstrap: #{Time.now - @start_time} seconds")
-    if !system('ps -C httpd > /dev/null 2>&1') && (linecounts.include?(-1) || (linecounts.uniq.length < linecounts.length))
-      warn('Warning: Primitive checks indicate there may have been issues', 'magenta')
-    end
-    info("#{@logfile.path} contains details of the bootstrap actions performed.", 'yellow')
-    info('Prior to operation, you must reboot your system.', 'magenta.bold')
-    info('Run `puppet agent -t` after reboot to complete the bootstrap process.', 'magenta.bold')
-    info('It may take a few minutes before the puppetserver accepts agent', 'magenta.bold')
-    info('connections after boot.', 'magenta.bold')
+    print_closing_banner(linecounts)
 
-    # Re-enable the non-bootstrap puppet agent
+    info('Re-enabling the non-bootstrap puppet agent', 'cyan')
     execute('puppet agent --enable')
   end
 
+  #####################################################
+  # Custom methods
+  #####################################################
+
   private
 
-  def parse_command_line(args)
-
-    opt_parser = OptionParser.new do |opts|
-      opts.banner = "\n=== The SIMP Bootstrap Tool ==="
-      opts.separator "\nThe SIMP Bootstrap Tool aids initial configuration of the system by"
-      opts.separator "bootstrapping it. This should be run after 'simp config' has applied a new"
-      opts.separator "system configuration.\n\n"
-      opts.separator "Prior to configuration, any running puppet agents are allowed to complete"
-      opts.separator "their runs. If you wish to forcibly kill a running agent, pass --kill_agent\n\n"
-      opts.separator "The tool configures and starts a puppetserver with minimal memory, on"
-      opts.separator "port 8150.  It applies the simp and pupmod modules to the system which"
-      opts.separator "will configure the puppetserver and puppetdb services according to the system"
-      opts.separator "configuration (values set in simp config).  Two tagless puppet runs follow,"
-      opts.separator "to apply all other core modules.\n\n"
-      opts.separator "By default, this tool will prompt to keep or remove existing puppetserver"
-      opts.separator "certificates. To skip the prompt, see --[no]-remove_ssldir.\n\n"
-      opts.separator "This utility can be run more than once. Note what options are available"
-      opts.separator "before re-running.\n\n"
-      opts.separator "Logging information about the run is written to #{Simp::Cli::SIMP_CLI_HOME}/simp_bootstrap.log.*"
-      opts.separator "Prior to modification, config files are backed up to #{Simp::Cli::SIMP_CLI_HOME}/simp_bootstrap.backup.*\n\n"
-      opts.separator "OPTIONS:\n"
-
-      opts.on('-k', '--kill_agent',
-       'Ignore agent_catalog_run_lockfile',
-       'status and force kill active puppet',
-       'agents at the beginning of bootstrap.'
-      ) do |k|
-        @kill_agent = true
-      end
-
-      opts.on('-r', '--[no-]remove_ssldir',
-        'Remove the existing puppet ssldir.',
-        'If unspecified, user will be prompted',
-        'for action to take.'
-      ) do |r|
-        @remove_ssldir = r
-      end
-
-      opts.on('-t', '--[no-]track',
-        'Enables/disables the tracker.',
-        'Default is enabled.'
-      ) do |t|
-        @track = t
-      end
-
-      opts.on('-u', '--unsafe',
-        "Run bootstrap in 'unsafe' mode.",
-        'Interrupts are NOT captured and ignored,',
-        'which may result in a corrupt system.',
-        'Useful for debugging.',
-        'Default is SAFE.'
-      ) do |u|
-        @unsafe = true
-      end
-
-      opts.on('-w', '--puppetserver-wait-minutes MIN', Float,
-        'Number of minutes to wait for the',
-        'puppetserver to start.',
-        "Default is #{DEFAULT_PUPPETSERVER_WAIT_MINUTES} minutes."
-      ) do |w|
-        @puppetserver_wait_minutes = w
-      end
-
-      opts.on('-v', '--[no-]verbose',
-        'Enables/disables verbose mode. Prints out',
-        'verbose information.'
-      ) do |v|
-        @verbose = true
-      end
-
-      opts.on('-h', '--help', 'Print out this message.') do
-        puts opts
-        @help_requested = true
-      end
-
-    end
-
-    opt_parser.parse!(args)
-
-    unless @puppetserver_wait_minutes > 0
-      msg = "Invalid puppetserver wait minutes '#{@puppetserver_wait_minutes}'. Must be > 0"
-      raise OptionParser::ParseError.new(msg)
-    end
-  end
-
-  def get_hostname
-    %x(hostname -f).strip
-  end
-
-  # Check various things on the host that could cause us trouble
-  def  validate_host_sanity
-    # Need to have a domain on the system
-    if get_hostname.strip.split('.')[1..-1].empty?
-      fail('Your system must have a fully qualified hostname of the form "<hostname>.<domain>"')
+  # Verifies SIMP environment exists and is valid
+  def check_for_simp_environment
+    info("Checking for the SIMP omni-environment '#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}'", 'cyan')
+    # FIXME  This is an interim way to affect the validation.  Will use
+    #   Simp::Cli::Environment::OmniEnvController once logic is available.
+    env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(Simp::Cli::BOOTSTRAP_PUPPET_ENV)
+    status_code, status_details = env_helper.env_status
+    unless status_code == :exists
+      details_msg = status_details.split("\n").map { |line| '  >>' + line }.join("\n")
+      msg = "A valid SIMP omni-environment for '#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}' does not exist:\n"
+      msg += details_msg
+      fail(msg)
     end
   end
 
@@ -263,60 +121,11 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   def check_for_start_lock
     # During simp config, critical failed items are logged in a lock file. If the file
     # exists, don't bootstrap.
+    info('Checking for a bootstrap start lock', 'cyan')
     if File.exist?(Simp::Cli::BOOTSTRAP_START_LOCK_FILE)
       fail("Bootstrap cannot proceed until problem identified in\n" +
            "#{Simp::Cli::BOOTSTRAP_START_LOCK_FILE} is solved and that file is removed.")
     end
-  end
-
-  # Do a quick validation that the code in the malleable SIMP spaces is not
-  # going to cause the compilation to fail out of the box.
-  def validate_site_puppet_code
-    info('Validating site puppet code', 'cyan')
-
-    errors = []
-
-    site_pp = File.join(Simp::Cli::Utils.puppet_info[:config]['codedir'], 'environments','simp','manifests','site.pp')
-
-    if File.exist?(site_pp)
-      msg = %x{puppet parser validate #{site_pp} 2>&1}
-      unless $?.success?
-        errors << msg.strip
-      end
-    end
-
-    site_module = File.join(Simp::Cli::Utils.puppet_info[:config]['codedir'], 'environments','simp','modules','site')
-
-    if File.directory?(site_module)
-      msg = %x{puppet parser validate #{site_module} 2>&1}
-      unless $?.success?
-        errors << msg.strip
-      end
-    end
-
-    unless errors.empty?
-      fail(
-        "Puppet code validation failed\n" +
-          "Please fix your manifests and try again\n" +
-          "  * #{errors.join("\n  * ")}"
-        )
-    end
-  end
-
-  # @return [String] if the Java major version is available
-  # @return [nil] if the Java major version is unavailable
-  def java_major_version
-    return @java_major_version if @java_major_version
-
-    @java_major_version = nil
-
-    java_version = %x{java -version 2>&1}.lines.first
-
-    if $?.success?
-      @java_major_version = java_version.strip.split('_')[0].split('.')[1].to_i
-    end
-
-    return @java_major_version
   end
 
   # Configure an initial, bootstrap puppetserver service listening on 8150
@@ -325,10 +134,14 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   # - The port against which we do firstrun, 8150, is arbitrary. The first puppet run
   #   is a tagged run with pupmod and simp, which will re-configure puppetserver/puppetdb
   #   with the operational configuration parameters generated by simp config.
+  # - Only executed for FOSS puppet
   def configure_bootstrap_puppetserver
-    info('Configuring the puppetserver to listen on port 8150', 'cyan')
+    info('Configuring the puppetserver to listen on port 8150 for first puppet agent run', 'cyan')
     begin
       # Back everything up!
+      # TODO Execute all back up of puppet-related config in one place?  Some
+      # backup is done in ensure_puppet_processes_stopped()...Leads to odd set
+      # of log messages for user.
       puppetserver_conf_dir = '/etc/puppetlabs/puppetserver/conf.d'
       unless File.directory?(puppetserver_conf_dir)
         fail( "Could not find directory #{puppetserver_conf_dir}" )
@@ -439,6 +252,7 @@ EOM
         # By this point, bootstrap has applied config settings to puppetserver.
         # Don't kill puppetserver if it's configured it to listen on 8150.
         unless (pserver_port == '8150')
+          info('Ensuring bootstrap puppetserver process is stopped', 'cyan')
           pserver_pid = pserver_proc.first.split.last.split('/').first.to_i
           Process.kill('KILL',pserver_pid)
         end
@@ -454,6 +268,7 @@ EOM
 
   # Ensure puppet agent is stopped and disabled
   def ensure_puppet_agent_stopped
+    info('Ensuring puppet agent is stopped and disabled', 'cyan')
     agent_run_lockfile = Simp::Cli::Utils.puppet_info[:config]['agent_catalog_run_lockfile']
     if @kill_agent
       info('Killing puppet agents', 'cyan')
@@ -493,6 +308,7 @@ EOM
 
   # Ensure any remaining puppet processes are stopped
   def ensure_puppet_processes_stopped
+    info('Ensuring puppet processes are stopped and puppetserver env is clean', 'cyan')
     # Kill the connection with puppetdb before killing the puppetserver
     info('Killing connection to puppetdb', 'cyan')
 
@@ -571,7 +387,7 @@ EOM
     FileUtils.touch('/.autorelabel')
     if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? &&
         (Facter.value(:selinux_current_mode) != 'disabled')
-      info('Relabeling filesystem for selinux (this may take a while...)', 'cyan')
+      info('Relabeling filesystem for selinux (this may take a while)...', 'cyan')
       # This is silly, but there does not seem to be a way to get fixfiles
       # to shut up without specifying a logfile.  Stdout/err still make it to
       # the our logfile.
@@ -581,8 +397,13 @@ EOM
     end
   end
 
+  def get_hostname
+    %x(hostname -f).strip
+  end
+
   # Remove or retain existing puppet certs per user direction
   def handle_existing_puppet_certs
+    info('Checking for existing puppetserver certificates', 'cyan')
     ssldir = Simp::Cli::Utils.puppet_info[:config]['ssldir']
     certs_exist = !Dir.glob(File.join(ssldir, '**', '*.pem')).empty?
     rm_ssldir = @remove_ssldir
@@ -590,8 +411,8 @@ EOM
       if certs_exist
         info('Existing puppetserver certificates have been found in')
         info("    #{ssldir}" )
-        info('If this server has no registered agents, those certificates can be safely removed.')
-        info('Otherwise, although removing them will ensure consistency, manual')
+        info('If this server has no registered agents, those certificates can be safely')
+        info('removed. Otherwise, although removing them will ensure consistency, manual')
         info('steps may be required to ensure connectivity with existing Puppet clients.')
         info('(See https://docs.puppet.com/puppet/latest/ssl_regenerate_certificates.html)')
         info('Regardless, if removed, new puppetserver certificates will be generated')
@@ -609,18 +430,317 @@ EOM
     end
   end
 
-  # Set us up to use the SIMP environment, if this has not already been done.
-  # (1) Be careful to preserve the existing primary, 'production' environment,
-  #     if one exists.
-  # (2) Create links to production in both the primary and secondary environment
-  #     paths.
-  # fail if puppet environments directory does not exist, primary simp environment
-  # does not exist, or secondary simp environment does not exist
-  def set_up_simp_environment
-    item = Simp::Cli::Config::Item::SetProductionToSimpAction.new
-    item.start_time = @start_time
-    item.apply
-    fail("Could not set 'simp' to production environment") unless item.applied_status == :succeeded
+  # @return [String] if the Java major version is available
+  # @return [nil] if the Java major version is unavailable
+  def java_major_version
+    return @java_major_version if @java_major_version
+
+    @java_major_version = nil
+
+    java_version = %x{java -version 2>&1}.lines.first
+
+    if $?.success?
+      @java_major_version = java_version.strip.split('_')[0].split('.')[1].to_i
+    end
+
+    return @java_major_version
+  end
+
+  # Load the custom facts from the SIMP environment
+  def load_custom_facts
+    env_dir = File.join(Simp::Cli::Utils.puppet_info[:config]['codedir'], 'environments', Simp::Cli::BOOTSTRAP_PUPPET_ENV)
+    debug("Loading custom facts from #{env_dir}")
+    Simp::Cli::Utils::load_custom_facts([env_dir])
+  end
+
+  def parse_command_line(args)
+
+    opt_parser = OptionParser.new do |opts|
+      opts.banner = "\n=== The SIMP Bootstrap Tool ==="
+      opts.separator "\nThe SIMP Bootstrap Tool aids initial configuration of the system by"
+      opts.separator "bootstrapping it. This should be run after 'simp config' has applied a new"
+      opts.separator "system configuration.\n\n"
+      opts.separator "Prior to configuration, any running puppet agents are allowed to complete"
+      opts.separator "their runs. If you wish to forcibly kill a running agent, pass --kill_agent\n\n"
+      opts.separator "The tool configures and starts a puppetserver with minimal memory, on"
+      opts.separator "port 8150.  It applies the simp and pupmod modules to the system which"
+      opts.separator "will configure the puppetserver and puppetdb services according to the system"
+      opts.separator "configuration (values set in simp config).  Two tagless puppet runs follow,"
+      opts.separator "to apply all other core modules.\n\n"
+      opts.separator "By default, this tool will prompt to keep or remove existing puppetserver"
+      opts.separator "certificates. To skip the prompt, see --[no]-remove_ssldir.\n\n"
+      opts.separator "This utility can be run more than once. Note what options are available"
+      opts.separator "before re-running.\n\n"
+      opts.separator "Logging information about the run is written to #{Simp::Cli::SIMP_CLI_HOME}/simp_bootstrap.log.*"
+      opts.separator "Prior to modification, config files are backed up to #{Simp::Cli::SIMP_CLI_HOME}/simp_bootstrap.backup.*\n\n"
+      opts.separator "OPTIONS:\n"
+
+      opts.on('-k', '--kill_agent',
+       'Ignore agent_catalog_run_lockfile',
+       'status and force kill active puppet',
+       'agents at the beginning of bootstrap.'
+      ) do |k|
+        @kill_agent = true
+      end
+
+      opts.on('-r', '--[no-]remove_ssldir',
+        'Remove the existing puppet ssldir.',
+        'If unspecified, user will be prompted',
+        'for action to take.'
+      ) do |r|
+        @remove_ssldir = r
+      end
+
+      opts.on('-t', '--[no-]track',
+        'Enables/disables the tracker.',
+        'Default is enabled.'
+      ) do |t|
+        @track = t
+      end
+
+      opts.on('-u', '--unsafe',
+        "Run bootstrap in 'unsafe' mode.",
+        'Interrupts are NOT captured and ignored,',
+        'which may result in a corrupt system.',
+        'Useful for debugging.',
+        'Default is SAFE.'
+      ) do |u|
+        @unsafe = true
+      end
+
+      opts.on('-w', '--puppetserver-wait-minutes MIN', Float,
+        'Number of minutes to wait for the',
+        'puppetserver to start.',
+        "Default is #{DEFAULT_PUPPETSERVER_WAIT_MINUTES} minutes."
+      ) do |w|
+        @puppetserver_wait_minutes = w
+      end
+
+      opts.on('-v', '--[no-]verbose',
+        'Enables/disables verbose mode. Prints out',
+        'verbose information.'
+      ) do |v|
+        @verbose = true
+      end
+
+      opts.on('-h', '--help', 'Print out this message.') do
+        puts opts
+        @help_requested = true
+      end
+
+    end
+
+    opt_parser.parse!(args)
+
+    unless @puppetserver_wait_minutes > 0
+      msg = "Invalid puppetserver wait minutes '#{@puppetserver_wait_minutes}'. Must be > 0"
+      raise OptionParser::ParseError.new(msg)
+    end
+  end
+
+  def prep_for_first_puppet_run
+    info('Preparing for first puppet agent run...', 'cyan')
+    debug("Creating backup directory #{@bootstrap_backup}")
+    FileUtils.mkdir(@bootstrap_backup)
+
+    ensure_puppet_agent_stopped
+
+    if @unsafe
+      warn('SAFE mode has been disabled:', 'red.bold')
+      warn(' - Interrupts will **NOT** be captured and ignored.', 'red.bold')
+      warn(' - Any interrupts may cause system instability.', 'red.bold')
+    else
+      # From this point on, capture interrupts
+      signals = ['INT','HUP','USR1','USR2']
+      signals.each do |sig|
+        Signal.trap(sig) { say "\nSafe mode enabled, ignoring interrupt - PID is #{Process.pid}".magenta }
+      end
+      info('Entering SAFE mode:', 'magenta.bold')
+      info('  Interrupts will be captured and ignored to ensure bootstrap integrity.', 'magenta.bold')
+    end
+
+    # give user time to read the SAFE mode messages
+    sleep(2)
+
+    # 'is_pe' is a stdlib fact
+    load_custom_facts
+    @is_pe = Facter.value('is_pe')
+
+    if @is_pe
+      info('Puppet Enterprise found, preserving existing configuration.', 'cyan')
+      info("  puppetserver is listening on port #{@initial_puppetserver_port}", 'cyan')
+      @puppetserver_service = 'pe-puppetserver'
+      @puppetdb_service = 'pe-puppetdb'
+      @initial_puppetserver_port = '8140'
+    else
+      info('FOSS Puppet found. Change to bootstrap puppetserver configuration required.', 'cyan')
+      @puppetserver_service = 'puppetserver'
+      @puppetdb_service = 'puppetdb'
+
+      # These items are all handled by the PE installer so need to be done for
+      # the FOSS version independently.
+      ensure_puppet_processes_stopped
+      handle_existing_puppet_certs
+      validate_site_puppet_code
+
+      # The FOSS version will use 8150 and then switch to 8140 automatically if
+      # all goes well. The server remaining on 8150 is an almost guaranteed
+      # sign that something has gone wrong.
+      @initial_puppetserver_port = '8150'
+      configure_bootstrap_puppetserver
+    end
+
+    # Reload the puppetserver
+    info('Reloading puppetserver', 'cyan')
+    execute('puppetserver reload')
+  end
+
+  def print_closing_banner(linecounts)
+    info('=== SIMP Bootstrap Finished! ===', 'yellow', '')
+    info("Duration of complete bootstrap: #{Time.at(Time.now - @start_time).utc.strftime("%H:%M:%S")}")
+    if !system('ps -C httpd > /dev/null 2>&1') && (linecounts.include?(-1) || (linecounts.uniq.length < linecounts.length))
+      warn('Warning: Primitive checks indicate there may have been issues', 'magenta')
+    end
+    info("#{@logfile.path} contains details of the bootstrap actions performed.", 'yellow')
+    info('Prior to operation, you must reboot your system.', 'magenta.bold')
+    info('Run `puppet agent -t` after reboot to complete the bootstrap process.', 'magenta.bold')
+    info('It may take a few **MINUTES** before the puppetserver accepts agent', 'magenta.bold')
+    info('connections after boot.', 'magenta.bold')
+  end
+
+  def print_intro
+    system('clear')
+    info('=== Starting SIMP Bootstrap ===', 'yellow.bold', '')
+    info("The log can be found at '#{@logfile.path}'\n")
+  end
+
+  def set_up_logger
+    # Open log file
+    logfilepath = File.dirname(File.expand_path(@bootstrap_log))
+    FileUtils.mkpath(logfilepath) unless File.exists?(logfilepath)
+    @logfile = File.open(@bootstrap_log, 'w')
+  end
+
+  # Track a running process by following its STDOUT output
+  # Prints a '#' for each line of output
+  # returns -1 if error occured, otherwise the line count if PTY.spawn succeeded
+  def track_output(command, port = nil)
+    ensure_puppetserver_running(port)
+    successful = true
+
+    debug('#' * 80, nil ,'')
+    debug("Starting #{command}\n")
+
+    start_time = Time.now
+    linecount = 0
+    col = ['green','red','yellow','blue','magenta','cyan']
+
+    if @track
+      info('Track => ', 'cyan')
+      begin
+        ::PTY.spawn(command) do |read, write, pid|
+          begin
+            read.each do |line|
+              print ("#".send(col.first)) unless @verbose
+              col.rotate!
+              debug(line)
+              linecount += 1
+            end
+          rescue Errno::EIO
+          end
+        end
+      rescue PTY::ChildExited => e
+        warn("#{command} exited unexpectedly:\n\t#{e.message}")
+        successful = false
+      #FIXME Pin down what exceptions are appropriate for this case!!!
+      rescue
+        # If we don't have a PTY, just run the command.
+        debug('Running without a PTY!')
+        output = %x{#{command}}
+        debug(output)
+        linecount = output.split("\n").length
+        successful = false if $? != 0
+      end
+    else # don't track
+      info("Running, please wait ... ")
+      $stdout.flush
+      show_wait_spinner {
+        output = %x{#{command}}
+      }
+      debug(output)
+      linecount = output.split("\n").length
+      successful = false if $? != 0
+    end
+    puts
+    debug("\n#{command} - Done!")
+    end_time = Time.now
+    debug("Duration of Puppet run: #{end_time - start_time} seconds")
+
+    return successful ? linecount : -1
+  end
+
+  # Check various things on the host that could cause us trouble
+  def validate_host_sanity
+    info('Validating that the hostname is a FQDN', 'cyan')
+    # Need to have a domain on the system
+    if get_hostname.strip.split('.')[1..-1].empty?
+      fail('Your system must have a fully qualified hostname of the form "<hostname>.<domain>"')
+    end
+  end
+
+  # Do a quick validation that the code in the malleable SIMP spaces is not
+  # going to cause the compilation to fail out of the box.
+  def validate_site_puppet_code
+    info('Validating site puppet code', 'cyan')
+
+    errors = []
+
+    env_dir = File.join(Simp::Cli::Utils.puppet_info[:config]['codedir'], 'environments', Simp::Cli::BOOTSTRAP_PUPPET_ENV)
+    site_pp = File.join(env_dir, 'manifests','site.pp')
+
+    if File.exist?(site_pp)
+      msg = %x{puppet parser validate #{site_pp} 2>&1}
+      unless $?.success?
+        errors << msg.strip
+      end
+    end
+
+    site_module = File.join(env_dir,'modules','site')
+
+    if File.directory?(site_module)
+      msg = %x{puppet parser validate #{site_module} 2>&1}
+      unless $?.success?
+        errors << msg.strip
+      end
+    end
+
+    unless errors.empty?
+      fail(
+        "Puppet code validation failed\n" +
+          "Please fix your manifests and try again\n" +
+          "  * #{errors.join("\n  * ")}"
+        )
+    end
+  end
+
+  # verify bootstrap setup
+  #
+  # @raises if any bootstrap setup issue if found
+  def verify_setup
+    info('Verifying bootstrap setup...', 'cyan')
+    validate_host_sanity
+    check_for_start_lock
+    check_for_simp_environment
+  end
+
+  #####################################################
+  # general purpose methods
+  # TODO consolidate with methods used by `simp config`
+  #####################################################
+
+  def execute(command)
+    debug("Executing: #{command}")
+    system(command)
   end
 
   # Display an ASCII, spinning progress spinner for the action in a block
@@ -652,72 +772,6 @@ EOM
     }                # Use the block's return value as the method's
   end
 
-  # Track a running process by following its STDOUT output
-  # Prints a '#' for each line of output
-  # returns -1 if error occured, otherwise the line count if PTY.spawn succeeded
-  def track_output(command, port = nil)
-    ensure_puppetserver_running(port)
-    successful = true
-
-    debug('#' * 80, nil ,'')
-    debug("Starting #{command}\n")
-
-    start_time = Time.now
-    linecount = 0
-    col = ['green','red','yellow','blue','magenta','cyan']
-
-    if @track
-      info("Track => ", 'cyan')
-      begin
-        ::PTY.spawn("#{command}") do |read, write, pid|
-          begin
-            read.each do |line|
-              print ("#".send(col.first)) unless @verbose
-              col.rotate!
-              debug(line)
-              linecount += 1
-            end
-          rescue Errno::EIO
-          end
-        end
-      rescue PTY::ChildExited => e
-        warn("#{command} exited unexpectedly:\n\t#{e.message}")
-        successful = false
-      #FIXME Pin down what exceptions are appropriate for this case!!!
-      rescue
-        # If we don't have a PTY, just run the command.
-        debug('Running without a PTY!')
-        output = %x{#{command}}
-        debug(output)
-        linecount = output.split("\n").length
-        successful = false if $? != 0
-      end
-    else # don't track
-      info('Running, please wait ... ')
-      $stdout.flush
-      show_wait_spinner {
-        output = %x{#{command}}
-      }
-      debug(output)
-      linecount = output.split("\n").length
-      successful = false if $? != 0
-    end
-    puts
-    debug("\n#{command} - Done!")
-    end_time = Time.now
-    debug("Duration of Puppet run: #{end_time - start_time} seconds")
-
-    return successful ? linecount : -1
-  end
-
-  def execute(command)
-    debug("Executing: #{command}")
-    system(command)
-  end
-
-  # helper methods for logging
-  # TODO Refactor to use simp config logging
-
   # Debug logs only go to the console when verbose option specified,
   # but always go to the log file (which is expected to contain details)
   def debug(message, options=nil, console_prefix='> DEBUG: ')
@@ -744,8 +798,10 @@ EOM
   def log_and_say(message, options, console_prefix, log_to_console = true)
     log_prefix = Time.now.strftime('%Y-%m-%d %H:%M:%S') + ': '
     message.split("\n").each do |line|
-      @logfile.puts %{#{log_prefix}#{line}}
-      @logfile.flush
+      if @logfile
+        @logfile.puts %{#{log_prefix}#{line}}
+        @logfile.flush
+      end
 
       if log_to_console
         if options.nil?
@@ -760,3 +816,4 @@ EOM
     end
   end
 end
+

@@ -1,4 +1,6 @@
 require_relative '../action_item'
+require_relative '../data/simp_options_puppet_server'
+require_relative '../data/cli_puppet_server_ip'
 require 'fileutils'
 
 module Simp; end
@@ -7,8 +9,8 @@ module Simp::Cli::Config
   class Item::AddPuppetHostsEntryAction < ActionItem
     attr_accessor :file
 
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'puppet::hosts_entry'
       @description = 'Ensure Puppet server /etc/hosts entry exists'
       @file        = '/etc/hosts'

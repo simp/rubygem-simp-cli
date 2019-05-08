@@ -5,8 +5,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CliHasSimpLocalUser < YesNoItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'cli::has_simp_local_user'
       @description = %Q{Whether the server has the local 'simp' user created by
 an ISO install.
@@ -24,7 +24,7 @@ via the simp::server manifest, when SIMP is bootstrapped.}
       @username = 'simp'
 
       # FIXME This is especially fragile....ASSuming ISO install because a
-      # file installed by the ISO (and unfortunatley, a file that should be,
+      # file installed by the ISO (and unfortunately, a file that should be,
       # but, as of now, is not managed by SIMP) exists.
       @iso_marker = '/etc/yum.repos.d/simp_filesystem.repo'
     end

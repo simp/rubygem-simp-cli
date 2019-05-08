@@ -14,8 +14,16 @@ class Simp::Cli::Config::ItemListFactory
 
   def initialize( options )
     @options = {
-      :verbose            => 0,
-      :puppet_system_file => '/tmp/out.yaml',
+      :answers_output_file  => '/dev/null',
+      :hiera_output_file    => '/dev/null',
+      :puppet_env           => Simp::Cli::BOOTSTRAP_PUPPET_ENV,
+      :force_defaults       => false,
+      :allow_queriers       => true,
+      :dry_run              => false,
+      :start_time           => Time.now,
+      :safety_save_file     => nil,
+      :clean_session        => true,
+      :verbose              => 0,
     }.merge( options )
 
     # A hash to look up Config::Item values set from other sources (files, cli).
@@ -26,34 +34,41 @@ class Simp::Cli::Config::ItemListFactory
   end
 
 
+  # Generate Item 'list'
+  #
+  # +answers_hash+: Hash of Item pre-set values
+  # +items_yaml+: Decision tree YAML to use in lieu of building
+  #   one to correspond to the 'cli::simp::scenario'
+  #
+  # @raise Simp::Cli::Config::ValidationError if 'cli::simp::scenario'
+  #   is not available in answers_hash and querying is not allowed
   def process( answers_hash={}, items_yaml = nil )
     @answers_hash = answers_hash.dup
 
-    # Require the config items
-    rb_files = File.expand_path( '../config/item/*.rb', __dir__ )
-    Dir.glob( rb_files ).sort_by(&:to_s).each { |file| require file }
-
     if items_yaml.nil?
-      scenario = @answers_hash.fetch('cli::simp::scenario')
+      query_for_scenario unless @answers_hash.key?('cli::simp::scenario')
+      scenario = @answers_hash['cli::simp::scenario']
       items_yaml = Simp::Cli::Config::ItemsYamlGenerator.new(scenario).generate_yaml
     end
+
+#FIXME automatically add CliSimpScenario to Items tree at the beginning
 
     begin
       items = YAML.load items_yaml
     rescue Psych::SyntaxError => e
-      $stderr.puts "Invalid Items list YAML: #{e.message}"
-      $stderr.puts '>'*80
-      $stderr.puts items_yaml
-      $stderr.puts '<'*80
+      logger.error("Invalid Items list YAML: #{e.message}".red)
+      logger.error('>'*80)
+      logger.error(items_yaml)
+      logger.error('<'*80)
       raise Simp::Cli::Config::InternalError.new('invalid Items list YAML')
     end
 
     # add file writers needed by all scenarios
-    items <<  "HieradataYAMLFileWriter FILE=#{ @options.fetch( :puppet_system_file, '/dev/null') }"
+    items <<  "HieradataYAMLFileWriter FILE=#{ @options[:hiera_output_file] }"
 
     # Note: This is this file writer is the ONLY action that can be run as non-root user,
     #  as all it does is create a file that is not within the Puppet environment.
-    items << "AnswersYAMLFileWriter   FILE=#{ @options.fetch( :answers_output_file, '/dev/null') } USERAPPLY DRYRUNAPPLY"
+    items << "AnswersYAMLFileWriter   FILE=#{ @options[:answers_output_file] } USERAPPLY DRYRUNAPPLY"
 
     item_queue = build_item_queue( [], items )
     item_queue
@@ -79,7 +94,7 @@ class Simp::Cli::Config::ItemListFactory
     # create item instance
     parts = item_string.split( /\s+/ )
     name  = parts.shift
-    item  = Simp::Cli::Config::Item.const_get(name).new
+    item  = Simp::Cli::Config::Item.const_get(name).new(@options[:puppet_env_info])
     override_value = nil
 
     # set item options
@@ -117,14 +132,14 @@ class Simp::Cli::Config::ItemListFactory
 
     end
     #  ...based on cli options
-    if ( @options.fetch( :dry_run, false ) and
+    if ( @options[:dry_run] and
          !dry_run_apply and
          item.respond_to?(:safe_apply)
        )
       item.skip_apply = true
       item.skip_apply_reason = '[**dry run**]'
     end
-    item.start_time = @options.fetch( :start_time, Time.now )
+    item.start_time = @options[:start_time]
 
     # pre-assign item value from various sources, if available
     item = assign_value_from_hash( @answers_hash, item )
@@ -166,17 +181,43 @@ class Simp::Cli::Config::ItemListFactory
 
   # create a YAML writer that will "safety save" after each answer
   def create_safety_writer_item
-    if file =  @options.fetch( :safety_save_file, nil)
+    if file =  @options[:safety_save_file]
       FileUtils.mkdir_p File.dirname( file ), :verbose => false
-      writer = Simp::Cli::Config::Item::AnswersYAMLFileWriter.new
+      writer = Simp::Cli::Config::Item::AnswersYAMLFileWriter.new(@options[:puppet_env_info])
       writer.file             = file
       writer.allow_user_apply = true
       writer.defer_apply      = false  # make sure we apply immediately
-      writer.silent           = true  if @options.fetch(:verbose, 0) < 2
-      writer.start_time       = @options.fetch( :start_time, Time.now )
+      writer.silent           = true  if @options[:verbose] < 2
+      writer.start_time       = @options[:start_time]
       # don't sort the output so we figure out the last item answered
       writer.sort_output      = false
       writer
+    end
+  end
+
+  def query_for_scenario
+    item = Simp::Cli::Config::Item::CliSimpScenario.new(@options[:puppet_env_info])
+
+    if @options[:force_defaults]
+      @answers_hash['cli::simp::scenario'] = item.default_value_noninteractive
+    elsif @options[:allow_queries]
+      if @options[:clean_session]
+        # This is the first interactive session, so ensure user is ready to
+        # continue
+
+        # space at end of question tells HighLine to remain on the prompt line
+        # when gathering user input
+        question = "\nReady to start the questionnaire? (no = exit program):".bold + ' '
+        unless agree( question ) { |q| q.default = 'yes' }
+          raise Simp::Cli::ProcessingError.new('Exiting: User terminated processing prior to questionnaire.')
+        end
+      end
+      item.query
+      item.print_summary
+      @answers_hash['cli::simp::scenario'] = item.value
+    else
+      err_msg = "FATAL: No valid answer found for 'cli::simp::scenario'"
+      raise Simp::Cli::Config::ValidationError.new(err_msg)
     end
   end
 end

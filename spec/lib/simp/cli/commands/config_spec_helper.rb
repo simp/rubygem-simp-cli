@@ -24,7 +24,6 @@ def generate_simp_input_accepting_defaults(ask_if_ready = true)
     "\n"                          << # set GRUB password
     "\n"                          << # auto-generate GRUB password
     "\n"                          << # Press enter to continue
-    "\n"                          << # set production env to simp
     "\n"                          << # use internet SIMP repos
     "\n"                          << # SIMP is LDAP server
     "\n"                          << # don't auto-generate a password
@@ -60,7 +59,6 @@ def generate_simp_lite_input_setting_values
     "1.2.0.0/16\n"                            << # trusted networks
     "time-a.nist.gov\n"                       << # NTP time servers
     "no\n"                                    << # don't set the GRUB password
-    "no\n"                                    << # don't set production env to simp
     "no\n"                                    << # don't use internet SIMP repos
     "no\n"                                    << # SIMP is not LDAP server
     "LOCAL\n"                                 << # sssd domain
@@ -93,7 +91,6 @@ def generate_poss_input_setting_values
     "1.2.0.0/16\n"        << # trusted networks
     "time-a.nist.gov\n"   << # NTP time servers
     "no\n"                << # don't set the GRUB password
-    "no\n"                << # don't set production env to simp
     "no\n"                << # don't use internet SIMP repos
     "no\n"                << # don't use LDAP
     "no\n"                << # use SSSD

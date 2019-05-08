@@ -1,5 +1,4 @@
 require 'simp/cli/config/items/action/update_os_yum_repositories_action'
-require 'simp/cli/config/items/data/cli_network_hostname'
 require 'rspec/its'
 require_relative '../spec_helper'
 
@@ -17,7 +16,6 @@ describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
       @ci             = Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction.new
       @ci.www_yum_dir = @tmp_yum_dir
       @ci.yum_repos_d = @tmp_repos_d
-      @ci.dir         = @tmp_dir
       @ci.silent      =  true  # comment out this line to see log output
     end
 
@@ -76,7 +74,6 @@ describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
       @ci             = Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction.new
       @ci.www_yum_dir = @tmp_yum_dir
       @ci.yum_repos_d = @tmp_repos_d
-      @ci.dir         = @tmp_dir
       @ci.silent      =  true  # comment out this line to see log output
     end
 

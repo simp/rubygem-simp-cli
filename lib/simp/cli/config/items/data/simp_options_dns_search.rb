@@ -6,8 +6,8 @@ class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpOptionsDNSSearch < ListItem
     attr_accessor :file
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'simp_options::dns::search'
       @description = %Q{The DNS domain search string.
 

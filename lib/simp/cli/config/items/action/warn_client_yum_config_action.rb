@@ -5,8 +5,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::WarnClientYumConfigAction < ActionItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key             = 'yum::repositories::client::config::check'
       @description     = 'Check YUM configuration for SIMP clients'
       @category        = :sanity_check

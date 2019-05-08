@@ -83,8 +83,8 @@ module Simp::Cli::Config
       :answers_writer     # action to write out the answers file
     ]
 
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @applied_status    = :unattempted  # status of an applied change
       @applied_time      = nil           # time at which applied change completed
       @applied_detail    = nil           # details about the apply to be conveyed to user
@@ -98,6 +98,23 @@ module Simp::Cli::Config
 
       @category          = :other        # category which can be used to group actions when applied
                                          # see SORTED_CATEGORIES above for recognized categories
+ 
+      # TODO Should just be able to use module paths from @puppet_env_info,
+      # because we have ensured the SIMP environment is place before attempting
+      # the 'simp config' questionnaire. The only reason for using the SIMP
+      # module install path, would be if the Item to set up the network was
+      # split out in its own command (possible FUTURE work) and executed
+      # before the SIMP environment was in place.
+      module_path = @puppet_env_info[:puppet_config]['modulepath']
+      if File.directory?(Simp::Cli::SIMP_MODULES_INSTALL_PATH)
+        module_path += ":#{Simp::Cli::SIMP_MODULES_INSTALL_PATH}"
+      end
+      #FIXME allow puppet digest algorithm to be configurable
+      @puppet_apply_cmd = [
+        'puppet apply',
+        "--modulepath=#{module_path}",
+        "--digest_algorithm=#{Simp::Cli::PUPPET_DIGEST_ALGORITHM}"
+      ].join(' ')
     end
 
     # internal method to change the system (returns the result of the apply)
@@ -108,5 +125,21 @@ module Simp::Cli::Config
     def query;                                     nil;  end
     def print_summary;                             nil;  end
     def to_yaml_s( include_auto_warning = false ); nil;  end
+
+    def status_color
+      case (@applied_status)
+      when :succeeded
+        color = :GREEN
+      when :unattempted, :skipped, :unnecessary
+        color = :MAGENTA
+      when :deferred  # operator intervention recommended
+        color = :YELLOW
+      when :failed
+        color = :RED
+      else
+        color = :RED
+      end
+      color
+    end
   end
 end

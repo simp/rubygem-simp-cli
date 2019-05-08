@@ -4,8 +4,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SvckillMode < Item
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'svckill::mode'
       @description = %Q{Strategy svckill should use when it encounters undeclared services.
 

@@ -1,16 +1,18 @@
 require_relative '../set_server_hieradata_action_item'
+require_relative '../data/puppetdb_master_config_puppetdb_port'
+require_relative '../data/puppetdb_master_config_puppetdb_server'
 
 module Simp; end
 class Simp::Cli; end
 
 module Simp::Cli::Config
   class Item::SetServerPuppetDBMasterConfigAction < SetServerHieradataActionItem
-    def initialize
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       @hiera_to_add = [
         'puppetdb::master::config::puppetdb_server',
         'puppetdb::master::config::puppetdb_port',
       ]
-      super
+      super(puppet_env_info)
       @key = 'puppet::set_server_puppetdb_master_config'
 
       # override with a shorter message

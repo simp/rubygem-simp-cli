@@ -4,8 +4,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::UseraddSecuretty < ListItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'useradd::securetty'
       @description = %Q{A list of TTYs for which the root user can login.
 

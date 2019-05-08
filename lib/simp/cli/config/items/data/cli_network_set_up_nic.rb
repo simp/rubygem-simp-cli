@@ -4,8 +4,8 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::CliSetUpNIC < YesNoItem
-    def initialize
-      super
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'cli::network::set_up_nic'
       @description = %Q{Whether to configure and activate this NIC now. A properly configured
 NIC with associated hostname is required for SIMP to be bootstrapped.

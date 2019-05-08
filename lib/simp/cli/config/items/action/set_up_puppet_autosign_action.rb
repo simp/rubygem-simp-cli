@@ -1,19 +1,21 @@
 require_relative '../action_item'
+require_relative '../data/cli_network_hostname'
 
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SetUpPuppetAutosignAction < ActionItem
-    attr_reader :file
-    def initialize
-      super
+
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
       @key         = 'puppet::autosign'
       @description = 'Set up Puppet autosign'
       @category    = :puppet_global
-      @file        = File.join(Simp::Cli::Utils.puppet_info[:config]['confdir'], 'autosign.conf')
-      @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
+      @file        = File.join(@puppet_env_info[:puppet_config]['autosign'])
+      @group       = @puppet_env_info[:puppet_group]
     end
 
+#FIXME this is unused.... was it supposted to be?
     def get_os_value
       # TODO: make this a custom fact?
       values = Array.new

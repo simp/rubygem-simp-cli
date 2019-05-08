@@ -1,21 +1,25 @@
 require 'simp/cli/config/items/action_item'
-require 'simp/cli/utils'
+require 'simp/cli/config/items/data/cli_network_hostname'
 require 'fileutils'
 
 module Simp::Cli::Config
   class Item::CreateSimpServerFqdnYamlAction < ActionItem
-    attr_accessor :template_file, :alt_file, :group
+    attr_accessor :alt_file
 
-    def initialize
-      super
-      @key         = 'puppet::create_simp_server_fqdn_yaml'
-      @description = 'Create SIMP server <host>.yaml from template'
-      @die_on_apply_fail = true
-      @template_file = File.join(Simp::Cli::Utils.simp_env_datadir, 'hosts', 'puppet.your.domain.yaml')
-      @alt_file    = File.join('/', 'usr', 'share', 'simp', 'environments', 'simp',
-        File.basename(Simp::Cli::Utils.simp_env_datadir), 'hosts', 'puppet.your.domain.yaml')
+    def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
+      super(puppet_env_info)
+      @key                = 'puppet::create_simp_server_fqdn_yaml'
+      @description        = 'Create SIMP server <host>.yaml from template'
+      @die_on_apply_fail  = true
+      @template_file      = File.join(@puppet_env_info[:puppet_env_datadir],
+        'hosts', 'puppet.your.domain.yaml')
+      #FIXME inject skeleton install path in constructor instead of hardcoding
+      #      and remove attr_accessor for alt_file
+      @alt_file           = File.join(Simp::Cli::SIMP_ENV_SKELETON_INSTALL_PATH,
+         File.basename(@puppet_env_info[:puppet_env_datadir]),
+         'hosts', 'puppet.your.domain.yaml')
       @host_yaml   = nil
-      @group       = Simp::Cli::Utils.puppet_info[:puppet_group]
+      @group       = @puppet_env_info[:puppet_group]
       @category    = :puppet_env_server
     end
 

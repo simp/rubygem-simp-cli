@@ -1,45 +1,42 @@
 require 'simp/cli/config/items/action/hieradata_yaml_file_writer'
-require 'simp/cli/config/items'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
   before :each do
     @files_dir = File.expand_path( 'files', File.dirname( __FILE__ ) )
 
-    # Since we are using the setter for file in tests that do something with a
-    # file, this value doesn't matter.  However, we do need to mock it so the
-    # actual Simp::Cli::Utils doesn't run and raise an exception because
-    # it can't find the expected file/directory structure.
-    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return('/unused/dir')
+    @puppet_env_info = {
+      :puppet_config => { 'modulepath' => '/does/not/matter' },
+      :puppet_group  => `groups`.split[0]
+    }
 
-    @ci            = Simp::Cli::Config::Item::HieradataYAMLFileWriter.new
+    @ci            = Simp::Cli::Config::Item::HieradataYAMLFileWriter.new(@puppet_env_info)
     @ci.silent     = true  # comment out this line to see log output
-    @ci.group      = `groups`.split[0]
     @ci.start_time = Time.new(2017, 1, 13, 11, 42, 3)
   end
 
   describe '#print_hieradata_yaml' do
     before :each do
-      ci                = TestItem.new
+      ci                = TestItem.new(@puppet_env_info)
       ci.key            = 'item'
       ci.value          = 'foo'
       ci.description    = 'A simple item'
       list              = { 'foo' => ci }
 
-      ci                = TestListItem.new
+      ci                = TestListItem.new(@puppet_env_info)
       ci.key            = 'list'
       ci.value          = ['one','two','three']
       ci.description    = 'A simple list'
       list[ci.key]      = ci
 
-      ci                = TestYesNoItem.new
+      ci                = TestYesNoItem.new(@puppet_env_info)
       ci.key            = 'yesno'
       ci.value          = true
       ci.data_type      = :internal
       ci.description    = 'A simple yes/no item'
       list[ci.key]      = ci
 
-      ci                = TestActionItem.new
+      ci                = TestActionItem.new(@puppet_env_info)
       ci.key            = 'action'
       ci.value          = 'unused'
       ci.description    = 'A simple action item which should not have yaml output'
@@ -49,7 +46,7 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
     end
 
     it 'prints parseable yaml' do
-      item = Simp::Cli::Config::Item::CliSimpScenario.new
+      item = Simp::Cli::Config::Item::CliSimpScenario.new(@puppet_env_info)
       item.value = 'simp_lite'
       @ci.config_items[item.key] = item
 
@@ -69,23 +66,23 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
   context 'when writing a yaml file' do
     before :each do
       # pre-populate answers list with 3 hieradata items and two non-hieradata items
-      item       = Simp::Cli::Config::Item::CliSimpScenario.new
+      item       = Simp::Cli::Config::Item::CliSimpScenario.new(@puppet_env_info)
       item.value = 'simp_lite'
       @ci.config_items[item.key] = item
 
-      item       = Simp::Cli::Config::Item::SimpOptionsPuppetServer.new
+      item       = Simp::Cli::Config::Item::SimpOptionsPuppetServer.new(@puppet_env_info)
       item.value = 'puppet.domain.tld'
       @ci.config_items[item.key] = item
 
-      item       = Simp::Cli::Config::Item::SimpOptionsFips.new
+      item       = Simp::Cli::Config::Item::SimpOptionsFips.new(@puppet_env_info)
       item.value = false
       @ci.config_items[item.key] = item
 
-      item       = Simp::Cli::Config::Item::SimpRunLevel.new
+      item       = Simp::Cli::Config::Item::SimpRunLevel.new(@puppet_env_info)
       item.value = 2
       @ci.config_items[item.key] = item
 
-      item       = Simp::Cli::Config::Item::CliNetworkHostname.new
+      item       = Simp::Cli::Config::Item::CliNetworkHostname.new(@puppet_env_info)
       item.value = 'myhost.test.local'
       @ci.config_items[item.key] = item
 
@@ -133,13 +130,13 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
     end
 
     it 'writes out a classes array when :global_class Items exist' do
-      item = Simp::Cli::Config::Item::SimpYumRepoInternetSimpDependenciesClass.new
+      item = Simp::Cli::Config::Item::SimpYumRepoInternetSimpDependenciesClass.new(@puppet_env_info)
       @ci.config_items[item.key] = item
 
-      item = Simp::Cli::Config::Item::SimpYumRepoLocalOsUpdatesClass.new
+      item = Simp::Cli::Config::Item::SimpYumRepoLocalOsUpdatesClass.new(@puppet_env_info)
       @ci.config_items[item.key] = item
 
-      item = Simp::Cli::Config::Item::SimpYumRepoLocalSimpClass.new
+      item = Simp::Cli::Config::Item::SimpYumRepoLocalSimpClass.new(@puppet_env_info)
       @ci.config_items[item.key] = item
 
       @ci.apply
@@ -166,7 +163,7 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
 
   describe '#apply_summary' do
     it 'reports unattempted status when #apply not called' do
-      ci        = Simp::Cli::Config::Item::HieradataYAMLFileWriter.new
+      ci        = Simp::Cli::Config::Item::HieradataYAMLFileWriter.new(@puppet_env_info)
       ci.file = '/some/path/environments/simp/simp_config_overrides.yaml'
       expect(ci.apply_summary).to eq(
         'Creation of /etc/.../environments/simp/simp_config_overrides.yaml unattempted')

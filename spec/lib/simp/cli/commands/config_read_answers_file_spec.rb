@@ -9,25 +9,7 @@ describe 'Simp::Cli::Commands::Config#read_answers_file' do
 
   before(:each) do
     @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__) )
-    test_env_dir = File.join(@tmp_dir, 'environments')
-    simp_env_dir = File.join(test_env_dir, 'simp')
-    FileUtils.mkdir(test_env_dir)
-    FileUtils.cp_r(File.join(files_dir, 'environments', 'simp'), test_env_dir)
-
-    allow(Simp::Cli::Utils).to receive(:puppet_info).and_return( {
-      :config => {
-        'codedir' => @tmp_dir,
-        'confdir' => @tmp_dir
-      },
-      :environment_path => test_env_dir,
-      :simp_environment_path => simp_env_dir,
-      :fake_ca_path => File.join(test_env_dir, 'simp', 'FakeCA')
-    } )
-
-    allow(Simp::Cli::Utils).to receive(:simp_env_datadir).and_return( File.join(simp_env_dir, 'data') )
-
     @yaml_file = File.join(@tmp_dir, 'answers.yaml')
-
     @config = Simp::Cli::Commands::Config.new
   end
 
