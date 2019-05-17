@@ -30,7 +30,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
         puppet: {
           enabled: true,
           strategy: default_strategy, # :skeleton, :copy
-          puppetfile: false,
+          puppetfile_generate: false,
           puppetfile_install: false,
           deploy: false,
           backend: :directory,
@@ -98,7 +98,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
                 options[:types][:puppet][:strategy]    = :skeleton
                 options[:types][:secondary][:strategy] = :skeleton
                 options[:types][:writable][:strategy]  = :fresh
-                options[:types][:puppet][:puppetfile]  = true
+                options[:types][:puppet][:puppetfile_generate]  = true
               end
 
       opts.on('--copy ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
@@ -124,7 +124,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               '  * `Puppetfile` will only be created if missing',
               '  * `Puppetfile.simp` will be generated from RPM/',
               '  * implies `--puppet-env`') do |v|
-        options[:types][:puppet][:enabled] = true if (options[:types][:puppet][:puppetfile] = v)
+        options[:types][:puppet][:enabled] = true if (options[:types][:puppet][:puppetfile_generate] = v)
       end
 
       opts.on('--[no-]puppetfile-install',

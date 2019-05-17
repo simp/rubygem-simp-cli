@@ -11,7 +11,7 @@ describe Simp::Cli::Environment::PuppetDirEnv do
     skel_dir =  '/var/simp/environments'
     share_dir = '/usr/share/simp'
     {
-      puppetfile: false,
+      puppetfile_generate: false,
       puppetfile_install: false,
       deploy: false,
       backend: :directory,
@@ -43,9 +43,13 @@ describe Simp::Cli::Environment::PuppetDirEnv do
     end
 
     before(:each) do
+      # as user root
+      allow(ENV).to receive(:fetch).with(any_args).and_call_original
+      allow(ENV).to receive(:fetch).with('USER').and_return('root')
       allow(described_object).to receive(:`).with(rsync_cmd)
       allow($CHILD_STATUS).to receive(:success?).and_return(true)
     end
+
     example do
       described_object.copy_skeleton_files(opts[:skeleton_path], env_dir, 'puppet')
       expect(described_object).to have_received(:`).with(rsync_cmd)

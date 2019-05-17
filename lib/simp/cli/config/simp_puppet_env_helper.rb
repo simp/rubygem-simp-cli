@@ -24,7 +24,7 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
          :puppet    => {
            :enabled            => true,
            :strategy           => :skeleton,
-           :puppetfile         => false,
+           :puppetfile_generate         => false,
            :puppetfile_install => false,
            :deploy             => false,
            :backend            => :directory,

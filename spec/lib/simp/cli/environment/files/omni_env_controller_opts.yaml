@@ -3,7 +3,7 @@
 :types:
   :puppet:
     :enabled: true
-    :puppetfile: false
+    :puppetfile_generate: false
     :puppetfile_install: false
     :deploy: false
     :backend: :directory

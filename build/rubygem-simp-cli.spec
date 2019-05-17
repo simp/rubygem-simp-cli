@@ -127,9 +127,10 @@ EOM
 
 %changelog
 * Fri Apr 26 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
-- Added `simp environment` command
-  - `simp environment new` command
-  - `simp environment fix` command
+- New features:
+  - Added 'simp environment' command
+  - Added `simp environment new` subcommand
+  - Added `simp environment fix` subcommand
 
 * Fri Apr 26 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
 - 'simp' change:

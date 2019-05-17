@@ -29,7 +29,7 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
         puppet: {
           enabled: true,
           backend: :directory,
-          environmentpath: Simp::Cli::Utils.puppet_info[:config]['environmentpath']
+          environmentpath: Simp::Cli::Utils.puppet_info[:config]['environmentpath'],
           skeleton_path: '/usr/share/simp/environments/simp',
           module_repos_path: '/usr/share/simp/git/puppet_modules',
           skeleton_modules_path: '/usr/share/simp/modules'
