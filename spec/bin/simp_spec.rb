@@ -76,20 +76,6 @@ describe 'simp executable' do
     allow(ENV).to receive(:[]).with('USE_AIO_PUPPET').and_return('no')
     allow(ENV).to receive(:to_h).and_return(env_hash)
 
-  before :each do
-
-    # Before each test, make sure that the current  ruby interpreter will be
-    # used when `bin/simp` is executed.  This prevents environmental pollution
-    # when running tests on a system with AIO puppet installed.
-    adjusted_path = File.join(RbConfig::CONFIG['bindir']) + ':' + ENV['PATH']
-    env_hash = ENV.to_h
-    env_hash['PATH'] = adjusted_path
-    env_hash['USE_AIO_PUPPET'] = 'no'
-    allow(ENV).to receive(:[]).with(any_args).and_call_original
-    allow(ENV).to receive(:[]).with('PATH').and_return(adjusted_path)
-    allow(ENV).to receive(:[]).with('USE_AIO_PUPPET').and_return('no')
-    allow(ENV).to receive(:to_h).and_return(env_hash)
-
     @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
     @simp_config_args = [
       '--dry-run',  # do NOT inadvertently make any changes on the test system
