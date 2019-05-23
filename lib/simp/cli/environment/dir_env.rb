@@ -45,5 +45,34 @@ module Simp::Cli::Environment
       pup_group = group ? puppet_info[:puppet_group] : nil
       FileUtils.chown_R(pup_user, pup_group, path)
     end
+
+    # Use rsync for copy files
+    # @param [String] src_dir
+    # @param [String] dest_dir
+    # @param [Boolean] group  apply Puppet group permissions when not falsey
+    #   and user is root
+    def copy_skeleton_files(src_dir, dest_dir, group=nil)
+      rsync = Facter::Core::Execution.which('rsync')
+      fail("Error: Could not find 'rsync' command!") unless rsync
+
+
+      cmd = "#{rsync} -a  '#{src_dir}'/ '#{dest_dir}'/ 2>&1"
+      if ENV.fetch('USER') == 'root' && group
+        cmd = %Q[sg - #{group} -c '#{rsync} -a --no-g "#{src_dir}/" "#{dest_dir}/" 2>&1']
+      end
+
+      puts("Copying '#{src_dir}' files into '#{dest_dir}'")
+      warn("Executing: #{cmd}")
+      output = %x(#{cmd})
+      warn("Output:\n#{output}")
+      return if $CHILD_STATUS.success?
+
+      fail(
+        "ERROR: Copy of '#{src_dir}' into '#{dest_dir}',\n" \
+        "  using `#{cmd}` \n" \
+        "  failed with the following error:\n\n" \
+        "    #{output.gsub("\n", "\n    ")}"
+      )
+    end
   end
 end

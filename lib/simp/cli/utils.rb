@@ -195,4 +195,40 @@ module Simp::Cli::Utils
     }                # Use the block's return value as the method's
   end
 
+  def default_simp_env_config
+    default_strategy  = :skeleton
+    {
+      types: {
+        puppet: {
+          enabled: true,
+          strategy: default_strategy, # :skeleton, :copy
+          puppetfile_generate: false,
+          puppetfile_install: false,
+          deploy: false,
+          backend: :directory,
+          environmentpath: Simp::Cli::Utils.puppet_info[:config]['environmentpath'],
+          skeleton_path: '/usr/share/simp/environment-skeleton/simp',
+          module_repos_path: '/usr/share/simp/git/puppet_modules',
+          skeleton_modules_path: '/usr/share/simp/modules'
+        },
+        secondary: {
+          enabled: true,
+          strategy: default_strategy,   # :skeleton, :copy, :link
+          backend: :directory,
+          environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path],
+          skeleton_path: '/usr/share/simp/environment-skeleton/secondary',
+          rsync_skeleton_path: '/usr/share/simp/environment-skeleton/rsync',
+          tftpboot_src_path: '/var/www/yum/**/images/pxeboot',
+          tftpboot_dest_path: 'rsync/RedHat/Global/tftpboot/linux-install'
+        },
+        writable: {
+          enabled: true,
+          strategy: default_strategy,   # :fresh, :copy, :link
+          backend: :directory,
+          environmentpath: Simp::Cli::Utils.puppet_info[:writable_environment_path]
+          # skeleton_path: '/usr/share/simp/environment-skeleton/writable',  # <-- per discussions, not used
+        }
+      }
+    }
+  end
 end

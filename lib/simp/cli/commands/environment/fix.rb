@@ -23,31 +23,7 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
   def parse_command_line(args)
     # TODO: simp cli should read a config file that can override these defaults
     # these options (preferrable mimicking cmd-line args)
-    # TODO: centralize these defs across `simp environment` sub-commands
-    options = {
-      types: {
-        puppet: {
-          enabled: true,
-          backend: :directory,
-          environmentpath: Simp::Cli::Utils.puppet_info[:config]['environmentpath'],
-          skeleton_path: '/usr/share/simp/environments/simp',
-          module_repos_path: '/usr/share/simp/git/puppet_modules',
-          skeleton_modules_path: '/usr/share/simp/modules'
-        },
-        secondary: {
-          enabled: true,
-          backend: :directory,
-          environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path],
-          skeleton_path: '/usr/share/simp/environments/secondary',
-          rsync_skeleton_path: '/usr/share/simp/environments/rsync'
-        },
-        writable: {
-          enabled: true,
-          backend: :directory,
-          environmentpath: Simp::Cli::Utils.puppet_info[:writable_environment_path]
-        }
-      }
-    }
+    options = Simp::Cli::Utils.default_simp_env_config
     options[:action] = :fix
 
     opt_parser = OptionParser.new do |opts|

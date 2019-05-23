@@ -13,6 +13,8 @@ module Simp::Cli::Environment
       @skeleton_path = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
       (@rsync_skeleton_path = opts[:rsync_skeleton_path]) || fail(ArgumentError, 'No :rsync_skeleton_path in opts')
       @rsync_path = File.join(@directory_path, 'rsync')
+      tftpboot_path = @opts[:tftpboot_dest_path] || fail(ArgumentError, 'No :tftpboot_dest_path in opts')
+      @tftpboot_dest_path = File.join(@directory_path, tftpboot_path)
     end
 
     # Create a new environment
@@ -22,12 +24,23 @@ module Simp::Cli::Environment
         - [x] if environment is already deployed (#{@directory_path}/modules/*/ exist)
            - [x] THEN FAIL WITH HELPFUL MESSAGE
         - [ ] else
-          - [ ] A1.2 create directory from skeleton
+          - [ ] A1.2 create directory from skeleton /usr/share/simp/environment-skeleton
+             - src: usr/share/simp/environment-skeleton/
+                                      simp/data/hostgroups
+                                      writable/simp_autofiles
+                                      secondary/site_files/krb5_files/files/keytabs
+                                      secondary/site_files/pki_files/files/keydist/cacerts
+             - rsync-skel: /usr/share/simp/environment-skeleton/rsync
             - [ ] C1.2 copy rsync files to ${ENVIRONMENT}/rsync/
             - [ ] C2.1 copy rsync files to ${ENVIRONMENT}/rsync/
                - [ ] this should include any logic needed to ensure a basic DNS environment
             - [ ] A5.2 ensure a `cacertkey` exists for FakeCA
                - Should this also be in fix()?
+            - [ ] D1.1 install tftp PXE boot files into the appropriate directory, when found
+                - example src: /var/www/yum/CentOS/7.5.1804/x86_64/images/
+                  - `find  /var/www/yum/*/* -path '*images/pxeboot' -type d`
+                - example dst: ${SECONDARY_ENV}rsync/RedHat/Global/tftpboot/linux-install/centos-7.3.1611-x86_64/
+            - [?] this should include any logic needed to ensure a basic DNS environment
 
       TODO
 
@@ -38,7 +51,31 @@ module Simp::Cli::Environment
         )
       end
 
-      puts 'create!'
+      # A1.2 create directory from skeleton
+      puppet_group = puppet_info[:puppet_group]
+      fail( 'Error: Could not determine puppet group' ) if puppet_group.to_s.empty?
+      copy_skeleton_files(@skeleton_path, @directory_path, puppet_group)
+require 'pry'; binding.pry
+
+
+      # D1.1 install tftp PXE boot files into the appropriate directory, when found
+      copy_tftpboot_files
+
+    end
+
+
+    def copy_tftpboot_files
+      Dir.glob(@opts[:tftpboot_src_path]) do |dir|
+        dst_dirname = dir.split('/')[-5..-3].map(&:downcase).join('-')
+        dst_path = File.join(@tftpboot_dest_path, dst_dirname)
+        puppet_group = puppet_info[:puppet_group]
+        fail( 'Error: Could not determine puppet group' ) if puppet_group.to_s.empty?
+        copy_skeleton_files(dir, dst_path, puppet_group)
+require 'pry'; binding.pry
+      end
+      puppet_group = puppet_info[:puppet_group]
+      fail( 'Error: Could not determine puppet group' ) if puppet_group.to_s.empty?
+
     end
 
     # Fix consistency of environment

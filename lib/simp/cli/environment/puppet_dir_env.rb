@@ -64,7 +64,9 @@ module Simp::Cli::Environment
     end
 
     def puppetfile_install
-        r10k_cmd = 'r10k puppetfile install -vvv'
+        r10k = File.executable?('/usr/share/simp/bin/r10k') ?
+          '/usr/share/simp/bin/r10k' : 'r10k'
+        r10k_cmd = "#{r10k} puppetfile install -v debug1"
         cmd = "cd '#{directory_path}' && #{r10k_cmd}"
         puts "Running r10k from '#{directory_path}' to install Puppet modules:"
         puts "#{'-'*80}\n\n\t#{r10k_cmd}\n\n#{'-'*80}\n"
@@ -106,28 +108,6 @@ module Simp::Cli::Environment
       #      rsynced into $codedir/environments/simp)
       #
       apply_puppet_permissions(File.join(@directory_path), false, true)
-    end
-
-    def copy_skeleton_files(src_dir, dest_dir, group)
-      rsync = Facter::Core::Execution.which('rsync')
-      fail("Error: Could not find 'rsync' command!") unless rsync
-
-      puts("Copying '#{src_dir}' files into '#{dest_dir}'")
-      if ENV.fetch('USER') == 'root'
-        cmd = "sg - #{group} #{rsync} -a --no-g '#{src_dir}'/ '#{dest_dir}'/ 2>&1"
-      else
-        cmd = "#{rsync} -a  '#{src_dir}'/ '#{dest_dir}'/ 2>&1"
-      end
-      warn("Executing: #{cmd}")
-      output = %x(#{cmd})
-      warn("Output:\n#{output}")
-      return if $CHILD_STATUS.success?
-
-      fail(
-        "ERROR: Copy of '#{src_dir}' into '#{dest_dir}' using '#{cmd}' " \
-        "failed with the following error:\n" \
-        "    #{output.gsub("\n", "\n    ")}"
-      )
     end
 
     # Update environment
