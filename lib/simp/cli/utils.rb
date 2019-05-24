@@ -196,12 +196,12 @@ module Simp::Cli::Utils
   end
 
   def default_simp_env_config
-    default_strategy  = :skeleton
+    default_strategy = :skeleton
     {
       types: {
         puppet: {
           enabled: true,
-          strategy: default_strategy, # :skeleton, :copy
+          strategy: default_strategy, # :skeleton, :copy (:link == noop)
           puppetfile_generate: false,
           puppetfile_install: false,
           deploy: false,
@@ -223,7 +223,7 @@ module Simp::Cli::Utils
         },
         writable: {
           enabled: true,
-          strategy: default_strategy,   # :fresh, :copy, :link
+          strategy: default_strategy,   # :copy, :link (:skeleton == noop)
           backend: :directory,
           environmentpath: Simp::Cli::Utils.puppet_info[:writable_environment_path]
           # skeleton_path: '/usr/share/simp/environment-skeleton/writable',  # <-- per discussions, not used

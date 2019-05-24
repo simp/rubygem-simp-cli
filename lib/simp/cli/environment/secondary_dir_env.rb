@@ -32,7 +32,7 @@ module Simp::Cli::Environment
 
     # Create a new environment
     def create
-      puts <<-TODO.gsub(%r{^ {6}}, '')
+      <<-TODO.gsub(%r{^ {6}}, '')
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
         - [x] if environment is already deployed (#{@directory_path}/modules/*/ exist)
            - [x] THEN FAIL WITH HELPFUL MESSAGE
@@ -54,13 +54,13 @@ module Simp::Cli::Environment
         )
       end
 
-      case  @opts[:strategy]
+      case @opts[:strategy]
       when :skeleton
         create_environment_from_skeletons
       when :copy
-        raise NotImplementedError
+        fail NotImplementedError
       when :link
-        raise NotImplementedError
+        fail NotImplementedError
       else
         fail("ERROR: Unknown Secondary environment create strategy: '#{@opts[:strategy]}'")
       end
@@ -69,7 +69,7 @@ module Simp::Cli::Environment
     # Fix consistency of environment
     #   @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
     def fix
-      puts <<-TODO.gsub(%r{^ {6}}, '')
+      <<-TODO.gsub(%r{^ {6}}, '')
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
           - [x] if environment is not available (#{@directory_path} not found)
              - [x] THEN FAIL WITH HELPFUL MESSAGE
@@ -137,7 +137,10 @@ module Simp::Cli::Environment
     end
 
     # Copy each `unpack_dvd`-installed OS's tftpboot PXE images into the
-    # environment's rsync tftpboot d
+    # environment's rsync tftpboot directory
+    #
+    #   prev impl: 
+    #
     def copy_tftpboot_files
       Dir.glob(@tftpboot_src_path) do |dir|
         dst_dirname = dir.split('/')[-5..-3].map(&:downcase).join('-')
@@ -152,14 +155,13 @@ module Simp::Cli::Environment
     #   prev impl: https://github.com/simp/simp-environment-skeleton/blob/6.3.0/build/simp-environment.spec#L192-L196
     #
     def create_fakeca_cacert_key
-      unless File.directory? @fakeca_dest_path
-        fail( Simp::Cli::ProcessingError, "No FakeCA directory at '#{@fakeca_dest_path}'" )
-      end
+      fail(Simp::Cli::ProcessingError, "No FakeCA directory at '#{@fakeca_dest_path}'") unless File.directory? @fakeca_dest_path
+
       cacertkey_path = File.join(@fakeca_dest_path, 'cacertkey')
       say "Creating in FakeCA cacertkey at '#{cacertkey_path}'".cyan
       require 'securerandom'
       require 'base64'
-      File.open(cacertkey_path,'w') do |f|
+      File.open(cacertkey_path, 'w') do |f|
         f.print Base64.strict_encode64(SecureRandom.bytes(@cacertkey_bytesize))
       end
     end

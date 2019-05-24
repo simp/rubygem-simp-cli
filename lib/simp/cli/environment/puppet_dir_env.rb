@@ -10,12 +10,12 @@ module Simp::Cli::Environment
     def initialize(name, base_environments_path, opts)
       super(name, base_environments_path, opts)
       @skeleton_path = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
-      @puppetfile_path = File.join(directory_path,'Puppetfile')
+      @puppetfile_path = File.join(directory_path, 'Puppetfile')
     end
 
     # Create a new environment
     def create
-      puts <<-TODO.gsub(%r{^ {6}}, '')
+      <<-TODO.gsub(%r{^ {6}}, '')
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
         - [x] if environment is already deployed (#{@directory_path}/modules/*/ exist)
            - [x] THEN FAIL WITH HELPFUL MESSAGE
@@ -39,7 +39,8 @@ module Simp::Cli::Environment
       #   previous impl: https://github.com/simp/simp-adapter/blob/0.1.1/src/sbin/simp_rpm_helper#L351
       #
       puppet_group = puppet_info[:puppet_group]
-      fail( 'Error: Could not determine puppet group' ) if puppet_group.to_s.empty?
+      fail('Error: Could not determine puppet group') if puppet_group.to_s.empty?
+
       copy_skeleton_files(@skeleton_path, @directory_path, puppet_group)
 
       # (option-driven) generate Puppetfile
@@ -49,41 +50,9 @@ module Simp::Cli::Environment
       puppetfile_install if @opts[:puppetfile_install]
     end
 
-
-    def puppetfile_generate
-      require 'simp/cli/puppetfile/local_simp_puppet_modules'
-      puppetfile_modules = Simp::Cli::Puppetfile::LocalSimpPuppetModules.new(
-        @opts[:skeleton_modules_path],
-        @opts[:module_repos_path]
-      )
-
-      puts "Generating Puppetfile from local git repos at '#{@puppetfile_path}'"
-      File.open(@puppetfile_path,'w') do |f|
-        f.puts puppetfile_modules.to_puppetfile
-      end
-    end
-
-    def puppetfile_install
-        r10k = File.executable?('/usr/share/simp/bin/r10k') ?
-          '/usr/share/simp/bin/r10k' : 'r10k'
-        r10k_cmd = "#{r10k} puppetfile install -v info"
-        cmd = "cd '#{directory_path}' && #{r10k_cmd}"
-        say "Running r10k from '#{directory_path}' to install Puppet modules:".cyan
-        say "#{'-'*80}\n\n\t#{r10k_cmd}\n\n#{'-'*80}\n".cyan
-        require 'open3'
-
-        exit_status = ':|'
-        Open3.popen2(cmd) do |i,o,t|
-          i.close
-          p o.read #=> "*"
-          exit_status = t.value # Process::Status object returned.
-        end
-        fail("Command failed: '#{r10k_cmd}'") unless exit_status.success?
-    end
-
     # Fix consistency of Puppet directory environment
     def fix
-      puts <<-TODO.gsub(%r{^ {6}}, '')
+      <<-TODO.gsub(%r{^ {6}}, '')
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
           - [x] if environment is not available (#{@directory_path} not found)
              - [x] THEN FAIL WITH HELPFUL MESSAGE
@@ -124,5 +93,37 @@ module Simp::Cli::Environment
     def validate
       fail NotImplementedError
     end
+
+    def puppetfile_generate
+      require 'simp/cli/puppetfile/local_simp_puppet_modules'
+      puppetfile_modules = Simp::Cli::Puppetfile::LocalSimpPuppetModules.new(
+        @opts[:skeleton_modules_path],
+        @opts[:module_repos_path]
+      )
+
+      puts "Generating Puppetfile from local git repos at '#{@puppetfile_path}'"
+      File.open(@puppetfile_path, 'w') do |f|
+        f.puts puppetfile_modules.to_puppetfile
+      end
+    end
+
+    def puppetfile_install
+      r10k = File.executable?('/usr/share/simp/bin/r10k') ?
+        '/usr/share/simp/bin/r10k' : 'r10k'
+      r10k_cmd = "#{r10k} puppetfile install -v info"
+      cmd = "cd '#{directory_path}' && #{r10k_cmd}"
+      say "Running r10k from '#{directory_path}' to install Puppet modules:".cyan
+      say "#{'-' * 80}\n\n\t#{r10k_cmd}\n\n#{'-' * 80}\n".cyan
+      require 'open3'
+
+      exit_status = ':|'
+      Open3.popen2(cmd) do |i, o, t|
+        i.close
+        p o.read #=> "*"
+        exit_status = t.value # Process::Status object returned.
+      end
+      fail("Command failed: '#{r10k_cmd}'") unless exit_status.success?
+    end
+
   end
 end

@@ -14,12 +14,12 @@ module Simp::Cli::Environment
 
     # Create a new environment
     def create
-      puts <<-TODO.gsub(%r{^ {6}}, '')
+      <<-TODO.gsub(%r{^ {6}}, '')
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
         - [x] if environment is already deployed (#{@directory_path}/modules/*/ exist)
            - [x] THEN FAIL WITH HELPFUL MESSAGE
-        - [ ] else
-          - [ ] A1.2 create directory from skeleton
+        - [x] else
+          - [x] A1.2 create directory from skeleton
 
       TODO
 
@@ -31,7 +31,15 @@ module Simp::Cli::Environment
         )
       end
 
-      fail NotImplementedError, 'copy files or link directory'
+      case  @opts[:strategy]
+      when :skeleton
+      when :copy
+        raise NotImplementedError
+      when :link
+        raise NotImplementedError
+      else
+        fail("ERROR: Unknown Secondary environment create strategy: '#{@opts[:strategy]}'")
+      end
     end
 
     # Fix consistency of Puppet directory environment

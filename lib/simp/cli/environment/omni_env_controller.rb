@@ -16,7 +16,7 @@ module Simp::Cli::Environment
         # TODO: honor backends
         # TODO: refactor into a Factory
         base_env_path = data[:environmentpath] || fail(ArgumentError, 'ERROR: no :environmentpath in opts')
-        opts_data = data.reject{|k,v| k == :enabled}
+        opts_data = data.reject { |k, _v| k == :enabled }
         case type
         when :puppet
           @environments[:puppet]    = PuppetDirEnv.new(env, base_env_path, opts_data)
