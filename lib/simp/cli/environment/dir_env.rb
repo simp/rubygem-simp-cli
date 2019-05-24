@@ -55,18 +55,15 @@ module Simp::Cli::Environment
       rsync = Facter::Core::Execution.which('rsync')
       fail("Error: Could not find 'rsync' command!") unless rsync
 
-
-      cmd = "#{rsync} -a  '#{src_dir}'/ '#{dest_dir}'/ 2>&1"
+      cmd = "#{rsync} -a '#{src_dir}'/ '#{dest_dir}'/ 2>&1"
       if ENV.fetch('USER') == 'root' && group
         cmd = %Q[sg - #{group} -c '#{rsync} -a --no-g "#{src_dir}/" "#{dest_dir}/" 2>&1']
       end
 
-      puts("Copying '#{src_dir}' files into '#{dest_dir}'")
-      warn("Executing: #{cmd}")
+      say "Copying '#{src_dir}' files into '#{dest_dir}'".cyan
+      say "    #{cmd}".gray
       output = %x(#{cmd})
-      warn("Output:\n#{output}")
       return if $CHILD_STATUS.success?
-
       fail(
         "ERROR: Copy of '#{src_dir}' into '#{dest_dir}',\n" \
         "  using `#{cmd}` \n" \

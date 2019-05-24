@@ -66,10 +66,10 @@ module Simp::Cli::Environment
     def puppetfile_install
         r10k = File.executable?('/usr/share/simp/bin/r10k') ?
           '/usr/share/simp/bin/r10k' : 'r10k'
-        r10k_cmd = "#{r10k} puppetfile install -v debug1"
+        r10k_cmd = "#{r10k} puppetfile install -v info"
         cmd = "cd '#{directory_path}' && #{r10k_cmd}"
-        puts "Running r10k from '#{directory_path}' to install Puppet modules:"
-        puts "#{'-'*80}\n\n\t#{r10k_cmd}\n\n#{'-'*80}\n"
+        say "Running r10k from '#{directory_path}' to install Puppet modules:".cyan
+        say "#{'-'*80}\n\n\t#{r10k_cmd}\n\n#{'-'*80}\n".cyan
         require 'open3'
 
         exit_status = ':|'

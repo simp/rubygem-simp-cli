@@ -11,10 +11,23 @@ module Simp::Cli::Environment
     def initialize(name, base_environments_path, opts)
       super(name, base_environments_path, opts)
       @skeleton_path = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
-      (@rsync_skeleton_path = opts[:rsync_skeleton_path]) || fail(ArgumentError, 'No :rsync_skeleton_path in opts')
-      @rsync_path = File.join(@directory_path, 'rsync')
-      tftpboot_path = @opts[:tftpboot_dest_path] || fail(ArgumentError, 'No :tftpboot_dest_path in opts')
-      @tftpboot_dest_path = File.join(@directory_path, tftpboot_path)
+
+      @rsync_dest_path = File.join(@directory_path, 'rsync')
+      @rsync_skeleton_path = opts[:rsync_skeleton_path] || fail(ArgumentError, 'No :rsync_skeleton_path in opts')
+
+      tftpboot_dest_path = @opts[:tftpboot_dest_path] || fail(ArgumentError, 'No :tftpboot_dest_path in opts')
+      @tftpboot_dest_path = File.join(@directory_path, tftpboot_dest_path)
+      @tftpboot_src_path  = @opts[:tftpboot_src_path] || fail(ArgumentError, 'No :tftpboot_src_path in opts')
+
+      @fakeca_dest_path   = File.join(@directory_path, 'FakeCA')
+
+      # NOTE: This 60-byte key size matches the logic in `gencerts_common.sh`.
+      # The previous simp-environment RPM's %post logic (mapping: A5.2) created
+      # a much smaller 24-byte key:
+      #
+      #   https://github.com/simp/simp-environment-skeleton/blob/6.3.0/build/simp-environment.spec#L192-L196
+      #
+      @cacertkey_bytesize = 60
     end
 
     # Create a new environment
@@ -23,25 +36,15 @@ module Simp::Cli::Environment
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
         - [x] if environment is already deployed (#{@directory_path}/modules/*/ exist)
            - [x] THEN FAIL WITH HELPFUL MESSAGE
-        - [ ] else
-          - [ ] A1.2 create directory from skeleton /usr/share/simp/environment-skeleton
-             - src: usr/share/simp/environment-skeleton/
-                                      simp/data/hostgroups
-                                      writable/simp_autofiles
-                                      secondary/site_files/krb5_files/files/keytabs
-                                      secondary/site_files/pki_files/files/keydist/cacerts
-             - rsync-skel: /usr/share/simp/environment-skeleton/rsync
-            - [ ] C1.2 copy rsync files to ${ENVIRONMENT}/rsync/
-            - [ ] C2.1 copy rsync files to ${ENVIRONMENT}/rsync/
-               - [ ] this should include any logic needed to ensure a basic DNS environment
-            - [ ] A5.2 ensure a `cacertkey` exists for FakeCA
+        - [x] else
+          - [x] A1.2 create directory from skeletons in /usr/share/simp/environment-skeleton
+            - [x] C1.2 copy rsync files to ${ENVIRONMENT}/rsync/
+            - [x] C2.1 copy rsync files to ${ENVIRONMENT}/rsync/
+               - [?] this should include any logic needed to ensure a basic DNS environment
+            - [x] A5.2 ensure a `cacertkey` exists for FakeCA
                - Should this also be in fix()?
-            - [ ] D1.1 install tftp PXE boot files into the appropriate directory, when found
-                - example src: /var/www/yum/CentOS/7.5.1804/x86_64/images/
-                  - `find  /var/www/yum/*/* -path '*images/pxeboot' -type d`
-                - example dst: ${SECONDARY_ENV}rsync/RedHat/Global/tftpboot/linux-install/centos-7.3.1611-x86_64/
+            - [x] D1.1 install tftp PXE boot files into the appropriate directory, when found
             - [?] this should include any logic needed to ensure a basic DNS environment
-
       TODO
 
       if File.exist? @directory_path
@@ -51,31 +54,16 @@ module Simp::Cli::Environment
         )
       end
 
-      # A1.2 create directory from skeleton
-      puppet_group = puppet_info[:puppet_group]
-      fail( 'Error: Could not determine puppet group' ) if puppet_group.to_s.empty?
-      copy_skeleton_files(@skeleton_path, @directory_path, puppet_group)
-require 'pry'; binding.pry
-
-
-      # D1.1 install tftp PXE boot files into the appropriate directory, when found
-      copy_tftpboot_files
-
-    end
-
-
-    def copy_tftpboot_files
-      Dir.glob(@opts[:tftpboot_src_path]) do |dir|
-        dst_dirname = dir.split('/')[-5..-3].map(&:downcase).join('-')
-        dst_path = File.join(@tftpboot_dest_path, dst_dirname)
-        puppet_group = puppet_info[:puppet_group]
-        fail( 'Error: Could not determine puppet group' ) if puppet_group.to_s.empty?
-        copy_skeleton_files(dir, dst_path, puppet_group)
-require 'pry'; binding.pry
+      case  @opts[:strategy]
+      when :skeleton
+        create_environment_from_skeletons
+      when :copy
+        raise NotImplementedError
+      when :link
+        raise NotImplementedError
+      else
+        fail("ERROR: Unknown Secondary environment create strategy: '#{@opts[:strategy]}'")
       end
-      puppet_group = puppet_info[:puppet_group]
-      fail( 'Error: Could not determine puppet group' ) if puppet_group.to_s.empty?
-
     end
 
     # Fix consistency of environment
@@ -116,7 +104,7 @@ require 'pry'; binding.pry
       #
       #   previous impl: https://github.com/simp/simp-rsync-skeleton/blob/6.2.1/build/simp-rsync.spec#L98-L99
       #
-      apply_facls(@rsync_path, File.join(@rsync_path, '.rsync.facl'))
+      apply_facls(@rsync_dest_path, File.join(@rsync_dest_path, '.rsync.facl'))
     end
 
     # Apply FACL permissions to a path using a file for `setfacl --restore`
@@ -139,6 +127,41 @@ require 'pry'; binding.pry
         Simp::Cli::ProcessingError,
         "ERROR: `setfacl --restore=#{facl_file}` failed at '#{path}'"
       )
+    end
+
+    def create_environment_from_skeletons
+      copy_skeleton_files(@skeleton_path, @directory_path)        # A1.2
+      copy_skeleton_files(@rsync_skeleton_path, @rsync_dest_path) # C1.2, C2.1
+      copy_tftpboot_files                                         # D1.1
+      create_fakeca_cacert_key                                    # A5.2
+    end
+
+    # Copy each `unpack_dvd`-installed OS's tftpboot PXE images into the
+    # environment's rsync tftpboot d
+    def copy_tftpboot_files
+      Dir.glob(@tftpboot_src_path) do |dir|
+        dst_dirname = dir.split('/')[-5..-3].map(&:downcase).join('-')
+        dst_path = File.join(@tftpboot_dest_path, dst_dirname)
+        FileUtils.mkdir_p File.basename(@tftpboot_src_path)
+        copy_skeleton_files(dir, dst_path, 'nobody')
+      end
+    end
+
+    # Create a new FakeCA cacertkey file, populated with random gibberish
+    #
+    #   prev impl: https://github.com/simp/simp-environment-skeleton/blob/6.3.0/build/simp-environment.spec#L192-L196
+    #
+    def create_fakeca_cacert_key
+      unless File.directory? @fakeca_dest_path
+        fail( Simp::Cli::ProcessingError, "No FakeCA directory at '#{@fakeca_dest_path}'" )
+      end
+      cacertkey_path = File.join(@fakeca_dest_path, 'cacertkey')
+      say "Creating in FakeCA cacertkey at '#{cacertkey_path}'".cyan
+      require 'securerandom'
+      require 'base64'
+      File.open(cacertkey_path,'w') do |f|
+        f.print Base64.strict_encode64(SecureRandom.bytes(@cacertkey_bytesize))
+      end
     end
   end
 end
