@@ -179,6 +179,7 @@ EOM
   - Fixed a bug in which the check for Puppet Enterprise was
     incorrect.  This would result in Puppet FOSS-specific bootstrap
     operations being executed.
+  - Added an additional puppet agent tagged run on the bootstrap port
   - Added more log messages to make bootstrap process more clear
 
 * Wed Apr 03 2019 Jim Anderson <thesemicolons@protonmail.com> - 5.0.0
