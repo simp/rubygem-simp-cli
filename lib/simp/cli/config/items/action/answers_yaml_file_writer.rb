@@ -40,21 +40,14 @@ module Simp::Cli::Config
                      # NOTE:
                      # - All YAML keys that begin with 'cli::' are used by
                      #   simp config, internally, and are not Puppet hieradata.
-                     #
-                     # - Any entry with the following comment is automatically,
-                     #   silently set by `simp config`.
-                     #
-                     #     #{Item.new.auto_warning}
-                     #
-                     #   This means if you modify any of these entries in
-                     #   an answers file, and then feed that file back into
-                     #   `simp config`, your modifications will be lost!
+                     # - Some entries have been automatically determined by
+                     #   `simp config` based on the values of other entries
+                     #   and/or gathered server status.
                      ".gsub(/^\s+/, '').strip
       iostream.puts "#" + '='*72
       iostream.puts '---'
       iostream.puts '# === cli::version ==='
       iostream.puts '# The version of simp-cli used to generate this file.'
-      iostream.puts "# #{Item.new.auto_warning}"
       iostream.puts "cli::version: \"#{Simp::Cli::VERSION}\""
       iostream.puts
 
@@ -64,7 +57,7 @@ module Simp::Cli::Config
 
       answers.each do |k,v|
         if v.data_type and v.data_type != :internal
-          if yaml = v.to_yaml_s(true)  # filter out nil results for items whose YAML is suppressed
+          if yaml = v.to_yaml_s  # filter out nil results for items whose YAML is suppressed
             # get rid of trailing whitespace
             yaml.split("\n").each { |line| iostream.puts line.rstrip }
             iostream.puts

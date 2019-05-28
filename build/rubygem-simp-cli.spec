@@ -156,10 +156,6 @@ EOM
       of actions makes sense to the user.
   - Improved introductory text and descriptions of a few items
     that have been confusing for users
-  - In the answers YAML file, provide an 'automatically set'
-    comment for each an Item for which 'simp config' generates
-    the answer. Thes are items that a user cannot preconfigure
-    in an input answers file.
   - Removed the ability for a non-root user to set the Puppet
     digest algorithm.  This was a bug.
   - In cli::network::interface item, try to recommend an
