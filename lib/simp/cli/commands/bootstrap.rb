@@ -45,9 +45,9 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 
     prep_for_first_puppet_run
 
-    # - Firstrun is tagged and run against the bootstrap puppetserver port.
-    #   This run will configure puppetserver and puppetdb; all subsequent runs
-    #   will run against the configured masterport.
+    # - First set of runs are tagged and run against the bootstrap puppetserver
+    #   port.  These initial runs will configure puppetserver and puppetdb; all
+    #   subsequent runs will run against the configured masterport.
     # - Create a unique lockfile, we want to preserve the lock on cron and manual
     #   puppet runs during bootstrap.
     agent_lockfile = "#{File.dirname(Simp::Cli::Utils.puppet_info[:config]['agent_disabled_lockfile'])}/bootstrap.lock"
@@ -56,16 +56,20 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       " --no-splay --agent_disabled_lockfile=#{agent_lockfile}" +
       " --masterport=#{@initial_puppetserver_port} --ca_port=#{@initial_puppetserver_port}"
 
-    info('First run: Running puppet agent with --tags pupmod,simp...', 'cyan')
-
-    # Firstrun is tagged and run against the bootstrap puppetserver port
+    num_tagged_runs = 2
+    info("Running puppet agent with --tags pupmod,simp #{num_tagged_runs} times...", 'cyan')
+    pupcmd = "#{pupcmd} --tags pupmod,simp 2> /dev/null"
     linecounts = Array.new
-    linecounts << track_output("#{pupcmd} --tags pupmod,simp 2> /dev/null", @initial_puppetserver_port)
+    (1..num_tagged_runs).each do |run_num|
+      info("Tagged agent run #{run_num}:", 'cyan')
+      # Tagged runs are against the bootstrap puppetserver port
+      linecounts << track_output(pupcmd, @initial_puppetserver_port)
+    end
 
     fix_file_contexts
 
-    # After the first run the puppetserver will normally come up on a different port,
-    # reloading puppetserver to apply this change
+    # After the first set of tagged runs the puppetserver will normally come up
+    # on a different port, reloading puppetserver to apply this change
     #
     # TODO: Validate that the pupmod-simp-pupmod tests are properly checking
     # for the server restart with a port switch. This has not traditionally
@@ -539,7 +543,7 @@ EOM
   end
 
   def prep_for_first_puppet_run
-    info('Preparing for first puppet agent run...', 'cyan')
+    info('Preparing for first set of puppet agent runs...', 'cyan')
     debug("Creating backup directory #{@bootstrap_backup}")
     FileUtils.mkdir(@bootstrap_backup)
 
