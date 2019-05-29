@@ -45,6 +45,8 @@ where you left off or to start all over.
 #{SECTION_SEPARATOR}
 EOM
 
+  FORCE_CONFIG_WAIT_SECONDS = 15
+
   def initialize
 
     # default run options
@@ -68,6 +70,7 @@ EOM
 
       :use_safety_save        => true,
       :autoaccept_safety_save => false,
+      :interrupted_session    => false,
 
       :start_time             => Time.now,
       :log_file               => nil,
@@ -75,6 +78,8 @@ EOM
                                         # from the beginning and queries are allowed
       :user_overrides         => false, # whether user has provided overrides via
                                         # an answers input file or KEY=VALUE pairs
+      :first_interactive_session => nil, # whether user should be prompted to continue
+                                         # after intro
       :verbose                => 0  # <0 = ERROR and above
                                     #  0 = INFO and above
                                     # >0 = DEBUG and above
@@ -98,11 +103,12 @@ EOM
 
     set_up_global_logger
     greet_user
-    ensure_puppet_env
-    add_custom_facts
 
     # Load all pre-set answers (predetermined Item values)
     answers_hash = load_pre_set_answers(args, @options)
+
+    ensure_puppet_env
+    add_custom_facts
 
     # Generate the 'list' of Items based on the scenario selected, and
     # then pre-assign Item values using the answers_hash.
@@ -161,16 +167,43 @@ EOM
     Simp::Cli::Utils::load_custom_facts(modulepaths, true)
   end
 
-  # Ensure the Puppet environment exists and loads Puppet configuration
-  # for it.
+  # Create a new SIMP omni-environment and loads Puppet configuration for it.
+  # @raises if creation fails
+  def create_new_puppet_env(env_helper, details_msg)
+    if @options[:first_interactive_session]
+      # Give user time to read intro before first real action is applied.
+      # Space at end of question tells HighLine to remain on the prompt line
+      # when gathering user input.
+      question = 'Ready to create the SIMP omni-environment? (no = exit program):'.bold + ' '
+      unless agree( question ) { |q| q.default = 'yes' }
+        raise Simp::Cli::ProcessingError.new('Exiting: User terminated processing prior to creating SIMP omni-environment.')
+      end
+    end
+    logger.info("Creating the SIMP omni-environment for '#{@options[:puppet_env]}'")
+    logger.debug(details_msg)
+    @options[:puppet_env_info] = env_helper.create
+
+    # verify environment was successfully created
+    status_code, status_details =  env_helper.env_status
+    if status_code == :exists
+      logger.info("  Created Puppet env at #{@options[:puppet_env_info][:puppet_env_dir]}")
+      logger.info("  Created secondary env #{@options[:puppet_env_info][:secondary_env_dir]}")
+    else
+      msg = "Creation of SIMP omni-environment for '#{@options[:puppet_env]}' failed:\n"
+      msg += status_details.split("\n").map { |line| '  >> ' + line }.join("\n")
+      raise Simp::Cli::ProcessingError.new(msg)
+    end
+  end
+
+  # Ensure the Puppet and secondary pieces of the SIMP omni-environment
+  # exist and loads Puppet configuration for it.
   #
-  # @raises if an existing, minimially validated, Puppet environment
+  # @raises if an existing, minimially validated, SIMP omni-environment
   #         already exists and the configuration overwrite has not been
   #         enabled by the user.
-  # @raises if an invalid Puppet environment already exists
+  # @raises if an invalid Puppet environment or invalid secondary environment
+  #         already exists
   def ensure_puppet_env
-    env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(@options[:puppet_env])
-
     if @options[:dry_run]
       msg = "Skipping creation of SIMP omni-environment for '#{@options[:puppet_env]}': --dry-run enabled"
       logger.info(msg.magenta.bold)
@@ -178,45 +211,21 @@ EOM
       # the correct Puppet env info
       @options[:puppet_env_info] = Simp::Cli::Config::Item::DEFAULT_PUPPET_ENV_INFO
     else
+      env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(@options[:puppet_env])
       status_code, status_details =  env_helper.env_status
       details_msg = status_details.split("\n").map { |line| '  >> ' + line }.join("\n")
+
       if status_code == :creatable
-        first_interactive_session = @options[:clean_session] &&
-          @options[:allow_queries] && !@options[:force_defaults]
-
-        # give user time to read intro before first real action is applied
-        if first_interactive_session
-          # space at end of question tells HighLine to remain on the prompt line
-          # when gathering user input
-          question = 'Ready to create the SIMP omni-environment? (no = exit program):'.bold + ' '
-          unless agree( question ) { |q| q.default = 'yes' }
-            raise Simp::Cli::ProcessingError.new('Exiting: User terminated processing prior to creating SIMP omni-environment.')
-          end
-        end
-        logger.info("Creating SIMP omni-environment for '#{@options[:puppet_env]}'")
-        logger.debug(details_msg)
-        @options[:puppet_env_info] = env_helper.create
-
-        # verify environment was successfully created
-        status_code, status_details =  env_helper.env_status
-        unless status_code == :exists
-          msg = "Creation of SIMP omni-environment for '#{@options[:puppet_env]}' failed:\n"
-          msg += status_details.split("\n").map { |line| '  >> ' + line }.join("\n")
-          raise Simp::Cli::ProcessingError.new(msg)
-        end
+        create_new_puppet_env(env_helper, details_msg)
       elsif status_code == :exists
-        if @options[:force_config]
-          msg = "Modifying existing SIMP omni-environment for '#{@options[:puppet_env]}'"
-          logger.warn(msg.yellow.bold)
-          logger.debug(details_msg.yellow)
-          @options[:puppet_env_info] = env_helper.env_info
-        else
-          msg = "An existing SIMP omni-environment for '#{@options[:puppet_env]}' exists:\n"
-          msg += details_msg
-          msg += "\nUse --force-config to allow '#{@options[:puppet_env]}'environment modification"
-          raise Simp::Cli::ProcessingError.new(msg)
-        end
+        # a usable, existing {Puppet + secondary environment} exists
+        handle_existing_puppet_env(env_helper, details_msg)
       else
+        # The existing SIMP omni-environment has failed minimal validation
+        # and is unusable.
+        # TODO Tell users to save off and then remove the Puppet and secondary
+        #  environments that may exist, run 'simp config' again, and then restore
+        #  any local customizations?
         msg = "Unabled to configure: Invalid SIMP omni-environment for '#{@options[:puppet_env]}' exists:\n"
         msg += details_msg
         raise Simp::Cli::ProcessingError.new(msg)
@@ -240,6 +249,40 @@ EOM
     logger.info( "#{indent}#{@options[:safety_save_file]}")
     logger.info( "\n#{INTRO_TEXT_PART3}".rstrip, [:GREEN] )
   end
+
+  # Loads Puppet configuration for the existing SIMP omni-environment
+  #
+  # @raises if configuration overwrite has not been enabled by the user
+  #  and this is not the continuation of an interrupted session
+  def handle_existing_puppet_env(env_helper, details_msg)
+    if @options[:interrupted_session]
+      @options[:puppet_env_info] = env_helper.env_info
+    elsif @options[:force_config]
+      msg = "Modifying existing SIMP omni-environment for '#{@options[:puppet_env]}'"
+      logger.warn(msg.yellow.bold)
+      logger.debug(details_msg.yellow)
+      msg = ">>> This may remove local modifications.  If you have not yet backed up the\n" +
+        ">>> '#{@options[:puppet_env]}' environment, exit the program now ( <CTRL-C> )!"
+      logger.warn(msg.red.bold)
+      unless @options[:first_interactive_session]
+        # The program won't be stopped at the prompt about starting the
+        # questionnaire, so make sure the user has time to read and react
+        # appropriately to the warning.
+        logger.count_down(FORCE_CONFIG_WAIT_SECONDS, 'Continuing in ', ' seconds')
+      end
+      @options[:puppet_env_info] = env_helper.env_info
+    else
+      msg = "An existing SIMP omni-environment for '#{@options[:puppet_env]}' exists:\n"
+      msg += details_msg
+      msg += "\n\nYou can force reconfiguration of '#{@options[:puppet_env]}' as follows:\n"
+      msg += "1) Back up your '#{@options[:puppet_env]}' Puppet environment to archive\n"
+      msg += "   any site-specific changes.\n"
+      msg += "2) Run 'simp config --force-config'.\n"
+      msg += "3) Manually restore archived site-specific changes, as appropriate."
+      raise Simp::Cli::ProcessingError.new(msg)
+    end
+  end
+
 
   def parse_command_line(args)
     @opt_parser      = OptionParser.new do |opts|
@@ -431,6 +474,8 @@ certificates.
                        saved_hash[ saved_hash.keys.last ]}.to_yaml.gsub( /^---/, '' ).strip
         end
 
+        @options[:interrupted_session] = true
+
         color = :YELLOW
         message = %Q{WARNING: interrupted session detected!}
         logger.warn( "\n*** #{message} ***\n", [color, :BOLD] )
@@ -535,6 +580,12 @@ certificates.
       @options[:clean_session] = false
       @options[:user_overrides] = true
     end
+
+    # Set a flag that indicates whether user should be prompted to continue
+    # after the intro. This affects a pause, that, in turn, allows the
+    # user to have time to actually read the intro.
+    @options[:first_interactive_session] = @options[:clean_session] &&
+          @options[:allow_queries] && !@options[:force_defaults]
 
     # Merge what has been read in
     answers_hash = (file_answers.merge(interrupted_session_answers)).merge(cli_answers)

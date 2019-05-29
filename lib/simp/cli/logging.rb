@@ -102,6 +102,23 @@ module Simp::Cli::Logging
       end
     end
 
+    # pause for the specified number of seconds, printing a countdown
+    # message to the console every second
+    # +pause_seconds+: Number of seconds to pause
+    # +pre_txt+: Text to prepend to the current count in the console message
+    # +post_txt+: Text to append to the current count in the console message
+    def count_down(pause_seconds, pre_txt='', post_txt='')
+      count = pause_seconds
+      max_len = count.to_s.size
+      while count > 0
+        $stdout.printf("...#{pre_txt}%#{max_len}d#{post_txt}", count)
+        sleep(1)
+        $stdout.write("\r")
+        count -= 1
+      end
+      $stdout.printf("...#{pre_txt}%#{max_len}d#{post_txt}\n", 0)
+    end
+
    # pause log output to allow message of
    # message_level to be viewed on the console
     def pause(message_level, pause_seconds)
