@@ -13,20 +13,13 @@
 # NOTE:
 # - All YAML keys that begin with 'cli::' are used by
 #   simp config, internally, and are not Puppet hieradata.
-#
-# - Any entry with the following comment is automatically,
-#   silently set by `simp config`.
-#
-#     >> VALUE SET BY `simp config` AUTOMATICALLY. <<
-#
-#   This means if you modify any of these entries in
-#   an answers file, and then feed that file back into
-#   `simp config`, your modifications will be lost!
+# - Some entries have been automatically determined by
+#   `simp config` based on the values of other entries
+#   and/or gathered server status.
 #========================================================================
 ---
 # === cli::version ===
 # The version of simp-cli used to generate this file.
-# >> VALUE SET BY `simp config` AUTOMATICALLY. <<
 cli::version: "0.0.0"
 
 # === cli::network::hostname ===
