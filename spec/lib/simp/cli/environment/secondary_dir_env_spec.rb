@@ -11,7 +11,9 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
       backend: :directory,
       environmentpath: '/var/simp/environments',
       skeleton_path: "#{skel_dir}/secondary",
-      rsync_skeleton_path: "#{skel_dir}/rsync"
+      rsync_skeleton_path: "#{skel_dir}/rsync",
+      tftpboot_src_path:   '/var/www/yum/**/images/pxeboot',
+      tftpboot_dest_path:  'rsync/RedHat/Global/tftpboot/linux-install'
     }
   end
   let(:base_env_path) { opts[:environmentpath] }
@@ -53,7 +55,10 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
       context 'when secondary environment directory is present' do
         before(:each) do
           allow(described_object).to receive(:selinux_fix_file_contexts).with([env_dir])
+          allow(described_object).to receive(:apply_puppet_permissions).with(env_dir, false, true)
+          allow(described_object).to receive(:apply_puppet_permissions).with(site_files_dir, false, true, true)
           allow(described_object).to receive(:apply_puppet_permissions).with(site_files_dir, false, true)
+          allow(described_object).to receive(:apply_puppet_permissions).with(env_dir, false, true, false)
           allow(described_object).to receive(:apply_facls).with(rsync_dir, rsync_facl_file)
         end
 
@@ -65,6 +70,7 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
         it {
           described_object.fix
           expect(described_object).to have_received(:apply_puppet_permissions).with(site_files_dir, false, true).once
+          expect(described_object).to have_received(:apply_puppet_permissions).with(env_dir, false, true, false).once
         }
         it {
           described_object.fix

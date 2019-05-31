@@ -5,7 +5,6 @@
     :enabled: true
     :puppetfile_generate: false
     :puppetfile_install: false
-    :deploy: false
     :backend: :directory
     :environmentpath: "/etc/puppetlabs/code/environments"
     :skeleton_path:   "/usr/share/simp/environments/simp"
@@ -17,6 +16,8 @@
     :environmentpath: "/var/simp/environments"
     :skeleton_path:       "/usr/share/simp/environments/secondary"
     :rsync_skeleton_path: "/usr/share/simp/environments/rsync"
+    :tftpboot_src_path:  '/var/www/yum/**/images/pxeboot'
+    :tftpboot_dest_path: 'rsync/RedHat/Global/tftpboot/linux-install'
   :writable:
     :enabled: true
     :backend: :directory

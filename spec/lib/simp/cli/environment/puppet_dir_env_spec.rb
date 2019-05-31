@@ -39,7 +39,7 @@ describe Simp::Cli::Environment::PuppetDirEnv do
 
   describe '#copy_skeleton_files' do
     let(:rsync_cmd) do
-      "sg - puppet /usr/bin/rsync -a --no-g '#{opts[:skeleton_path]}'/ '#{env_dir}'/ 2>&1"
+      %Q[sg - puppet -c '/usr/bin/rsync -a --no-g "#{opts[:skeleton_path]}/" "#{env_dir}/" 2>&1']
     end
 
     before(:each) do
@@ -94,13 +94,13 @@ describe Simp::Cli::Environment::PuppetDirEnv do
 
       context 'when puppet environment directory is present' do
         before(:each) do
-          allow(described_object).to receive(:apply_puppet_permissions).with(env_dir, false, true)
+          allow(described_object).to receive(:apply_puppet_permissions).with(env_dir, true, true)
         end
 
         it { expect { described_object.fix }.not_to raise_error }
         it {
           described_object.fix
-          expect(described_object).to have_received(:apply_puppet_permissions).with(env_dir, false, true).once
+          expect(described_object).to have_received(:apply_puppet_permissions).with(env_dir, true, true).once
         }
       end
 
