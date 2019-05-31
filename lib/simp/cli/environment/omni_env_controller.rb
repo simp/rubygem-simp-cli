@@ -57,7 +57,11 @@ module Simp::Cli::Environment
 
     # Fix consistency of environment
     def fix
-      each_environment 'fix' do |_env_type, env_obj|
+      each_environment 'fix' do |env_type, env_obj|
+        if @opts[:types][env_type].fetch(:strategy,'') == :link
+          warn("INFO: (action: fix) skipping fix of #{env_type} environment because strategy is :link")
+          next
+        end
         env_obj.fix
       end
     end
@@ -77,7 +81,7 @@ module Simp::Cli::Environment
       @environments.each do |env_type, env_obj|
         label = action_label ? "(action: #{action_label}) " : ''
         unless @opts[:types][env_type][:enabled]
-          puts("INFO: #{label}skipping #{env_type} environment ")
+          puts("INFO: #{label}skipping #{env_type} environment")
           next
         end
         yield env_type, env_obj

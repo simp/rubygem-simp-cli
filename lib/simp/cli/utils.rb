@@ -227,7 +227,8 @@ module Simp::Cli::Utils
           environmentpath: Simp::Cli::Utils.puppet_info[:writable_environment_path]
           # skeleton_path: '/usr/share/simp/environment-skeleton/writable',  # <-- per discussions, not used
         }
-      }
+      },
+      debug: false,
     }
   end
 end

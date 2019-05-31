@@ -48,7 +48,7 @@ module Simp::Cli::Environment
       when :copy
         copy_environment_files(@opts[:src_env])
       when :link
-        fail NotImplementedError
+        link_environment_dirs(@opts[:src_env])
       else
         fail("ERROR: Unknown Puppet environment create strategy: '#{@opts[:strategy]}'")
       end

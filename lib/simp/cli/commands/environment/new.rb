@@ -88,6 +88,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
                   options[:types][type][:strategy] = :link
                   options[:types][type][:src_env]  = src_env
                 end
+                options[:types][:puppet][:strategy] = :copy
               end
 
       opts.on('--[no-]puppetfile',
@@ -119,6 +120,10 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               '(default: --writable-env)') { |v| options[:types][:writable][:enabled] = v }
 
       opts.separator ''
+      opts.on('-d', '--[no-]debug',
+              'Include debugging messges in output',
+              '(default: --no-debug)') { |v| options[:debug] = v }
+
       opts.on_tail('-h', '--help', 'Print this message') do
         puts opts
         @help_requested = true
@@ -147,8 +152,10 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       )
     end
 
-    require 'yaml'
-    puts options.to_yaml, '', ''
+    if options[:debug]
+      require 'yaml'
+      puts options.to_yaml, '', ''
+    end
 
     omni_controller = Simp::Cli::Environment::OmniEnvController.new(options, env)
     omni_controller.send(action)

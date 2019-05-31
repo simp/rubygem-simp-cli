@@ -88,5 +88,20 @@ module Simp::Cli::Environment
         )
       end
     end
+
+    def link_environment_dirs(src_env, fail_if_src_missing=true )
+      src_env_dir = File.join(@base_environments_path, src_env)
+      if File.directory? src_env_dir
+        say "Linking '#{src_env_dir}' to '#{@directory_path}'".cyan
+        FileUtils.ln_s(src_env_dir, @directory_path)
+      elsif fail_if_src_missing
+        fail(
+          Simp::Cli::ProcessingError,
+          "ERROR: Source environment directory '#{src_env_dir}' does not exist to link!"
+        )
+      else
+        warn "WARNING: Source environment directory '#{src_env_dir}' does not exist to link; skipping.".yellow
+      end
+    end
   end
 end
