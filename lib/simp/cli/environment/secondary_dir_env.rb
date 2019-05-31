@@ -137,6 +137,7 @@ module Simp::Cli::Environment
     end
 
     def create_environment_from_skeletons
+      FileUtils.mkdir_p @directory_path, mode: 0755
       copy_skeleton_files(@skeleton_path, @directory_path)        # A1.2
       copy_skeleton_files(@rsync_skeleton_path, @rsync_dest_path) # C1.2, C2.1
       copy_tftpboot_files                                         # D1.1
