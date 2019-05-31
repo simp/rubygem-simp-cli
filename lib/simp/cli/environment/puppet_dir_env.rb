@@ -37,6 +37,7 @@ module Simp::Cli::Environment
         #
         puppet_group = puppet_info[:puppet_group]
         fail('Error: Could not determine puppet group') if puppet_group.to_s.empty?
+
         copy_skeleton_files(@skeleton_path, @directory_path, puppet_group)
         template_environment_conf
 
@@ -98,8 +99,23 @@ module Simp::Cli::Environment
     # are replaced with the environment name.
     def template_environment_conf
       env_conf_file = File.join(@directory_path, 'environment.conf')
-      env_conf = File.read(env_conf_file)
+      env_conf_template = "#{env_conf_file}.TEMPLATE"
+
+      unless File.file?(env_conf_template)
+        warn "WARNING: No template found at '#{env_conf_template}'".yellow
+        fail "ERROR: No template and no conf file at #{env_conf_file}".read unless File.file?(env_conf)
+
+        return
+      end
+
+      if File.file?(env_conf_file)
+        warn "WARNING: #{env_conf_file} already exists; replacing with template".red
+        FileUtils.rm_f env_conf_file
+      end
+
+      env_conf = File.read(env_conf_template)
       env_conf.gsub!('%%SKELETON_ENVIRONMENT%%', @name)
+      FileUtils.mv env_conf_template, env_conf_file # Keeps perms, contexts, FACLs
       File.open(env_conf_file, 'w') { |f| f.puts(env_conf) }
     end
 
