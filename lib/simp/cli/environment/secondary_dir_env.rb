@@ -31,20 +31,22 @@ module Simp::Cli::Environment
     end
 
     # Create a new environment
+    #
+    #   - [x] A1.2 create directory from skeletons in /usr/share/simp/environment-skeleton
+    #     - [x] C1.2 copy rsync files to ${ENVIRONMENT}/rsync/
+    #     - [x] C2.1 copy rsync files to ${ENVIRONMENT}/rsync/
+    #        - [?] this should include any logic needed to ensure a basic DNS environment
+    #     - [x] A5.2 ensure a `cacertkey` exists for FakeCA
+    #        - Should this also be in fix()?
+    #     - [x] D1.1 install tftp PXE boot files into the appropriate directory, when found
+    #
+    #   - Not implemented, because it's scope creep:
+    #     - [?] this should include any logic needed to ensure a basic DNS environment
+    #
+    # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
     def create
       <<-TODO.gsub(%r{^ {6}}, '')
-        TODO: #{self.class.to_s.split('::').last}.#{__method__}():
-        - [x] if environment is already deployed (#{@directory_path}/modules/*/ exist)
-           - [x] THEN FAIL WITH HELPFUL MESSAGE
-        - [x] else
-          - [x] A1.2 create directory from skeletons in /usr/share/simp/environment-skeleton
-            - [x] C1.2 copy rsync files to ${ENVIRONMENT}/rsync/
-            - [x] C2.1 copy rsync files to ${ENVIRONMENT}/rsync/
-               - [?] this should include any logic needed to ensure a basic DNS environment
-            - [x] A5.2 ensure a `cacertkey` exists for FakeCA
-               - Should this also be in fix()?
-            - [x] D1.1 install tftp PXE boot files into the appropriate directory, when found
-            - [?] this should include any logic needed to ensure a basic DNS environment
+
       TODO
 
       if File.exist? @directory_path
@@ -67,16 +69,18 @@ module Simp::Cli::Environment
     end
 
     # Fix consistency of environment
-    #   @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
+    #
+    #   - [x] if environment is not available (#{@directory_path} not found)
+    #      - [x] fail with helpful message
+    #   - [x] A2.2 apply SELinux fixfiles restore to the ${ENVIRONMENT}/ + subdirectories
+    #   - [x] A2.3 apply the correct SELinux contexts on demand
+    #   - [x] A3.2.2 apply Puppet group ownership to $ENVIRONMENT/site_files/
+    #   - [x] C3.2 ensure correct FACLS
+    #
+    # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
     def fix
       <<-TODO.gsub(%r{^ {6}}, '')
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
-          - [x] if environment is not available (#{@directory_path} not found)
-             - [x] THEN FAIL WITH HELPFUL MESSAGE
-          - [x] A2.2 apply SELinux fixfiles restore to the ${ENVIRONMENT}/ + subdirectories
-          - [x] A2.3 apply the correct SELinux contexts on demand
-          - [x] A3.2.2 apply Puppet group ownership to $ENVIRONMENT/site_files/
-          - [x] C3.2 ensure correct FACLS
 
       TODO
 

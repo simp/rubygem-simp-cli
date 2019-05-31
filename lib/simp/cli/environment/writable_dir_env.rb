@@ -14,15 +14,6 @@ module Simp::Cli::Environment
 
     # Create a new environment
     def create
-      <<-TODO.gsub(%r{^ {6}}, '')
-        TODO: #{self.class.to_s.split('::').last}.#{__method__}():
-        - [x] if environment is already deployed (#{@directory_path}/modules/*/ exist)
-           - [x] THEN FAIL WITH HELPFUL MESSAGE
-        - [x] else
-          - [x] A1.2 create directory from skeleton
-
-      TODO
-
       # Safety feature: Don't clobber a Puppet environment directory that already has content
       unless Dir.glob(File.join(@directory_path, '*')).empty?
         fail(
@@ -48,13 +39,13 @@ module Simp::Cli::Environment
 
     # Fix consistency of Puppet directory environment
     #
-    # @note This method is Tintentionally inert, as there has been some concern
+    # @note This method is intentionally inert, as there has been some concern
     #   about whether this action is appropriate to implement for Writable
     #   environment directories.
     #
     #   The Puppet server originates the files found in this environment, and we
-    #   shouldn't need to fix them unless something has gone very wrong indeed.
-    #   Additionally, the potential for mayhem increases if we blithely monkey
+    #   shouldn't need to 'fix' them unless something has gone very wrong
+    #   indeed.  Additionally, the potential for mayhem increases if we monkey
     #   with the permissions of Puppet server's internal files.
     #
     #
@@ -72,23 +63,6 @@ module Simp::Cli::Environment
     #   environments between different Puppet/PE servers.
     #
     def fix
-      <<-TODO.gsub(%r{^ {6}}, '')
-        TODO: #{self.class.to_s.split('::').last}.#{__method__}():
-          - [x] if environment is not available (#{@directory_path} not found)
-             - [x] THEN FAIL WITH HELPFUL MESSAGE
-          - [x] A3.2.3 applies Puppet user settings & groups to
-            - [x] $codedir/environments/$ENVIRONMENT/
-
-      TODO
-
-      ### # if environment is not available, fail with helpful message
-      ### unless File.directory? @directory_path
-      ###   fail(
-      ###     Simp::Cli::ProcessingError,
-      ###     "ERROR: Puppet environment directory not found at '#{@directory_path}'"
-      ###   )
-      ### end
-      ### apply_puppet_permissions(File.join(@directory_path), false, true)
     end
 
     # Update environment

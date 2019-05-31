@@ -14,15 +14,15 @@ module Simp::Cli::Environment
     end
 
     # Create a new environment
+    #
+    #    - [x] A1.2 create directory from skeleton
+    #    - [x] (option-driven) generate Puppetfile
+    #    - [x] (option-driven) deploy modules (r10k puppetfile install)
+    #
+    # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
     def create
       <<-TODO.gsub(%r{^ {6}}, '')
         TODO: #{self.class.to_s.split('::').last}.#{__method__}():
-        - [x] if environment is already deployed (#{@directory_path}/modules/*/ exist)
-           - [x] THEN FAIL WITH HELPFUL MESSAGE
-        - [x] else
-          - [x] A1.2 create directory from skeleton
-          - [x] (option-driven) generate Puppetfile
-          - [x] (option-driven) deploy modules (r10k puppetfile install)
 
       TODO
 
@@ -52,16 +52,12 @@ module Simp::Cli::Environment
     end
 
     # Fix consistency of Puppet directory environment
+    #
+    #     - [x] A3.2.1 applies Puppet user settings & groups to
+    #       - [x] $codedir/environments/$ENVIRONMENT/
+    #
+    # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
     def fix
-      <<-TODO.gsub(%r{^ {6}}, '')
-        TODO: #{self.class.to_s.split('::').last}.#{__method__}():
-          - [x] if environment is not available (#{@directory_path} not found)
-             - [x] THEN FAIL WITH HELPFUL MESSAGE
-          - [x] A3.2.1 applies Puppet user settings & groups to
-            - [x] $codedir/environments/$ENVIRONMENT/
-
-      TODO
-
       # if environment is not available, fail with helpful message
       unless File.directory? @directory_path
         fail(
