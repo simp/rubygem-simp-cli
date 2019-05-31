@@ -60,7 +60,7 @@ module Simp::Cli::Environment
       when :skeleton
         create_environment_from_skeletons
       when :copy
-        fail NotImplementedError
+        copy_environment_files(@opts[:src_env])
       when :link
         fail NotImplementedError
       else

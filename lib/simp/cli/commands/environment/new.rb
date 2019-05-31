@@ -8,6 +8,8 @@ require 'simp/cli/environment/omni_env_controller'
 # TODO: As more `simp environment` sub-commands are added, a lot of this code
 #      could probably be abstracted into a common class or mixin
 class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
+  TYPES=[:puppet, :secondary, :writable]
+
   # @return [String] description of command
   def self.description
     'Create a new SIMP "Extra" (default) or "omni" environment'
@@ -64,28 +66,28 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       opts.on('--skeleton',
               '(default) Generate environments from skeleton templates.',
               'Implies --puppetfile') do
-                options[:types][:puppet][:strategy]    = :skeleton
-                options[:types][:secondary][:strategy] = :skeleton
-                options[:types][:writable][:strategy]  = :skeleton # (noop)
+                TYPES.each do |type|
+                  options[:types][type][:strategy]    = :skeleton
+                end
                 options[:types][:puppet][:puppetfile_generate] = true
               end
 
       opts.on('--copy ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Copy assets from ENVIRONMENT') do |src_env|
-                options[:types][:puppet][:strategy]    = :copy
-                options[:types][:secondary][:strategy] = :copy
-                options[:types][:writable][:strategy]  = :copy
-                options[:src_env] = src_env
+                TYPES.each do |type|
+                  options[:types][type][:strategy] = :copy
+                  options[:types][type][:src_env]  = src_env
+                end
               end
 
       opts.on('--link ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Symlink Secondary and Writeable environment directories',
               'to ENVIRONMENT.  If --puppet-env is set, the Puppet',
               'environment will --copy.') do |src_env|
-                options[:types][:puppet][:strategy]    = :copy
-                options[:types][:secondary][:strategy] = :link
-                options[:types][:writable][:strategy]  = :link
-                options[:src_env] = src_env
+                TYPES.each do |type|
+                  options[:types][type][:strategy] = :link
+                  options[:types][type][:src_env]  = src_env
+                end
               end
 
       opts.on('--[no-]puppetfile',

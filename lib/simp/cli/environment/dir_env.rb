@@ -76,5 +76,17 @@ module Simp::Cli::Environment
         "    #{output.gsub("\n", "\n    ")}"
       )
     end
+
+    def copy_environment_files(src_env, fail_if_src_missing=true )
+      src_env_dir = File.join(@base_environments_path, src_env)
+      if File.directory? src_env_dir
+        copy_skeleton_files(src_env_dir, @directory_path)
+      elsif fail_if_src_missing
+        fail(
+          Simp::Cli::ProcessingError,
+          "ERROR: Source environment directory '#{src_env_dir}' does not exist to copy!"
+        )
+      end
+    end
   end
 end

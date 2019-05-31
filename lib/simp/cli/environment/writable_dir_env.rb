@@ -28,11 +28,11 @@ module Simp::Cli::Environment
       when :skeleton
         # noop
       when :copy
-        fail NotImplementedError
+        copy_environment_files(@opts[:src_env], false)
       when :link
         fail NotImplementedError
       else
-        fail("ERROR: Unknown Secondary environment create strategy: '#{@opts[:strategy]}'")
+        fail("ERROR: Unknown Writable environment create strategy: '#{@opts[:strategy]}'")
       end
       # rubocop:enable Lint/EmptyWhen
     end

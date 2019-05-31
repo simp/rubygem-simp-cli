@@ -21,11 +21,6 @@ module Simp::Cli::Environment
     #
     # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
     def create
-      <<-TODO.gsub(%r{^ {6}}, '')
-        TODO: #{self.class.to_s.split('::').last}.#{__method__}():
-
-      TODO
-
       # Safety feature: Don't clobber a Puppet environment directory that already has content
       unless Dir.glob(File.join(@directory_path, 'modules', '*')).empty?
         fail(
@@ -34,21 +29,29 @@ module Simp::Cli::Environment
         )
       end
 
-      # A1.2 copy from @skeleton_path into @directory_path
-      #
-      #   previous impl: https://github.com/simp/simp-adapter/blob/0.1.1/src/sbin/simp_rpm_helper#L351
-      #
-      puppet_group = puppet_info[:puppet_group]
-      fail('Error: Could not determine puppet group') if puppet_group.to_s.empty?
+      case @opts[:strategy]
+      when :skeleton
+        # A1.2 copy from @skeleton_path into @directory_path
+        #
+        #   previous impl: https://github.com/simp/simp-adapter/blob/0.1.1/src/sbin/simp_rpm_helper#L351
+        #
+        puppet_group = puppet_info[:puppet_group]
+        fail('Error: Could not determine puppet group') if puppet_group.to_s.empty?
+        copy_skeleton_files(@skeleton_path, @directory_path, puppet_group)
+        template_environment_conf
 
-      copy_skeleton_files(@skeleton_path, @directory_path, puppet_group)
-      template_environment_conf
+        # (option-driven) generate Puppetfile
+        puppetfile_generate if @opts[:puppetfile_generate]
 
-      # (option-driven) generate Puppetfile
-      puppetfile_generate if @opts[:puppetfile_generate]
-
-      # (option-driven) deploy modules (r10k puppetfile install)
-      puppetfile_install if @opts[:puppetfile_install]
+        # (option-driven) deploy modules (r10k puppetfile install)
+        puppetfile_install if @opts[:puppetfile_install]
+      when :copy
+        copy_environment_files(@opts[:src_env])
+      when :link
+        fail NotImplementedError
+      else
+        fail("ERROR: Unknown Puppet environment create strategy: '#{@opts[:strategy]}'")
+      end
     end
 
     # Fix consistency of Puppet directory environment
@@ -91,6 +94,8 @@ module Simp::Cli::Environment
       fail NotImplementedError
     end
 
+    # Ensure all instances of %%SKELETON_ENVIRONMENT%% in `environment.conf`
+    # are replaced with the environment name.
     def template_environment_conf
       env_conf_file = File.join(@directory_path, 'environment.conf')
       env_conf = File.read(env_conf_file)
