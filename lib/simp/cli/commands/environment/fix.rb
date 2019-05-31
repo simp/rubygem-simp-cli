@@ -27,7 +27,7 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
     options[:action] = :fix
 
     opt_parser = OptionParser.new do |opts|
-      opts.banner = '== simp environment new [options]'
+      opts.banner = '== simp environment fix [options]'
       opts.separator <<-HELP_MSG.gsub(%r{^ {8}}, '')
 
         #{self.class.description}
