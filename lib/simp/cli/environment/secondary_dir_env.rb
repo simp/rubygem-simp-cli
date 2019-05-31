@@ -100,6 +100,9 @@ module Simp::Cli::Environment
       #
       apply_puppet_permissions(File.join(@directory_path, 'site_files'), false, true)
 
+      # apply Puppet group ownership to $ENVIRONMENT (NOT recursive)
+      apply_puppet_permissions(File.join(@directory_path), false, true, false)
+
       # ensure correct FACLS on rsync/ files
       #
       #   previous impl: https://github.com/simp/simp-rsync-skeleton/blob/6.2.1/build/simp-rsync.spec#L98-L99
@@ -139,7 +142,7 @@ module Simp::Cli::Environment
     # Copy each `unpack_dvd`-installed OS's tftpboot PXE images into the
     # environment's rsync tftpboot directory
     #
-    #   prev impl: 
+    #   prev impl:
     #
     def copy_tftpboot_files
       Dir.glob(@tftpboot_src_path) do |dir|

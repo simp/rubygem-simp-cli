@@ -38,12 +38,18 @@ module Simp::Cli::Environment
     # @param [String] path   path to apply permissions
     # @param [Boolean] user  apply Puppet user permissions when `true`
     # @param [Boolean] group  apply Puppet group permissions when `true`
-    def apply_puppet_permissions(path, user = false, group = true)
+    # @param [Boolean] recursive  apply Puppet permissions recursively when `true`
+    def apply_puppet_permissions(path, user = false, group = true, recursive = true)
       summary = [(user ? 'user' : nil), group ? 'group' : nil].compact.join(' + ')
-      logger.info "Applying Puppet permissions (#{summary}) under '#{path}"
       pup_user  = user ? puppet_info[:config]['user'] : nil
       pup_group = group ? puppet_info[:puppet_group] : nil
-      FileUtils.chown_R(pup_user, pup_group, path)
+      if recursive
+        logger.info "Applying Puppet permissions (#{summary}) recursively under '#{path}'"
+        FileUtils.chown_R(pup_user, pup_group, path)
+      else
+        logger.info "Applying Puppet permissions (#{summary}) to '#{path}'"
+        FileUtils.chown(pup_user, pup_group, path)
+      end
     end
 
     # Use rsync for copy files

@@ -18,8 +18,16 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   # @returns Hash of environment information for the created environment.
   def create
     #TODO read much of this config in from a config file
-    #TODO make sure it matches latest OmniEnvController code
     omni_options = Simp::Cli::Utils.default_simp_env_config
+    omni_options[:types][:puppet].merge! ({
+      strategy: :skeleton,
+      puppetfile_generate: true,
+      puppetfile_install: true,
+    })
+    omni_options[:types][:secondary][:strategy] = :skeleton
+    omni_options[:types][:writable][:strategy]  = :skeleton # noop
+
+    #TODO make sure it matches latest OmniEnvController code
     omni_controller = Simp::Cli::Environment::OmniEnvController.new(omni_options, @env_name)
     omni_controller.create
 

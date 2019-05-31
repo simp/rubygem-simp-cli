@@ -13,7 +13,7 @@ module Simp::Cli::Environment
       @opts = opts
       @environments = {}
       @opts[:types].each do |type, data|
-        # TODO: honor backends
+        # TODO: honor backends?
         # TODO: refactor into a Factory
         base_env_path = data[:environmentpath] || fail(ArgumentError, 'ERROR: no :environmentpath in opts')
         opts_data = data.reject { |k, _v| k == :enabled }

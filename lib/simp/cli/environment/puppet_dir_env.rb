@@ -27,7 +27,7 @@ module Simp::Cli::Environment
       TODO
 
       # Safety feature: Don't clobber a Puppet environment directory that already has content
-      unless Dir.glob(File.join(@directory_path, '*')).empty?
+      unless Dir.glob(File.join(@directory_path, 'modules', '*')).empty?
         fail(
           Simp::Cli::ProcessingError,
           "ERROR: A Puppet environment directory with content already exists at '#{@directory_path}'"
@@ -42,6 +42,7 @@ module Simp::Cli::Environment
       fail('Error: Could not determine puppet group') if puppet_group.to_s.empty?
 
       copy_skeleton_files(@skeleton_path, @directory_path, puppet_group)
+      template_environment_conf
 
       # (option-driven) generate Puppetfile
       puppetfile_generate if @opts[:puppetfile_generate]
@@ -76,7 +77,7 @@ module Simp::Cli::Environment
       #     (note: the previous impl affected the `simp` env skeleton, which was
       #      rsynced into $codedir/environments/simp)
       #
-      apply_puppet_permissions(File.join(@directory_path), false, true)
+      apply_puppet_permissions(File.join(@directory_path), true, true)
     end
 
     # Update environment
@@ -92,6 +93,13 @@ module Simp::Cli::Environment
     # Validate consistency of environment
     def validate
       fail NotImplementedError
+    end
+
+    def template_environment_conf
+      env_conf_file = File.join(@directory_path, 'environment.conf')
+      env_conf = File.read(env_conf_file)
+      env_conf.gsub!('%%SKELETON_ENVIRONMENT%%', @name)
+      File.open(env_conf_file,'w'){|f| f.puts(env_conf) }
     end
 
     def puppetfile_generate

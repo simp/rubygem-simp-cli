@@ -204,10 +204,9 @@ module Simp::Cli::Utils
           strategy: default_strategy, # :skeleton, :copy (:link == noop)
           puppetfile_generate: false,
           puppetfile_install: false,
-          deploy: false,
           backend: :directory,
           environmentpath: Simp::Cli::Utils.puppet_info[:config]['environmentpath'],
-          skeleton_path: '/usr/share/simp/environment-skeleton/simp',
+          skeleton_path: '/usr/share/simp/environment-skeleton/puppet',
           module_repos_path: '/usr/share/simp/git/puppet_modules',
           skeleton_modules_path: '/usr/share/simp/modules'
         },
