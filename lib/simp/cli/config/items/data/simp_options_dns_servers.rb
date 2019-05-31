@@ -16,14 +16,14 @@ If the first entry of this list is set to '127.0.0.1', then
 all clients will configure themselves as caching DNS servers
 pointing to the other entries in the list.
 
-If you have a system that's including the 'named' class and
-is *not* in this list, then you'll need to set a variable at
-the top of that node entry called $named_server to 'true'.
-This will get around the convenience logic that was put in
-place to handle the caching entries and will not attempt to
-convert your system to a caching DNS server. You'll know
-that you have this situation if you end up with a duplicate
-definition for File['/etc/named.conf'].}
+If you are using the SIMP ``resolv`` module, and the system is a DNS server
+using the SIMP ``named`` module but you wish to have your node point to a
+different DNS server for primary DNS resolution, then you MUST set
+``resolv::named_server`` to ``true`` via Hiera.
+
+This will get around the convenience logic that was put in place to handle
+the caching entries and will not attempt to convert your system to a
+caching DNS server.}
       @file = '/etc/resolv.conf'
     end
 

@@ -168,5 +168,21 @@ EOM
       end
     end
   end
+
+  describe 'count_down' do
+    it 'should print generic countdown message to the console' do
+      # exact match doesn't work in TravisCI
+      expected = /\.\.\.2.*\.\.\.1.*\.\.\.0\n/
+      expect{ MyLogTesterA.logger.count_down(2) }.to output(expected).to_stdout
+      expect{ MyLogTesterB.new.logger.count_down(2) }.to output(expected).to_stdout
+    end
+
+    it 'should print customized countdown message to the console' do
+      # exact match doesn't work in TravisCI
+      expected = /\.\.\.Resuming in 2 seconds.*\.\.\.Resuming in 1 seconds.*\.\.\.Resuming in 0 seconds\n/
+      expect{ MyLogTesterA.logger.count_down(2, 'Resuming in ', ' seconds') }.to output(expected).to_stdout
+      expect{ MyLogTesterB.new.logger.count_down(2, 'Resuming in ', ' seconds') }.to output(expected).to_stdout
+    end
+  end
 end
 
