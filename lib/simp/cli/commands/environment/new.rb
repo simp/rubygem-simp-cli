@@ -21,7 +21,6 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   # Parse command-line options for this simp command
   # @param args [Array<String>] ARGV-style args array
   def parse_command_line(args)
-    default_strategy = :skeleton
     # TODO: simp cli should read a config file that can override these defaults
     # these options (preferrable mimicking cmd-line args)
     options = Simp::Cli::Utils.default_simp_env_config
@@ -67,8 +66,8 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               'Implies --puppetfile') do
                 options[:types][:puppet][:strategy]    = :skeleton
                 options[:types][:secondary][:strategy] = :skeleton
-                options[:types][:writable][:strategy]  = :fresh
-                options[:types][:puppet][:puppetfile_generate]  = true
+                options[:types][:writable][:strategy]  = :skeleton # (noop)
+                options[:types][:puppet][:puppetfile_generate] = true
               end
 
       opts.on('--copy ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
@@ -84,8 +83,8 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               'to ENVIRONMENT.  If --puppet-env is set, the Puppet',
               'environment will --copy.') do |src_env|
                 options[:types][:puppet][:strategy]    = :copy
-                options[:types][:secondary][:strategy] = :copy
-                options[:types][:writable][:strategy]  = :copy
+                options[:types][:secondary][:strategy] = :link
+                options[:types][:writable][:strategy]  = :link
                 options[:src_env] = src_env
               end
 

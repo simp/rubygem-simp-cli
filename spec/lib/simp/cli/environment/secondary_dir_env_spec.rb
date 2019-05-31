@@ -12,8 +12,8 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
       environmentpath: '/var/simp/environments',
       skeleton_path: "#{skel_dir}/secondary",
       rsync_skeleton_path: "#{skel_dir}/rsync",
-      tftpboot_src_path:   '/var/www/yum/**/images/pxeboot',
-      tftpboot_dest_path:  'rsync/RedHat/Global/tftpboot/linux-install'
+      tftpboot_src_path: '/var/www/yum/**/images/pxeboot',
+      tftpboot_dest_path: 'rsync/RedHat/Global/tftpboot/linux-install'
     }
   end
   let(:base_env_path) { opts[:environmentpath] }
@@ -70,6 +70,9 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
         it {
           described_object.fix
           expect(described_object).to have_received(:apply_puppet_permissions).with(site_files_dir, false, true).once
+        }
+        it {
+          described_object.fix
           expect(described_object).to have_received(:apply_puppet_permissions).with(env_dir, false, true, false).once
         }
         it {

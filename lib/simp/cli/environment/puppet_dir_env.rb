@@ -99,7 +99,7 @@ module Simp::Cli::Environment
       env_conf_file = File.join(@directory_path, 'environment.conf')
       env_conf = File.read(env_conf_file)
       env_conf.gsub!('%%SKELETON_ENVIRONMENT%%', @name)
-      File.open(env_conf_file,'w'){|f| f.puts(env_conf) }
+      File.open(env_conf_file, 'w') { |f| f.puts(env_conf) }
     end
 
     def puppetfile_generate
@@ -116,8 +116,8 @@ module Simp::Cli::Environment
     end
 
     def puppetfile_install
-      r10k = File.executable?('/usr/share/simp/bin/r10k') ?
-        '/usr/share/simp/bin/r10k' : 'r10k'
+      r10k = 'r10k'
+      r10k = '/usr/share/simp/bin/r10k' if File.executable?('/usr/share/simp/bin/r10k')
       r10k_cmd = "#{r10k} puppetfile install -v info"
       cmd = "cd '#{directory_path}' && #{r10k_cmd}"
       say "Running r10k from '#{directory_path}' to install Puppet modules:".cyan
@@ -132,6 +132,5 @@ module Simp::Cli::Environment
       end
       fail("Command failed: '#{r10k_cmd}'") unless exit_status.success?
     end
-
   end
 end

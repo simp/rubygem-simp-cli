@@ -39,7 +39,7 @@ describe Simp::Cli::Environment::PuppetDirEnv do
 
   describe '#copy_skeleton_files' do
     let(:rsync_cmd) do
-      %Q[sg - puppet -c '/usr/bin/rsync -a --no-g "#{opts[:skeleton_path]}/" "#{env_dir}/" 2>&1']
+      %(sg - puppet -c '/usr/bin/rsync -a --no-g "#{opts[:skeleton_path]}/" "#{env_dir}/" 2>&1')
     end
 
     before(:each) do

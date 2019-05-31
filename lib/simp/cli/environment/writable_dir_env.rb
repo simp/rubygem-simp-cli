@@ -31,15 +31,19 @@ module Simp::Cli::Environment
         )
       end
 
-      case  @opts[:strategy]
+      case @opts[:strategy]
+
+      # rubocop:disable Lint/EmptyWhen
       when :skeleton
+        # noop
       when :copy
-        raise NotImplementedError
+        fail NotImplementedError
       when :link
-        raise NotImplementedError
+        fail NotImplementedError
       else
         fail("ERROR: Unknown Secondary environment create strategy: '#{@opts[:strategy]}'")
       end
+      # rubocop:enable Lint/EmptyWhen
     end
 
     # Fix consistency of Puppet directory environment
