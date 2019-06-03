@@ -52,8 +52,6 @@ module Simp::Cli::Utils
       @system_puppet_info = {
         :config                     => config_hash,
         :environment_path           => puppet_environment_path,
-        :simp_environment_path      => File.join(puppet_environment_path, 'simp'),
-        :fake_ca_path               => '/var/simp/environments/simp/FakeCA',
         :secondary_environment_path => secondary_environment_path,
         :writable_environment_path  => writable_environment_path,
         :puppet_group               => config_hash['group'],

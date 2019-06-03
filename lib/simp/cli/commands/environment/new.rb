@@ -48,16 +48,16 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
         Examples:
 
              # Create a skeleton new development environment
-             simp env new development
+             simp environment new development
 
              # Link staging's Secondary and Writable env dirs to production
-             simp env new staging --link production
+             simp environment new staging --link production
 
              # Create a separate copy of production (will diverge over time)
-             simp env new newprod --copy production
+             simp environment new newprod --copy production
 
              # Create new omni environment
-             simp env new local_prod --puppetfile
+             simp environment new local_prod --puppetfile
 
         Options:
 
@@ -81,7 +81,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               end
 
       opts.on('--link ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
-              'Symlink Secondary and Writeable environment directories',
+              'Symlink Secondary and Writable environment directories',
               'to ENVIRONMENT.  If --puppet-env is set, the Puppet',
               'environment will --copy.') do |src_env|
                 TYPES.each do |type|
@@ -95,14 +95,14 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               'Generate Puppetfiles in Puppet env directory',
               '  * `Puppetfile` will only be created if missing',
               '  * `Puppetfile.simp` will be generated from RPM/',
-              '  * implies `--puppet-env`') do |v|
+              '  * Implies `--puppet-env`') do |v|
         options[:types][:puppet][:enabled] = true if (options[:types][:puppet][:puppetfile_generate] = v)
       end
 
       opts.on('--[no-]puppetfile-install',
               'Automatically deploys Puppetfile in Puppet environment',
               'directory after creating it',
-              '  * implies `--puppet-env`',
+              '  * Implies `--puppet-env`',
               '  * Does NOT imply `--puppetfile`') do |v|
         options[:types][:puppet][:enabled] = true if (options[:types][:puppet][:puppetfile_install] = v)
       end
