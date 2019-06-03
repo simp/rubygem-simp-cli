@@ -137,7 +137,11 @@ module Simp::Cli::Environment
     end
 
     def create_environment_from_skeletons
+      # make sure directory exists and is readable by all
       FileUtils.mkdir_p @directory_path, mode: 0755
+      FileUtils.chmod(0755, File.dirname(@directory_path))
+      FileUtils.chmod(0755, File.dirname(File.dirname(@directory_path)))
+
       copy_skeleton_files(@skeleton_path, @directory_path)        # A1.2
       copy_rsync_skeleton_files                                   # C1.2, C2.1, C.5.2
       copy_tftpboot_files                                         # D1.1
