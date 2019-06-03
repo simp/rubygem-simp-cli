@@ -55,7 +55,7 @@ module Simp::Cli::Environment
     # Use rsync for copy files
     # @param [String] src_dir
     # @param [String] dest_dir
-    # @param [Boolean] group  apply Puppet group permissions when not falsey
+    # @param [Boolean] group  apply group permissions when not falsey
     #   and user is root
     def copy_skeleton_files(src_dir, dest_dir, group = nil)
       rsync = Facter::Core::Execution.which('rsync')

@@ -121,7 +121,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
       opts.separator ''
       opts.on('-d', '--[no-]debug',
-              'Include debugging messges in output',
+              'Include debugging messages in output',
               '(default: --no-debug)') { |v| options[:debug] = v }
 
       opts.on_tail('-h', '--help', 'Print this message') do

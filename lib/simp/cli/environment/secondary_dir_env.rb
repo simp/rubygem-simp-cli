@@ -139,22 +139,37 @@ module Simp::Cli::Environment
     def create_environment_from_skeletons
       FileUtils.mkdir_p @directory_path, mode: 0755
       copy_skeleton_files(@skeleton_path, @directory_path)        # A1.2
-      copy_skeleton_files(@rsync_skeleton_path, @rsync_dest_path) # C1.2, C2.1
+      copy_rsync_skeleton_files                                   # C1.2, C2.1, C.5.2
       copy_tftpboot_files                                         # D1.1
       create_fakeca_cacert_key                                    # A5.2
+    end
+
+    # Copy rsync skeleton files and create rsync/CentOS link to rsync/RedHat
+    def copy_rsync_skeleton_files
+      copy_skeleton_files(@rsync_skeleton_path, @rsync_dest_path) # C1.2, C2.1
+      Dir.chdir(@rsync_dest_path) do
+        FileUtils.ln_s('RedHat', 'CentOS')  # C.5.2
+      end
     end
 
     # Copy each `unpack_dvd`-installed OS's tftpboot PXE images into the
     # environment's rsync tftpboot directory
     #
-    #   prev impl:
+    #   prev impl: https://github.com/simp/simp-core/blob/e8e9cb2db4a2a904275ec4ed82aff3fba32161b1/build/distributions/CentOS/7/x86_64/DVD/ks/dvd/auto.cfg#L165-L190
     #
     def copy_tftpboot_files
       Dir.glob(@tftpboot_src_path) do |dir|
-        dst_dirname = dir.split('/')[-5..-3].map(&:downcase).join('-')
+        os_info = dir.split('/')[-5..-3]
+        dst_dirname = os_info.map(&:downcase).join('-')
         dst_path = File.join(@tftpboot_dest_path, dst_dirname)
         FileUtils.mkdir_p File.basename(@tftpboot_src_path)
         copy_skeleton_files(dir, dst_path, 'nobody')
+
+        # create major OS version link
+        os_info[1] = os_info[1].split('.').first
+        Dir.chdir(@tftpboot_dest_path) do
+          FileUtils.ln_s(dst_dirname, os_info.map(&:downcase).join('-'))
+        end
       end
     end
 
