@@ -193,6 +193,31 @@ module Simp::Cli::Utils
     }                # Use the block's return value as the method's
   end
 
+  # Returns a timestamp string of the form
+  #   YYYY-MM-DD HH:MM:SS
+  #   2019-06-05 11:04:30
+  #
+  # where HH is 00-23
+  #
+  # NOTE:  This is the standard timestamp to be used in logs
+  #
+  def timestamp(time = Time.now)
+    time.strftime('%F %T')
+  end
+
+  # Returns a timestamp string of the form
+  #   YYYYMMDDTHHMMSS
+  #   20190605T110430
+  #
+  # where HH is 00-23
+  #
+  # NOTE:  This is the standard timestamp to be used in the names of
+  #        log files, backup files and backup directories.
+  #
+  def timestamp_compact(time = Time.now)
+    time.strftime('%Y%m%dT%H%M%S')
+  end
+
   def default_simp_env_config
     default_strategy = :skeleton
     {

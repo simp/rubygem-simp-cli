@@ -74,8 +74,23 @@ EOM
         expect( @result ).to be @success_status
       end
 
+      it 'outputs environment usage when environment help specified' do
+        expect{ @result = Simp::Cli.start(['environment', '-h']) }.to output(/=== The SIMP Environment Tool ===/m).to_stdout
+        expect( @result ).to be @success_status
+      end
+
       it 'outputs passgen usage when passgen help specified' do
         expect{ @result = Simp::Cli.start(['passgen', '-h']) }.to output(/=== The SIMP Passgen Tool ===/m).to_stdout
+        expect( @result ).to be @success_status
+      end
+
+      it 'outputs puppetfile usage when puppetfile help specified' do
+        expect{ @result = Simp::Cli.start(['puppetfile', '-h']) }.to output(/=== The SIMP Puppetfile Tool ===/m).to_stdout
+        expect( @result ).to be @success_status
+      end
+
+      it 'outputs version usage when version help specified' do
+        expect{ @result = Simp::Cli.start(['version', '-h']) }.to output(/Display the current version of SIMP/m).to_stdout
         expect( @result ).to be @success_status
       end
     end

@@ -1,0 +1,43 @@
+{
+  "name": "local-extra1",
+  "version": "1.0.0",
+  "author": "Local Team",
+  "summary": "Local extra test module 1",
+  "license": "Apache-2.0",
+  "source": "https://github.com/simp/pupmod-simp-simplib",
+  "project_page": "https://github.com/simp/pupmod-simp-simplib",
+  "issues_url": "https://simp-project.atlassian.net",
+  "tags": [
+  ],
+  "dependencies": [
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": [
+        "6",
+        "7"
+      ]
+    },
+    {
+      "operatingsystem": "CentOS",
+      "operatingsystemrelease": [
+        "6",
+        "7"
+      ]
+    },
+    {
+      "operatingsystem": "OracleLinux",
+      "operatingsystemrelease": [
+        "6",
+        "7"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 4.10.4 < 7.0.0"
+    }
+  ]
+}

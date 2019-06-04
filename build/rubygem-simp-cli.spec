@@ -24,6 +24,7 @@ Requires: curl
 Requires: diffutils
 Requires: elinks
 Requires: facter >= 3
+Requires: git
 Requires: grep
 Requires: iproute
 Requires: net-tools
@@ -33,6 +34,7 @@ Requires: pupmod-simp-network >= 6.0.3
 Requires: pupmod-simp-resolv >= 0.1.1
 Requires: pupmod-simp-simplib >= 3.11.1
 Requires: puppet >= 5
+Requires: rsync
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 Requires: sed
 Requires: simp-adapter >= 0.1.0
@@ -127,11 +129,33 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Tue Jun 04 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
+* Fri Jun 07 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
 - 'simp' change:
   - Standardized help mechanism to be -h at all levels
     (main, command, subcommand)
   - Added descriptions to top level help command list
+- 'simp puppetfile generate' changes:
+  - Added '--skeleton-with-local ENV' option, which will add
+    each local (unmanaged) module found in a Puppet environment
+    to the generated skeleton Puppetfile as a local reference.
+    This option is key for sites that have unmanaged local
+    modules in an environment. Without the local references,
+    those modules will be purged by r10K/Code Manager, when
+    that environment's generated Puppetfile is deployed.
+  - Changed the ':git' references for the local SIMP module repos
+    in the generated Puppetfiles from file paths to file URLs.
+  - Sorted modules listed in generated Puppetfile by their
+    names from their respective metadata.json files.
+  - Changed the error handling of problematic modules found in
+    /usr/share/simp/modules. The generator now warns the user
+    and skips the module in lieu of aborting.
+  - Added tag validation for each SIMP module installed in
+    /usr/share/simp/modules.  The generator now verifies that the
+    tag for each module exists in its local Git repository, before
+    creating a Puppetfile entry for the module.
+  - Improved error handling.  Backtraces on errors for which the
+    error message is sufficient are now suppressed.
+- Added 'rsync' and 'git' to the RPM requires list.
 
 * Fri Apr 26 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
 - New features:

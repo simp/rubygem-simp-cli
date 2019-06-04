@@ -1,7 +1,8 @@
 require 'simp/cli/commands/command'
-require 'simp/cli/commands/puppetfile'
-require 'simp/cli/puppetfile/skeleton'
+require 'simp/cli/puppetfile/errors'
 require 'simp/cli/puppetfile/local_simp_puppet_modules'
+require 'simp/cli/puppetfile/skeleton'
+require 'simp/cli/utils'
 
 # Cli command to print Puppetfile that deploys from local SIMP git repos
 class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
@@ -22,20 +23,40 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
       @simp_modules_install_path   ||= Simp::Cli::SIMP_MODULES_INSTALL_PATH
       @simp_modules_git_repos_path ||= Simp::Cli::SIMP_MODULES_GIT_REPOS_PATH
       @puppetfile_type ||= :simp
+      @puppet_env = nil
       opts.banner = '== simp puppetfile generate [options]'
       opts.separator <<-HELP_MSG.gsub(%r{^ {8}}, '')
 
         #{self.class.description}
 
-        This command prints a Puppetfile that deploys the current SIMP Puppet
-        modules installed under #{@simp_modules_install_path} from the local SIMP git
-        repositories, which are updated when new SIMP module RPMs are installed.
+        This command prints one of two types of Puppetfiles:
+        * A Puppetfile that deploys the current set of SIMP Puppet modules installed in
+            #{@simp_modules_install_path}
+          and available in local Git repositories in
+            #{@simp_modules_git_repos_path}.
+
+        * A skeleton, parent Puppetfile that includes Puppetfile.simp, the assumed name
+          of the Puppetfile containing only SIMP modules.
+          - This parent Puppetfile will deploy the modules in Puppetfile.simp, along
+            with any other modules specified in it.
+          - You can optionally have local modules in a specified environment
+            automatically added to this parent Puppetfile.  Local modules are modules
+            whose directories are not under Git source control.
 
         Usage:
 
-          simp puppetfile generate > Puppetfile.simp
+          simp puppetfile generate -h
 
+          # Generate a SIMP-only Puppetfile
+          simp puppetfile generate  > Puppetfile.simp
+
+          # Generate an empty Puppetfile that includes Puppetfile.simp
           simp puppetfile generate --skeleton > Puppetfile
+
+          # Generate a Puppetfile that includes Puppetfile.simp and
+          # contains references to local (unmanaged) modules found in a
+          # Puppet environment's standard module location
+          simp puppetfile generate --skeleton-with-local ENV > Puppetfile
 
         Options:
 
@@ -45,14 +66,23 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
               'Generate an empty Puppetfile that includes',
               'Puppetfile.simp') { @puppetfile_type = :skeleton }
 
+      opts.on('-l', '--skeleton-with-local ENV',
+              Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
+              'Generate a Puppetfile that includes',
+              'Puppetfile.simp and contains local refs to',
+              'existing unmanaged modules in ENV') do |puppet_env|
+                @puppetfile_type = :skeleton
+                @puppet_env = puppet_env
+              end
+
       opts.on('--modulepath PATH', Simp::Cli::Utils::REGEXP_UNIXPATH,
-              'Specify SIMP module installation path',
+              'Specify the SIMP module installation path',
               "(default: #{Simp::Cli::SIMP_MODULES_INSTALL_PATH})") do |path|
                 @simp_modules_install_path = path
               end
 
       opts.on('--repopath PATH', Simp::Cli::Utils::REGEXP_UNIXPATH,
-              'Specify SIMP module git repos path',
+              'Specify the SIMP module git repos path',
               "(default: #{Simp::Cli::SIMP_MODULES_GIT_REPOS_PATH})") do |path|
                 @simp_modules_git_repos_path = path
               end
@@ -60,7 +90,7 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
       opts.separator ''
       opts.on_tail('-h', '--help', 'Print this message') do
         puts opts
-        exit
+        @help_requested = true
       end
     end
     opt_parser.order!(args)
@@ -70,13 +100,19 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
   # @param args [Array<String>] ARGV-style args array
   def run(args)
     parse_command_line(args)
+    return if @help_requested
+
     if @puppetfile_type == :skeleton
-      puts Simp::Cli::Puppetfile::Skeleton.to_puppetfile
+      puts Simp::Cli::Puppetfile::Skeleton.new(@puppet_env).to_puppetfile
     else
       puts Simp::Cli::Puppetfile::LocalSimpPuppetModules.new(
         @simp_modules_install_path,
         @simp_modules_git_repos_path
       ).to_puppetfile
     end
+
+  rescue Simp::Cli::Puppetfile::ModuleError => e
+    # backtrace is not useful here, so only report the error message
+    raise Simp::Cli::ProcessingError.new(e.message)
   end
 end
