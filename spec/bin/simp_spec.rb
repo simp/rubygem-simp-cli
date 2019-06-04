@@ -94,7 +94,7 @@ describe 'simp executable' do
       warn("=== stderr: #{results[:stderr]}") unless (results[:stderr]).empty?
       warn("=== stdout: #{results[:stdout]}") unless (results[:stdout]).empty?
       expect(results[:exitstatus]).to eq 0
-      expect(results[:stdout]).to match(/Usage: simp \[command\]/)
+      expect(results[:stdout]).to match(/SIMP Command Line Interface/)
       expect(results[:stderr]).to be_empty
     end
 

@@ -13,6 +13,13 @@ module Simp::Cli::Commands; end
 # implement a help() method and a run() method.
 class Simp::Cli::Commands::Command
 
+  # Brief description.
+  # Should be < 65 characters in length to avoid wrapping on the console.
+  # The derived class must implement this method
+  def description
+    raise("description() not implemented by #{self.class} ")
+  end
+
   # The derived class must implement this method and raise
   # an exception upon failure.
   def help

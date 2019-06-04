@@ -13,17 +13,25 @@ describe 'Simp::Cli' do
   describe 'Simp::Cli.start' do
     describe 'help' do
       before :all do
-        @usage = "Usage: simp [command]\n" +
-                 "\n" +
-                 "  Commands\n" +
-                 "    - bootstrap\n" +
-                 "    - config\n" +
-                 "    - doc\n" +
-                 "    - environment\n" +
-                 "    - passgen\n" +
-                 "    - puppetfile\n" +
-                 "    - version\n" +
-                 "    - help [command]\n\n"
+        @usage = <<EOM
+SIMP Command Line Interface
+
+Usage:
+
+ simp -h
+ simp COMMAND -h
+ simp COMMAND [command options]
+
+COMMANDS
+  bootstrap     Bootstrap initial SIMP server
+  config        Prepare SIMP server for bootstrapping
+  doc           Show SIMP documentation in elinks
+  environment   Utility to manage and coordinate SIMP omni-environments
+  passgen       Utility for managing 'passgen' passwords
+  puppetfile    Helper utility to maintain local SIMP Puppetfiles
+  version       Display the current version of SIMP.
+
+EOM
       end
 
       it 'outputs general usage when no command specified' do
@@ -36,33 +44,37 @@ describe 'Simp::Cli' do
         expect( @result ).to be @success_status
       end
 
+      it 'outputs general usage when -h specified' do
+        expect{ @result = Simp::Cli.start(['-h']) }.to output(@usage).to_stdout
+        expect( @result ).to be @success_status
+      end
+
+      it 'outputs general usage when --help specified' do
+        expect{ @result = Simp::Cli.start(['--help']) }.to output(@usage).to_stdout
+        expect( @result ).to be @success_status
+      end
+
       it 'outputs general usage when invalid command specified' do
         expect{ @result = Simp::Cli.start(['oops']) }.to output(/oops is not a recognized command/).to_stderr
         expect( @result ).to be @failure_status
       end
 
       it 'outputs bootstrap usage when bootstrap help specified' do
-        expect{ @result = Simp::Cli.start(['help','bootstrap']) }.to output(/=== The SIMP Bootstrap Tool ===/m).to_stdout
-        expect( @result ).to be @success_status
         expect{ @result = Simp::Cli.start(['bootstrap', '-h']) }.to output(/=== The SIMP Bootstrap Tool ===/m).to_stdout
         expect( @result ).to be @success_status
       end
 
       it 'outputs config usage when config help specified' do
-        expect{ @result = Simp::Cli.start(['help','config']) }.to output(/=== The SIMP Configuration Tool ===/m).to_stdout
-        expect( @result ).to be @success_status
         expect{ @result = Simp::Cli.start(['config', '-h']) }.to output(/=== The SIMP Configuration Tool ===/m).to_stdout
         expect( @result ).to be @success_status
       end
 
       it 'outputs doc usage when doc help specified' do
-        expect{ @result = Simp::Cli.start(['help','doc']) }.to output(/=== The SIMP Doc Tool ===/m).to_stdout
+        expect{ @result = Simp::Cli.start(['doc', '-h']) }.to output(/=== The SIMP Doc Tool ===/m).to_stdout
         expect( @result ).to be @success_status
       end
 
       it 'outputs passgen usage when passgen help specified' do
-        expect{ @result = Simp::Cli.start(['help','passgen']) }.to output(/=== The SIMP Passgen Tool ===/m).to_stdout
-        expect( @result ).to be @success_status
         expect{ @result = Simp::Cli.start(['passgen', '-h']) }.to output(/=== The SIMP Passgen Tool ===/m).to_stdout
         expect( @result ).to be @success_status
       end

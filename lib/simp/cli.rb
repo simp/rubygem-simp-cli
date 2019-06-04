@@ -15,25 +15,21 @@ module Simp; end
 # namespace for SIMP CLI commands
 class Simp::Cli
   def self.menu
-    puts 'Usage: simp [command]'
+    puts 'SIMP Command Line Interface'
     puts
-    puts '  Commands'
-    @commands.keys.sort.each do |command_name|
-      puts "    - #{command_name}"
-    end
-    puts '    - help [command]'
+    puts 'Usage:'
     puts
-  end
-
-  def self.version
-    cmd = 'rpm -q simp'
-    begin
-      `#{cmd}`.split(/\n/).last.match(/([0-9]+\.[0-9]+\.?[0-9]*)/)[1]
-    rescue
-      #TODO Send this message to stderr instead of stdout?
-      msg = "Cannot find SIMP OS installation via `#{cmd}`!"
-      say 'WARNING: '.bold.yellow + msg.yellow
+    puts ' simp -h'
+    puts ' simp COMMAND -h'
+    puts ' simp COMMAND [command options]'
+    puts
+    puts 'COMMANDS'
+    command_array = @commands.sort
+    max_length = command_array.map { |command, command_obj| command.length }.max
+    command_array.each do |command, command_obj|
+      puts "  #{command.ljust(max_length, ' ')}   #{command_obj.description}"
     end
+    puts
   end
 
   def self.start(args = ARGV)
@@ -46,23 +42,15 @@ class Simp::Cli
         @commands[constant.to_s.downcase] = obj.new
       end
     end
-    @commands['version'] = self
 
     result = 0
-    if args.length == 0 or (args.length == 1 and args[0] == 'help')
+    help_args = [
+      '-h',
+      '--help'
+    ]
+    if args.length == 0 || args[0] == 'help' ||
+        (args.length == 1 && help_args.include?(args[0]))
       menu
-    elsif args[0] == 'version'
-      puts version
-    elsif args[0] == 'help'
-      if (command = @commands[args[1]]).nil?
-        $stderr.puts "\n#{args[1]} is not a recognized command\n\n".red
-        menu
-        result = 1
-      elsif args[1] == 'version'
-        puts 'Display the current version of SIMP.'
-      else
-        command.help
-      end
     elsif (command = @commands[args[0]]).nil?
       $stderr.puts "\n#{args[0]} is not a recognized command\n\n".red
       menu

@@ -2,11 +2,25 @@ require 'simp/cli/commands/command'
 
 class Simp::Cli::Commands::Doc < Simp::Cli::Commands::Command
 
-  def help
-    puts "\n=== The SIMP Doc Tool ===\nShow SIMP documentation in elinks, a text-based web browser"
+  def description
+    'Show SIMP documentation in elinks'
   end
 
-  def run(unused_args = [])
+  def help
+    puts <<EOM
+
+=== The SIMP Doc Tool ===
+Show SIMP documentation in elinks, a text-based web browser
+
+Usage:  simp doc
+
+EOM
+  end
+
+  def run(args)
+    parse_command_line(args)
+    return if @help_requested
+
     unless system("rpm -q --quiet simp-doc")
       err_msg = "Package 'simp-doc' is not installed, cannot continue."
       raise Simp::Cli::ProcessingError.new(err_msg)
@@ -20,5 +34,14 @@ class Simp::Cli::Commands::Doc < Simp::Cli::Commands::Command
     end
 
     exec("links #{main_page}")
+  end
+
+  def parse_command_line(args)
+    if args.include?('-h') or args.include?('--help')
+      help
+      @help_requested = true
+    elsif args.size > 0
+      raise OptionParser::ParseError.new("Unsupported option: #{args.first}")
+    end
   end
 end
