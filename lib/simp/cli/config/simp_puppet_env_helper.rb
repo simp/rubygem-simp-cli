@@ -18,34 +18,18 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   # @returns Hash of environment information for the created environment.
   def create
     #TODO read much of this config in from a config file
+    omni_options = Simp::Cli::Utils.default_simp_env_config
+    omni_options[:types][:puppet].merge! ({
+      strategy: :skeleton,
+      puppetfile_generate: true,
+      puppetfile_install: true,
+    })
+    omni_options[:types][:secondary][:strategy] = :skeleton
+    omni_options[:types][:writable][:strategy]  = :skeleton # noop
+
     #TODO make sure it matches latest OmniEnvController code
-    omni_options = {
-      :types => {
-         :puppet    => {
-           :enabled            => true,
-           :strategy           => :skeleton,
-           :puppetfile         => false,
-           :puppetfile_install => false,
-           :deploy             => false,
-           :backend            => :directory,
-           :environmentpath    => File.basename(env_info[:puppet_env_dir])
-         },
-         :secondary => {
-           :enabled         => true,
-           :strategy        => :skeleton,
-           :backend         => :directory,
-           :environmentpath => File.basename(env_info[:secondary_env_dir])
-         },
-         :writable  => {
-           :enabled         => true,
-           :strategy        => :skeleton,
-           :backend         => :directory,
-           :environmentpath => File.basename(env_info[:writable_env_dir])
-         }
-       }
-     }
- #    omni_controller = Simp::Cli::Environment::OmniEnvController.new(omni_options, @env_name)
- #    omni_controller.create
+    omni_controller = Simp::Cli::Environment::OmniEnvController.new(omni_options, @env_name)
+    omni_controller.create
 
     # update @env_info to reflect the actual Puppet environment, as some
     # configuration may have changed (e.g., module path)

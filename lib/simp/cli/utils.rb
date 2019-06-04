@@ -7,8 +7,8 @@ module Simp::Cli::Utils
 
   ###################################################################
   # Let's be DRY.  Before adding methods to this file, first see if
-  # Simp::Cli::Utils::Config has what you need and, if so, move
-  # that common functionality here!
+  # Simp::Cli::Config::Utils has what you need and, if so, move that
+  # common functionality here!
   ###################################################################
 
   module_function
@@ -162,5 +162,71 @@ module Simp::Cli::Utils
       # detailed message already includes 'Invalid Password'
       raise Simp::Cli::PasswordError, "Invalid Password: #{result}"
     end
+  end
+
+  # Display an ASCII, spinning progress spinner for the action in a block
+  # and return the result of that block
+  # Example,
+  #    result = show_wait_spinner {
+  #      system('createrepo -q -p --update .')
+  #    }
+  #
+  # Lifted from
+  # http://stackoverflow.com/questions/10262235/printing-an-ascii-spinning-cursor-in-the-console
+  #
+  # FIXME:  This is a duplicate of code in simp/cli/config/items/item.rb.
+  # Need to share that code.
+  def show_wait_spinner(frames_per_second=5)
+    chars = %w[| / - \\]
+    delay = 1.0/frames_per_second
+    iter = 0
+    spinner = Thread.new do
+      while iter do  # Keep spinning until told otherwise
+        print chars[(iter+=1) % chars.length]
+        sleep delay
+        print "\b"
+      end
+    end
+    yield.tap {      # After yielding to the block, save the return value
+      iter = false   # Tell the thread to exit, cleaning up after itself
+      spinner.join   # and wait for it to do so.
+    }                # Use the block's return value as the method's
+  end
+
+  def default_simp_env_config
+    default_strategy = :skeleton
+    {
+      types: {
+        puppet: {
+          enabled: true,
+          strategy: default_strategy, # :skeleton, :copy (:link == noop)
+          puppetfile_generate: false,
+          puppetfile_install: false,
+          backend: :directory,
+          environmentpath: Simp::Cli::Utils.puppet_info[:config]['environmentpath'],
+          skeleton_path: '/usr/share/simp/environment-skeleton/puppet',
+          module_repos_path: '/usr/share/simp/git/puppet_modules',
+          skeleton_modules_path: '/usr/share/simp/modules'
+        },
+        secondary: {
+          enabled: true,
+          strategy: default_strategy,   # :skeleton, :copy, :link
+          backend: :directory,
+          environmentpath: Simp::Cli::Utils.puppet_info[:secondary_environment_path],
+          skeleton_path: '/usr/share/simp/environment-skeleton/secondary',
+          rsync_skeleton_path: '/usr/share/simp/environment-skeleton/rsync',
+          tftpboot_src_path: '/var/www/yum/**/images/pxeboot',
+          tftpboot_dest_path: 'rsync/RedHat/Global/tftpboot/linux-install'
+        },
+        writable: {
+          enabled: true,
+          strategy: default_strategy,   # :copy, :link (:skeleton == noop)
+          backend: :directory,
+          environmentpath: Simp::Cli::Utils.puppet_info[:writable_environment_path]
+          # skeleton_path: '/usr/share/simp/environment-skeleton/writable',  # <-- per discussions, not used
+        }
+      },
+      debug: false,
+    }
   end
 end

@@ -16,6 +16,7 @@ gem 'puppet', ENV.fetch('PUPPET_VERSION',  '~>5')
 gem 'rake'
 gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', ['>= 5.5', '< 6.0'])
 gem 'simp-beaker-helpers', ENV.fetch('SIMP_BEAKER_HELPERS_VERSION', '~> 1.10')
+gem 'r10k', ENV.fetch('R10k_VERSION',  '~>3')
 
 group :testing do
   # bootstrap common environment variables

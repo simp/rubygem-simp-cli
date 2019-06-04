@@ -36,6 +36,7 @@ Requires: puppet >= 5
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 Requires: sed
 Requires: simp-adapter >= 0.1.0
+Requires: simp-environment-skeleton >= 7.1.0
 Requires: yum-utils
 
 %if 0%{?rhel} > 6
@@ -126,6 +127,12 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Fri Apr 26 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
+- New features:
+  - Added 'simp environment' command
+  - Added `simp environment new` subcommand
+  - Added `simp environment fix` subcommand
+
 * Fri Apr 26 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
 - 'simp' change:
   - Fixed bug in which the wrong Facter environment variable was set

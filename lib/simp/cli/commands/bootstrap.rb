@@ -339,7 +339,9 @@ EOM
     # Kill all puppet processes and stop specific services
     info('Killing all remaining puppet processes', 'cyan')
     execute("puppet resource service #{@puppetserver_service} ensure=stopped >& /dev/null")
-    execute('pkill -9 -f puppet >& /dev/null')
+
+    # kill puppet pids *without* killing simp bootstrap
+    execute(%q[pids=$(pgrep puppet | egrep -v "$(pgrep -f '\<simp bootstrap' | xargs echo | sed -e 's/ /|/g')") && kill -9 $pids])
     execute('pkill -f pserver_tmp')  # another bootstrap run
 
     # Remove the run directory
