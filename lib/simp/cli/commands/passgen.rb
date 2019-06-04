@@ -15,6 +15,10 @@ class Simp::Cli::Commands::Passgen < Simp::Cli::Commands::Command
     @force_remove = false
   end
 
+  def description
+    "Utility for managing 'passgen' passwords"
+  end
+
   def help
     parse_command_line( [ '--help' ] )
   end

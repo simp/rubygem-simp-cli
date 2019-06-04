@@ -30,6 +30,10 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   #####################################################
   # Simp::Cli::Commands::Command API methods
   #####################################################
+  #
+  def description
+    'Bootstrap initial SIMP server'
+  end
 
   def help
     parse_command_line( [ '--help' ] )
