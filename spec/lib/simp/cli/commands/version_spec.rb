@@ -28,6 +28,20 @@ EOM
       end
 
     end
+
+    context 'SIMP rpm is installed' do
+      it 'should print simp RPM version' do
+        allow(@version).to receive(:`).with('rpm -q simp').and_return('6.4.0-0.el7.noarch')
+        expect { @version.run([]) }.to output("6.4.0\n").to_stdout
+      end
+    end
+
+    context 'SIMP rpm is not installed' do
+      it 'should fail' do
+        allow(@version).to receive(:`).with('rpm -q simp').and_return('package simp is not installed')
+        expect { @version.run([]) }.to raise_error(Simp::Cli::ProcessingError, /Version unknown/)
+      end
+    end
   end
 
 end

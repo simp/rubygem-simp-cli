@@ -16,20 +16,11 @@ class Simp::Cli::Commands::Version < Simp::Cli::Commands::Command
 
     cmd = 'rpm -q simp'
     begin
-      `#{cmd}`.split(/\n/).last.match(/([0-9]+\.[0-9]+\.?[0-9]*)/)[1]
+      puts `#{cmd}`.split(/\n/).last.match(/([0-9]+\.[0-9]+\.?[0-9]*)/)[1]
     rescue
-      #TODO Send this message to stderr instead of stdout?
       msg = 'Version unknown:'
       msg += "  Cannot find SIMP OS installation via `#{cmd}`!"
-      puts msg
-    end
-  end
-  def parse_command_line(args)
-    if args.include?('-h') or args.include?('--help')
-      help
-      @help_requested = true
-    elsif args.size > 0
-      raise OptionParser::ParseError.new("Unsupported option: #{args.first}")
+      raise Simp::Cli::ProcessingError.new(msg)
     end
   end
 
