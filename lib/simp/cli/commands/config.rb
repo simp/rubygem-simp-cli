@@ -92,6 +92,10 @@ EOM
   #####################################################
   # Simp::Cli::Commands::Command API methods
   #####################################################
+  #
+  def description
+    'Prepare SIMP server for bootstrapping'
+  end
 
   def help
     parse_command_line( [ '--help' ] )

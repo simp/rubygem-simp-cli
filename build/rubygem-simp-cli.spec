@@ -127,6 +127,12 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Jun 04 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
+- 'simp' change:
+  - Standardized help mechanism to be -h at all levels
+    (main, command, subcommand)
+  - Added descriptions to top level help command list
+
 * Fri Apr 26 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
 - New features:
   - Added 'simp environment' command
