@@ -7,7 +7,7 @@ class Simp::Cli::Commands::Version < Simp::Cli::Commands::Command
   end
 
   def help
-    puts "\n#{description}\n\nUsage:  simp version\n"
+    puts "\n#{description}\n\nUsage:  simp version\n\n"
   end
 
   def run(args)
@@ -26,7 +26,7 @@ class Simp::Cli::Commands::Version < Simp::Cli::Commands::Command
 
   def parse_command_line(args)
     if args.include?('-h') or args.include?('--help')
-      puts help
+      help
       @help_requested = true
     elsif args.size > 0
       raise OptionParser::ParseError.new("Unsupported option: #{args.first}")
