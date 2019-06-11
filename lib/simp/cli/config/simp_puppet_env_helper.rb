@@ -1,5 +1,6 @@
 require 'simp/cli/defaults'
-#require 'simp/cli/environment/omni_env_controller'
+require 'simp/cli/environment/omni_env_controller'
+require 'simp/cli/logging'
 require 'simp/cli/utils'
 
 module Simp; end
@@ -9,14 +10,34 @@ module Simp::Cli::Config; end
 # Class to encapsulate the nuances unique to a SIMP Puppet environment
 class Simp::Cli::Config::SimpPuppetEnvHelper
 
-  def initialize(env_name)
+  include Simp::Cli::Logging
+
+  # +env_name+: Puppet environment name
+  # +start_time+: Start time of the process using this object.
+  #   Used to ensure all file backup operations can be linked
+  #   together.
+  #
+  def initialize(env_name, start_time = Time.now)
     @env_name = env_name
     @env_info = nil
+    @start_time = start_time
   end
 
   # Creates a new SIMP omni environment
   # @returns Hash of environment information for the created environment.
   def create
+    # Workaround issue in which the example environment.conf in the empty
+    # production Puppet environment that is installed by the puppet-agent
+    # RPM causes the OmniEnvController#create to print a warning message
+    # about overwriting the environment.conf file.
+    environment_conf = File.join(env_info[:puppet_env_dir], 'environment.conf')
+    back_up_file(environment_conf)
+
+    # Head off a similar issue with the example hiera.yaml file also
+    # installed by the puppet-agent RPM
+    hiera_yaml = File.join(env_info[:puppet_env_dir], 'hiera.yaml')
+    back_up_file(hiera_yaml)
+
     #TODO read much of this config in from a config file
     omni_options = Simp::Cli::Utils.default_simp_env_config
     omni_options[:types][:puppet].merge! ({
@@ -61,6 +82,9 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   # :creatable - Valid Puppet & secondary environments can be safely
   #              created, overwriting any existing skeletal environment
   def env_status
+    #TODO integrate the (yet to be written) OmniEnvController environment
+    #     status method
+    #
     status_puppet, details_puppet = puppet_env_status
     status_secondary, details_secondary  = secondary_env_status
 
@@ -169,6 +193,17 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   end
 
 private
+  # back up a file by renaming it <file>.timestamp
+  def back_up_file(file)
+    if File.exists?(file)
+      group_id = File.stat(file).gid
+      backup_file = "#{file}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
+      logger.debug( "Backing up #{file} to #{backup_file}" )
+      FileUtils.mv(file, backup_file)
+      File.chown(nil, group_id, backup_file)
+    end
+  end
+
   # @returns Hash of Puppet environment information with the following keys
   #
   # :puppet_config      = Puppet master configuration for the environment

@@ -215,7 +215,10 @@ EOM
       # the correct Puppet env info
       @options[:puppet_env_info] = Simp::Cli::Config::Item::DEFAULT_PUPPET_ENV_INFO
     else
-      env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(@options[:puppet_env])
+      env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(
+        @options[:puppet_env], @options[:start_time]
+      )
+
       status_code, status_details =  env_helper.env_status
       details_msg = status_details.split("\n").map { |line| '  >> ' + line }.join("\n")
 
