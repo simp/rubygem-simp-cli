@@ -116,7 +116,7 @@ module Simp::Cli::Environment
 
     # Apply FACL permissions to a path using a file for `setfacl --restore`
     # @param [String] path       absolute path set FACLs
-    # @param [String] facl_file  absolutre path to rsync facl rules
+    # @param [String] facl_file  absolute path to rsync facl rules
     def apply_facls(path, facl_file)
       unless File.exist? @directory_path
         fail(
