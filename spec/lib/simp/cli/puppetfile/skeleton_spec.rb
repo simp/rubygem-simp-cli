@@ -92,7 +92,7 @@ describe Simp::Cli::Puppetfile::Skeleton do
     let(:expected_skeleton_only) do
       <<-PUPPETFILE.gsub(/ {8}/,'')
         #{Simp::Cli::Puppetfile::Skeleton::INTRO_SECTION}
-        instance_eval(File.read("Puppetfile.simp"))
+        instance_eval(File.read(File.join(__dir__,"Puppetfile.simp")))
 
 
         #{Simp::Cli::Puppetfile::Skeleton::LOCAL_MODULE_SECTION}
@@ -153,7 +153,7 @@ describe Simp::Cli::Puppetfile::Skeleton do
             # 'testenv' Puppet environment)
             #
             #{Simp::Cli::Puppetfile::Skeleton::INTRO_SECTION}
-            instance_eval(File.read("Puppetfile.simp"))
+            instance_eval(File.read(File.join(__dir__,"Puppetfile.simp")))
 
 
             #{Simp::Cli::Puppetfile::Skeleton::LOCAL_MODULE_SECTION}
@@ -180,7 +180,7 @@ describe Simp::Cli::Puppetfile::Skeleton do
             # 'testenv' Puppet environment)
             #
             #{Simp::Cli::Puppetfile::Skeleton::INTRO_SECTION}
-            instance_eval(File.read("Puppetfile.simp"))
+            instance_eval(File.read(File.join(__dir__,"Puppetfile.simp")))
 
 
             #{Simp::Cli::Puppetfile::Skeleton::LOCAL_MODULE_SECTION}

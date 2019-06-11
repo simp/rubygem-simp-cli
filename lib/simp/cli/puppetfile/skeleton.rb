@@ -24,7 +24,7 @@ module Simp::Cli::Puppetfile
       #
       #     simp puppetfile generate --skeleton > Puppetfile
       # OR
-      #     simp puppetfile generate --skeleton-with-local ENV > Puppetfile
+      #     simp puppetfile generate --skeleton --local-modules ENV > Puppetfile
       #
       # #{SUBSECTION_SEPARATOR}
     INTRO
@@ -74,7 +74,7 @@ module Simp::Cli::Puppetfile
       puppetfile = header
       puppetfile += <<-PUPPETFILE.gsub(/ {8}/,'')
         #{INTRO_SECTION}
-        instance_eval(File.read("Puppetfile.simp"))
+        instance_eval(File.read(File.join(__dir__,"Puppetfile.simp")))
 
 
         #{LOCAL_MODULE_SECTION}

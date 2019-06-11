@@ -35,7 +35,7 @@ describe Simp::Cli::Commands::Puppetfile::Generate do
       end
     end
 
-    context 'with argument `--skeleton-with-local ENV`' do
+    context 'with argument `--skeleton --local-modules ENV`' do
       let(:puppetfile) { 'Mocked Puppetfile content with local modules' }
 
       it 'prints skeleton Puppetfile with local modules to stdout' do
@@ -45,7 +45,7 @@ describe Simp::Cli::Commands::Puppetfile::Generate do
             :to_puppetfile => puppetfile
           )
         )
-        expect{ described_class.new.run(['--skeleton-with-local', 'production']) }.to output("#{puppetfile}\n").to_stdout
+        expect{ described_class.new.run(['--skeleton', '--local-modules', 'production']) }.to output("#{puppetfile}\n").to_stdout
       end
     end
   end

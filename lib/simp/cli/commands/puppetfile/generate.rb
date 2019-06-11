@@ -30,9 +30,10 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
         #{self.class.description}
 
         This command prints one of two types of Puppetfiles:
+
         * A Puppetfile that deploys the current set of SIMP Puppet modules installed in
             #{@simp_modules_install_path}
-          and available in local Git repositories in
+          from the corresponding local Git repositories in
             #{@simp_modules_git_repos_path}.
 
         * A skeleton, parent Puppetfile that includes Puppetfile.simp, the assumed name
@@ -53,26 +54,33 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
           # Generate an empty Puppetfile that includes Puppetfile.simp
           simp puppetfile generate --skeleton > Puppetfile
 
-          # Generate a Puppetfile that includes Puppetfile.simp and
-          # contains references to local (unmanaged) modules found in a
-          # Puppet environment's standard module location
-          simp puppetfile generate --skeleton-with-local ENV > Puppetfile
+          # Generate a Puppetfile that includes Puppetfile.simp and marks any unmanaged
+          # directories that exist under Puppet environment ENV's modules/ directory as
+          # `:local => true`
+          simp puppetfile generate --skeleton --local-modules ENV > Puppetfile
 
         Options:
 
       HELP_MSG
 
-      opts.on('-s', '--skeleton',
+      opts.on('-s', '--[no-]skeleton',
               'Generate an empty Puppetfile that includes',
-              'Puppetfile.simp') { @puppetfile_type = :skeleton }
+              'Puppetfile.simp.',
+             ) do |skel|
+                 @puppetfile_type = skel ? :skeleton : :simp
+              end
 
-      opts.on('-l', '--skeleton-with-local ENV',
+      opts.on('-l', '--local-modules ENV',
               Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
-              'Generate a Puppetfile that includes',
-              'Puppetfile.simp and contains local refs to',
-              'existing unmanaged modules in ENV') do |puppet_env|
-                @puppetfile_type = :skeleton
-                @puppet_env = puppet_env
+              'When generating a Puppetfile skeleton, scan',
+              'through the modules/ directory of Puppet',
+              'environment ENV, and mark any unmanaged',
+              'directories with `:local => true`.',
+              'This instructs r10k not to remove these',
+              'directories during `puppetfile install` and',
+              '`deploy environment`.',
+              '(This option only affects --skeleton)') do |puppet_env|
+                @puppet_env = puppet_env if puppet_env
               end
 
       opts.on('--modulepath PATH', Simp::Cli::Utils::REGEXP_UNIXPATH,

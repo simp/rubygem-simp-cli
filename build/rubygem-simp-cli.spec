@@ -135,13 +135,13 @@ EOM
     (main, command, subcommand)
   - Added descriptions to top level help command list
 - 'simp puppetfile generate' changes:
-  - Added '--skeleton-with-local ENV' option, which will add
-    each local (unmanaged) module found in a Puppet environment
-    to the generated skeleton Puppetfile as a local reference.
-    This option is key for sites that have unmanaged local
-    modules in an environment. Without the local references,
-    those modules will be purged by r10K/Code Manager, when
-    that environment's generated Puppetfile is deployed.
+  - Added '--local-modules ENV' option, which will add each local
+    local (unmanaged) module found in a Puppet environment to the
+    generated skeleton Puppetfile as `:local => true`.  This option is
+    key for sites that have unmanaged, locally-written modules in an
+    environment. Without the local references, those modules will be
+    purged by r10K/Code Manager, when that environment's generated
+    Puppetfile is deployed.
   - Changed the ':git' references for the local SIMP module repos
     in the generated Puppetfiles from file paths to file URLs.
   - Sorted modules listed in generated Puppetfile by their
