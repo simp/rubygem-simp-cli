@@ -54,7 +54,7 @@ negatively impact your site security. PKI depends upon sync'd time.]
     # allow empty NTP servers, but reiterate warning because it's important.
     def validate list
       if (list.is_a?(Array) || list.is_a?(String)) && list.empty?
-        info( "IMPORTANT: #{@no_ntp_warning}", [:RED] )
+        notice( "IMPORTANT: #{@no_ntp_warning}", [:RED] )
 
         # if the value is not pre-assigned, pause to give the user time
         # to think about the impact of not specifying NTP servers

@@ -21,12 +21,12 @@ module Simp::Cli::Config
       site_pp = File.join(@puppet_env_info[:puppet_env_dir], 'manifests', 'site.pp')
       if File.exists?(site_pp)
         backup_file = "#{site_pp}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-        debug( "Backing up #{site_pp} to #{backup_file}" )
+        info( "Backing up #{site_pp} to #{backup_file}" )
         FileUtils.cp(site_pp, backup_file)
         group_id = File.stat(site_pp).gid
         File.chown(nil, group_id, backup_file)
 
-        debug( "Updating $simp_scenario in #{site_pp}" )
+        info( "Updating $simp_scenario in #{site_pp}" )
         simp_scenario_line_found = false
         lines = IO.readlines(site_pp)
         File.open(site_pp, "w") do |f|

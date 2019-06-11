@@ -53,12 +53,12 @@ class Simp::Cli::Config::Questionnaire
   end
 
   def process_pass2(deferred_queue, answers)
-    logger.info( "\n#{'='*80}\n" )
+    logger.notice( "\n#{'='*80}\n" )
     if !@options[:user_overrides] && @options[:allow_queries] && !@options[:force_defaults]
       # space at end of question tells HighLine to remain on the prompt line
       # when gathering user input
-      logger.info("Questionnaire is now finished.\n".green)
-      logger.info( 'Time to apply the remaining pre-bootstrap configuration.')
+      logger.notice("Questionnaire is now finished.\n".green)
+      logger.notice( 'Time to apply the remaining pre-bootstrap configuration.')
       question = 'Ready to apply? (no = exit with session save):'.bold + ' '
       unless agree( question ) { |q| q.default = 'yes' }
         msg = "Exiting: User terminated processing prior to final pre-bootstrap config apply.\n"
@@ -68,7 +68,7 @@ class Simp::Cli::Config::Questionnaire
       end
     end
 
-    logger.info("\nApplying remaining pre-bootstrap configuration\n".green)
+    logger.notice("\nApplying remaining pre-bootstrap configuration\n".green)
     # Execute categories of actions, retaining their relative order.
     # This provides a more coherent set of actions, but ASSUMES, no cross-category
     # action dependencies.

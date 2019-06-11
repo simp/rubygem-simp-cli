@@ -19,13 +19,13 @@ module Simp::Cli::Config
 
       if @skip_apply
         @applied_status = :skipped
-        info( "(Skipping apply#{skip_apply_reason})", [status_color, :BOLD], " #{action}" )
+        notice( "(Skipping apply#{skip_apply_reason})", [status_color, :BOLD], " #{action}" )
       else
-        info( ">> Applying:", [:GREEN, :BOLD], " #{action}... " ) # ending space prevents \n
-        debug('') # add \n after 'Applying:...' when debug logging is enabled
+        notice( ">> Applying:", [:GREEN, :BOLD], " #{action}... " ) # ending space prevents \n
+        info('') # add \n after 'Applying:...' when info logging is enabled
         begin
           apply
-          info( "#{@applied_status.to_s.capitalize}", [status_color, :BOLD] )
+          notice( "#{@applied_status.to_s.capitalize}", [status_color, :BOLD] )
           if @applied_status == :failed
             if @die_on_apply_fail
               raise ApplyError.new(apply_summary)

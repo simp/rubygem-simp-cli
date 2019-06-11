@@ -28,7 +28,7 @@ module Simp::Cli::Config
                            Facter.value('operatingsystemrelease'),
                            Facter.value('architecture')
                          )
-      debug( "Updating YUM Updates repository at #{File.join(@yumpath, 'Updates')}" )
+      info( "Updating YUM Updates repository at #{File.join(@yumpath, 'Updates')}" )
       begin
         Dir.chdir(@yumpath) do
           FileUtils.mkdir('Updates') unless File.directory?('Updates')
@@ -45,7 +45,7 @@ module Simp::Cli::Config
         result = result && execute("chmod -R u=rwX,g=rX,o-rwx #{@www_yum_dir}/")
         raise YumRepoError.new("Updating ownership and permissions of #{@www_yum_dir}/ failed!")  unless result
         @yum_update = :succeeded
-        debug( 'Finished updating Updates repository' )
+        info( 'Finished updating Updates repository' )
       rescue YumRepoError, Errno::ENOENT, Errno::ENOTDIR, Errno::EACCES, Errno::EEXIST => err
         error( "\nERROR: Something went wrong setting up the Updates repo in #{@yumpath}!", [:RED] )
         error( '       Please make sure your Updates repo is properly configured.', [:RED] )
@@ -57,7 +57,7 @@ module Simp::Cli::Config
         Dir.chdir( @yum_repos_d ) do
           # disable any CentOS repo spam
           if ! Dir.glob('CentOS*.repo').empty?
-            debug( "Disabling CentOS repositories in #{@yum_repos_d}" )
+            info( "Disabling CentOS repositories in #{@yum_repos_d}" )
             # Don't use pipes with spawn
             repos = run_command(%q{grep "\\[*\\]" *CentOS*.repo})[:stdout].strip.split("\n")
             repos.map { |repo|
@@ -65,7 +65,7 @@ module Simp::Cli::Config
               repo.split(':[').last.tr(']','')}.each do |repo_name|
                 execute("yum-config-manager --disable #{repo_name}") if not repo_name.nil?
             end
-            debug( 'Finished disabling CentOS repositories' )
+            info( 'Finished disabling CentOS repositories' )
           end
         end
         @yum_repo_disable = :succeeded

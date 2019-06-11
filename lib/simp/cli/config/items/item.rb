@@ -3,6 +3,7 @@ require 'puppet'
 require 'yaml'
 require 'simp/cli/config/errors'
 require 'simp/cli/defaults'
+require 'simp/cli/exec_utils'
 require 'simp/cli/logging'
 
 module Simp; end
@@ -184,11 +185,11 @@ module Simp::Cli::Config
 
     # print a pretty banner to describe an item
     def print_banner
-      info( "\n=== #{@key} ===", [:CYAN, :BOLD])
-      info( description, [:CYAN] )
+      notice( "\n=== #{@key} ===", [:CYAN, :BOLD])
+      notice( description, [:CYAN] )
       # inspect is a work around for Ruby 1.8.7 Array.to_s garbage
-      info( "    - os value:          #{os_value.inspect}", [:CYAN] )          if os_value
-      info( "    - recommended value: #{recommended_value.inspect}", [:CYAN] ) if recommended_value
+      notice( "    - os value:          #{os_value.inspect}", [:CYAN] )          if os_value
+      notice( "    - recommended value: #{recommended_value.inspect}", [:CYAN] ) if recommended_value
     end
 
 
@@ -199,7 +200,7 @@ module Simp::Cli::Config
       log_params = []
       log_params += [ "(#{@alt_source.to_s})", [:CYAN, :BOLD] ] unless @alt_source.nil?
       log_params += ["#{@key} = ", [], "#{@value.inspect}", [:BOLD] ]
-      info(*log_params)
+      notice(*log_params)
     end
 
     # --------------------------------------------------------------------------
@@ -398,43 +399,25 @@ module Simp::Cli::Config
     # --------------------------------------------------------------------------
 
     # Execute a command in a child process, log failure and return
-    # whether command succeeded.
-    # When ignore_failure is true and command fails, does not log
-    # failure and returns true
+    # a hash with the command status, stdout and stderr.
+    #
+    # +command+:  Command to be executed
+    # +ignore_failure+:  Whether to ignore failures.  When true and
+    #   and the command fails, does not log the failure and returns
+    #   a hash with :status = true
+    #
     def run_command(command, ignore_failure = false)
-      debug( "Executing: #{command}" )
-      # We noticed inconsistent behavior when spawning commands
-      # with pipes, particularly a pipe to 'xargs'. Rejecting pipes
-      # for now, but we may need to re-evaluate in the future.
-      raise InvalidSpawnError.new(command) if command.include? '|'
-      out_pipe_r, out_pipe_w = IO.pipe
-      err_pipe_r, err_pipe_w = IO.pipe
-      pid = spawn(command, :out => out_pipe_w, :err => err_pipe_w)
-      out_pipe_w.close
-      err_pipe_w.close
-
-      Process.wait(pid)
-      exitstatus = $?.nil? ? nil : $?.exitstatus
-      stdout = out_pipe_r.read
-      out_pipe_r.close
-      stderr = err_pipe_r.read
-      err_pipe_r.close
-
-      return {:status => true, :stdout => stdout, :stderr => stderr} if ignore_failure
-
-      if exitstatus == 0
-        return {:status => true, :stdout => stdout, :stderr => stderr}
-      else
-        error( "\n[#{command}] failed with exit status #{exitstatus}:", [:RED] )
-        stderr.split("\n").each do |line|
-          error( ' '*2 + line, [:RED] )
-        end
-        return {:status => false, :stdout => stdout, :stderr => stderr}
-      end
+      return Simp::Cli::ExecUtils::run_command(command, ignore_failure, logger)
     end
 
+    # Execute a command in a child process, log failure and return
+    # whether command succeeded.
+    #
+    # +command+:  Command to be executed
+    # +ignore_failure+:  Whether to ignore failures.  When true and
+    #   the command fails, does not log the failure and returns true.
     def execute(command, ignore_failure = false)
-      return run_command(command, ignore_failure)[:status]
+      return Simp::Cli::ExecUtils::execute(command, ignore_failure, logger)
     end
 
     # Display an ASCII, spinning progress spinner for the action in a block
@@ -480,12 +463,20 @@ module Simp::Cli::Config
     end
 
     # logging helper methods
+    def trace(*args)
+      logger.trace(*args) unless @silent
+    end
+
     def debug(*args)
       logger.debug(*args) unless @silent
     end
 
     def info(*args)
       logger.info(*args) unless @silent
+    end
+
+    def notice(*args)
+      logger.notice(*args) unless @silent
     end
 
     def warn(*args)

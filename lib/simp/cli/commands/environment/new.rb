@@ -2,12 +2,17 @@
 
 require 'simp/cli/commands/command'
 require 'simp/cli/environment/omni_env_controller'
+require 'simp/cli/command_logger'
+require 'yaml'
 
 # Cli command to create a new Extra/Omni environment
 #
 # TODO: As more `simp environment` sub-commands are added, a lot of this code
 #      could probably be abstracted into a common class or mixin
 class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
+
+  include Simp::Cli::CommandLogger
+
   TYPES=[:puppet, :secondary, :writable]
 
   # @return [String] description of command
@@ -27,6 +32,19 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     # these options (preferrable mimicking cmd-line args)
     options = Simp::Cli::Utils.default_simp_env_config
     options[:action] = :create
+    options[:start_time] = Time.now
+    options[:log_basename] = 'simp_env_new.log'
+
+    ####### IMPORTANT
+    # This is EXPLICITLY set to INFO, so that, by default, when
+    # 'simp environment fix' is called, details are sent to the
+    # console, but NOT sent to the console when the corresponding
+    # code is used within 'simp config'.
+    options[:verbose] = 1 # -1 = ERROR  and above
+                          #  0 = NOTICE and above
+                          #  1 = INFO   and above
+                          #  2 = DEBUG  and above
+                          #  3 = TRACE  and above
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = '== simp environment new [options]'
@@ -120,9 +138,8 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               '(default: --writable-env)') { |v| options[:types][:writable][:enabled] = v }
 
       opts.separator ''
-      opts.on('-d', '--[no-]debug',
-              'Include debugging messages in output',
-              '(default: --no-debug)') { |v| options[:debug] = v }
+
+      add_logging_command_options(opts, options)
 
       opts.on_tail('-h', '--help', 'Print this message') do
         puts opts
@@ -152,12 +169,19 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       )
     end
 
-    if options[:debug]
-      require 'yaml'
-      puts options.to_yaml, '', ''
+    set_up_global_logger(options)
+
+    unless options[:verbose] < 0
+      logger.say("Actions will be logged to\n  #{options[:log_file]}\n".bold)
     end
+    logger.debug("Environment creation options:\n#{options.to_yaml}\n")
 
     omni_controller = Simp::Cli::Environment::OmniEnvController.new(options, env)
     omni_controller.send(action)
+
+    unless options[:verbose] < 0
+      logger.say( "\n" + "Detailed log written to #{options[:log_file]}".bold )
+    end
   end
+
 end

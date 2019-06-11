@@ -9,7 +9,7 @@ module Simp::Cli::Environment
   # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/760840207/Environments
   class SecondaryDirEnv < DirEnv
     def initialize(name, base_environments_path, opts)
-      super(name, base_environments_path, opts)
+      super(:secondary, name, base_environments_path, opts)
       @skeleton_path = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
 
       @rsync_dest_path = File.join(@directory_path, 'rsync')
@@ -126,17 +126,18 @@ module Simp::Cli::Environment
       end
       fail(Simp::Cli::ProcessingError, "ERROR: No FACL file at '#{facl_file}'") unless File.exist?(facl_file)
 
-      say "Applying FACL rules to #{path}".cyan
-      system("cd #{path} && setfacl --restore=#{facl_file} 2>/dev/null")
-      return if $CHILD_STATUS.success?
-
-      fail(
-        Simp::Cli::ProcessingError,
-        "ERROR: `setfacl --restore=#{facl_file}` failed at '#{path}'"
-      )
+      Dir.chdir(path) do
+        info("Applying FACL rules to '#{path}'".cyan)
+        cmd = "setfacl --restore=#{facl_file} 2>/dev/null"
+        unless execute(cmd)
+          fail(Simp::Cli::ProcessingError, "ERROR:  Failed to apply FACL rules to #{path}")
+        end
+      end
     end
 
     def create_environment_from_skeletons
+      info("Creating #{@type} env '#{@directory_path}' from '#{@skeleton_path}'".cyan)
+
       # make sure directory exists and is readable by all
       FileUtils.mkdir_p @directory_path, mode: 0755
       FileUtils.chmod(0755, File.dirname(@directory_path))
@@ -150,6 +151,7 @@ module Simp::Cli::Environment
 
     # Copy rsync skeleton files and create rsync/CentOS link to rsync/RedHat
     def copy_rsync_skeleton_files
+      info("Copying rsync skeleton files from '#{@rsync_skeleton_path} into #{@type} env".cyan)
       copy_skeleton_files(@rsync_skeleton_path, @rsync_dest_path) # C1.2, C2.1
       Dir.chdir(@rsync_dest_path) do
         FileUtils.ln_s('RedHat', 'CentOS')  # C.5.2
@@ -163,6 +165,7 @@ module Simp::Cli::Environment
     #
     def copy_tftpboot_files
       Dir.glob(@tftpboot_src_path) do |dir|
+        info("Copying tftpboot PXE image files from '#{dir}' into #{@type} env".cyan)
         os_info = dir.split('/')[-5..-3]
         dst_dirname = os_info.map(&:downcase).join('-')
         dst_path = File.join(@tftpboot_dest_path, dst_dirname)
@@ -185,7 +188,7 @@ module Simp::Cli::Environment
       fail(Simp::Cli::ProcessingError, "No FakeCA directory at '#{@fakeca_dest_path}'") unless File.directory? @fakeca_dest_path
 
       cacertkey_path = File.join(@fakeca_dest_path, 'cacertkey')
-      say "Creating in FakeCA cacertkey at '#{cacertkey_path}'".cyan
+      info("Creating in FakeCA cacertkey in #{@type} env at '#{cacertkey_path}'".cyan)
       require 'securerandom'
       require 'base64'
       File.open(cacertkey_path, 'w') do |f|

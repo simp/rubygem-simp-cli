@@ -32,4 +32,5 @@ class Simp::Cli::Commands::Command
   def run(args = [])
     raise("run() not implemented by #{self.class} ")
   end
+
 end

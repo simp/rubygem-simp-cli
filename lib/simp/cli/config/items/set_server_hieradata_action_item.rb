@@ -48,7 +48,7 @@ module Simp::Cli::Config
         raise InternalError.new("YAML string for #{hiera_key} is not set")
       end
 
-      debug( "Adding #{hiera_key} to #{File.basename(@file)}" )
+      info( "Adding #{hiera_key} to #{File.basename(@file)}" )
       yaml = IO.readlines(@file)
       line_written = false
       File.open(@file, 'w') do |f|
@@ -84,7 +84,7 @@ module Simp::Cli::Config
       end
       yaml_line = yaml_line[0]
 
-      debug( "Replacing #{hiera_key} in #{File.basename(@file)}" )
+      info( "Replacing #{hiera_key} in #{File.basename(@file)}" )
       yaml = IO.readlines(@file)
       File.open(@file, 'w') do |f|
         yaml.each do |line|

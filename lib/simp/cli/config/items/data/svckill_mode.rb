@@ -48,15 +48,15 @@ allowed, register the allowed services with svckill and then change
       result = false
       if x == 'warning'
         result = true
-        info( @warning_msgs[:warning], [:YELLOW] )
+        notice( @warning_msgs[:warning], [:YELLOW] )
 
         # if the value is not pre-assigned, pause to give the user time
         # to think about the impact of not specifying NTP servers
-        pause(:info) if @value.nil?
+        pause(:notice) if @value.nil?
       elsif x == 'enforcing'
         result = true
-        info( @warning_msgs[:enforcing], [:RED] )
-        pause(:info)
+        notice( @warning_msgs[:enforcing], [:RED] )
+        pause(:notice)
       end
       result
     end

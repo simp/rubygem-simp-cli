@@ -418,7 +418,7 @@ describe 'Simp::Cli::Command::Config#run' do
       end
     end
 
-    it 'logs debug output to the console when --verbose option selected' do
+    it 'logs info-level output to the console when --verbose option selected' do
       begin
         Timeout.timeout(max_config_run_seconds) do
           @config.run(['-o', @answers_output_file,

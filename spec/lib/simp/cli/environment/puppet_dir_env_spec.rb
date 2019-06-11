@@ -46,13 +46,12 @@ describe Simp::Cli::Environment::PuppetDirEnv do
       # as user root
       allow(ENV).to receive(:fetch).with(any_args).and_call_original
       allow(ENV).to receive(:fetch).with('USER').and_return('root')
-      allow(described_object).to receive(:`).with(rsync_cmd)
-      allow($CHILD_STATUS).to receive(:success?).and_return(true)
+      allow(described_object).to receive(:execute).with(rsync_cmd).and_return(true)
     end
 
     example do
       described_object.copy_skeleton_files(opts[:skeleton_path], env_dir, 'puppet')
-      expect(described_object).to have_received(:`).with(rsync_cmd)
+      expect(described_object).to have_received(:execute).with(rsync_cmd)
     end
   end
 
