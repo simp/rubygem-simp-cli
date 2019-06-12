@@ -41,9 +41,44 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
       allow(File).to receive(:exist?).with(opts[:environmentpath]).and_return(true)
     end
 
-    describe '#create', :skip => 'TODO implement' do
+    describe '#create' do
       before(:each) { allow(File).to receive(:exist?).with(env_dir).and_return(false) }
-      it { expect { described_object.create }.not_to raise_error }
+
+      context 'when strategy is :skeleton' do
+        let(:opts){ super().merge(strategy: :skeleton) }
+        before(:each){ allow(described_object).to receive(:create_environment_from_skeletons)}
+        it { expect { described_object.create }.not_to raise_error }
+      end
+
+      context 'when strategy is :copy' do
+        let(:opts) do
+          super().merge({
+            strategy: :copy,
+            src_env:  File.join(base_env_path,'src_env'),
+          })
+        end
+        before(:each) { allow( described_object ).to receive(:copy_environment_files).with(opts[:src_env]) }
+        it { expect { described_object.create }.not_to raise_error }
+        example do
+          described_object.create
+          expect(described_object).to have_received(:copy_environment_files).with(opts[:src_env])
+        end
+      end
+
+      context 'when strategy is :link' do
+        let(:opts) do
+          super().merge({
+            strategy: :link,
+            src_env:  File.join(base_env_path,'src_env'),
+          })
+        end
+        before(:each){ allow( described_object ).to receive(:link_environment_dirs).with(opts[:src_env]) }
+        it { expect { described_object.create }.not_to raise_error }
+        example do
+          described_object.create
+          expect(described_object).to have_received(:link_environment_dirs).with(opts[:src_env])
+        end
+      end
     end
 
     describe '#fix' do

@@ -87,7 +87,10 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
                 TYPES.each do |type|
                   options[:types][type][:strategy]    = :skeleton
                 end
-                options[:types][:puppet][:puppetfile_generate] = true
+                # NOTE: The default --no-puppetfile will always set this to
+                #       false in a later opts.on block, so this logic must be
+                #       handled there.
+                # options[:types][:puppet][:puppetfile_generate] = true
               end
 
       opts.on('--copy ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
@@ -114,6 +117,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               '  * `Puppetfile` will only be created if missing',
               '  * `Puppetfile.simp` will be generated from RPM/',
               '  * Implies `--puppet-env`') do |v|
+        options[:types][:puppet][:puppetfile_generate] = (v || options[:types][type][:strategy] == :skeleton)
         options[:types][:puppet][:enabled] = true if (options[:types][:puppet][:puppetfile_generate] = v)
       end
 

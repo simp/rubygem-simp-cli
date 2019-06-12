@@ -129,6 +129,14 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Jun 11 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
+  - `simp environment new` changes:
+    - Behaviors match `--help` documentation:
+      - `--skeleton` implies `--puppetfile`
+      - `--puppetfile`:
+        - generates `Puppetfile.simp` from local RPM/git repos
+        - generates a skeleton `Puppetfile` (if needed)
+    - Fails before acting if any component environment cannot be created
 * Fri Jun 07 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
 - 'simp' change:
   - Standardized help mechanism to be -h at all levels

@@ -11,6 +11,7 @@ module Simp::Cli::Environment
     def initialize(name, base_environments_path, opts)
       super(:puppet, name, base_environments_path, opts)
       @skeleton_path = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
+      @puppetfile_simp_path = File.join(directory_path, 'Puppetfile.simp')
       @puppetfile_path = File.join(directory_path, 'Puppetfile')
     end
 
@@ -22,13 +23,7 @@ module Simp::Cli::Environment
     #
     # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
     def create
-      # Safety feature: Don't clobber a Puppet environment directory that already has content
-      unless Dir.glob(File.join(@directory_path, 'modules', '*')).empty?
-        fail(
-          Simp::Cli::ProcessingError,
-          "ERROR: A Puppet environment directory with content already exists at '#{@directory_path}'"
-        )
-      end
+      fail_unless_createable
 
       case @opts[:strategy]
       when :skeleton
@@ -136,10 +131,18 @@ module Simp::Cli::Environment
         @opts[:skeleton_modules_path],
         @opts[:module_repos_path]
       )
+      puppetfile_skeleton = Simp::Cli::Puppetfile::Skeleton.new
 
       logger.info "Generating Puppetfile from local git repos at '#{@puppetfile_path}'".cyan
       File.open(@puppetfile_path, 'w') do |f|
         f.puts puppetfile_modules.to_puppetfile
+      end
+
+      unless File.exists? @puppetfile_path
+        say "Generating Puppetfile (to include Puppetfile.simp' at '#{@puppetfile_path}'".cyan
+        File.open(@puppetfile_path, 'w') do |f|
+          f.puts puppetfile_skeleton.to_puppetfile
+        end
       end
     end
 

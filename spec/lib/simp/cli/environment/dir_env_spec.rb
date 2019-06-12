@@ -53,5 +53,46 @@ describe Simp::Cli::Environment::DirEnv do
         end
       end
     end
+    describe '#copy_skeleton_files' do
+
+      let(:opts){ super().merge(strategy: :skeleton) }
+      let(:rsync_cmd) do
+        %(sg - puppet -c '/usr/bin/rsync -a --no-g "#{opts[:skeleton_path]}/" "#{env_dir}/" 2>&1')
+      end
+
+      before(:each) do
+        # as user root
+        allow(ENV).to receive(:fetch).with(any_args).and_call_original
+        allow(ENV).to receive(:fetch).with('USER').and_return('root')
+        allow(described_object).to receive(:execute).with(rsync_cmd)
+        allow($CHILD_STATUS).to receive(:success?).and_return(true)
+      end
+
+      example do
+        described_object.copy_skeleton_files(opts[:skeleton_path], env_dir, 'puppet')
+        expect(described_object).to have_received(:execute).with(rsync_cmd)
+      end
+    end
   end
+
+  describe '#fail_unless_createable' do
+    subject(:described_object) { described_class.new(env_name, base_env_path, opts) }
+    context 'when writable environment directory is empty' do
+      before(:each) do
+        allow(Dir).to receive(:glob).with(any_args).and_call_original
+        allow(Dir).to receive(:glob).with(File.join(env_dir, '*')).and_return([])
+      end
+      it { expect { described_object.fail_unless_createable }.not_to raise_error }
+    end
+    context 'when writable environment directory is not empty' do
+      before(:each) { allow(Dir).to receive(:glob).and_return(['data', 'hiera.yaml']) }
+      it {
+        expect { described_object.fail_unless_createable }.to raise_error(
+          Simp::Cli::ProcessingError,
+          %r{already exists at '#{env_dir}'}
+        )
+      }
+    end
+  end
+
 end

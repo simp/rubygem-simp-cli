@@ -35,15 +35,36 @@ module Simp::Cli::Environment
       end
     end
 
+
+    def fail_unless_createable
+      errors = []
+      each_environment 'pre-create' do |_env_type, env_obj|
+        begin
+          env_obj.fail_unless_createable
+        rescue Simp::Cli::ProcessingError => e
+          errors << e
+          next
+        end
+      end
+      unless errors.empty?
+        fail Simp::Cli::ProcessingError, [
+          "Cannot create environment because of errors encountered:",
+          errors.map{|e| "  #{e.message}" }
+        ].join("\n")
+      end
+    end
     # Create a new environment for each environment type
     def create
+      # ensure environments are createable before proceeding
+      fail_unless_createable
+
       logger.notice("Creating new environment '#{@env}'".bold)
       each_environment 'create' do |_env_type, env_obj|
         env_obj.create
       end
 
-      # ensure environments are correct after creating them
-      fix
+      each_environment('create') { |_t, env_obj| env_obj.create }
+      fix  # ensure environments are correct after creating them
     end
 
     # Update environment

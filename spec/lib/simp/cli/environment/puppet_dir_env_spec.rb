@@ -4,7 +4,6 @@ require 'simp/cli/environment/puppet_dir_env'
 require 'spec_helper'
 
 describe Simp::Cli::Environment::PuppetDirEnv do
-  # rubocop:disable RSpec/SubjectStub
   subject(:described_object) { described_class.new(env_name, base_env_path, opts) }
 
   let(:base_opts)  do
@@ -56,22 +55,48 @@ describe Simp::Cli::Environment::PuppetDirEnv do
   end
 
   context 'with methods' do
-    describe '#create', :skip => 'TODO: implement' do
-      context 'when puppet environment directory is empty (not deployed)' do
+    describe '#create' do
+      context 'when strategy is :skeleton' do
+        let(:opts){ super().merge(strategy: :skeleton) }
+
         before(:each) do
-          allow(Dir).to receive(:glob).with(any_args).and_call_original
-          allow(Dir).to receive(:glob).with(File.join(env_dir, '*')).and_return([])
-          allow(described_object).to receive(:copy_skeleton_files).with(
-            opts[:skeleton_path], env_dir, 'puppet'
-          )
+          allow(described_object).to receive(:create_environment_from_skeleton)
         end
         it { expect { described_object.create }.not_to raise_error }
         it {
           described_object.create
-          expect(described_object).to have_received(:copy_skeleton_files).with(
-            opts[:skeleton_path], env_dir, 'puppet'
-          )
+          expect(described_object).to have_received(:create_environment_from_skeleton)
         }
+      end
+
+      context 'when strategy is :copy' do
+        let(:opts) do
+          super().merge({
+            strategy: :copy,
+            src_env:  File.join(base_env_path,'src_env'),
+          })
+        end
+        before(:each) { allow( described_object ).to receive(:copy_environment_files).with(opts[:src_env]) }
+        it { expect { described_object.create }.not_to raise_error }
+        example do
+          described_object.create
+          expect(described_object).to have_received(:copy_environment_files).with(opts[:src_env])
+        end
+      end
+
+      context 'when strategy is :link' do
+        let(:opts) do
+          super().merge({
+            strategy: :link,
+            src_env:  File.join(base_env_path,'src_env'),
+          })
+        end
+        before(:each){ allow( described_object ).to receive(:link_environment_dirs).with(opts[:src_env]) }
+        it { expect { described_object.create }.not_to raise_error }
+        example do
+          described_object.create
+          expect(described_object).to have_received(:link_environment_dirs).with(opts[:src_env])
+        end
       end
 
       context 'when puppet environment directory is not empty' do
@@ -82,6 +107,53 @@ describe Simp::Cli::Environment::PuppetDirEnv do
             %r{already exists at '#{env_dir}'}
           )
         }
+      end
+    end
+
+
+    describe '#create_environment_from_skeleton' do
+      context 'when puppet environment directory is empty (not deployed)' do
+        before(:each) do
+          allow(Dir).to receive(:glob).with(any_args).and_call_original
+          allow(Dir).to receive(:glob).with(File.join(env_dir, '*')).and_return([])
+          allow(FileUtils).to receive(:mkdir_p).with(any_args).and_call_original
+          allow(FileUtils).to receive(:mkdir_p).with(env_dir, mode: 0755)
+          allow(described_object).to receive(:copy_skeleton_files).with(
+            opts[:skeleton_path], env_dir, 'puppet'
+          )
+          allow(described_object).to receive(:template_environment_conf)
+        end
+
+        it { expect { described_object.create_environment_from_skeleton }.not_to raise_error }
+        example do
+          described_object.create_environment_from_skeleton
+          expect(described_object).to have_received(:copy_skeleton_files).with(
+            opts[:skeleton_path], env_dir, 'puppet'
+          )
+        end
+        it { expect { described_object.create_environment_from_skeleton }.not_to raise_error }
+
+        context 'with :puppetfile_generate option' do
+          let(:opts){ super().merge(puppetfile_generate: true)}
+          before :each do
+            allow(described_object).to receive(:puppetfile_generate)
+          end
+          example do
+            described_object.create_environment_from_skeleton
+            expect(described_object).to have_received(:puppetfile_generate).once
+          end
+        end
+
+        context 'with :puppetfile_install option' do
+          let(:opts){ super().merge(puppetfile_install: true)}
+          before :each do
+            allow(described_object).to receive(:puppetfile_install)
+          end
+          example do
+            described_object.create_environment_from_skeleton
+            expect(described_object).to have_received(:puppetfile_install).once
+          end
+        end
       end
     end
 
@@ -126,5 +198,4 @@ describe Simp::Cli::Environment::PuppetDirEnv do
       it { expect { described_object.remove }.to raise_error(NotImplementedError) }
     end
   end
-  # rubocop:enable RSpec/SubjectStub
 end

@@ -99,5 +99,15 @@ module Simp::Cli::Environment
         warn("WARNING: Source environment directory '#{src_env_dir}' does not exist to link; skipping.".yellow)
       end
     end
+
+    def fail_unless_createable
+      # Safety feature: Don't clobber an environment directory that already has content
+      unless Dir.glob(File.join(@directory_path, '*')).empty?
+        fail(
+          Simp::Cli::ProcessingError,
+          "ERROR: A directory with content already exists at '#{@directory_path}'"
+        )
+      end
+    end
   end
 end
