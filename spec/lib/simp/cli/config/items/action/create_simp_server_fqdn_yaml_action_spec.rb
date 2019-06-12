@@ -25,6 +25,11 @@ describe Simp::Cli::Config::Item::CreateSimpServerFqdnYamlAction do
     @ci.start_time = Time.new(2017, 1, 13, 11, 42, 3)
   end
 
+  after :each do
+    FileUtils.chmod_R 0777, @tmp_dir
+    FileUtils.remove_entry_secure @tmp_dir
+  end
+
   describe '#apply_summary' do
     it 'reports unattempted status when #apply not called' do
       expect( @ci.apply_summary ).to eq 'Creation of SIMP server <host>.yaml unattempted'
@@ -42,10 +47,6 @@ describe Simp::Cli::Config::Item::CreateSimpServerFqdnYamlAction do
       @backup_host_yaml  = "#{@host_yaml}.20170113T114203"
     end
 
-    after :each do
-      FileUtils.chmod_R 0777, @tmp_dir
-      FileUtils.remove_entry_secure @tmp_dir
-    end
 
     it 'renames template when <host>.yaml does not exist' do
       FileUtils.cp(@file, @template_file)
