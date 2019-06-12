@@ -1,105 +1,98 @@
 require 'simp/cli/puppetfile/local_simp_puppet_module'
 require 'spec_helper'
+require 'test_utils/git'
+require 'tmpdir'
 
 describe Simp::Cli::Puppetfile::LocalSimpPuppetModule do
-  TEST_FILES = File.join(__dir__, 'files')
 
-  # Mock data about 1..n modules
-  USR_MOD_DIR  = '/usr/share/simp/modules'.freeze
-  SIMP_GIT_DIR = '/usr/share/simp/git/puppet_modules'.freeze
-  TEST_MODULES = Hash[
+  # Mock module data
+  test_files   = File.join(__dir__, 'files')
+  test_modules = Hash[
     %w[simplib stdlib].map do |k|
-      mdj_str = File.read(File.join(TEST_FILES, "#{k}.metadata.json"))
       [k, {
-        :metadata_json_path => "#{USR_MOD_DIR}/#{k}/metadata.json",
-        :metadata_json_str => mdj_str,
-        :git_tag_l_str => File.read(File.join(TEST_FILES, "#{k}.git_tag_-l.txt")),
-        :metadata => JSON.parse(mdj_str)
+        :metadata_file => File.join(test_files, k, 'metadata.json'),
+        :metadata      => JSON.parse(File.read(File.join(test_files, k, 'metadata.json'))),
+        :git_tags      => File.readlines(File.join(test_files, k, 'git_tag_-l.txt')).map(&:strip)
       }]
     end
   ]
 
-  before(:each) do
-    # Pass through partial mocks when we don't need them
-    allow(File).to receive(:directory?).with(any_args).and_call_original
-    allow(File).to receive(:exist?).with(any_args).and_call_original
-    allow(File).to receive(:read).with(any_args).and_call_original
-    allow(Dir).to receive(:[]).with(any_args).and_call_original
-    allow(Dir).to receive(:chdir).with(any_args).and_call_original
-    allow(File).to receive(:directory?).with(SIMP_GIT_DIR).and_yield(SIMP_GIT_DIR)
+  before(:all) do
+    @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
+    test_modules.each do |module_name, info|
+      module_git_dir = File.join(@tmp_dir, "#{info[:metadata]['name']}.git")
+      TestUtils::Git::create_bare_repo(module_git_dir, info[:metadata_file], info[:git_tags])
+    end
   end
 
-  TEST_MODULES.each do |_k, v|
-    let(:metadata) { v[:metadata] }
-    let(:module_git_dir) { File.join(SIMP_GIT_DIR, "#{v[:metadata]['name']}.git") }
-    let(:git_tag_l_str) { v[:git_tag_l_str] }
-    context "with module '#{v[:metadata]['name']}'" do
-      subject(:described_object) { described_class.new(metadata, SIMP_GIT_DIR) }
+  after(:all) do
+    FileUtils.remove_entry_secure @tmp_dir
+  end
 
-      before(:each) do
-        allow(Dir).to receive(:chdir).with(module_git_dir).and_yield(module_git_dir)
-        allow(File).to receive(:directory?).with(module_git_dir).and_return(true)
-      end
+  test_modules.each_value do |v|
+    context "with module '#{v[:metadata]['name']}'" do
+      let(:metadata) { v[:metadata] }
+      let(:module_git_dir) { File.join(@tmp_dir, "#{v[:metadata]['name']}.git") }
+
 
       describe '#initialize' do
-        subject(:object_init) { proc { described_object } }
-
-        it { is_expected.not_to raise_error }
+        it { expect { described_class.new(metadata, @tmp_dir) }.not_to raise_error }
 
         context 'with non-module metadata' do
           let(:metadata) { {} }
 
-          it { is_expected.to raise_error(RuntimeError, %r{Could not read 'name' from module metadata}) }
+          it do
+            expect { described_class.new(metadata, @tmp_dir) }.to raise_error(
+              Simp::Cli::Puppetfile::ModuleError,
+              %r{Could not read 'name' from module metadata}
+            )
+          end
         end
 
         context 'with non-Hash metadata' do
           let(:metadata) { '' }
 
-          it { is_expected.to raise_error(RuntimeError, %r{Could not read 'name' from module metadata}) }
-        end
-      end
-
-      describe '#local_git_repo_path' do
-        subject(:local_git_repo_path) { proc { described_object.local_git_repo_path } }
-
-        it { is_expected.not_to raise_error }
-
-        context 'with missing git repo directory' do
-          let(:module_git_dir) { File.join(SIMP_GIT_DIR, 'no_such_directory.git') }
-
-          it { is_expected.to raise_error(RuntimeError, %r{Missing local git repository}) }
-        end
-      end
-
-      describe '#tag_exists_for_version?' do
-        subject(:tag_exists_for_version?) { proc { described_object.tag_exists_for_version? } }
-
-        before(:each) do
-          allow(described_object).to receive(:`).with('git tag -l').and_return(git_tag_l_str)
+           it do
+            expect { described_class.new(metadata, @tmp_dir) }.to raise_error(
+              Simp::Cli::Puppetfile::ModuleError,
+              %r{Could not read 'name' from module metadata}
+            )
+          end
         end
 
-        it { is_expected.not_to raise_error }
-
-        context "when the repo doesn't include a matching tag" do
+        context 'when local git repo does not exists' do
           before(:each) do
-            allow(described_object).to receive(:`).with('git tag -l').and_return("0.0.0\n1.0.0-pre1\n")
+            FileUtils.mv(module_git_dir, "#{module_git_dir}.bak")
           end
 
-          it { is_expected.to raise_error(RuntimeError, %r{Tag '.*' not found}) }
+          it do
+            expect { described_class.new(metadata, @tmp_dir) }.to raise_error(
+              Simp::Cli::Puppetfile::ModuleError,
+              %r{Missing local git repository}
+            )
+          end
+
+          after(:each) do
+            FileUtils.mv("#{module_git_dir}.bak", module_git_dir)
+          end
+        end
+
+        context 'when tag does not exist' do
+           let(:metadata) { v[:metadata].merge( {'version' => '9.9.9'} ) }
+          it do
+            expect { described_class.new(metadata, @tmp_dir) }.to raise_error(
+              Simp::Cli::Puppetfile::ModuleError, %r{Tag '9.9.9' not found}
+            )
+          end
         end
       end
 
       describe '#to_s' do
-        subject(:to_s) { described_object.to_s }
-
-        before(:each) { described_object.instance_variable_set :@data, metadata }
-
         it 'returns the expected Puppetfile entry' do
-          expect(to_s).to eql <<-MOD_ENTRY.gsub(%r{^ {12}}, '')
+          expect( described_class.new(metadata, @tmp_dir).to_s ).to eql <<-MOD_ENTRY.gsub(%r{^ {12}}, '')
             mod '#{metadata['name']}',
-              :git => '#{module_git_dir}',
+              :git => 'file://#{module_git_dir}',
               :tag => '#{metadata['version']}'
-
           MOD_ENTRY
         end
       end

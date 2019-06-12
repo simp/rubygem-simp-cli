@@ -42,6 +42,10 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
     @backup_conf = @puppet_conf + '.' + @ci.start_time.strftime('%Y%m%dT%H%M%S')
   end
 
+  after :each do
+    FileUtils.remove_entry_secure @tmp_dir
+  end
+
   describe "#apply" do
     context 'updates puppet configuration' do
       before(:each) do

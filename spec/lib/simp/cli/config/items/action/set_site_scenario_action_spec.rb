@@ -24,6 +24,10 @@ describe Simp::Cli::Config::Item::SetSiteScenarioAction do
     @ci.config_items[item.key] = item
   end
 
+  after :each do
+    FileUtils.remove_entry_secure @tmp_dir
+  end
+
   context '#apply' do
     it 'backs up site.pp and replaces value in site.pp ' do
       @ci.apply
@@ -46,10 +50,6 @@ describe Simp::Cli::Config::Item::SetSiteScenarioAction do
       FileUtils.cp(File.join(files_dir, 'bad_site.pp'), @site_pp)
       @ci.apply
       expect( @ci.applied_status ).to eq(:failed)
-    end
-
-    after :each do
-      FileUtils.remove_entry_secure @tmp_dir
     end
   end
 
