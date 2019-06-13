@@ -34,7 +34,7 @@ describe Simp::Cli::Environment::DirEnv do
   context 'with methods' do
     subject(:described_object) { described_class.new(env_type, env_name, base_env_path, opts) }
 
-    describe '#selinux_fix_file_contexts', :skip => 'TODO: implement' do
+    describe '#selinux_fix_file_contexts' do
       it { expect { described_object.selinux_fix_file_contexts }.not_to raise_error }
     end
 

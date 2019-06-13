@@ -14,10 +14,11 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   include Simp::Cli::CommandLogger
 
   TYPES=[:puppet, :secondary, :writable]
+  STRATEGY_ARGS=['--skeleton', '--copy', '--link']
 
   # @return [String] description of command
   def self.description
-    'Create a new SIMP "Extra" (default) or "omni" environment'
+    'Create a new SIMP "Omni" environment (or a subset)'
   end
 
   # Run the command's `--help` strategy
@@ -25,11 +26,21 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     parse_command_line(['--help'])
   end
 
+  def fail_on_multiple_strategies(args)
+    if args.count{ |x| STRATEGY_ARGS.include?(x) } > 1
+      fail(
+        Simp::Cli::ProcessingError,
+        "ERROR: Cannot specify more than one of: #{STRATEGY_ARGS.join(', ')}"
+      )
+    end
+  end
+
   # Parse command-line options for this simp command
   # @param args [Array<String>] ARGV-style args array
   def parse_command_line(args)
     # TODO: simp cli should read a config file that can override these defaults
-    # these options (preferrable mimicking cmd-line args)
+    # these options (preferrably mimicking cmd-line args)
+    default_options = Simp::Cli::Utils.default_simp_env_config
     options = Simp::Cli::Utils.default_simp_env_config
     options[:action] = :create
     options[:start_time] = Time.now
@@ -58,67 +69,81 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
         By default, this command will:
 
-          * create a new environment (–-skeleton)
-          * raise an error if an environment directory already exists
+          * create a new SIMP Omni environment (–-skeleton)
 
-        It can create a complete SIMP omni-environment with --puppet-env
+          * raise an error if an environment directory already exists
 
         Examples:
 
-             # Create a skeleton new development environment
+             # Generate a new Omni environment directory from skeleton (default)
+             #
+             #   * Creates skeleton Puppet and Secondary environment directories
+             #   * Generates new Puppetfile and Puppetfile.simp
+             #     - see: `simp puppetfile generate --help`
+             #   * Runs `r10k puppetfile install` in `local_prod` Puppet env dir
+             #
              simp environment new development
 
              # Link staging's Secondary and Writable env dirs to production
              simp environment new staging --link production
 
              # Create a separate copy of production (will diverge over time)
-             simp environment new newprod --copy production
+             simp environment new new_prod --copy production
 
-             # Create new omni environment
-             simp environment new local_prod --puppetfile
+             # Create + deploy new `local_prod` Omni environment from skeleton
+             simp environment new local_prod --no-puppetenv
 
         Options:
 
       HELP_MSG
 
       opts.on('--skeleton',
-              '(default) Generate environments from skeleton templates.',
-              'Implies --puppetfile') do
-                TYPES.each do |type|
-                  options[:types][type][:strategy]    = :skeleton
-                end
-                # NOTE: The default --no-puppetfile will always set this to
-                #       false in a later opts.on block, so this logic must be
-                #       handled there.
-                # options[:types][:puppet][:puppetfile_generate] = true
-              end
+               '(default) Generate environments from skeleton templates.',
+               'Implies `--puppetfile` when `--puppet-env` is enabled.') do
+         say "=== do --skeleton".yellow if options[:debug]
+         TYPES.each do |type|
+           options[:types][type][:strategy]    = :skeleton
+         end
+         unless(args.include?('--no-puppet-env'))
+           unless(args.include?('--no-puppetfile'))
+             say "=== do --skeleton: add --puppetfile".cyan if options[:debug]
+             args << '--puppetfile'
+           end
+         end
+      end
 
       opts.on('--copy ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Copy assets from ENVIRONMENT') do |src_env|
-                TYPES.each do |type|
-                  options[:types][type][:strategy] = :copy
-                  options[:types][type][:src_env]  = src_env
-                end
-              end
+        say "=== do --copy #{src_env}".yellow if options[:debug]
+        TYPES.each do |type|
+          options[:types][type][:strategy] = :copy
+          options[:types][type][:src_env]  = src_env
+        end
+      end
 
       opts.on('--link ENVIRONMENT', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Symlink Secondary and Writable environment directories',
               'to ENVIRONMENT.  If --puppet-env is set, the Puppet',
               'environment will --copy.') do |src_env|
-                TYPES.each do |type|
-                  options[:types][type][:strategy] = :link
-                  options[:types][type][:src_env]  = src_env
-                end
-                options[:types][:puppet][:strategy] = :copy
-              end
+        say "=== do --link #{src_env}".yellow if options[:debug]
+        TYPES.each do |type|
+          options[:types][type][:strategy] = :link
+          options[:types][type][:src_env]  = src_env
+        end
+        options[:types][:puppet][:strategy] = :copy
+      end
 
       opts.on('--[no-]puppetfile',
               'Generate Puppetfiles in Puppet env directory',
               '  * `Puppetfile` will only be created if missing',
               '  * `Puppetfile.simp` will be generated from RPM/',
               '  * Implies `--puppet-env`') do |v|
-        options[:types][:puppet][:puppetfile_generate] = (v || options[:types][type][:strategy] == :skeleton)
-        options[:types][:puppet][:enabled] = true if (options[:types][:puppet][:puppetfile_generate] = v)
+        say "=== do --puppetfile = #{v}".yellow if options[:debug]
+        options[:types][:puppet][:puppetfile_generate] = v
+        unless(args.include?('--no-puppet-env'))
+          say "===    --puppetfile: add --puppet-env".cyan if options[:debug]
+          args << '--puppet-env' if v
+        end
       end
 
       opts.on('--[no-]puppetfile-install',
@@ -126,12 +151,25 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               'directory after creating it',
               '  * Implies `--puppet-env`',
               '  * Does NOT imply `--puppetfile`') do |v|
-        options[:types][:puppet][:enabled] = true if (options[:types][:puppet][:puppetfile_install] = v)
+        say "=== do --puppetfile-install = #{v}".yellow if options[:debug]
+        options[:types][:puppet][:puppetfile_install] = v
+        unless(args.include?('--no-puppet-env'))
+          if v
+            say "===    --puppetfile-install: add --puppet-env".cyan if options[:debug]
+            args << '--puppet-env'
+          end
+        end
       end
 
       opts.on('--[no-]puppet-env',
               'Includes Puppet environment when `--puppet-env`',
-              '(default: --no-puppet-env)') { |v| options[:types][:puppet][:enabled] = v }
+              '(defaults:',
+              '  when `--skeleton` (default): --puppet-env',
+              '  when `--copy` or `--link`:   --no-puppet-env',
+              ')') do |v|
+                say "=== do --puppet-env = #{v}".yellow if options[:debug]
+                options[:types][:puppet][:enabled] = v
+              end
 
       opts.on('--[no-]secondary-env',
               'Includes Secondary environment when `--secondary-env`',
@@ -150,22 +188,32 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
         @help_requested = true
       end
     end
-    opt_parser.parse!(args)
-    options
+
+    orig_args = args.dup
+    # implications
+    unless STRATEGY_ARGS.any?{ |x| args.include?(x) }
+      say "=== default: add --skeleton".cyan if options[:debug]
+      args << '--skeleton'
+    end
+    fail_on_multiple_strategies(args)
+    remaining_args = opt_parser.parse(args)
+    if options[:debug]
+      say "original args: '#{orig_args}'".cyan
+      say "final args: '#{args}'".bold
+    end
+
+    [options, remaining_args]
   end
 
   # Run command logic
   # @param args [Array<String>] ARGV-style args array
   def run(args)
-    options = parse_command_line(args)
+    options, remaining_args = parse_command_line(args)
+
     return if @help_requested
 
-    action = options.delete(:action)
-
-    fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.") if args.empty?
-
-    env = args.shift
-
+    fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.") if remaining_args.empty?
+    env = remaining_args.shift
     unless Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME.match?(env)
       fail(
         Simp::Cli::ProcessingError,
