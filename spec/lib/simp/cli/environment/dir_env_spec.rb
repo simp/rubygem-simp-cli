@@ -35,7 +35,48 @@ describe Simp::Cli::Environment::DirEnv do
     subject(:described_object) { described_class.new(env_type, env_name, base_env_path, opts) }
 
     describe '#selinux_fix_file_contexts' do
-      it { expect { described_object.selinux_fix_file_contexts }.not_to raise_error }
+      before(:each) do
+        allow(Facter).to receive(:value).with(anything).and_call_original
+      end
+
+      context 'when selinux is enforcing' do
+        before(:each) do
+          allow(Facter).to receive(:value).with(:selinux).and_return(true)
+          allow(Facter).to receive(:value).with(:selinux_current_mode).and_return('enforcing')
+        end
+        context 'with no paths' do
+          it { expect { described_object.selinux_fix_file_contexts }.not_to raise_error }
+          it 'should not attempt to execute anything' do
+            expect { described_object.selinux_fix_file_contexts.not_to receive(:`) }
+          end
+        end
+        context "with ['/path/to/thing']" do
+          before(:each) do
+            allow(described_object).to receive(:`).with('restorecon -R -F -p /path/to/thing 2>&1')
+            allow(described_object).to receive(:say).with(anything)
+          end
+          it 'runs restorecon on the paths' do
+            expect {
+              described_object.selinux_fix_file_contexts(['/path/to/thing']).to
+              receive(:`).with('restorecon -R -F -p /path/to/thing 2>&1')
+            }
+          end
+        end
+      end
+
+      context 'when selinux is disabled' do
+        before(:each) do
+          allow(Facter).to receive(:value).with(:selinux).and_return(false)
+          allow(described_object).to receive(:say).with(anything)
+        end
+        it { expect { described_object.selinux_fix_file_contexts }.not_to raise_error }
+        it 'skips with an expected `say` message' do
+          expect {
+            described_object.selinux_fix_file_contexts.to
+            receive(:say).with(/^SELinux is disabled; skipping context fixfiles for/)
+          }
+        end
+      end
     end
 
     describe '#apply_puppet_permissions' do
