@@ -4,6 +4,7 @@ require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SetGrubPasswordAction do
   before :each do
+    stub_const('Simp::Cli::SIMP_MODULES_INSTALL_PATH', '')
     @puppet_env_info = {
       :puppet_config => { 'modulepath' => '/some/module/path' }
     }
