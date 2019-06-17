@@ -25,7 +25,8 @@ describe Simp::Cli::Commands::Puppetfile::Generate do
       let(:puppetfile) { 'Mocked Puppetfile content without local modules' }
 
       it 'prints skeleton Puppetfile to stdout' do
-        allow(Simp::Cli::Puppetfile::Skeleton).to receive(:new).with(nil).and_return(
+        allow(Simp::Cli::Puppetfile::Skeleton).to receive(:new).with(
+          nil, Simp::Cli::SIMP_MODULES_GIT_REPOS_PATH).and_return(
           object_double(
             Simp::Cli::Puppetfile::Skeleton.new(),
             :to_puppetfile => puppetfile
@@ -39,7 +40,8 @@ describe Simp::Cli::Commands::Puppetfile::Generate do
       let(:puppetfile) { 'Mocked Puppetfile content with local modules' }
 
       it 'prints skeleton Puppetfile with local modules to stdout' do
-        allow(Simp::Cli::Puppetfile::Skeleton).to receive(:new).with('production').and_return(
+        allow(Simp::Cli::Puppetfile::Skeleton).to receive(:new).with(
+         'production', Simp::Cli::SIMP_MODULES_GIT_REPOS_PATH).and_return(
           object_double(
             Simp::Cli::Puppetfile::Skeleton.new('production'),
             :to_puppetfile => puppetfile

@@ -42,7 +42,8 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
             with any other modules specified in it.
           - You can optionally have local modules in a specified environment
             automatically added to this parent Puppetfile.  Local modules are modules
-            whose directories are not under Git source control.
+            whose directories are not under Git source control and for which there
+            is no local Git repository.
 
         Usage:
 
@@ -55,8 +56,8 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
           simp puppetfile generate --skeleton > Puppetfile
 
           # Generate a Puppetfile that includes Puppetfile.simp and marks any unmanaged
-          # directories that exist under Puppet environment ENV's modules/ directory as
-          # `:local => true`
+          # directories that exist under Puppet environment ENV's modules/ directory
+          # and for which no local Git repository exists as `:local => true`
           simp puppetfile generate --skeleton --local-modules ENV > Puppetfile
 
         Options:
@@ -111,7 +112,10 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
     return if @help_requested
 
     if @puppetfile_type == :skeleton
-      puts Simp::Cli::Puppetfile::Skeleton.new(@puppet_env).to_puppetfile
+      puts Simp::Cli::Puppetfile::Skeleton.new(
+        @puppet_env,
+        @simp_modules_git_repos_path
+      ).to_puppetfile
     else
       puts Simp::Cli::Puppetfile::LocalSimpPuppetModules.new(
         @simp_modules_install_path,
