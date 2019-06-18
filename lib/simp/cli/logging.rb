@@ -7,6 +7,7 @@ module Simp; end
 class Simp::Cli; end
 
 module Simp::Cli::Logging
+
   def self.logger
     @logger ||= Simp::Cli::Logging::Logger.new
   end
@@ -25,13 +26,29 @@ module Simp::Cli::Logging
     Simp::Cli::Logging.logger
   end
 
+  # Class to provide a console and optional log file logging
+  #
+  # Integrates ::Logger and ::Highline
   class Logger
+    # Only way to get the log levels we want is to create a
+    # set of custom severities as Integers. Users will use
+    # the severity symbols in this table or helper methods
+    # provided.
+    SEVERITY_TO_NUM = {
+      :trace  => ::Logger::FATAL+10,
+      :debug  => ::Logger::FATAL+11,
+      :info   => ::Logger::FATAL+12,
+      :notice => ::Logger::FATAL+13,
+      :warn   => ::Logger::FATAL+14,
+      :error  => ::Logger::FATAL+15,
+      :fatal  => ::Logger::FATAL+16
+    }
+
     def initialize
       @file          = nil
-      @file_logger   = ::Logger.new($stdout)
-      @console_level = ::Logger::ERROR
-      @file_level    = ::Logger::ERROR
-      @file_logger.level = @file_level
+      @file_logger   = nil
+      @console_level = SEVERITY_TO_NUM[:error]
+      @file_level    = SEVERITY_TO_NUM[:error]
     end
 
     def open_logfile(file)
@@ -43,13 +60,16 @@ module Simp::Cli::Logging
         timestamp = datetime.strftime('%Y-%m-%d %H:%M:%S')
         "#{timestamp}: #{msg}\n"
       end
-      @file_logger.level = @file_level
     end
 
-    def levels(console_level=::Logger::INFO, file_level=::Logger::DEBUG)
-      @console_level = console_level
-      @file_level = file_level
-      @file_logger.level = file_level
+    def levels(console_level=:info, file_level=:debug)
+      @console_level = SEVERITY_TO_NUM[console_level]
+      @file_level = SEVERITY_TO_NUM[file_level]
+      @file_logger.level = @file_level if @file_logger
+    end
+
+    def trace(*args)
+      log_and_say(:trace, *args)
     end
 
     def debug(*args)
@@ -58,6 +78,10 @@ module Simp::Cli::Logging
 
     def info(*args)
       log_and_say(:info, *args)
+    end
+
+    def notice(*args)
+      log_and_say(:notice, *args)
     end
 
     def warn(*args)
@@ -75,7 +99,7 @@ module Simp::Cli::Logging
     # log plain text to a log file and print formatted
     # text to the console using HighLine formatting
     #
-    # level = :debug, :info, :warn, :error, :fatal
+    # level = :trace, :debug, :info, :notice, :warn, :error, :fatal
     # args = sequence of alternating message part and corresponding
     #   format specifications, where each message part is a string and
     #   each format specification is either nil (no formatting) or an
@@ -92,12 +116,17 @@ module Simp::Cli::Logging
     # log_and_say(:warn, 'this is a single-part, formatted text message', [:BOLD, :RED])
     # log_and_say(:info, 'this is a', nil, ' multi-part ', [:BOLD], 'formatted text message')
     # log_and_say(:info, 'this is a message that does not end in a newline when sent to the console ')
+    # log_and_say(:notice, 'this is a message already formatted'.bold)
     # log_and_say(:error, 'this is a', [], ' message ', [:RED], 'that does not end in a newline when sent to the console ')
     #
     def log_and_say(level, *args)
+      level_num = SEVERITY_TO_NUM[level]
       plain_message, formatted_message = create_message_strings(*args)
-      plain_message.split("\n").each { |msg| eval("@file_logger.#{level.to_s.downcase}(msg)") }
-      unless eval("::Logger::#{level.to_s.upcase}") < @console_level
+      if @file_logger
+        plain_message.split("\n").each { |msg| @file_logger.log(level_num, msg) }
+      end
+
+      unless level_num < @console_level
         say( formatted_message )
       end
     end
@@ -122,7 +151,7 @@ module Simp::Cli::Logging
    # pause log output to allow message of
    # message_level to be viewed on the console
     def pause(message_level, pause_seconds)
-      unless eval("::Logger::#{message_level.to_s.upcase}") < @console_level
+      unless SEVERITY_TO_NUM[message_level] < @console_level
         sleep pause_seconds
       end
     end

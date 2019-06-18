@@ -13,15 +13,16 @@ describe Simp::Cli::Environment::DirEnv do
     }
   end
   let(:base_env_path) { opts[:environmentpath] }
+  let(:env_type) { :puppet }
   let(:env_name) { 'test_env_name' }
   let(:env_dir) { File.join(opts[:environmentpath], env_name) }
 
   describe '#initialize' do
-    it { expect { described_class.new(env_name, base_env_path, opts) }.not_to raise_error }
+    it { expect { described_class.new(env_type, env_name, base_env_path, opts) }.not_to raise_error }
   end
 
   context 'with abstract methods' do
-    subject(:described_object) { described_class.new(env_name, base_env_path, opts) }
+    subject(:described_object) { described_class.new(env_type, env_name, base_env_path, opts) }
 
     %i[create fix update validate remove].each do |action|
       describe "##{action}" do
@@ -31,7 +32,7 @@ describe Simp::Cli::Environment::DirEnv do
   end
 
   context 'with methods' do
-    subject(:described_object) { described_class.new(env_name, base_env_path, opts) }
+    subject(:described_object) { described_class.new(env_type, env_name, base_env_path, opts) }
 
     describe '#selinux_fix_file_contexts', :skip => 'TODO: implement' do
       it { expect { described_object.selinux_fix_file_contexts }.not_to raise_error }

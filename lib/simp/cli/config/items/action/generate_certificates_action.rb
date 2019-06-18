@@ -23,19 +23,19 @@ module Simp::Cli::Config
       # Certificate Management
       @applied_status = :failed
       @hostname = get_item( 'cli::network::hostname' ).value
-      debug( "Checking system for '#{@hostname}' certificates" )
+      info( "Checking system for '#{@hostname}' certificates" )
       set_up_directories unless File.exist?(@dirs[:keydist])
       if !(
         File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pub") &&
         File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pem")
       )
-        debug( "INFO: No certificates were found for '#{@hostname}', generating using FakeCA" )
+        info( "INFO: No certificates were found for '#{@hostname}', generating using FakeCA" )
         result = generate_certificates(@hostname)
         @applied_status = :succeeded if result
       else
         @applied_status = :unnecessary
         @applied_detail = "Certificates already exist in\n    #{@dirs[:keydist]}"
-        debug( "INFO: Found existing certificates for '#{@hostname}', not recreating", [:MAGENTA] )
+        info( "INFO: Found existing certificates for '#{@hostname}', not recreating", [:MAGENTA] )
       end
     end
 

@@ -4,17 +4,17 @@ require 'fileutils'
 require 'find'
 
 require 'simp/cli/commands/command'
+require 'simp/cli/command_logger'
 require 'simp/cli/config/errors'
 require 'simp/cli/config/items'
 require 'simp/cli/config/item_list_factory'
 require 'simp/cli/config/questionnaire'
 require 'simp/cli/config/simp_puppet_env_helper'
-require 'simp/cli/logging'
 
 # Handle CLI interactions for "simp config"
 class Simp::Cli::Commands::Config < Simp::Cli::Commands::Command
 
-  include Simp::Cli::Logging
+  include Simp::Cli::CommandLogger
 
   # Intro is broken into 3 parts so that we can inject filenames
   # between the parts and use different font formatting for those
@@ -73,16 +73,25 @@ EOM
       :interrupted_session    => false,
 
       :start_time             => Time.now,
+      :log_basename           => 'simp_conf.log',
       :log_file               => nil,
+
       :clean_session          => true,  # whether we are starting the questionnaire
                                         # from the beginning and queries are allowed
       :user_overrides         => false, # whether user has provided overrides via
                                         # an answers input file or KEY=VALUE pairs
       :first_interactive_session => nil, # whether user should be prompted to continue
                                          # after intro
-      :verbose                => 0  # <0 = ERROR and above
-                                    #  0 = INFO and above
-                                    # >0 = DEBUG and above
+    ####### IMPORTANT
+    # This is EXPLICITLY set to NOTICE, so that, by default, the
+    # detailed action messages from OmniEnvController.create are
+    # **NOT** sent to the console when that code is used within
+    # 'simp config'.
+      :verbose                => 0  # -1 = ERROR  and above
+                                    #  0 = NOTICE and above
+                                    #  1 = INFO   and above
+                                    #  2 = DEBUG  and above
+                                    #  3 = TRACE  and above
     }
 
     @version = Simp::Cli::VERSION
@@ -105,7 +114,7 @@ EOM
     parse_command_line(args)
     return if @help_requested
 
-    set_up_global_logger
+    set_up_global_logger(@options)
     greet_user
 
     # Load all pre-set answers (predetermined Item values)
@@ -180,19 +189,22 @@ EOM
       # when gathering user input.
       question = 'Ready to create the SIMP omni-environment? (no = exit program):'.bold + ' '
       unless agree( question ) { |q| q.default = 'yes' }
-        raise Simp::Cli::ProcessingError.new('Exiting: User terminated processing prior to creating SIMP omni-environment.')
+        msg = 'Exiting: User terminated processing prior to creating SIMP omni-environment.'
+        raise Simp::Cli::ProcessingError.new(msg)
       end
     end
-    logger.info("Creating the SIMP omni-environment for '#{@options[:puppet_env]}'")
-    logger.debug(details_msg)
+    logger.notice('>> Applying:', [:GREEN, :BOLD],
+      " Creating the SIMP omni-environment for '#{@options[:puppet_env]}'..."
+    )
+    logger.info(details_msg)
     @options[:puppet_env_info] = env_helper.create
 
     # verify environment was successfully created
     status_code, status_details =  env_helper.env_status
     if status_code == :exists
-      logger.info("  Created Puppet env at #{@options[:puppet_env_info][:puppet_env_dir]}")
-      logger.info("  Created secondary env #{@options[:puppet_env_info][:secondary_env_dir]}")
+      logger.notice('Succeeded'.green.bold)
     else
+      logger.notice('Failed'.red.bold)
       msg = "Creation of SIMP omni-environment for '#{@options[:puppet_env]}' failed:\n"
       msg += status_details.split("\n").map { |line| '  >> ' + line }.join("\n")
       raise Simp::Cli::ProcessingError.new(msg)
@@ -210,7 +222,7 @@ EOM
   def ensure_puppet_env
     if @options[:dry_run]
       msg = "Skipping creation of SIMP omni-environment for '#{@options[:puppet_env]}': --dry-run enabled"
-      logger.info(msg.magenta.bold)
+      logger.notice(msg.magenta.bold)
       # Assume stock SIMP environment setup, since we can't necessarily extract
       # the correct Puppet env info
       @options[:puppet_env_info] = Simp::Cli::Config::Item::DEFAULT_PUPPET_ENV_INFO
@@ -247,11 +259,11 @@ EOM
 
   def greet_user
     indent = ' '*15
-    logger.info( "\n#{INTRO_TEXT_PART1}".rstrip, [:GREEN] )
-    logger.info( "#{indent}#{@options[:log_file]}")
-    logger.info( "\n#{INTRO_TEXT_PART2}".rstrip, [:GREEN] )
-    logger.info( "#{indent}#{@options[:safety_save_file]}")
-    logger.info( "\n#{INTRO_TEXT_PART3}".rstrip, [:GREEN] )
+    logger.notice( "\n#{INTRO_TEXT_PART1}".rstrip, [:GREEN] )
+    logger.notice( "#{indent}#{@options[:log_file]}")
+    logger.notice( "\n#{INTRO_TEXT_PART2}".rstrip, [:GREEN] )
+    logger.notice( "#{indent}#{@options[:safety_save_file]}")
+    logger.notice( "\n#{INTRO_TEXT_PART3}".rstrip, [:GREEN] )
   end
 
   # Loads Puppet configuration for the existing SIMP omni-environment
@@ -264,7 +276,7 @@ EOM
     elsif @options[:force_config]
       msg = "Modifying existing SIMP omni-environment for '#{@options[:puppet_env]}'"
       logger.warn(msg.yellow.bold)
-      logger.debug(details_msg.yellow)
+      logger.info(details_msg.yellow)
       msg = ">>> This may remove local modifications.  If you have not yet backed up the\n" +
         ">>> '#{@options[:puppet_env]}' environment, exit the program now ( <CTRL-C> )!"
       logger.warn(msg.red.bold)
@@ -312,26 +324,13 @@ EOM
       opts.separator "OPTIONS:\n"
       opts.separator opts_separator
 
-=begin
-TODO Either name of env (assumed to be in puppet environment) or fully qualified
-path to some other place?  Until we separate actions out into 'simp config apply',
-env within /etc/puppetlabs/code/environments only makes sense, since we will
-be modifying its corresponding secondary env using FakeCA in action to generate
-certificates.
-
-      opts.on('-e', '--puppet-env ENV',
-              'The name of the SIMP Puppet environment.',
-              "Defaults to '#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}'") do |puppet_env|
-        @options[:puppet_env] = puppet_env
-      end
-=end
-
       opts.on('--force-config',
               "Allow 'simp config' to apply config changes",
               'when the Puppet environment to be created',
               'already exists. Allows **ALL** config',
               'actions to be applied (system, Puppet',
-              'global, Puppet environment).') do
+              'global, Puppet environment). Does not',
+              'recreate the SIMP omni-environment.') do
         @options[:force_config] = true
       end
 
@@ -376,27 +375,15 @@ certificates.
       end
 
       opts.on('-D', '--disable-queries',
-              'Run completely non-interactively. All answers must',
-              'be specified by an answers file or command line',
-              'KEY=VALUE pairs.') do |disable_queries|
+              'Run completely non-interactively. All',
+              'answers must be specified by an answers',
+              'file or command line KEY=VALUE pairs.') do |disable_queries|
         @options[:allow_queries] = false
       end
 
       opts.separator opts_separator
 
-      opts.on('-l', '--log-file FILE',
-              'Log file. Defaults to',
-              File.join(Simp::Cli::SIMP_CLI_HOME, 'simp_config.log.<timestamp>')) do |file|
-        @options[:log_file] = File.expand_path(file)
-      end
-
-      opts.on('-v', '--verbose', 'Verbose output (stacks)') do
-        @options[:verbose] += 1
-      end
-
-      opts.on('-q', '--quiet', 'Quiet output') do
-        @options[:verbose] = -1
-      end
+      add_logging_command_options(opts, @options)
 
       opts.on('-n', '--dry-run',
               'Gather input and generate answers',
@@ -449,11 +436,11 @@ certificates.
     apply_actions = answers.select { |key,item| item.respond_to?(:applied_time) }
 
     unless apply_actions.empty?
-      logger.info( "\n#{SECTION_SEPARATOR}", [:BOLD] )
-      logger.info( "\nSummary of Applied Changes", [:BOLD] )
+      logger.notice( "\n#{SECTION_SEPARATOR}", [:BOLD] )
+      logger.notice( "\nSummary of Applied Changes", [:BOLD] )
       apply_actions.each.sort{ |a,b| a[1].applied_time <=> b[1].applied_time }.each do |pair|
         item = pair[1]
-        logger.info("  #{item.apply_summary}", [item.status_color, :BOLD] )
+        logger.notice("  #{item.apply_summary}", [item.status_color, :BOLD] )
       end
     end
   end
@@ -504,10 +491,10 @@ certificates.
           # when gathering user input
           question = 'Resume the session? (no = deletes saved file):'.bold + ' '
           if agree( question ) { |q| q.default = 'yes' }
-            logger.info( "\nApplying answers from '#{_file}'", [:GREEN])
+            logger.notice( "\nApplying answers from '#{_file}'", [:GREEN])
             result = saved_hash
           else
-            logger.debug( "\nRemoving file '#{_file}'", [:RED] )
+            logger.info( "\nRemoving file '#{_file}'", [:RED] )
             FileUtils.rm_f _file
           end
         end
@@ -539,7 +526,7 @@ certificates.
     end
 
     begin
-      logger.debug("Loading answers from #{file}")
+      logger.info("Loading answers from #{file}")
       answers_hash = YAML.load(File.read(file))
       answers_hash = {} if !answers_hash.is_a?(Hash) # empty yaml file returns false
 
@@ -597,28 +584,10 @@ certificates.
     answers_hash
   end
 
-  def set_up_global_logger
-    unless @options[:log_file]
-      log_file = "simp_config.log.#{@options[:start_time].strftime('%Y%m%dT%H%M%S')}"
-      @options[:log_file] = File.join(Simp::Cli::SIMP_CLI_HOME, log_file)
+  def validate_options
+    if (ENV.fetch('USER') != 'root') && !@options[:dry_run]
+      raise Simp::Cli::Config::ValidationError.new('Non-root users must use --dry-run option.')
     end
-    FileUtils.mkdir_p(File.dirname(@options[:log_file]))
-    logger.open_logfile(@options[:log_file])
-
-    if @options[:verbose] < 0
-       console_log_level = ::Logger::ERROR
-    elsif @options[:verbose] == 0
-       console_log_level = ::Logger::INFO
-    else
-       console_log_level = ::Logger::DEBUG # log action details to screen
-    end
-    file_log_level = ::Logger::DEBUG       # always log action details to file
-    logger.levels(console_log_level, file_log_level)
   end
-end
 
-def validate_options
-  if (ENV.fetch('USER') != 'root') && !@options[:dry_run]
-    raise Simp::Cli::Config::ValidationError.new('Non-root users must use --dry-run option.')
-  end
 end

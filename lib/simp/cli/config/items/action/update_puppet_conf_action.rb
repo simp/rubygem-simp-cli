@@ -21,12 +21,12 @@ module Simp::Cli::Config
       @applied_status = :failed
 
       backup_file = "#{@file}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-      debug( "Backing up #{@file} to #{backup_file}" )
+      info( "Backing up #{@file} to #{backup_file}" )
       FileUtils.cp(@file, backup_file)
       group_id = File.stat(@file).gid
       File.chown(nil, group_id, backup_file)
 
-      debug( "Updating #{@file}" )
+      info( "Updating #{@file}" )
 
       # These seds remove options that have been deprecated and cause Puppet to
       # emit `Setting ___ is deprecated` warning messages on each run:

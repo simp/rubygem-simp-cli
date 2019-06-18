@@ -57,7 +57,7 @@ module Simp::Cli::Config
 
     # write a file and returns the number of bytes written
     def write_hieradata_yaml_file( file, answers )
-      debug( "Writing hieradata to: #{file}" )
+      info( "Writing hieradata to: #{file}" )
       # Shouldn't need to create the directory (except possibly for
       # unit tests), as CopySimpToEnvironmentsAction, a preceeding item,
       # *guarantees* the 'simp' environment is present.  As such, we are
@@ -72,7 +72,7 @@ module Simp::Cli::Config
 
       if File.exist?(@file)
          backup_file = "#{@file}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-         debug( "Backing up #{@file} to #{backup_file}" )
+         info( "Backing up #{@file} to #{backup_file}" )
          FileUtils.cp(@file, backup_file)
          group_id = File.stat(@file).gid
          File.chown(nil, group_id, backup_file)

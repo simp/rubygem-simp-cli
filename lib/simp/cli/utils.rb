@@ -251,7 +251,6 @@ module Simp::Cli::Utils
           # skeleton_path: '/usr/share/simp/environment-skeleton/writable',  # <-- per discussions, not used
         }
       },
-      debug: false,
     }
   end
 end

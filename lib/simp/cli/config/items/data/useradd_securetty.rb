@@ -28,11 +28,11 @@ tty0 to the list of allowed TTYs, despite the security risk.
     # behavior, but perhaps unexpected.
     def validate list
       if (list.is_a?(Array) || list.is_a?(String)) && list.empty?
-        info( "#{@warning1}\n", [:YELLOW], @warning2, [:YELLOW,:BOLD] )
+        notice( "#{@warning1}\n", [:YELLOW], @warning2, [:YELLOW,:BOLD] )
 
         # if the value is not pre-assigned, pause to give the user time
         # to think about the impact of not specifying NTP servers
-        pause(:info) if @value.nil?
+        pause(:notice) if @value.nil?
       end
       super
     end

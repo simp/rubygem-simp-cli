@@ -7,5 +7,13 @@ class Simp::Cli
 
   # Password fails to validate
   class PasswordError < StandardError; end
+
+  # Invalid spawn command
+  class InvalidSpawnError < StandardError;
+    def initialize(cmd)
+      super("Internal error: Invalid pipe '|' in spawn command: <#{cmd}>")
+    end
+  end
+
 end
 

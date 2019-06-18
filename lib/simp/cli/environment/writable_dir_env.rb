@@ -9,7 +9,7 @@ module Simp::Cli::Environment
   class WritableDirEnv < DirEnv
     def initialize(name, base_environments_path, opts)
       opts[:skeleton_path] ||= nil
-      super(name, base_environments_path, opts)
+      super(:writable, name, base_environments_path, opts)
     end
 
     # Create a new environment

@@ -12,7 +12,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
     # around from previous tests. To make sure file
     # output doesn't get dumped to the screen, set that level
     # super high.
-    @ci.logger.levels(::Logger::INFO, ::Logger::FATAL)
+    @ci.logger.levels(:info, :fatal)
   end
 
   describe '#recommended_value' do
