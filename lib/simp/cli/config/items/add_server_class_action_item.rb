@@ -24,7 +24,7 @@ module Simp::Cli::Config
       @file    = File.join( @dir, "#{fqdn}.yaml")
 
       if File.exists?(@file)
-        debug( "Adding #{@class_to_add} to the class list in #{fqdn}.yaml file", [:GREEN] )
+        info( "Adding #{@class_to_add} to the class list in #{fqdn}.yaml file", [:GREEN] )
         yaml = IO.readlines(@file)
 
         File.open(@file, 'w') do |f|

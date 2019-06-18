@@ -55,7 +55,7 @@ module Simp::Cli::Config
 
 
     def encrypt( password, salt=nil )
-      info 'WARNING: password not encrypted; override in child class'
+      notice('WARNING: password not encrypted; override in child class')
       password
     end
 

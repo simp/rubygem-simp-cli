@@ -187,7 +187,7 @@ class Simp::Cli::Config::ItemListFactory
       writer.file             = file
       writer.allow_user_apply = true
       writer.defer_apply      = false  # make sure we apply immediately
-      writer.silent           = true  if @options[:verbose] < 2
+      writer.silent           = true  if @options[:verbose] < 3 # silent unless dev trace
       writer.start_time       = @options[:start_time]
       # don't sort the output so we figure out the last item answered
       writer.sort_output      = false

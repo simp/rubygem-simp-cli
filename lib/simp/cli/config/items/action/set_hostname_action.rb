@@ -21,18 +21,18 @@ module Simp::Cli::Config
       @fqdn     = get_item( 'cli::network::hostname' ).value
 
       # TODO: replace this with 'puppet apply' + network::global
-      debug( 'Updating hostname' )
+      info( 'Updating hostname' )
       success = execute("hostname #{@fqdn}")
 
       if (success)
-        debug( 'Updating /etc/sysconfig/network' )
+        info( 'Updating /etc/sysconfig/network' )
         # only sed error is if file does not exist
         success = success && execute("sed -i '/HOSTNAME/d' /etc/sysconfig/network")
         success = success && execute("echo HOSTNAME=#{@fqdn} >> /etc/sysconfig/network")
       end
 
       if (success)
-        debug( 'Updating /etc/hostname' )
+        info( 'Updating /etc/hostname' )
         begin
           File.open('/etc/hostname','w'){|fh| fh.puts(@fqdn)}
         rescue Errno::EACCES
@@ -44,7 +44,7 @@ module Simp::Cli::Config
         # restart the interface to pick up any domain changes associated
         # with the new hostname, if the interface is configured via DHCP
         interface = get_item( 'cli::network::interface' ).value
-        debug( "Restarting #{interface} interface to update domain info" )
+        info( "Restarting #{interface} interface to update domain info" )
         show_wait_spinner {
           success = success && execute("/sbin/ifdown #{interface}; /sbin/ifup #{interface} && wait && sleep 10")
         }

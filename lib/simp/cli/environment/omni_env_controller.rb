@@ -4,13 +4,18 @@ require 'simp/cli/environment/env'
 require 'simp/cli/environment/puppet_dir_env'
 require 'simp/cli/environment/secondary_dir_env'
 require 'simp/cli/environment/writable_dir_env'
+require 'simp/cli/logging'
 
 # Puppetfile helper namespace
 module Simp::Cli::Environment
   # Controller class to manage SIMP Omni environments
   class OmniEnvController
+
+    include Simp::Cli::Logging
+
     def initialize(opts = {}, env = nil)
       @opts = opts
+      @env = env
       @environments = {}
       @opts[:types].each do |type, data|
         # TODO: honor backends?
@@ -32,6 +37,7 @@ module Simp::Cli::Environment
 
     # Create a new environment for each environment type
     def create
+      logger.notice("Creating new environment '#{@env}'".bold)
       each_environment 'create' do |_env_type, env_obj|
         env_obj.create
       end
@@ -57,9 +63,10 @@ module Simp::Cli::Environment
 
     # Fix consistency of environment
     def fix
+      logger.notice("Re-appling FACLs, SELinux contexts, & permissions to '#{@env}' environment".bold)
       each_environment 'fix' do |env_type, env_obj|
         if @opts[:types][env_type].fetch(:strategy,'') == :link
-          warn("INFO: (action: fix) skipping fix of #{env_type} environment because strategy is :link")
+          logger.trace("TRACE: (action: fix) skipping fix of #{env_type} environment because strategy is :link")
           next
         end
         env_obj.fix
@@ -81,9 +88,10 @@ module Simp::Cli::Environment
       @environments.each do |env_type, env_obj|
         label = action_label ? "(action: #{action_label}) " : ''
         unless @opts[:types][env_type][:enabled]
-          puts("INFO: #{label}skipping #{env_type} environment")
+          logger.trace("TRACE: #{label}skipping #{env_type} environment")
           next
         end
+        logger.trace("TRACE: #{label}applying #{env_type} environment")
         yield env_type, env_obj
       end
     end

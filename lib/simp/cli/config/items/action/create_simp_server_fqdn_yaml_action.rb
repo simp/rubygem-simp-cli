@@ -37,12 +37,12 @@ module Simp::Cli::Config
         extra_host_yaml = Dir.glob(File.join(File.dirname(@host_yaml), '*.yaml'))
 
         extra_host_yaml.each do |extra_yaml|
-            debug("Other <host>.yaml file found: #{extra_yaml}")
+            info("Other <host>.yaml file found: #{extra_yaml}")
         end
 
         FileUtils.cp(@alt_file, @template_file)
       end
-      debug( "Creating #{File.basename(@host_yaml)} from #{File.basename(@template_file)} template" )
+      info( "Creating #{File.basename(@host_yaml)} from #{File.basename(@template_file)} template" )
 
       if File.exists?(@template_file)
         if File.exists?( @host_yaml )
@@ -85,7 +85,7 @@ Review and consider updating:
           @applied_status_detail = "Template already moved to #{File.basename(@host_yaml)}"
           message = "#{File.basename(@host_yaml)} creation not required:\n" +
             "    #{@applied_status_detail}"
-          debug( message, [:MAGENTA] )
+          info( message, [:MAGENTA] )
 
           # backup this file because we will be modifying settings and/or the
           # class list in it via other ActionItems
@@ -105,7 +105,7 @@ Review and consider updating:
 
     def backup_host_yaml
       backup_file = "#{@host_yaml}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-      debug( "Backing up #{@host_yaml} to #{backup_file}" )
+      info( "Backing up #{@host_yaml} to #{backup_file}" )
       FileUtils.cp(@host_yaml, backup_file)
       FileUtils.chown(nil, @group, backup_file)
     end

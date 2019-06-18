@@ -24,10 +24,10 @@ module Simp::Cli::Config
       puppet_server_ip = get_item( 'cli::puppet::server::ip' ).value
 
       backup_file = "#{@file}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-      debug( "Backing up #{@file} to #{backup_file}" )
+      info( "Backing up #{@file} to #{backup_file}" )
       FileUtils.cp(@file, backup_file)
 
-      debug( "Updating #{@file}" )
+      info( "Updating #{@file}" )
 
       values = Array.new
       File.readlines(@file).each do |line|
