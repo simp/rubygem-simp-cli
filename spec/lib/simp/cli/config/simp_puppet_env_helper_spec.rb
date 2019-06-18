@@ -32,15 +32,57 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
       :writable_environment_path  => File.dirname(@writable_env_dir)
     }
 
-    @env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(@env)
+    @start_time =  Time.new(2017, 1, 13, 11, 42, 3)
+    @env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(@env, @start_time)
   end
 
   after :each do
     FileUtils.remove_entry_secure @tmp_dir
   end
 
+  describe '#back_up_puppet_environment' do
+    let(:file_content) { 'Original file content' }
+    it 'should backup an puppet env when the backup parent dir does not exist' do
+      puppet_env_dir = File.join(@tmp_dir, 'environments', 'production')
+      FileUtils.mkdir_p(puppet_env_dir)
+
+      # work around private method...
+      @env_helper.send(:back_up_puppet_environment, puppet_env_dir)
+
+      expect( Dir.exist?(puppet_env_dir) ).to be false
+      expected_parent_dir = File.join(@tmp_dir, 'environments.bak')
+      expect( Dir.exist?(expected_parent_dir) ).to be true
+
+      expected_dir = File.join(expected_parent_dir, 'production.20170113T114203')
+      expect( Dir.exist?(expected_dir) ).to be true
+    end
+
+    it 'should backup an puppet env when the backup parent dir does exist' do
+      puppet_env_dir = File.join(@tmp_dir, 'environments', 'production')
+      FileUtils.mkdir_p(puppet_env_dir)
+      expected_parent_dir = File.join(@tmp_dir, 'environments.bak')
+      FileUtils.mkdir_p(expected_parent_dir)
+
+      @env_helper.send(:back_up_puppet_environment, puppet_env_dir)
+
+      expect( Dir.exist?(puppet_env_dir) ).to be false
+      expected_dir = File.join(expected_parent_dir, 'production.20170113T114203')
+      expect( Dir.exist?(expected_dir) ).to be true
+    end
+
+    it 'should do nothing when the puppet env to back up does not exist' do
+      puppet_env_dir = File.join(@tmp_dir, 'environments', 'production')
+
+      @env_helper.send(:back_up_puppet_environment, puppet_env_dir)
+
+      expected_parent_dir = File.join(@tmp_dir, 'environments.bak')
+      expect( Dir.exist?(expected_parent_dir) ).to be false
+    end
+  end
+
   describe '#create' do
-    # this test isn't fleshed out as OmniEnvController development is in progress
+    # FIXME Need to mock module repos, env skeletons, etc. for OmniEnvController
+    #       to do its work, or test this via 'simp config' in an acceptance test
     pending 'should return new env info after create' do
       allow(@env_helper).to receive(:get_system_puppet_info).and_return(@system_puppet_info)
 
@@ -64,7 +106,33 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
       expect( @env_helper.env_status[0] ).to eq :exists
     end
 
-    # failure cases?
+    it 'should backup existing Puppet environment' do
+      allow(@env_helper).to receive(:get_system_puppet_info).and_return(@system_puppet_info)
+      allow(Simp::Cli::Environment::OmniEnvController).to \
+        receive(:new).and_return(
+          object_double('Mock OmniEnvController', :create => true)
+        )
+
+      FileUtils.mkdir_p(@puppet_env_dir)
+
+      @env_helper.create
+
+      expected_backup_dir = File.join(@tmp_dir, 'puppet.bak', "#{@env}.20170113T114203")
+      expect( Dir.exist?(expected_backup_dir) ).to be true
+    end
+
+    # OmniEnvController.create failure cases?
+    #   raises RuntimeError if cannot determine puppet_info[:puppet_group]
+    #   raises RuntimeError if rsync command could not be found
+    #   raises RuntimeError if rsync fails
+    #   raises Simp::Cli::ProcessingError if any skeleton source directory
+    #     to be copied does not exist
+    #   raises Simp::Cli::ProcessingError if any puppet env contains modules
+    #   raises Simp::Cli::ProcessingError if any puppet env dir is missing
+    #   raises RuntimeError if an environment.conf.TEMPLATE does not exist
+    #   raises RuntimeError if r10K install command fails
+    #   raises Simp::Cli::ProcessingError if secondary env path exists
+    #   ...
   end
 
   describe '#env_info' do

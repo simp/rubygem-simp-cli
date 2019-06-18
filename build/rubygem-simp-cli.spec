@@ -12,7 +12,7 @@
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
 Version: %{cli_version}
-Release: Alpha%{?dist}
+Release: 0%{?dist}
 Group: Development/Languages
 License: Apache-2.0
 URL: https://github.com/simp/rubygem-simp-cli
@@ -136,7 +136,7 @@ EOM
   - Added descriptions to top level help command list
 - 'simp puppetfile generate' changes:
   - Added '--local-modules ENV' option, which will add each local
-    local (unmanaged) module found in a Puppet environment to the
+    (unmanaged) module found in a Puppet environment to the
     generated skeleton Puppetfile as `:local => true`.  This option is
     key for sites that have unmanaged, locally-written modules in an
     environment. Without the local references, those modules will be

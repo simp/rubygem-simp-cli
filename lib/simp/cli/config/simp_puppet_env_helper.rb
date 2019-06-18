@@ -1,5 +1,6 @@
 require 'simp/cli/defaults'
-#require 'simp/cli/environment/omni_env_controller'
+require 'simp/cli/environment/omni_env_controller'
+require 'simp/cli/logging'
 require 'simp/cli/utils'
 
 module Simp; end
@@ -9,14 +10,29 @@ module Simp::Cli::Config; end
 # Class to encapsulate the nuances unique to a SIMP Puppet environment
 class Simp::Cli::Config::SimpPuppetEnvHelper
 
-  def initialize(env_name)
+  include Simp::Cli::Logging
+
+  # +env_name+: Puppet environment name
+  # +start_time+: Start time of the process using this object.
+  #   Used to ensure all file backup operations can be linked
+  #   together.
+  #
+  def initialize(env_name, start_time = Time.now)
     @env_name = env_name
     @env_info = nil
+    @start_time = start_time
   end
 
   # Creates a new SIMP omni environment
   # @returns Hash of environment information for the created environment.
   def create
+    # Workaround an issue in which the example, empty production Puppet
+    # environment that is installed by the puppet-agent RPM causes the
+    # OmniEnvController#create to fail.
+    if Dir.exist?(env_info[:puppet_env_dir])
+      back_up_puppet_environment(env_info[:puppet_env_dir])
+    end
+
     #TODO read much of this config in from a config file
     omni_options = Simp::Cli::Utils.default_simp_env_config
     omni_options[:types][:puppet].merge! ({
@@ -61,6 +77,9 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   # :creatable - Valid Puppet & secondary environments can be safely
   #              created, overwriting any existing skeletal environment
   def env_status
+    #TODO integrate the (yet to be written) OmniEnvController environment
+    #     status method
+    #
     status_puppet, details_puppet = puppet_env_status
     status_secondary, details_secondary  = secondary_env_status
 
@@ -169,6 +188,33 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   end
 
 private
+  # Back up a Puppet environment outside of the environments directory,
+  # so that this backup is not accidentally purged by a R10K/CodeManager
+  # deploy operation.
+  #
+  # +puppet_env_dir+: fully qualified path of the Puppet environment
+  #   to be backed up
+  def back_up_puppet_environment(puppet_env_dir)
+    return unless Dir.exist?(puppet_env_dir)
+
+    # create the backup environments dir
+    env_parent_dir = File.dirname(puppet_env_dir)
+    backup_dir = "#{env_parent_dir}.bak"
+    FileUtils.mkdir_p(backup_dir)
+
+    # ensure the ownership is correct
+    orig_dir_stat = File.stat(env_parent_dir)
+    File.chown(orig_dir_stat.uid, orig_dir_stat.gid, backup_dir)
+    File.chmod(orig_dir_stat.mode & 0777, backup_dir)
+
+    # move the environment to a timestamped dir in the backup dir
+    backup = File.join(backup_dir,
+      "#{File.basename(puppet_env_dir)}.#{Simp::Cli::Utils::timestamp_compact(@start_time)}"
+    )
+    logger.debug( "Backing up #{puppet_env_dir} to #{backup}" )
+    FileUtils.mv(puppet_env_dir, backup)
+  end
+
   # @returns Hash of Puppet environment information with the following keys
   #
   # :puppet_config      = Puppet master configuration for the environment
