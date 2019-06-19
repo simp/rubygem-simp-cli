@@ -13,10 +13,10 @@ module Simp::Cli::Environment
 
     include Simp::Cli::Logging
 
-    # +type+: symbol indicating type of environment (e.g., :puppet, :secondary...);
-    #         used in log messages
-    # +name+: environment name
-    # +opts+: options Hash
+    # @param [Symbol] type  symbol indicating type of environment (e.g.,
+    #   :puppet,  secondary...); used in log messages
+    # @param [String] name  environment name
+    # @param [Hash]   opts  options Hash
     def initialize(type, name, opts)
       unless Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME.match?(name)
         fail(ArgumentError, "ERROR: Illegal environment name: '#{name}'" \

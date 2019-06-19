@@ -105,7 +105,7 @@ describe Simp::Cli::Environment::DirEnv do
         # as user root
         allow(ENV).to receive(:fetch).with(any_args).and_call_original
         allow(ENV).to receive(:fetch).with('USER').and_return('root')
-        allow(described_object).to receive(:execute).with(rsync_cmd)
+        allow(described_object).to receive(:execute).with(rsync_cmd).and_return(true)
         allow($CHILD_STATUS).to receive(:success?).and_return(true)
       end
 
@@ -117,7 +117,7 @@ describe Simp::Cli::Environment::DirEnv do
   end
 
   describe '#fail_unless_createable' do
-    subject(:described_object) { described_class.new(env_name, base_env_path, opts) }
+    subject(:described_object) { described_class.new(:test, env_name, base_env_path, opts) }
     context 'when writable environment directory is empty' do
       before(:each) do
         allow(Dir).to receive(:glob).with(any_args).and_call_original

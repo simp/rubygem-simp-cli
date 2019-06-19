@@ -29,7 +29,7 @@ module Simp::Cli::Environment
           execute("restorecon -R -F -p #{path}")
         end
       else
-        info("SELinux is disabled; skipping context fixfiles for '#{path}'".yellow)
+        info("SELinux is disabled; skipping context fixfiles for '#{paths}'".yellow)
       end
     end
 

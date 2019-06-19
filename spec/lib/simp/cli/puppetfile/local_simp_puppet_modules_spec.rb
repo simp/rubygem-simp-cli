@@ -44,7 +44,7 @@ describe Simp::Cli::Puppetfile::LocalSimpPuppetModules do
   describe '#metadata_json_files' do
 
     it 'returns metadata.json files' do
-      expect( @local_modules.metadata_json_files ).to eq(
+      expect( @local_modules.metadata_json_files.sort ).to eq(
         [
           "#{@modules_install_dir}/simplib/metadata.json",
           "#{@modules_install_dir}/stdlib/metadata.json"
@@ -96,7 +96,7 @@ describe Simp::Cli::Puppetfile::LocalSimpPuppetModules do
     context 'when only valid modules are found in RPM install path' do
       it { expect( @local_modules.modules).to be_an Array }
       it { expect( @local_modules.modules.length).to be test_modules.keys.length }
-      it { expect( @local_modules.modules.first.to_s).to match %r{^mod 'simp-simplib',} }
+      it { expect( @local_modules.modules.sort{|a,b| a.to_s <=> b.to_s }.first.to_s).to match %r{^mod 'puppetlabs-stdlib',} }
     end
 
     context 'when invalid modules found in RPM install path' do

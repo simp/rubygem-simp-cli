@@ -228,6 +228,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     end
     logger.debug("Environment creation options:\n#{options.to_yaml}\n")
 
+    action = options.delete(:action)
     omni_controller = Simp::Cli::Environment::OmniEnvController.new(options, env)
     omni_controller.send(action)
 

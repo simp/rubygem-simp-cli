@@ -53,6 +53,7 @@ module Simp::Cli::Environment
         ].join("\n")
       end
     end
+
     # Create a new environment for each environment type
     def create
       # ensure environments are createable before proceeding
@@ -63,7 +64,6 @@ module Simp::Cli::Environment
         env_obj.create
       end
 
-      each_environment('create') { |_t, env_obj| env_obj.create }
       fix  # ensure environments are correct after creating them
     end
 
