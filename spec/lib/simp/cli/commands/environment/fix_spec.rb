@@ -27,18 +27,16 @@ describe Simp::Cli::Commands::Environment::Fix do
       end
     end
 
-    context 'with argument `--skeleton`' do
+    context 'with default options' do
       let(:omni_spy) { instance_double('OmniEnvController') }
 
       before(:each) do
         allow(Simp::Cli::Environment::OmniEnvController).to receive(:new).and_return(omni_spy)
         allow(omni_spy).to receive(:fix)
-        allow($stdout).to receive(:write)
-        allow($stderr).to receive(:write)
       end
 
       it 'runs OmniEnvController#fix' do
-        described_class.new.run(['foo'])
+        described_class.new.run(['foo', '--console-only'])
 
         expect(Simp::Cli::Environment::OmniEnvController).to have_received(:new).with(
           hash_including(
@@ -52,7 +50,7 @@ describe Simp::Cli::Commands::Environment::Fix do
       end
 
       it 'runs OmniEnvController#fix' do
-        described_class.new.run(['foo'])
+        described_class.new.run(['foo', '--console-only'])
         expect(omni_spy).to have_received(:fix).once
       end
     end

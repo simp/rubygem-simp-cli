@@ -29,7 +29,7 @@ module Simp::Cli::Environment
           execute("restorecon -R -F -p #{path}")
         end
       else
-        info("SELinux is disabled; skipping context fixfiles for '#{paths}'".yellow)
+        info("SELinux is disabled; skipping context restorecon for '#{paths}'".yellow)
       end
     end
 
@@ -60,8 +60,8 @@ module Simp::Cli::Environment
       rsync = Facter::Core::Execution.which('rsync')
       fail("Error: Could not find 'rsync' command!") unless rsync
 
-      cmd = "#{rsync} -a '#{src_dir}'/ '#{dest_dir}'/ 2>&1"
-      cmd = %(sg - #{group} -c '#{rsync} -a --no-g "#{src_dir}/" "#{dest_dir}/" 2>&1') if ENV.fetch('USER') == 'root' && group
+      cmd = "#{rsync} -a '#{src_dir}'/ '#{dest_dir}'/"
+      cmd = %(sg - #{group} -c '#{rsync} -a --no-g "#{src_dir}/" "#{dest_dir}/"') if ENV.fetch('USER') == 'root' && group
 
       debug("Copying '#{src_dir}' files into '#{dest_dir}'")
       success = execute(cmd)

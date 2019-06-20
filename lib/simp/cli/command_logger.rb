@@ -69,6 +69,12 @@ module Simp::Cli::CommandLogger
             'recorded in the log file regardless.') do
       options[:verbose] = -1
     end
+
+    opt_parser.on('--console-only',
+                  'Suppress logging to file.') do
+      options[:log_file] = :none
+    end
+
   end
 
   # Set up the global logger
@@ -90,7 +96,8 @@ module Simp::Cli::CommandLogger
   #   :log_basename = Basename of the log file to be opened.  Used to
   #                   generate the name of the log file, when :log_file
   #                   is not specified.
-  #   :log_file     = Fully qualified path to the log file
+  #   :log_file     = Fully qualified path to the log file or :none,
+  #                   if file logging has been disabled
   #   :start_time   = Time the command processing started
   #   :verbose      = Verbosity of console messages.  Will be set to
   #                   NOTICE and above, if missing.
@@ -114,8 +121,11 @@ module Simp::Cli::CommandLogger
       log_file = "#{options[:log_basename]}.#{timestamp}"
       options[:log_file] = File.join(Simp::Cli::SIMP_CLI_HOME, log_file)
     end
-    FileUtils.mkdir_p(File.dirname(options[:log_file]))
-    logger.open_logfile(options[:log_file])
+
+    unless (options[:log_file] == :none)
+      FileUtils.mkdir_p(File.dirname(options[:log_file]))
+      logger.open_logfile(options[:log_file])
+    end
 
     options[:verbose] = 0 unless options[:verbose]
     case options[:verbose]

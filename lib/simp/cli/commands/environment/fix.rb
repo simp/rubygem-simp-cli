@@ -15,7 +15,7 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
 
   # @return [String] description of command
   def self.description
-    'Re-apply FACLs, SELinux contexts, and permissions to omni-environment files'
+    'Re-apply FACLs, SELinux contexts, and permissions to SIMP Omni environment files'
   end
 
   # Run the command's `--help` strategy
@@ -56,25 +56,26 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
 
         Actions:
 
-          * Ensure SELinux contexts under all environment directories (`fixfiles restore`)
-          * Restore FACLs under ${SECONDARY_ENVDIR} ${PUPPET_ENVDIR} ${WRITABLE_ENVDIR}`
-          * If ${SECONDARY_ENVDIR}/FakeCA/cacertkey doesn't exist, fill it will random gibberish
+          * Ensure SELinux contexts under all SIMP Omni environment directories
+          * Restore FACLs under all SIMP Omni enviroment directories
+          * If `FakeCA/cacertkey` doesn't exist in the Secondary environment, fill it
+            with random gibberish
 
         Options:
 
       HELP_MSG
 
       opts.on('--[no-]puppet-env',
-              'Includes Puppet environment when `--puppet-env`',
-              '(default: --no-puppet-env)') { |v| options[:types][:puppet][:enabled] = v }
+              'Include the Puppet environment.',
+              'Enabled by default.') { |v| options[:types][:puppet][:enabled] = v }
 
       opts.on('--[no-]secondary-env',
-              'Includes Secondary environment when `--secondary-env`',
-              '(default: --secondary-env)') { |v| options[:types][:secondary][:enabled] = v }
+              'Include the Secondary environment.',
+              'Enabled by default.') { |v| options[:types][:secondary][:enabled] = v }
 
       opts.on('--[no-]writable-env',
-              'Includes writable environment when `--writable-env`',
-              '(default: --writable-env)') { |v| options[:types][:writable][:enabled] = v }
+              'Include the writable environment.',
+              'Enabled by default.') { |v| options[:types][:writable][:enabled] = v }
 
       opts.separator ''
 
@@ -85,22 +86,18 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
         @help_requested = true
       end
     end
-    opt_parser.parse!(args)
-    options
+    remaining_args = opt_parser.parse!(args)
+    [options, remaining_args]
   end
 
   # Run command logic
   # @param args [Array<String>] ARGV-style args array
   def run(args)
-    options = parse_command_line(args)
+    options, remaining_args = parse_command_line(args)
     return if @help_requested
 
-    action = options.delete(:action)
-
-    fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.") if args.empty?
-
-    env = args.shift
-
+    fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.") if remaining_args.empty?
+    env = remaining_args.shift
     unless Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME.match?(env)
       fail(
         Simp::Cli::ProcessingError,
@@ -110,15 +107,16 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
 
     set_up_global_logger(options)
 
-    unless options[:verbose] < 0
+    unless (options[:verbose] < 0) || (options[:log_file] == :none)
       logger.say("Actions will be logged to\n  #{options[:log_file]}\n".bold)
     end
     logger.debug("Environment fix options:\n#{options.to_yaml}\n")
 
+    action = options.delete(:action)
     omni_controller = Simp::Cli::Environment::OmniEnvController.new(options, env)
     omni_controller.send(action)
 
-    unless options[:verbose] < 0
+    unless (options[:verbose] < 0) || (options[:log_file] == :none)
       logger.say( "\n" + "Detailed log written to #{options[:log_file]}".bold )
     end
   end

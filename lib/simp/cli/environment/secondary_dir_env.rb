@@ -160,7 +160,6 @@ module Simp::Cli::Environment
         os_info = dir.split('/')[-5..-3]
         dst_dirname = os_info.map(&:downcase).join('-')
         dst_path = File.join(@tftpboot_dest_path, dst_dirname)
-        FileUtils.mkdir_p File.basename(@tftpboot_src_path)
         copy_skeleton_files(dir, dst_path, 'nobody')
 
         # create major OS version link
