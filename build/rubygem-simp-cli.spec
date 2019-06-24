@@ -130,48 +130,28 @@ EOM
 
 %changelog
 * Tue Jun 11 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
-  - `simp environment new` changes:
-    - Behaviors match `--help` documentation:
-      - `--skeleton` implies `--puppetfile`
-      - `--puppetfile`:
-        - generates `Puppetfile.simp` from local RPM/git repos
-        - generates a skeleton `Puppetfile` (if needed)
-    - Fails before acting if any component environment cannot be created
+- Added 'simp environment' command
+- Added `simp environment new` subcommand
+- Added `simp environment fix` subcommand
+- Added `simp puppetfile generate` command
+  - `simp puppetfile` command
+  - `simp puppetfile generate` sub-command
+- Fixed various annoyances that prevented local smoke tests with `bin/simp`
+  - Avoid using AIO Puppet with `USE_AIO_PUPPET=no`
+  - Load all `simp` commands without `simp config` failing in non-puppetserver
+    environments (`simp config` still fails as expected)
+- Moved logger to `Simp::Cli::Logging`
+- Fixed gem dependency-related warning when `simp` is run on real OSes
+  - Updated dependency constraints in gemspec
+  - Removed unnecessary ENV wrapper from gemspec
+  - Documented changes in README.md
+
 * Fri Jun 07 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
 - 'simp' change:
   - Standardized help mechanism to be -h at all levels
     (main, command, subcommand)
   - Added descriptions to top level help command list
-- 'simp puppetfile generate' changes:
-  - Added '--local-modules ENV' option, which will add each local
-    (unmanaged) module found in a Puppet environment to the
-    generated skeleton Puppetfile as `:local => true`.  This option is
-    key for sites that have unmanaged, locally-written modules in an
-    environment. Without the local references, those modules will be
-    purged by r10K/Code Manager, when that environment's generated
-    Puppetfile is deployed.
-  - Changed the ':git' references for the local SIMP module repos
-    in the generated Puppetfiles from file paths to file URLs.
-  - Sorted modules listed in generated Puppetfile by their
-    names from their respective metadata.json files.
-  - Changed the error handling of problematic modules found in
-    /usr/share/simp/modules. The generator now warns the user
-    and skips the module in lieu of aborting.
-  - Added tag validation for each SIMP module installed in
-    /usr/share/simp/modules.  The generator now verifies that the
-    tag for each module exists in its local Git repository, before
-    creating a Puppetfile entry for the module.
-  - Improved error handling.  Backtraces on errors for which the
-    error message is sufficient are now suppressed.
 - Added 'rsync' and 'git' to the RPM requires list.
-
-* Fri Apr 26 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
-- New features:
-  - Added 'simp environment' command
-  - Added `simp environment new` subcommand
-  - Added `simp environment fix` subcommand
-
-* Fri Apr 26 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.0
 - 'simp' change:
   - Fixed bug in which the wrong Facter environment variable was set
 - 'simp config' changes:
@@ -215,8 +195,9 @@ EOM
     fails validation.
   - Added simp-cli version to the answers file as a YAML entry.
 - 'simp bootstrap' changes:
-    (with 'production' links), if they do not exist.  Instead, checks
-    for the existence of SIMP Puppet and secondary 'production'
+    No longer checks for the 'simp' Puppet and secondary environments (with
+    their corresponding 'production' links) and fails if they do not exist.
+    Instead, checks for the existence of SIMP Puppet and secondary 'production'
     environments and fails if both are not present.
   - Checks validity of manifests in the 'production' environment,
     not 'simp' environment, as the link that made them
@@ -231,33 +212,15 @@ EOM
 - Added message to bootstrap.rb indicating that puppetserver has been
   reconfigured to listen on a specific port. This message will be
   displayed if the port is changed to 8140, or if it remains on 8150.
-
-* Wed Mar 20 2019 Jim Anderson <thesemicolons@protonmail.com> - 5.0.0
 - Fixed bug in which 'simp config' failed to find the template
   SIMP server host YAML file, puppet.your.domain.yaml, from
-  /usr/share simp/enviornments/simp.  This bug caused subsequent
+  /usr/share simp/environments/simp.  This bug caused subsequent
   'simp config' runs to fail, when the SIMP server hostname had
   changed from the hostname used in the first 'simp config' run.
 
 * Mon Mar 18 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 5.0.0
-- Ensure that an FQDN is used when running `simp config`
-- Ensure that an FQDN is set when running `simp bootstrap`
-
-* Mon Mar 11 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
-- Added `simp puppetfile generate` command
-  - `simp puppetfile` command
-  - `simp puppetfile generate` sub-command
-- Fixed various annoyances that prevented local smoke tests with `bin/simp`
-  - Avoid using AIO Puppet with `USE_AIO_PUPPET=no`
-  - Load all `simp` commands without `simp config` failing in non-puppetserver
-    environments (`simp config` still fails as expected)
-- Moved logger to `Simp::Cli::Logging`
-- Fixed gem depenency-related warning when `simp` is run on real OSes
-  - Updated dependency constraints in gemspec
-  - Removed unnecessary ENV wrapper from gemspec
-  - Documented changes in README.md
-
-* Thu Feb 07 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 5.0.0
+- Ensure that a FQDN is used when running `simp config`
+- Ensure that a FQDN is set when running `simp bootstrap`
 - Fixed a bug where the web-routes.conf file was not being overwritten with a
   pristine copy. This meant that multiple calls to `simp bootstrap` would fail
   due to leftover CA entries in the file. The error provided is not clear and
