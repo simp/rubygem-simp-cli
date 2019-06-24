@@ -1,5 +1,8 @@
+require 'simp/cli/defaults'
+require 'simp/cli/errors'
+require 'simp/cli/utils'
 require 'facter'
-require 'simp/cli'
+require 'json'
 
 module Simp::Cli::Puppetfile
   # Provides a skeleton Puppetfile that includes a local Puppetfile.simp
@@ -62,8 +65,11 @@ module Simp::Cli::Puppetfile
 
     # @param puppet_env Optional name of a Puppet environment in which to
     #   find local Puppet modules to be included in the generated Puppetfile
-    def initialize(puppet_env = nil)
+    # @param simp_modules_git_repos_path Fully qualified path to the local,
+    #   SIMP-managed Git repositories for modules
+    def initialize(puppet_env = nil, simp_modules_git_repos_path = Simp::Cli::SIMP_MODULES_GIT_REPOS_PATH)
       @puppet_env = puppet_env
+      @simp_modules_git_repos_path = simp_modules_git_repos_path
     end
 
     # @return [String] Skeleton Puppetfile that will load the contents of
@@ -90,7 +96,8 @@ module Simp::Cli::Puppetfile
     private
 
     # @returns List of local modules found in the standard module path
-    #   for the environment
+    #   for the environment for which a local SIMP-owned Git repository
+    #   does not exist
     #
     # NOTE:
     # - A local module is a module that does not have a .git subdirectory
@@ -116,16 +123,34 @@ module Simp::Cli::Puppetfile
       local_mods = []
       module_dirs.each do |module_dir|
         Dir.chdir(module_dir) do
+           metadata = load_metadata(module_dir)
+           next if metadata.nil?
+
            if Dir.exist?('.git')
              if `#{git} remote -v`.strip.empty?
-               local_mods << File.basename(module_dir)
+               local_mods << [ File.basename(module_dir), metadata['name'] ]
              end
            else
-             local_mods << File.basename(module_dir)
+             local_mods << [ File.basename(module_dir), metadata['name'] ]
            end
         end
       end
-      local_mods
+
+      # Remove any 'local' modules for which a local Git repo exists
+      local_mods.delete_if do |mod_name, org_plus_name|
+        Dir.exist?(File.join(@simp_modules_git_repos_path, "#{org_plus_name}.git"))
+      end
+
+      # Remove any 'local' module which is obsoleted by a currently-installed
+      # module RPM for which there is a local Git repo.
+      # NOTE:  There may be modules that were obsoleted by the 'simp' or
+      #        'simp-extras' RPMs (e.g., simp-site, simp-simpcat), but it
+      #         would be too aggressive to remove those...
+      local_mods.delete_if do |mod_name, org_plus_name|
+        local_module_obsolete?(org_plus_name)
+      end
+
+      local_mods.map { |name_pair| name_pair.first }
     end
 
     # @returns a 'Generated' header when local modules are to be included
@@ -140,6 +165,30 @@ module Simp::Cli::Puppetfile
       HEADER
     end
 
+    # @returns Hash representation of the metadata.json file in the specified
+    #   module_dir or nil if the metadata.json file is invalid
+    #
+    # Logs the metadata.json failure to stderr
+    def load_metadata(module_dir)
+      mdj_file = File.join(module_dir, 'metadata.json')
+      unless File.exist?(mdj_file)
+        $stderr.puts "Ignoring local module #{module_dir}: metadata.json missing"
+        return nil
+      end
+
+      metadata = nil
+      begin
+        metadata = JSON.parse(File.read(mdj_file))
+        unless metadata['name']
+          $stderr.puts "Ignoring local module #{module_dir}: 'name' missing from metadata.json"
+          metadata = nil
+        end
+      rescue JSON::JSONError => e
+        $stderr.puts "Ignoring local module #{module_dir}: #{e}"
+      end
+      metadata
+    end
+
     # @returns Array of local modules for the specified Puppet
     #   environment or [], when no Puppet environment is specified
     # @see find_local_modules
@@ -152,6 +201,28 @@ module Simp::Cli::Puppetfile
         @local_modules = find_local_modules(@puppet_env)
       end
       @local_modules
+    end
+
+    # Returns true if the specified module is obsoleted by a currently-installed
+    # module RPM for which there is a local Git repo
+    #
+    # @param org_plus_name Name of the module as specified in the module's
+    #   metadata.json file (i.e., <org>-<name>).
+    def local_module_obsolete?(org_plus_name)
+      module_name = org_plus_name.split('-').last
+      possible_matches = Dir.glob(File.join(@simp_modules_git_repos_path, "*-#{module_name}.git"))
+      return false if possible_matches.empty?
+
+      obsolete = false
+      possible_matches.map! { |repo_name| "pupmod-#{File.basename(repo_name, '.git')}" }
+      possible_matches.each do |pkg_name|
+        result = %x{rpm -q #{pkg_name} --obsoletes 2>&1}
+        if result.match(/^pupmod-#{org_plus_name}(\s)+/)
+          obsolete = true
+          break
+        end
+      end
+      obsolete
     end
 
   end

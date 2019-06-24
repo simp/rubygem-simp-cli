@@ -1,0 +1,46 @@
+{
+  "name": "simp-timezone",
+  "version": "5.0.3",
+  "source": "git://github.com/simp/pupmod-simp-timezone",
+  "author": "SIMP Team",
+  "license": "Apache-2.0",
+  "summary": "Manage timezone settings via Puppet",
+  "description": "Manage timezone settings via Puppet",
+  "project_page": "https://github.com/simp/pupmod-simp-timezone",
+  "dependencies": [
+    { "name": "puppetlabs/stdlib", "version_requirement": ">=2.6.0 < 5.0.0" },
+    { "name": "stm/debconf", "version_requirement": ">= 2.0.0 < 3.0.0" }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 4.9.1 < 6.0.0"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "RedHat"
+    },
+    {
+      "operatingsystem": "CentOS"
+    },
+    {
+      "operatingsystem": "OracleLinux"
+    },
+    {
+      "operatingsystem": "Scientific"
+    },
+    {
+      "operatingsystem": "Debian"
+    },
+    {
+      "operatingsystem": "Ubuntu"
+    },
+    {
+      "operatingsystem": "Gentoo"
+    },
+    {
+      "operatingsystem": "ArchLinux"
+    }
+  ]
+}
