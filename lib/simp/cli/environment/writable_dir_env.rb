@@ -14,13 +14,7 @@ module Simp::Cli::Environment
 
     # Create a new environment
     def create
-      # Safety feature: Don't clobber a Puppet environment directory that already has content
-      unless Dir.glob(File.join(@directory_path, '*')).empty?
-        fail(
-          Simp::Cli::ProcessingError,
-          "ERROR: A Writable environment directory with content already exists at '#{@directory_path}'"
-        )
-      end
+      fail_unless_createable
 
       case @opts[:strategy]
 

@@ -47,16 +47,18 @@ class MyCommandLoggerTester
     opt_parser.parse!(args)
   end
 
-  def set_up_and_use_logger(options)
+  def set_up_and_use_logger(options, log_messages = true)
     set_up_global_logger(options)
 
-    logger.trace('a trace message')
-    logger.debug('a debug message')
-    logger.info('an info message')
-    logger.notice('a notice message')
-    logger.warn('a warn message')
-    logger.error('an error message')
-    logger.fatal('a fatal message')
+    if log_messages
+      logger.trace('a trace message')
+      logger.debug('a debug message')
+      logger.info('an info message')
+      logger.notice('a notice message')
+      logger.warn('a warn message')
+      logger.error('an error message')
+      logger.fatal('a fatal message')
+    end
   end
 end
 
@@ -83,6 +85,7 @@ describe Simp::Cli::CommandLogger do
     -q, --quiet                      Quiet console output.  Only errors are
                                      reported to the console. All details are
                                      recorded in the log file regardless.
+        --console-only               Suppress logging to file.
     -o, --output FILE                Output file
     -h, --help                       Print this message
       EOM
@@ -102,6 +105,7 @@ describe Simp::Cli::CommandLogger do
     -q, --quiet                      Quiet console output.  Only errors are
                                      reported to the console. All details are
                                      recorded in the log file regardless.
+        --console-only               Suppress logging to file.
     -h, --help                       Print this message
       EOM
       expect { @command.parse_command_line_append([ '-h' ], options) }.to output(expected).to_stdout
@@ -215,6 +219,21 @@ describe Simp::Cli::CommandLogger do
           RuntimeError,
           'set_up_global_logger: options Hash must contain :log_basename or :log_file'
         )
+      end
+
+      it 'does not open file logging when :log_file = :none' do
+        allow(FileUtils).to receive(:mkdir_p)
+        mock_logger = object_double('Mock Logger', {
+          :open_logfile  => nil,
+          :levels        => nil
+        })
+        allow(@command).to receive(:logger).and_return(mock_logger)
+
+        options = { :log_file => :none }
+
+        @command.set_up_and_use_logger(options, false)
+        expect(FileUtils).not_to have_received(:mkdir_p)
+        expect(mock_logger).not_to have_received(:open_logfile)
       end
     end
 

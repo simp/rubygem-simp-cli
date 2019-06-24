@@ -98,7 +98,7 @@ module Simp::Cli::Config
 
       @category          = :other        # category which can be used to group actions when applied
                                          # see SORTED_CATEGORIES above for recognized categories
- 
+
       # TODO Should just be able to use module paths from @puppet_env_info,
       # because we have ensured the SIMP environment is place before attempting
       # the 'simp config' questionnaire. The only reason for using the SIMP
