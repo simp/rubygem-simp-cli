@@ -29,7 +29,7 @@ module Simp::Cli::Environment
           execute("restorecon -R -F -p #{path}")
         end
       else
-        info("SELinux is disabled; skipping context fixfiles for '#{path}'".yellow)
+        info("SELinux is disabled; skipping context restorecon for '#{paths}'".yellow)
       end
     end
 
@@ -60,8 +60,8 @@ module Simp::Cli::Environment
       rsync = Facter::Core::Execution.which('rsync')
       fail("Error: Could not find 'rsync' command!") unless rsync
 
-      cmd = "#{rsync} -a '#{src_dir}'/ '#{dest_dir}'/ 2>&1"
-      cmd = %(sg - #{group} -c '#{rsync} -a --no-g "#{src_dir}/" "#{dest_dir}/" 2>&1') if ENV.fetch('USER') == 'root' && group
+      cmd = "#{rsync} -a '#{src_dir}'/ '#{dest_dir}'/"
+      cmd = %(sg - #{group} -c '#{rsync} -a --no-g "#{src_dir}/" "#{dest_dir}/"') if ENV.fetch('USER') == 'root' && group
 
       debug("Copying '#{src_dir}' files into '#{dest_dir}'")
       success = execute(cmd)
@@ -97,6 +97,16 @@ module Simp::Cli::Environment
         )
       else
         warn("WARNING: Source environment directory '#{src_env_dir}' does not exist to link; skipping.".yellow)
+      end
+    end
+
+    def fail_unless_createable
+      # Safety feature: Don't clobber an environment directory that already has content
+      unless Dir.glob(File.join(@directory_path, '*')).empty?
+        fail(
+          Simp::Cli::ProcessingError,
+          "ERROR: A directory with content already exists at '#{@directory_path}'"
+        )
       end
     end
   end

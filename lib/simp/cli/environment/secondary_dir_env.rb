@@ -45,16 +45,7 @@ module Simp::Cli::Environment
     #
     # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
     def create
-      <<-TODO.gsub(%r{^ {6}}, '')
-
-      TODO
-
-      if File.exist? @directory_path
-        fail(
-          Simp::Cli::ProcessingError,
-          "ERROR: Secondary environment directory already exists at '#{@directory_path}'\n"
-        )
-      end
+      fail_unless_createable
 
       case @opts[:strategy]
       when :skeleton
@@ -169,7 +160,6 @@ module Simp::Cli::Environment
         os_info = dir.split('/')[-5..-3]
         dst_dirname = os_info.map(&:downcase).join('-')
         dst_path = File.join(@tftpboot_dest_path, dst_dirname)
-        FileUtils.mkdir_p File.basename(@tftpboot_src_path)
         copy_skeleton_files(dir, dst_path, 'nobody')
 
         # create major OS version link

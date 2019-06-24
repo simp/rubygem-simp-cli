@@ -31,26 +31,44 @@ describe Simp::Cli::Environment::WritableDirEnv do
   end
 
   context 'with methods' do
-    describe '#create', :skip => 'TODO: Implement' do
-      context 'when writable environment directory is empty' do
-        before(:each) do
-          allow(Dir).to receive(:glob).with(any_args).and_call_original
-          allow(Dir).to receive(:glob).with(File.join(env_dir, '*')).and_return([])
-        end
+    describe '#create' do
+      before(:each) do
+        allow(described_object).to receive(:fail_unless_createable)
+        allow(Dir).to receive(:glob).with(File.join(env_dir, '*')).and_return([])
+      end
+      context 'when strategy is :skeleton (noop)' do
+        let(:opts){ super().merge(strategy: :skeleton) }
         it { expect { described_object.create }.not_to raise_error }
-        it {
-          described_object.create
-        }
       end
 
-      context 'when writable environment directory is not empty' do
-        before(:each) { allow(Dir).to receive(:glob).and_return(['data', 'hiera.yaml']) }
-        it {
-          expect { described_object.create }.to raise_error(
-            Simp::Cli::ProcessingError,
-            %r{already exists at '#{env_dir}'}
-          )
-        }
+      context 'when strategy is :copy' do
+        let(:opts) do
+          super().merge({
+            strategy: :copy,
+            src_env:  File.join(base_env_path,'src_env'),
+          })
+        end
+        before(:each) { allow( described_object ).to receive(:copy_environment_files).with(opts[:src_env], false) }
+        it { expect { described_object.create }.not_to raise_error }
+        example do
+          described_object.create
+          expect(described_object).to have_received(:copy_environment_files).with(opts[:src_env], false)
+        end
+      end
+
+      context 'when strategy is :link' do
+        let(:opts) do
+          super().merge({
+            strategy: :link,
+            src_env:  File.join(base_env_path,'src_env'),
+          })
+        end
+        before(:each){ allow( described_object ).to receive(:link_environment_dirs).with(opts[:src_env], false) }
+        it { expect { described_object.create }.not_to raise_error }
+        example do
+          described_object.create
+          expect(described_object).to have_received(:link_environment_dirs).with(opts[:src_env], false)
+        end
       end
     end
 
@@ -91,6 +109,7 @@ describe Simp::Cli::Environment::WritableDirEnv do
     describe '#remove' do
       it { expect { described_object.remove }.to raise_error(NotImplementedError) }
     end
+
   end
   # rubocop:enable RSpec/SubjectStub
 end

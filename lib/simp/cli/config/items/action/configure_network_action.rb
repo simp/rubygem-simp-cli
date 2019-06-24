@@ -23,7 +23,6 @@ module Simp::Cli::Config
 
     def apply
       @applied_status = :failed
-      ci  = {}
       cmd = nil
 
       dhcp      = get_item( 'cli::network::dhcp' ).value

@@ -13,10 +13,10 @@ module Simp::Cli::Environment
 
     include Simp::Cli::Logging
 
-    # +type+: symbol indicating type of environment (e.g., :puppet, :secondary...);
-    #         used in log messages
-    # +name+: environment name
-    # +opts+: options Hash
+    # @param [Symbol] type  symbol indicating type of environment (e.g.,
+    #   :puppet,  secondary...); used in log messages
+    # @param [String] name  environment name
+    # @param [Hash]   opts  options Hash
     def initialize(type, name, opts)
       unless Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME.match?(name)
         fail(ArgumentError, "ERROR: Illegal environment name: '#{name}'" \
@@ -58,8 +58,8 @@ module Simp::Cli::Environment
     # Execute a command in a child process, log failure and return
     # a hash with the command status, stdout and stderr.
     #
-    # +command+:  Command to be executed
-    # +ignore_failure+:  Whether to ignore failures.  When true and
+    # @param [String] command  Command to be executed
+    # @param [Boolean] ignore_failure  Whether to ignore failures.  When true and
     #   and the command fails, does not log the failure and returns
     #   a hash with :status = true
     #
@@ -70,8 +70,8 @@ module Simp::Cli::Environment
     # Execute a command in a child process, log failure and return
     # whether command succeeded.
     #
-    # +command+:  Command to be executed
-    # +ignore_failure+:  Whether to ignore failures.  When true and
+    # @param [String] command  Command to be executed
+    # @param [Boolean] ignore_failure  Whether to ignore failures.  When true and
     #   the command fails, does not log the failure and returns true.
     def execute(command, ignore_failure = false)
       return Simp::Cli::ExecUtils::execute(command, ignore_failure, logger)
@@ -105,5 +105,8 @@ module Simp::Cli::Environment
       logger.fatal(*args)
     end
 
+    def fail_unless_createable
+      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+    end
   end
 end

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 require 'simp/cli/commands/environment'
-require 'simp/cli/commands/environment/new'
+require 'simp/cli/commands/environment/fix'
 require 'simp/cli/environment/omni_env_controller'
 require 'spec_helper'
 
-describe Simp::Cli::Commands::Environment::New do
+describe Simp::Cli::Commands::Environment::Fix do
   describe '#run' do
     context 'with default arguments' do
       subject(:run) { proc { described_class.new.run([]) } }
@@ -27,18 +27,16 @@ describe Simp::Cli::Commands::Environment::New do
       end
     end
 
-    context 'with argument `--skeleton`' do
+    context 'with default options' do
       let(:omni_spy) { instance_double('OmniEnvController') }
 
       before(:each) do
         allow(Simp::Cli::Environment::OmniEnvController).to receive(:new).and_return(omni_spy)
-        allow(omni_spy).to receive(:create)
-        allow($stdout).to receive(:write)
-        allow($stderr).to receive(:write)
+        allow(omni_spy).to receive(:fix)
       end
 
-      it 'runs OmniEnvController#create' do
-        described_class.new.run(['foo'])
+      it 'runs OmniEnvController#fix' do
+        described_class.new.run(['foo', '--console-only'])
 
         expect(Simp::Cli::Environment::OmniEnvController).to have_received(:new).with(
           hash_including(
@@ -51,9 +49,9 @@ describe Simp::Cli::Commands::Environment::New do
         )
       end
 
-      it 'runs OmniEnvController#create' do
-        described_class.new.run(['foo'])
-        expect(omni_spy).to have_received(:create).once
+      it 'runs OmniEnvController#fix' do
+        described_class.new.run(['foo', '--console-only'])
+        expect(omni_spy).to have_received(:fix).once
       end
     end
   end

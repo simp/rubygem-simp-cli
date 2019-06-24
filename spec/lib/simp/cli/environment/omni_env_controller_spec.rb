@@ -68,11 +68,13 @@ describe Simp::Cli::Environment::OmniEnvController do
   describe '#create' do
     subject(:create) { proc { described_object.create } }
 
+    it_behaves_like 'it delegates to enabled Env objects', :fail_unless_createable, OMNI_ENVIRONMENT
     it_behaves_like 'it delegates to enabled Env objects', :create, OMNI_ENVIRONMENT
-    it_behaves_like 'it delegates to enabled Env objects', :fix, EXTRA_ENVIRONMENT
+    it_behaves_like 'it delegates to enabled Env objects', :fix,    EXTRA_ENVIRONMENT
     context 'when the Puppet environment is not enabled' do
       let(:opts) { opts_pup_disabled }
 
+      it_behaves_like 'it delegates to enabled Env objects', :fail_unless_createable, %i[secondary writable]
       it_behaves_like 'it delegates to enabled Env objects', :create, %i[secondary writable]
       it_behaves_like('it delegates to enabled Env objects', :fix, %i[secondary writable])
     end

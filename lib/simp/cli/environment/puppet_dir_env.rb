@@ -11,6 +11,7 @@ module Simp::Cli::Environment
     def initialize(name, base_environments_path, opts)
       super(:puppet, name, base_environments_path, opts)
       @skeleton_path = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
+      @puppetfile_simp_path = File.join(directory_path, 'Puppetfile.simp')
       @puppetfile_path = File.join(directory_path, 'Puppetfile')
     end
 
@@ -22,21 +23,15 @@ module Simp::Cli::Environment
     #
     # @see https://simp-project.atlassian.net/wiki/spaces/SD/pages/edit/757497857#simp_cli_environment_changes
     def create
-      # Safety feature: Don't clobber a Puppet environment directory that already has content
-      unless Dir.glob(File.join(@directory_path, 'modules', '*')).empty?
-        fail(
-          Simp::Cli::ProcessingError,
-          "ERROR: A Puppet environment directory with content already exists at '#{@directory_path}'"
-        )
-      end
+      fail_unless_createable
 
       case @opts[:strategy]
       when :skeleton
         create_environment_from_skeleton
       when :copy
-        copy_environment_files(@opts[:src_env])
+        create_environment_from_copy
       when :link
-        link_environment_dirs(@opts[:src_env])
+        create_environment_from_link
       else
         fail("ERROR: Unknown Puppet environment create strategy: '#{@opts[:strategy]}'")
       end
@@ -82,6 +77,26 @@ module Simp::Cli::Environment
       fail NotImplementedError
     end
 
+    def create_environment_from_copy
+      copy_environment_files(@opts[:src_env])
+
+      # (option-driven) generate Puppetfillink
+      puppetfile_generate if @opts[:puppetfile_generate]
+
+      # (option-driven) deploy modules (r10k puppetfile install)
+      puppetfile_install if @opts[:puppetfile_install]
+    end
+
+    def create_environment_from_link
+      link_environment_dirs(@opts[:src_env])
+
+      # (option-driven) generate Puppetfile
+      puppetfile_generate if @opts[:puppetfile_generate]
+
+      # (option-driven) deploy modules (r10k puppetfile install)
+      puppetfile_install if @opts[:puppetfile_install]
+    end
+
     def create_environment_from_skeleton
       info("Creating #{@type} env '#{@directory_path}' from '#{@skeleton_path}'".cyan)
 
@@ -111,7 +126,7 @@ module Simp::Cli::Environment
       debug("Generating #{env_conf_file} from #{env_conf_template}")
 
       unless File.file?(env_conf_template)
-        logger.warn "WARNING: No template found at '#{env_conf_template}'".yellow
+        warn "WARNING: No template found at '#{env_conf_template}'".yellow
         unless File.file?(env_conf)
           msg = "ERROR: No template and no conf file at #{env_conf_file}"
           fail(Simp::Cli::ProcessingError, msg)
@@ -132,14 +147,26 @@ module Simp::Cli::Environment
 
     def puppetfile_generate
       require 'simp/cli/puppetfile/local_simp_puppet_modules'
+      require 'simp/cli/puppetfile/skeleton'
       puppetfile_modules = Simp::Cli::Puppetfile::LocalSimpPuppetModules.new(
         @opts[:skeleton_modules_path],
         @opts[:module_repos_path]
       )
+      puppetfile_skeleton = Simp::Cli::Puppetfile::Skeleton.new
 
-      logger.info "Generating Puppetfile from local git repos at '#{@puppetfile_path}'".cyan
-      File.open(@puppetfile_path, 'w') do |f|
+      info "Generating Puppetfile.simp from local git repos in '#{File.dirname(@puppetfile_path)}'".cyan
+      File.open("#{@puppetfile_path}.simp", 'w') do |f|
         f.puts puppetfile_modules.to_puppetfile
+      end
+
+      if File.exists? @puppetfile_path
+        info "Skipping generation of Puppetfile (to include Puppetfile.simp) in '#{File.dirname(@puppetfile_path)}'".cyan
+        info '>> File already exists'.cyan
+      else
+        info "Generating Puppetfile (to include Puppetfile.simp) in '#{File.dirname(@puppetfile_path)}'".cyan
+        File.open(@puppetfile_path, 'w') do |f|
+          f.puts puppetfile_skeleton.to_puppetfile
+        end
       end
     end
 
@@ -150,7 +177,10 @@ module Simp::Cli::Environment
       Dir.chdir(directory_path) do
         info("Running r10k from '#{directory_path}' to install Puppet modules".cyan)
         unless execute(r10k_cmd)
-          fail(Simp::Cli::ProcessingError, "ERROR:  Failed to install Puppet modules using r10k'")
+          fail(
+            Simp::Cli::ProcessingError,
+            "ERROR:  Failed to install Puppet modules using r10k in '#{directory_path}'"
+          )
         end
       end
     end

@@ -3,12 +3,11 @@ require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::ConfigureNetworkAction do
   before :each do
+    stub_const('Simp::Cli::SIMP_MODULES_INSTALL_PATH', '')
     @puppet_env_info = {
       :puppet_config => { 'modulepath' => '/some/module/path' }
     }
-
     @ci = Simp::Cli::Config::Item::ConfigureNetworkAction.new(@puppet_env_info)
-
     @cmd_prefix =  [
       'FACTER_ipaddress=XXX',
       'puppet apply',
