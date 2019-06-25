@@ -60,14 +60,19 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       " --no-splay --agent_disabled_lockfile=#{agent_lockfile}" +
       " --masterport=#{@initial_puppetserver_port} --ca_port=#{@initial_puppetserver_port}"
 
-    num_tagged_runs = 2
-    info("Running puppet agent with --tags pupmod,simp #{num_tagged_runs} times...", 'cyan')
+    num_tagged_runs = 3
+    info("Running puppet agent with --tags pupmod,simp up to #{num_tagged_runs} times...", 'cyan')
     pupcmd = "#{pupcmd} --tags pupmod,simp 2> /dev/null"
     linecounts = Array.new
     (1..num_tagged_runs).each do |run_num|
       info("Tagged agent run #{run_num}:", 'cyan')
       # Tagged runs are against the bootstrap puppetserver port
       linecounts << track_output(pupcmd, @initial_puppetserver_port)
+
+      # As soon as we have configured the puppetserver beyond the initial port
+      # and restarted the service (all done via puppet), it won't be running on
+      # the initial port and we are done with tagged runs.
+      break unless puppetserver_running?(@initial_puppetserver_port, true)
     end
 
     fix_file_contexts
@@ -83,7 +88,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     execute('puppetserver reload')
 
     # SIMP is not single-run idempotent.  Until it is, run puppet multiple times.
-    num_runs = 3
+    num_runs = 4
     info("Running puppet agent without tags #{num_runs} times...", 'cyan')
     pupcmd = 'puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay' +
       " --agent_disabled_lockfile=#{agent_lockfile}"
@@ -256,7 +261,7 @@ EOM
     begin
       pserver_proc = %x{netstat -tlpn}.split("\n").select{|x| x =~ /\d:8150/}
       unless pserver_proc.empty?
-        pserver_port = %x{puppet config print masterport}
+        pserver_port = %x{puppet config print --section=master masterport}.strip
         # By this point, bootstrap has applied config settings to puppetserver.
         # Don't kill puppetserver if it's configured it to listen on 8150.
         unless (pserver_port == '8150')
@@ -360,15 +365,10 @@ EOM
 
     # This changes over time so we need to snag it fresh instead of getting it
     # from the originally pulled values.
-    port ||= `puppet config print --section=master masterport`.strip
+    port ||= %x{puppet config print --section=master masterport}.strip
 
     begin
-      info("Waiting for puppetserver to accept connections on port #{port}", 'cyan')
-      curl_cmd = "curl -sS --cert #{Simp::Cli::Utils.puppet_info[:config]['hostcert']}" +
-        " --key #{Simp::Cli::Utils.puppet_info[:config]['hostprivkey']} -k -H" +
-        " \"Accept: s\" https://localhost:#{port}/production/certificate_revocation_list/ca"
-      debug(curl_cmd)
-      running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
+      running = puppetserver_running?(port)
       unless running
         debug('System not running, attempting to restart puppetserver')
         system(%(puppet resource service #{@puppetserver_service} ensure="running" enable=true > /dev/null 2>&1 &))
@@ -377,7 +377,7 @@ EOM
         debug("Waiting up to #{@puppetserver_wait_minutes} minutes for puppetserver to respond")
         Timeout::timeout(@puppetserver_wait_minutes * 60) {
           while not running do
-            running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
+            running = puppetserver_running?(port, true)
             stages.each{ |x|
               $stdout.flush
               print "> #{x}\r"
@@ -622,6 +622,19 @@ EOM
     system('clear')
     info('=== Starting SIMP Bootstrap ===', 'yellow.bold', '')
     info("The log can be found at '#{@logfile.path}'\n")
+  end
+
+  # Checks if the puppetserver is running on the specified port
+  def puppetserver_running?(port, quiet = false)
+    unless quiet
+      info("Checking if puppetserver is accepting connections on port #{port}", 'cyan')
+    end
+    curl_cmd = "curl -sS --cert #{Simp::Cli::Utils.puppet_info[:config]['hostcert']}" +
+        " --key #{Simp::Cli::Utils.puppet_info[:config]['hostprivkey']} -k -H" +
+        " \"Accept: s\" https://localhost:#{port}/production/certificate_revocation_list/ca"
+    debug(curl_cmd) unless quiet
+    running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
+    running
   end
 
   def set_up_logger
