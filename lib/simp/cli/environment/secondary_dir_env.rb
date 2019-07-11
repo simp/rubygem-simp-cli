@@ -161,6 +161,11 @@ module Simp::Cli::Environment
         dst_dirname = os_info.map(&:downcase).join('-')
         dst_path = File.join(@tftpboot_dest_path, dst_dirname)
         copy_skeleton_files(dir, dst_path, 'nobody')
+        # change perms to world readable or tftp fails
+        Dir.chdir(dst_path) do
+          FileUtils.chmod(0644, Dir.entries(dst_path) - %w[. ..])
+        end
+
 
         # create major OS version link
         os_info[1] = os_info[1].split('.').first
