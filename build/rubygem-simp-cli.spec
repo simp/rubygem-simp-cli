@@ -129,6 +129,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Jul 11 2019 Michael Morrone <michael.morrone@onyxpoint.com> - 5.0.1
+- Patched secondary environment permissions for tftp
+
 * Tue Jun 11 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
 - Added 'simp environment' command
 - Added `simp environment new` subcommand
