@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 5.0.0
+%global cli_version 5.0.1
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,6 +129,11 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Jul 11 2019 Michael Morrone <michael.morrone@onyxpoint.com> - 5.0.1
+- Fixed a bug in which the tftpboot images copied into the rsync space in
+  SIMP's secondary environment were not world readable.  This prevented
+  clients from PXE booting.
+
 * Tue Jun 11 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
 - Added 'simp environment' command
 - Added `simp environment new` subcommand
