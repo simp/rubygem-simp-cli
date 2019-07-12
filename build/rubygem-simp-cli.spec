@@ -130,7 +130,9 @@ EOM
 
 %changelog
 * Thu Jul 11 2019 Michael Morrone <michael.morrone@onyxpoint.com> - 5.0.1
-- Patched secondary environment permissions for tftp
+- Fixed a bug in which the tftpboot images copied into the rsync space in
+  SIMP's secondary environment were not world readable.  This prevented
+  clients from PXE booting.
 
 * Tue Jun 11 2019 Chris Tessmer <chris.tessmer@onyxpoint.com> - 5.0.0
 - Added 'simp environment' command
