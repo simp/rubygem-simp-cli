@@ -85,7 +85,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     # been a problem and having this statement does no harm but it should not
     # be required.
     info('Reloading puppetserver', 'cyan')
-    execute('puppetserver reload')
+    execute('puppetserver stop')
+    execute('puppetserver start')
 
     # SIMP is not single-run idempotent.  Until it is, run puppet multiple times.
     num_runs = 4
@@ -602,7 +603,8 @@ EOM
 
     # Reload the puppetserver
     info('Reloading puppetserver', 'cyan')
-    execute('puppetserver reload')
+    execute('puppetserver stop')
+    execute('puppetserver start')
   end
 
   def print_closing_banner(linecounts)
