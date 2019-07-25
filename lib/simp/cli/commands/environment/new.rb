@@ -131,7 +131,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
       opts.on('--link SRC_ENV', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
               'Symlink Secondary and Writable environment',
-              "directories to SRC_ENV and copy OTHER_ENV's",
+              "directories to SRC_ENV and copy SRC_ENV's",
               'Puppet environment directory.') do |src_env|
         TYPES.each do |type|
           options[:types][type][:strategy] = :link
