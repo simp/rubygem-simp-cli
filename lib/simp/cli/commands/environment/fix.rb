@@ -57,9 +57,9 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
         Actions:
 
           * Ensure SELinux contexts under all SIMP Omni environment directories
-          * Restore FACLs under all SIMP Omni enviroment directories
-          * If `FakeCA/cacertkey` doesn't exist in the Secondary environment, fill it
-            with random gibberish
+          * Restore FACLs under all SIMP Omni environment directories
+          * Restore Puppet permissions under appropriate SIMP Omni environment
+            (sub-)directories
 
         Options:
 
