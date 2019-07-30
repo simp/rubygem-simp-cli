@@ -129,7 +129,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Mon Jul 29 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.2
+* Tue Jul 30 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.2
+- Flesh out incomplete instructions on how to prevent possible root
+  lockout from the SIMP server.
 - Fixed a typo in `simp environment new` built-in help.
 - Fixed errata in `simp environment fix` built-in help.
 

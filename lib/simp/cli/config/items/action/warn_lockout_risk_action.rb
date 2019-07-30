@@ -19,57 +19,116 @@ module Simp::Cli::Config
       @warning_message = <<DOC
 
 #{'#'*72}
-Per security policy, SIMP, by default, disables login via ssh for all
-users, including 'root', and beginning with SIMP 6.0.0 (when
-useradd::securetty is empty), disables root logins at the console.  So,
-to prevent lockout in systems for which no administrative user account
-has yet been created or both console access is not available and the
-administrative user's ssh access has not yet been enabled, you should
-configure a local user for this server to have both su and ssh
-privileges.  This entails the following:
+Per security policy, SIMP, by default, disables login via `ssh` for all users,
+including `root`, and beginning with SIMP 6.0.0, disables `root` logins at
+the console by default.  So, if one of the following scenarios applies, you
+should configure a local user for this server to have both `su` and `ssh`
+privileges, in order to prevent `root` lockout from the system:
 
-1. Create a local user account, as needed, using useradd.
+* Console access is available but not allowed for `root` and no other
+  administrative user account has yet been created.
 
-2. Create a Puppet manifest to enable su and allow ssh access.  For
-   example,
+  * This can happen when SIMP is installed from RPM and the user accepts
+    `simp config`'s default value for `useradd:securetty` (an empty array).
 
-   class userx_user (
-   Boolean $pam = simplib::lookup('simp_options::pam', { 'default_value' => false }),
-   ) {
-     if $pam {
-       include '::pam'
+* Both console access is not available and the administrative user's `ssh`
+  access has not yet been enabled (permanently) via Puppet.
 
-       pam::access::rule { 'allow_userx':
-         users   => ['userx'],
-         origins => ['ALL'],
-         comment => 'The local user, used to remotely login to the system in the case of a lockout.'
+  * This can happen when SIMP is installed from RPM on cloud systems.
+
+If you have access to the console, have the `root` password, and have enabled
+`root` console access by specifying an appropriate TTY when `simp config`
+asked you about `useradd::securetty` (e.g., `tty0`), this warning is not
+applicable.  If there are no other issues identified in this file, you can
+simply remove it and run `simp bootstrap`.
+
+Otherwise, to address the potential `root` lockout issue, follow the
+instructions below.
+
+Configure Local User for Access
+-------------------------------
+
+In these instructions, you will create a manifest in a local module, `mymodule`,
+in the `production` Puppet environment.  Execute these operations as `root`.
+
+ *  See https://puppet.com/docs/puppet/latest/modules.html for information on how
+    to create a Puppet module.
+
+1. Create a local user account, as needed, using `useradd`.  This example
+   assumes the local user is `userx`.
+
+   * Be sure to set the user's password if the user is logging in with a password.
+   * SIMP is configured to create a home directory for the user, if it does
+     not exist when the user first logs in.
+
+2. Create a `local_user.pp` manifest in `mymodule/manifests` to enable
+   `sudo su - root` and allow `ssh` access for the user you created/selected:
+
+   a) Create the manifest directory
+
+        $ mkdir -p /etc/puppetlabs/code/environments/production/modules/mymodule/manifests
+
+   b) Create /etc/puppetlabs/code/environments/production/modules/mymodule/manifests/local_user.pp
+      with the following content:
+
+        class mymodule::local_user (
+          Boolean $pam = simplib::lookup('simp_options::pam', { 'default_value' => false }),
+        ) {
+
+          sudo::user_specification { 'default_userx':
+            user_list => ['userx'],
+            runas     => 'root',
+            cmnd      => ['/bin/su root', '/bin/su - root']
+          }
+
+         if $pam {
+           include 'pam'
+
+           pam::access::rule { 'allow_userx':
+             users   => ['userx'],
+             origins => ['ALL'],
+             comment => 'The local user, used to remotely login to the system in the case of a lockout.'
+           }
+         }
        }
-     }
 
-     sudo::user_specification { 'default_userx':
-       user_list => ['userx'],
-       runas     => 'root',
-       cmnd      => ['/bin/su root', '/bin/su - root']
-     }
-   }
+3. Make sure the permissions are correct on the module:
 
-3. Add the class created in Step 2 to the class list for the SIMP
-   server in its host YAML file.
+     $ sudo chown -R root:puppet /etc/puppetlabs/code/environments/production/modules/mymodule
+     $ sudo chmod -R g+rX /etc/puppetlabs/code/environments/production/modules/mymodule
 
-      ...
-      classes:
-        - userx_user
-      ...
+4. Add the module to the SIMP server's host YAML file class list:
 
-4. If the local user is configured to login with pre-shared keys
-   instead of a password, copy the authorized_keys file for that
-   user to /etc/ssh/local_keys/<username>.  For example,
+   Edit the SIMP server's YAML file,
+   `/etc/puppetlabs/code/environments/production/data/<SIMP server FQDN>.yaml`
+   and add the `mymodule::local_user` to the `classes` array:
 
-   cp ~userx/.ssh/authorized_keys /etc/ssh/local_keys/userx
+     classes:
+       - mymodule::local_user
 
-Once you have configured a user with both su and ssh privileges and
-addressed any other issues identified in this file, you can remove
-this file and continue with 'simp bootstrap'.
+5. If the local user is configured to login with pre-shared keys instead of a
+   password (typical cloud configuration), copy the `authorized_keys` file for
+   that user to the SIMP-managed location for authorized keys `/etc/ssh/local_keys`:
+
+     $ sudo mkdir -p /etc/ssh/local_keys
+     $ sudo chmod 755 /etc/ssh/local_keys
+     $ sudo cp ~userx/.ssh/authorized_keys /etc/ssh/local_keys/userx
+     $ sudo chmod 644 /etc/ssh/local_keys/userx
+
+6. Add the module to the `Puppetfile` in the `production` environment:
+
+   Edit the `Puppetfile` used to deploy the modules,
+   `/etc/puppetlabs/code/environments/production/Puppetfile`,  and add a line
+   under the section that says "Add your own Puppet modules here"
+
+     mod 'mymodule'; :local => true
+
+Next Steps
+----------
+
+If `root` lockout is the only issue identified in this file, remove the file
+and continue with `simp bootstrap`.  If not, address any remaining issues,
+remove the file, and then run `simp bootstrap`.
 DOC
     end
 
