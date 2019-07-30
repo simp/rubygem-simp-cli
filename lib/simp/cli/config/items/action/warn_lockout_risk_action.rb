@@ -119,7 +119,7 @@ in the `production` Puppet environment.  Execute these operations as `root`.
 
    Edit the `Puppetfile` used to deploy the modules,
    `/etc/puppetlabs/code/environments/production/Puppetfile`,  and add a line
-   under the section that says "Add you own Puppet modules here"
+   under the section that says "Add your own Puppet modules here"
 
      mod 'mymodule'; :local => true
 
