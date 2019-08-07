@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 5.0.2
+%global cli_version 5.0.3
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,6 +129,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Wed Aug 07 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.3
+- Fix errata in instructions on how to prevent possible root lockout
+  from the SIMP server.
+
 * Tue Jul 30 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.2
 - Flesh out incomplete instructions on how to prevent possible root
   lockout from the SIMP server.
