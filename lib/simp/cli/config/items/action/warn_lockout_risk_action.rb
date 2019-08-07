@@ -51,8 +51,9 @@ Configure Local User for Access
 In these instructions, you will create a manifest in a local module, `mymodule`,
 in the `production` Puppet environment.  Execute these operations as `root`.
 
- *  See https://puppet.com/docs/puppet/latest/modules.html for information on how
-    to create a Puppet module.
+ * See https://puppet.com/docs/puppet/latest/modules.html for information on how
+   to create a Puppet module.
+ * Be sure to create a metadata.json file for your module.
 
 1. Create a local user account, as needed, using `useradd`.  This example
    assumes the local user is `userx`.
@@ -121,7 +122,7 @@ in the `production` Puppet environment.  Execute these operations as `root`.
    `/etc/puppetlabs/code/environments/production/Puppetfile`,  and add a line
    under the section that says "Add your own Puppet modules here"
 
-     mod 'mymodule'; :local => true
+     mod 'mymodule', :local => true
 
 Next Steps
 ----------
