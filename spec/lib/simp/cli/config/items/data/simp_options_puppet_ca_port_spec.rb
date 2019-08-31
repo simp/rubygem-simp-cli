@@ -20,10 +20,6 @@ describe Simp::Cli::Config::Item::SimpOptionsPuppetCAPort do
   end
 
   describe '#recommended_value' do
-    it 'returns 8141' do
-      expect( @ci.recommended_value ).to eq 8141
-    end
-
     context 'when in FOSS' do
       it 'returns 8141' do
         allow(Facter).to receive(:value).with('is_pe').and_return(false)

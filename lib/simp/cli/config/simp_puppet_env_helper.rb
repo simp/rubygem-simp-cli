@@ -225,6 +225,7 @@ private
   # :puppet_env_datadir = SIMP Puppet environment hieradata directory
   # :secondary_env_dir  = SIMP secondary environment
   # :writable_env_dir   = SIMP writable environment
+  # :is_pe              = Set if the system is Puppet Enterprise
   #
   def get_current_env_info
     puppet_info = get_system_puppet_info
@@ -240,7 +241,8 @@ private
      :puppet_env_dir     => puppet_env_dir,
      :puppet_env_datadir => get_puppet_env_datadir(puppet_env_dir),
      :secondary_env_dir  => secondary_env_dir,
-     :writable_env_dir   => writable_env_dir
+     :writable_env_dir   => writable_env_dir,
+     :is_pe              => puppet_info[:is_pe]
     }
   end
 

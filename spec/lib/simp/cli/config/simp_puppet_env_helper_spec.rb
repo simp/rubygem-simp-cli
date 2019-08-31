@@ -144,7 +144,8 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
       :version                    => '5.5.10',
       :environment_path           => '/etc/puppetlabs/puppet/code/environments',
       :secondary_environment_path => '/var/simp/environments',
-      :writable_environment_path  => '/opt/puppetlabs/server/data/puppetserver/simp/environments'
+      :writable_environment_path  => '/opt/puppetlabs/server/data/puppetserver/simp/environments',
+      :is_pe                      => false
     }}
 
     let(:datadir) { '/etc/puppetlabs/puppet/code/environments/production/data' }
@@ -161,7 +162,8 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
         :puppet_env_dir     => '/etc/puppetlabs/puppet/code/environments/production',
         :puppet_env_datadir => datadir,
         :secondary_env_dir  => '/var/simp/environments/production',
-        :writable_env_dir   => '/opt/puppetlabs/server/data/puppetserver/simp/environments/production'
+        :writable_env_dir   => '/opt/puppetlabs/server/data/puppetserver/simp/environments/production',
+        :is_pe              => false
       }
       expect( @env_helper.env_info).to eq expected
     end

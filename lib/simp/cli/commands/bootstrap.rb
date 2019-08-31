@@ -6,13 +6,11 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   require 'pty'
   require 'timeout'
 
-  require 'facter'
-
   DEFAULT_PUPPETSERVER_WAIT_MINUTES = 5
 
   def initialize
+    load_custom_facts
 
-    @is_pe = nil  # set from stdlib fact loaded after puppet env validated
     @puppetserver_wait_minutes = DEFAULT_PUPPETSERVER_WAIT_MINUTES
 
     @start_time = Time.now
@@ -25,6 +23,11 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     @track = true
     @unsafe = false
     @verbose = false
+
+    @env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(Simp::Cli::BOOTSTRAP_PUPPET_ENV)
+    @env_info = @env_helper.env_info
+
+    @is_pe = @env_info[:is_pe]
   end
 
   #####################################################
@@ -120,8 +123,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     info("Checking for the SIMP omni-environment '#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}'", 'cyan')
     # FIXME  This is an interim way to affect the validation.  Will use
     #   Simp::Cli::Environment::OmniEnvController once logic is available.
-    env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(Simp::Cli::BOOTSTRAP_PUPPET_ENV)
-    status_code, status_details = env_helper.env_status
+    status_code, status_details = @env_helper.env_status
     unless status_code == :exists
       details_msg = status_details.split("\n").map { |line| '  >>' + line }.join("\n")
       msg = "A valid SIMP omni-environment for '#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}' does not exist:\n"
@@ -394,7 +396,10 @@ EOM
 
   # If selinux is enabled, relabel the filesystem.
   def fix_file_contexts
+    require 'facter'
+
     FileUtils.touch('/.autorelabel')
+
     if Facter.value(:selinux) && !Facter.value(:selinux_current_mode).nil? &&
         (Facter.value(:selinux_current_mode) != 'disabled')
       info('Relabeling filesystem for selinux (this may take a while)...', 'cyan')
@@ -571,10 +576,6 @@ EOM
 
     # give user time to read the SAFE mode messages
     sleep(2)
-
-    # 'is_pe' is a stdlib fact
-    load_custom_facts
-    @is_pe = Facter.value('is_pe')
 
     if @is_pe
       info('Puppet Enterprise found, preserving existing configuration.', 'cyan')
@@ -839,4 +840,3 @@ EOM
     end
   end
 end
-
