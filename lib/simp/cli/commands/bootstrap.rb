@@ -22,7 +22,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     @unsafe = false
     @verbose = false
 
-    @is_pe = Simp::Cli::Utils.is_pe?
+    @is_pe = Simp::Cli::Utils::puppet_info[:is_pe]
   end
 
   #####################################################
@@ -456,13 +456,6 @@ EOM
     end
 
     return @java_major_version
-  end
-
-  # Load the custom facts from the SIMP environment
-  def load_custom_facts
-    env_dir = File.join(Simp::Cli::Utils.puppet_info[:config]['codedir'], 'environments', Simp::Cli::BOOTSTRAP_PUPPET_ENV)
-    debug("Loading custom facts from #{env_dir}")
-    Simp::Cli::Utils::load_custom_facts([env_dir])
   end
 
   def parse_command_line(args)
