@@ -20,24 +20,22 @@ describe Simp::Cli::Config::Item::SimpOptionsPuppetCAPort do
   end
 
   describe '#recommended_value' do
-    it 'returns 8141' do
-      expect( @ci.recommended_value ).to eq 8141
-    end
+    let(:env_info) { Simp::Cli::Config::Item::DEFAULT_PUPPET_ENV_INFO }
+    let(:item) {Simp::Cli::Config::Item::SimpOptionsPuppetCAPort.new(env_info) }
 
     context 'when in FOSS' do
-      it 'returns 8141' do
-        allow(Facter).to receive(:value).with('is_pe').and_return(false)
+      let(:env_info) { Simp::Cli::Config::Item::DEFAULT_PUPPET_ENV_INFO.merge({:is_pe => false}) }
 
-        item = Simp::Cli::Config::Item::SimpOptionsPuppetCAPort.new
+      it 'returns 8141' do
+
         expect( item.recommended_value ).to eq 8141
       end
     end
 
     context 'when in PE' do
-      it 'returns 8140' do
-        allow(Facter).to receive(:value).with('is_pe').and_return(true)
+      let(:env_info) { Simp::Cli::Config::Item::DEFAULT_PUPPET_ENV_INFO.merge({:is_pe => true}) }
 
-        item = Simp::Cli::Config::Item::SimpOptionsPuppetCAPort.new
+      it 'returns 8140' do
         expect( item.recommended_value ).to eq 8140
       end
     end

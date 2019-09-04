@@ -128,14 +128,23 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
      return [:missing, "Puppet environment '#{@env_name}' does not exist"]
    end
 
-   module_paths = env_info[:puppet_config]['modulepath']
+   module_paths = env_info[:puppet_config]['modulepath'].dup
    module_paths = module_paths.nil? ? [] : module_paths.split(':')
 
+   # Paths containing PE modules will be added on PE systems, so we need to
+   # remove them from the paths we check for existing modules
+   if env_info[:is_pe]
+     module_paths.delete_if { |path| path.start_with?('/opt/puppetlabs') }
+   end
+
    modules_found = false
+   modules_found_path = []
+
    module_paths.each do |path|
     metadata_files = Dir.glob(File.join(path, '*','metadata.json'))
     unless metadata_files.empty?
       modules_found = true
+      modules_found_path << File.dirname(path)
       break
     end
    end
@@ -146,10 +155,10 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
 
    if env_info[:puppet_env_datadir].nil?
      status = :invalid
-     msg = "Existing Puppet environment '#{@env_name}' missing 'data' or 'hieradata' dir"
+     msg = "Existing Puppet environment '#{@env_name}' at '#{env_info[:puppet_env_dir]}' missing 'data' or 'hieradata' dir"
    else
      status = :present
-     msg = "Puppet environment '#{@env_name}' exists"
+     msg = "Puppet environment '#{@env_name}' exists with modules at '#{modules_found_path.join(':')}'"
    end
    [ status, msg ]
   end
@@ -170,7 +179,7 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   #
   def secondary_env_status
    unless Dir.exist?(env_info[:secondary_env_dir])
-     return [:missing, "Secondary environment '#{@env_name}' does not exist"]
+     return [:missing, "Secondary environment '#{@env_name}' does not exist at '#{env_info[:secondary_env_dir]}'"]
    end
 
    cert_gen = File.join(env_info[:secondary_env_dir], 'FakeCA',
@@ -178,13 +187,13 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
 
    if File.executable?(cert_gen)
      status = :present
-     msg = "Secondary environment '#{@env_name}' exists"
+     msg = "Secondary environment '#{@env_name}' exists at '#{env_info[:secondary_env_dir]}'"
    else
      status = :invalid
      msg = "Existing secondary environment '#{@env_name}' missing executable #{cert_gen}"
    end
 
-   [ status, msg]
+   [ status, msg ]
   end
 
 private
@@ -225,6 +234,7 @@ private
   # :puppet_env_datadir = SIMP Puppet environment hieradata directory
   # :secondary_env_dir  = SIMP secondary environment
   # :writable_env_dir   = SIMP writable environment
+  # :is_pe              = Set if the system is Puppet Enterprise
   #
   def get_current_env_info
     puppet_info = get_system_puppet_info
@@ -240,7 +250,8 @@ private
      :puppet_env_dir     => puppet_env_dir,
      :puppet_env_datadir => get_puppet_env_datadir(puppet_env_dir),
      :secondary_env_dir  => secondary_env_dir,
-     :writable_env_dir   => writable_env_dir
+     :writable_env_dir   => writable_env_dir,
+     :is_pe              => puppet_info[:is_pe]
     }
   end
 

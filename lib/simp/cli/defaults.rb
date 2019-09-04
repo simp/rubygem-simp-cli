@@ -17,5 +17,5 @@ class Simp::Cli
   SIMP_MODULES_GIT_REPOS_PATH    = File.join(SIMP_INSTALL_ROOT, 'git', 'puppet_modules')
   CERTIFICATE_GENERATOR          = 'gencerts_nopass.sh'
   PUPPET_DIGEST_ALGORITHM        = 'sha256'  # MUST be a FIPS-compliant algorithm
+  PE_ENVIRONMENT_PATH            = '/opt/puppetlabs/server/data/environments'
 end
-

@@ -5,6 +5,7 @@ require 'simp/cli/config/errors'
 require 'simp/cli/defaults'
 require 'simp/cli/exec_utils'
 require 'simp/cli/logging'
+require 'simp/cli/utils'
 
 module Simp; end
 class Simp::Cli; end
@@ -35,7 +36,8 @@ module Simp::Cli::Config
       :puppet_env         => Simp::Cli::BOOTSTRAP_PUPPET_ENV,
       :puppet_env_dir     => "/etc/puppetlabs/code/environments/#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}",
       :puppet_env_datadir => "/etc/puppetlabs/code/environments/#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}/data",
-      :secondary_env_dir  => "/var/simp/environments/#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}"
+      :secondary_env_dir  => "/var/simp/environments/#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}",
+      :is_pe              => Simp::Cli::Utils.is_pe?
     }
 
     attr_reader   :key, :description, :data_type, :fact
