@@ -266,7 +266,7 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
 
       result_code, result_details = @env_helper.puppet_env_status
       expect( result_code ).to eq :present
-      expect( result_details ).to eq "Puppet environment 'production' exists at '#{@puppet_env_dir}'"
+      expect( result_details ).to eq "Puppet environment 'production' exists with modules at '#{@puppet_env_dir}'"
     end
   end
 

@@ -128,23 +128,23 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
      return [:missing, "Puppet environment '#{@env_name}' does not exist"]
    end
 
-   module_paths = env_info[:puppet_config]['modulepath']
+   module_paths = env_info[:puppet_config]['modulepath'].dup
    module_paths = module_paths.nil? ? [] : module_paths.split(':')
 
-   # PE paths will be added on PE systems so we need to remove them from the
-   # default list.
+   # Paths containing PE modules will be added on PE systems, so we need to
+   # remove them from the paths we check for existing modules
    if env_info[:is_pe]
      module_paths.delete_if { |path| path.start_with?('/opt/puppetlabs') }
    end
 
    modules_found = false
-   modules_found_path = nil
+   modules_found_path = []
 
    module_paths.each do |path|
     metadata_files = Dir.glob(File.join(path, '*','metadata.json'))
     unless metadata_files.empty?
       modules_found = true
-      modules_found_path = File.dirname(path)
+      modules_found_path << File.dirname(path)
       break
     end
    end
@@ -155,10 +155,10 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
 
    if env_info[:puppet_env_datadir].nil?
      status = :invalid
-     msg = "Existing Puppet environment '#{@env_name}' at '#{modules_found_path}' missing 'data' or 'hieradata' dir"
+     msg = "Existing Puppet environment '#{@env_name}' at '#{env_info[:puppet_env_dir]}' missing 'data' or 'hieradata' dir"
    else
      status = :present
-     msg = "Puppet environment '#{@env_name}' exists at '#{modules_found_path}'"
+     msg = "Puppet environment '#{@env_name}' exists with modules at '#{modules_found_path.join(':')}'"
    end
    [ status, msg ]
   end
