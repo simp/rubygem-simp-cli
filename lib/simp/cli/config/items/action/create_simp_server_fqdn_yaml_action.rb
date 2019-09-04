@@ -9,9 +9,7 @@ module Simp::Cli::Config
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
 
-      require 'simp/cli/utils'
-
-      if Simp::Cli::Utils.is_pe?
+      if puppet_env_info[:is_pe]
         host_config_yaml = 'pe-puppet.your.domain.yaml'
       else
         host_config_yaml = 'puppet.your.domain.yaml'

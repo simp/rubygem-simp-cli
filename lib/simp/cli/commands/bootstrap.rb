@@ -9,8 +9,6 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   DEFAULT_PUPPETSERVER_WAIT_MINUTES = 5
 
   def initialize
-    load_custom_facts
-
     @puppetserver_wait_minutes = DEFAULT_PUPPETSERVER_WAIT_MINUTES
 
     @start_time = Time.now
@@ -24,10 +22,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     @unsafe = false
     @verbose = false
 
-    @env_helper = Simp::Cli::Config::SimpPuppetEnvHelper.new(Simp::Cli::BOOTSTRAP_PUPPET_ENV)
-    @env_info = @env_helper.env_info
-
-    @is_pe = @env_info[:is_pe]
+    @is_pe = Simp::Cli::Utils.is_pe?
   end
 
   #####################################################
@@ -121,9 +116,11 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   # Verifies SIMP environment exists and is valid
   def check_for_simp_environment
     info("Checking for the SIMP omni-environment '#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}'", 'cyan')
+
     # FIXME  This is an interim way to affect the validation.  Will use
     #   Simp::Cli::Environment::OmniEnvController once logic is available.
-    status_code, status_details = @env_helper.env_status
+    status_code, status_details = Simp::Cli::Config::SimpPuppetEnvHelper.new(Simp::Cli::BOOTSTRAP_PUPPET_ENV).env_status
+
     unless status_code == :exists
       details_msg = status_details.split("\n").map { |line| '  >>' + line }.join("\n")
       msg = "A valid SIMP omni-environment for '#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}' does not exist:\n"

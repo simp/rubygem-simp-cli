@@ -38,7 +38,7 @@ Requires: rsync
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 Requires: sed
 Requires: simp-adapter >= 0.1.0
-Requires: simp-environment-skeleton >= 7.1.0
+Requires: simp-environment-skeleton >= 7.1.1
 Requires: yum-utils
 
 %if 0%{?rhel} > 6

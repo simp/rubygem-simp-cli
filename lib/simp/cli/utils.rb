@@ -30,9 +30,6 @@ module Simp::Cli::Utils
     attr_reader :system_puppet_info
 
     def initialize(environment)
-      require 'puppet'
-      require 'facter'
-
       Simp::Cli::Utils.load_custom_facts
 
       config = get_config(environment)
@@ -60,10 +57,9 @@ module Simp::Cli::Utils
         :secondary_environment_path => secondary_environment_path,
         :writable_environment_path  => writable_environment_path,
         :puppet_group               => config_hash['group'],
-        :version                    => %x{puppet --version}.split(/\n/).last
+        :version                    => %x{puppet --version}.split(/\n/).last,
+        :is_pe                      => Simp::Cli::Utils.is_pe?
       }
-
-      @system_puppet_info[:is_pe] = is_pe?
     end
 
     def get_config(environment='production', section='master')
@@ -72,27 +68,20 @@ module Simp::Cli::Utils
 
       return %x{puppet config print --environment=#{environment} --section=#{section}}.lines
     end
-
-    # Add another quick shortcut if possible
-    def is_pe?
-      return (
-        (@system_puppet_info && @system_puppet_info[:puppet_group] == 'pe-puppet') ||
-        Simp::Cli::Utils.is_pe?
-      )
-    end
   end
 
   # Try to determine if we are on a PE server in as many ways as possible
   #
   # @return [Boolean]
   #   `true` if PE detected, `false` otherwise
-  def self.is_pe?
+  def is_pe?
     require 'facter'
 
     # From cheapest to most expensive
     return Facter.value('is_pe') if Facter.value('is_pe')
 
-    return true if Facter.value('pe_build') ||
+    return true if (@system_puppet_info && @system_puppet_info[:puppet_group] == 'pe-puppet') ||
+      Facter.value('pe_build') ||
       File.exist?('/etc/puppetlabs/enterprise') ||
       File.exist?('/opt/puppetlabs/server/pe_build') ||
       File.exist?('/opt/puppetlabs/server/pe_version') ||
@@ -147,17 +136,20 @@ module Simp::Cli::Utils
   #   variable, in addition, so that the facts available to any spawned
   #   processes that use FACTERLIB, (e.g. `puppet apply`)
   def load_custom_facts(module_paths=[], add_to_env = false)
+    require 'puppet'
+    require 'facter'
+
     # Missing directories do not matter since they will be skipped
     default_module_paths = [
-      '/opt/puppetlabs/server/data/environments',
-      '/usr/share/simp/modules'
+      Simp::Cli::PE_ENVIRONMENT_PATH,
+      Simp::Cli::SIMP_MODULES_INSTALL_PATH
     ].map{|x| File.absolute_path(x)}
 
     fact_paths = []
     Facter.clear # Facter.loadfacts won't reload without this
 
-    # Later facts override earlier ones so the default paths are fine
-    (default_module_paths + Array(module_paths)).uniq.each do |dir|
+    # First match wins, so load all passed through paths first
+    (Array(module_paths) + default_module_paths).uniq.each do |dir|
       next unless File.directory?(dir)
       Find.find(dir) do |mod_path|
         Find.prune unless File.directory?(mod_path)

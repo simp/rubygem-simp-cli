@@ -251,7 +251,7 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
 
       result_code, result_details = @env_helper.puppet_env_status
       expect( result_code ).to eq :invalid
-      expect( result_details ).to eq "Existing Puppet environment 'production' missing 'data' or 'hieradata' dir"
+      expect( result_details ).to eq "Existing Puppet environment 'production' at '#{@puppet_env_dir}' missing 'data' or 'hieradata' dir"
     end
 
     it 'returns :present when the env contains module dirs and stock SIMP datadir' do
@@ -266,7 +266,7 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
 
       result_code, result_details = @env_helper.puppet_env_status
       expect( result_code ).to eq :present
-      expect( result_details ).to eq "Puppet environment 'production' exists"
+      expect( result_details ).to eq "Puppet environment 'production' exists at '#{@puppet_env_dir}'"
     end
   end
 
@@ -277,7 +277,7 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
 
       result_code, result_details = @env_helper.secondary_env_status
       expect( result_code ).to eq :missing
-      expect( result_details ).to eq "Secondary environment 'production' does not exist"
+      expect( result_details ).to eq "Secondary environment 'production' does not exist at '#{@secondary_env_dir}'"
     end
 
     it 'returns :present when the env and cert generator exist' do
@@ -294,7 +294,7 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
 
       result_code, result_details = @env_helper.secondary_env_status
       expect( result_code ).to eq :present
-      expect( result_details ).to eq "Secondary environment 'production' exists"
+      expect( result_details ).to eq "Secondary environment 'production' exists at '#{@secondary_env_dir}'"
     end
 
     it 'returns :invalid when the env exists but cert generator does not exist' do

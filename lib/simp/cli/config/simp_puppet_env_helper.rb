@@ -131,11 +131,20 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
    module_paths = env_info[:puppet_config]['modulepath']
    module_paths = module_paths.nil? ? [] : module_paths.split(':')
 
+   # PE paths will be added on PE systems so we need to remove them from the
+   # default list.
+   if env_info[:is_pe]
+     module_paths.delete_if { |path| path.start_with?('/opt/puppetlabs') }
+   end
+
    modules_found = false
+   modules_found_path = nil
+
    module_paths.each do |path|
     metadata_files = Dir.glob(File.join(path, '*','metadata.json'))
     unless metadata_files.empty?
       modules_found = true
+      modules_found_path = File.dirname(path)
       break
     end
    end
@@ -146,10 +155,10 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
 
    if env_info[:puppet_env_datadir].nil?
      status = :invalid
-     msg = "Existing Puppet environment '#{@env_name}' missing 'data' or 'hieradata' dir"
+     msg = "Existing Puppet environment '#{@env_name}' at '#{modules_found_path}' missing 'data' or 'hieradata' dir"
    else
      status = :present
-     msg = "Puppet environment '#{@env_name}' exists"
+     msg = "Puppet environment '#{@env_name}' exists at '#{modules_found_path}'"
    end
    [ status, msg ]
   end
@@ -170,7 +179,7 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   #
   def secondary_env_status
    unless Dir.exist?(env_info[:secondary_env_dir])
-     return [:missing, "Secondary environment '#{@env_name}' does not exist"]
+     return [:missing, "Secondary environment '#{@env_name}' does not exist at '#{env_info[:secondary_env_dir]}'"]
    end
 
    cert_gen = File.join(env_info[:secondary_env_dir], 'FakeCA',
@@ -178,13 +187,13 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
 
    if File.executable?(cert_gen)
      status = :present
-     msg = "Secondary environment '#{@env_name}' exists"
+     msg = "Secondary environment '#{@env_name}' exists at '#{env_info[:secondary_env_dir]}'"
    else
      status = :invalid
      msg = "Existing secondary environment '#{@env_name}' missing executable #{cert_gen}"
    end
 
-   [ status, msg]
+   [ status, msg ]
   end
 
 private

@@ -34,7 +34,7 @@ module Simp::Cli::Config
         # TODO Do we really want to remove comments?
         next if line =~ /\s*#/
         next if line =~ /#{puppet_server}/ && @value.eql?(puppet_server)
-        next if line =~ /^\s*127.0.0.1\s+/
+        next if line =~ /^\s*127\.0\.0\.1\s+/
         next if line =~ /^\s*::1\s+/
         next if line =~ /\spuppet(\s|$)/  # remove alias 'puppet'
         values.push(line)
