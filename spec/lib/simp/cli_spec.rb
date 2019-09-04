@@ -35,6 +35,8 @@ EOM
       end
 
       it 'outputs general usage when no command specified' do
+        # some left over cruft from other tests can cause problems in Travis spec tests
+        $stdout.flush
         expect{ @result = Simp::Cli.start([]) }.to output(@usage).to_stdout
         expect( @result ).to be @success_status
       end
