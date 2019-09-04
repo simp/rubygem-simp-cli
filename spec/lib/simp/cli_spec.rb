@@ -13,7 +13,7 @@ describe 'Simp::Cli' do
   describe 'Simp::Cli.start' do
     describe 'help' do
       before :all do
-        @usage = <<EOM
+        usage = <<EOM
 SIMP Command Line Interface
 
 Usage:
@@ -32,27 +32,26 @@ COMMANDS
   version       Display the current version of SIMP.
 
 EOM
+       @usage_regex = Regexp.new(Regexp.escape(usage))
       end
 
       it 'outputs general usage when no command specified' do
-        # some left over cruft from other tests can cause problems in Travis spec tests
-        $stdout.flush
-        expect{ @result = Simp::Cli.start([]) }.to output(@usage).to_stdout
+        expect{ @result = Simp::Cli.start([]) }.to output(@usage_regex).to_stdout
         expect( @result ).to be @success_status
       end
 
       it 'outputs general usage when help command specified' do
-        expect{ @result = Simp::Cli.start(['help']) }.to output(@usage).to_stdout
+        expect{ @result = Simp::Cli.start(['help']) }.to output(@usage_regex).to_stdout
         expect( @result ).to be @success_status
       end
 
       it 'outputs general usage when -h specified' do
-        expect{ @result = Simp::Cli.start(['-h']) }.to output(@usage).to_stdout
+        expect{ @result = Simp::Cli.start(['-h']) }.to output(@usage_regex).to_stdout
         expect( @result ).to be @success_status
       end
 
       it 'outputs general usage when --help specified' do
-        expect{ @result = Simp::Cli.start(['--help']) }.to output(@usage).to_stdout
+        expect{ @result = Simp::Cli.start(['--help']) }.to output(@usage_regex).to_stdout
         expect( @result ).to be @success_status
       end
 
