@@ -1,0 +1,10 @@
+---
+# some comment
+simp_apache::conf::ssl::trusted_nets: "%{alias('simp_options::trusted_nets')}"
+simp_apache::ssl::sslverifyclient: 'none'
+simp::yum::repo::local_os_updates::enable_repo: false
+simp::yum::repo::local_simp::enable_repo: false
+simp::server::allow_simp_user: true
+
+classes :
+  - 'simp::server'

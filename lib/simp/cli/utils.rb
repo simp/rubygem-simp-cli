@@ -30,6 +30,8 @@ module Simp::Cli::Utils
     attr_reader :system_puppet_info
 
     def initialize(environment)
+      Simp::Cli::Utils.load_custom_facts
+
       config = get_config(environment)
 
       # Kill the comments and blanks if any exists
@@ -55,7 +57,8 @@ module Simp::Cli::Utils
         :secondary_environment_path => secondary_environment_path,
         :writable_environment_path  => writable_environment_path,
         :puppet_group               => config_hash['group'],
-        :version                    => %x{puppet --version}.split(/\n/).last
+        :version                    => %x{puppet --version}.split(/\n/).last,
+        :is_pe                      => Simp::Cli::Utils.is_pe?
       }
     end
 
@@ -65,6 +68,31 @@ module Simp::Cli::Utils
 
       return %x{puppet config print --environment=#{environment} --section=#{section}}.lines
     end
+  end
+
+  # Try to determine if we are on a PE server in as many ways as possible
+  #
+  # @return [Boolean]
+  #   `true` if PE detected, `false` otherwise
+  def is_pe?
+    require 'facter'
+
+    # From cheapest to most expensive
+    return Facter.value('is_pe') if Facter.value('is_pe')
+
+    return true if (@system_puppet_info && @system_puppet_info[:puppet_group] == 'pe-puppet') ||
+      Facter.value('pe_build') ||
+      File.exist?('/etc/puppetlabs/enterprise') ||
+      File.exist?('/opt/puppetlabs/server/pe_build') ||
+      File.exist?('/opt/puppetlabs/server/pe_version') ||
+      File.exist?('/opt/puppetlabs/server/data/environments/enterprise')
+
+    begin
+      return true if Etc.getpwnam('pe-puppet')
+    rescue
+    end
+
+    return false
   end
 
   def puppet_info(environment = 'production')
@@ -98,31 +126,50 @@ module Simp::Cli::Utils
 
   # Add custom facts to the Facter search path and then reload the facts
   #
-  # +module_paths+: Array of module paths in which to find custom facts
-  # +add_to_env+:   Whether to add the custom fact paths to the FACTERLIB
-  #   environment variable, in addition, so that the facts available to
-  #   any spawned processes that use FACTERLIB, (e.g. `puppet apply`)
-  def load_custom_facts(module_paths, add_to_env = false)
+  # This can be called as many times as necessary and will re-load the facts
+  # each time with the new path.
+  #
+  # @param module_paths [Array[String]]
+  #   Paths to search for custom facts
+  # @param add_to_env [Boolean]
+  #   Whether to add the custom fact paths to the FACTERLIB environment
+  #   variable, in addition, so that the facts available to any spawned
+  #   processes that use FACTERLIB, (e.g. `puppet apply`)
+  def load_custom_facts(module_paths=[], add_to_env = false)
+    require 'puppet'
+    require 'facter'
+
+    # Missing directories do not matter since they will be skipped
+    default_module_paths = [
+      Simp::Cli::PE_ENVIRONMENT_PATH,
+      Simp::Cli::SIMP_MODULES_INSTALL_PATH
+    ].map{|x| File.absolute_path(x)}
+
     fact_paths = []
-    Facter.clear  # Facter.loadfacts won't reload without this
-    module_paths.each do |dir|
+    Facter.clear # Facter.loadfacts won't reload without this
+
+    # First match wins, so load all passed through paths first
+    (Array(module_paths) + default_module_paths).uniq.each do |dir|
       next unless File.directory?(dir)
       Find.find(dir) do |mod_path|
-        fact_path = File.expand_path('lib/facter', mod_path)
-        if File.directory?(fact_path)
-          Facter.search(fact_path)
-          fact_paths << fact_path
+        Find.prune unless File.directory?(mod_path)
+        if mod_path.end_with?('/lib/facter')
+          Facter.search(mod_path)
+          fact_paths << mod_path
         end
-        Find.prune unless mod_path == dir
       end
     end
+
+    # Called to get all of the facts that are included inside of core Facter
+    # for Puppet
+    Puppet.initialize_facts if Puppet.respond_to?(:initialize_facts)
+
     Facter.loadfacts
 
     if add_to_env
       fact_paths << ENV['FACTERLIB'] unless ENV['FACTERLIB'].nil? || ENV['FACTERLIB'].empty?
       ENV['FACTERLIB'] = fact_paths.join(':')
     end
-
   end
 
   # Validates a password using available system tools

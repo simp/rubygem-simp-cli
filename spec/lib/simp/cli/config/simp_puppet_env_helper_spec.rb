@@ -144,7 +144,8 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
       :version                    => '5.5.10',
       :environment_path           => '/etc/puppetlabs/puppet/code/environments',
       :secondary_environment_path => '/var/simp/environments',
-      :writable_environment_path  => '/opt/puppetlabs/server/data/puppetserver/simp/environments'
+      :writable_environment_path  => '/opt/puppetlabs/server/data/puppetserver/simp/environments',
+      :is_pe                      => false
     }}
 
     let(:datadir) { '/etc/puppetlabs/puppet/code/environments/production/data' }
@@ -161,7 +162,8 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
         :puppet_env_dir     => '/etc/puppetlabs/puppet/code/environments/production',
         :puppet_env_datadir => datadir,
         :secondary_env_dir  => '/var/simp/environments/production',
-        :writable_env_dir   => '/opt/puppetlabs/server/data/puppetserver/simp/environments/production'
+        :writable_env_dir   => '/opt/puppetlabs/server/data/puppetserver/simp/environments/production',
+        :is_pe              => false
       }
       expect( @env_helper.env_info).to eq expected
     end
@@ -249,7 +251,7 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
 
       result_code, result_details = @env_helper.puppet_env_status
       expect( result_code ).to eq :invalid
-      expect( result_details ).to eq "Existing Puppet environment 'production' missing 'data' or 'hieradata' dir"
+      expect( result_details ).to eq "Existing Puppet environment 'production' at '#{@puppet_env_dir}' missing 'data' or 'hieradata' dir"
     end
 
     it 'returns :present when the env contains module dirs and stock SIMP datadir' do
@@ -264,7 +266,7 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
 
       result_code, result_details = @env_helper.puppet_env_status
       expect( result_code ).to eq :present
-      expect( result_details ).to eq "Puppet environment 'production' exists"
+      expect( result_details ).to eq "Puppet environment 'production' exists with modules at '#{@puppet_env_dir}'"
     end
   end
 
@@ -275,7 +277,7 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
 
       result_code, result_details = @env_helper.secondary_env_status
       expect( result_code ).to eq :missing
-      expect( result_details ).to eq "Secondary environment 'production' does not exist"
+      expect( result_details ).to eq "Secondary environment 'production' does not exist at '#{@secondary_env_dir}'"
     end
 
     it 'returns :present when the env and cert generator exist' do
@@ -292,7 +294,7 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
 
       result_code, result_details = @env_helper.secondary_env_status
       expect( result_code ).to eq :present
-      expect( result_details ).to eq "Secondary environment 'production' exists"
+      expect( result_details ).to eq "Secondary environment 'production' exists at '#{@secondary_env_dir}'"
     end
 
     it 'returns :invalid when the env exists but cert generator does not exist' do

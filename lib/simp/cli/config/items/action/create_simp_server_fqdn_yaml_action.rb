@@ -8,28 +8,39 @@ module Simp::Cli::Config
 
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
+
+      if puppet_env_info[:is_pe]
+        host_config_yaml = 'pe-puppet.your.domain.yaml'
+      else
+        host_config_yaml = 'puppet.your.domain.yaml'
+      end
+
       @key                = 'puppet::create_simp_server_fqdn_yaml'
       @description        = 'Create SIMP server <host>.yaml from template'
       @die_on_apply_fail  = true
-      @template_file      = File.join(@puppet_env_info[:puppet_env_datadir],
-        'hosts', 'puppet.your.domain.yaml')
+
+      @template_file = File.join(
+        @puppet_env_info[:puppet_env_datadir],
+        'hosts', host_config_yaml)
+
       #FIXME inject skeleton install path in constructor instead of hardcoding
       #      and remove attr_accessor for alt_file
-      @alt_file           = File.join(Simp::Cli::SIMP_ENV_SKELETON_INSTALL_PATH,
-         File.basename(@puppet_env_info[:puppet_env_datadir]),
-         'hosts', 'puppet.your.domain.yaml')
-      @host_yaml   = nil
-      @group       = @puppet_env_info[:puppet_group]
-      @category    = :puppet_env_server
+      @alt_file      = File.join(
+        Simp::Cli::SIMP_ENV_SKELETON_INSTALL_PATH,
+        File.basename(@puppet_env_info[:puppet_env_datadir]),
+        'hosts', host_config_yaml)
+
+      @host_yaml  = nil
+      @group      = @puppet_env_info[:puppet_group]
+      @category   = :puppet_env_server
     end
 
     def apply
-      @applied_status = :failed
-      result   = true
       fqdn     = get_item( 'cli::network::hostname' ).value
       @host_yaml = File.join( File.dirname( @template_file ), "#{fqdn}.yaml" )
+      @applied_status = :failed
 
-      if !File.exists?(@template_file) and !File.exists?(@host_yaml) and File.exists?(@alt_file)
+      if !File.exists?(@template_file) && !File.exists?(@host_yaml) && File.exists?(@alt_file)
         # Can get here if
         # (1) RPM/ISO install (so /usr/share/simp exists)
         # (2) Operator runs simp config more than once but with different hostnames

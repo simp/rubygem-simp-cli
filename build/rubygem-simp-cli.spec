@@ -38,7 +38,7 @@ Requires: rsync
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 Requires: sed
 Requires: simp-adapter >= 0.1.0
-Requires: simp-environment-skeleton >= 7.1.0
+Requires: simp-environment-skeleton >= 7.1.1
 Requires: yum-utils
 
 %if 0%{?rhel} > 6
@@ -134,6 +134,9 @@ EOM
   simp_options::tcpwrappers value on the puppet server according to
   the mojor version number of the OS. This is needed because
   TCP Wrappers was removed in RedHat 8.
+
+* Fri Aug 30 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 5.0.4
+- Fix Puppet Enterprise support
 
 * Wed Aug 07 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.3
 - Fix errata in instructions on how to prevent possible root lockout
