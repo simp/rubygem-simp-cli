@@ -119,6 +119,7 @@
 # These Items are needed for the SIMP server, even if the scenario settings
 # disable simp_options::syslog and simp_options::pki for SIMP clients.
 - SimpOptionsSyslogLogServers
+- SimpOptionsTcpwrappers             SKIPQUERY SILENT # enable/disable tcpwrappers on the simp server
 - CliLogServersSpecified             SKIPQUERY SILENT: # don't ever prompt, just discover current value
    true:
     - SimpOptionsSyslogFailoverLogServers

@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 5.0.3
+%global cli_version 5.0.4
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,6 +129,12 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Fri Sep 06 2019 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 5.0.4
+- Added an item data entry and placed it in misc_setup to configure
+  simp_options::tcpwrappers value on the puppet server according to
+  the mojor version number of the OS. This is needed because
+  TCP Wrappers was removed in RedHat 8.
+
 * Wed Aug 07 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.3
 - Fix errata in instructions on how to prevent possible root lockout
   from the SIMP server.
