@@ -422,33 +422,6 @@ module Simp::Cli::Config
       return Simp::Cli::ExecUtils::execute(command, ignore_failure, logger)
     end
 
-    # Display an ASCII, spinning progress spinner for the action in a block
-    # and return the result of that block
-    # Example,
-    #    result = show_wait_spinner {
-    #      execute('createrepo -q -p --update .')
-    #    }
-    #
-    # Lifted from
-    # http://stackoverflow.com/questions/10262235/printing-an-ascii-spinning-cursor-in-the-console
-    #
-    def show_wait_spinner(frames_per_second=5)
-      chars = %w[| / - \\]
-      delay = 1.0/frames_per_second
-      iter = 0
-      spinner = Thread.new do
-        while iter do  # Keep spinning until told otherwise
-          print chars[(iter+=1) % chars.length]
-          sleep delay
-          print "\b"
-        end
-      end
-      yield.tap {      # After yielding to the block, save the return value
-        iter = false   # Tell the thread to exit, cleaning up after itself…
-        spinner.join   # …and wait for it to do so.
-      }                # Use the block's return value as the method's
-    end
-
     # Retrieve the Item with the specified key from @config_items Hash
     # Raises MissingItemError if Item does not exist in @config_items
     def get_item(key)

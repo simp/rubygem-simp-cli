@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 5.0.4
+%global cli_version 5.1.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,7 +129,35 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Fri Aug 30 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 5.0.4
+* Thu Nov 14 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.1.0
+- simp passgen changes
+  - Updated to work with libkv-enabled simplib::passgen.  Automatically
+    detects whether simplib::passgen is operating in legacy mode or
+    libkv mode in the specified environment, and then executes password
+    operations using the appropriate mechanism for that mode.
+  - Disabled libpwquality/cracklib validation of user-entered passwords,
+    by default, because not all passwords managed by simplib::passgen
+    are user passwords.  This validation can be re-enabled with the new
+    '--validate' option.
+  - Added the following command line options
+    - '--[no-]auto-gen': Whether to auto-generate new passwords.
+    - '--complexity': Password complexity to use when a password is
+      auto-generated. Corresponds to the complexity option of simplib::passgen.
+    - '--[no-]complex-only': Whether to only use only complex characters
+      when a password is auto-generated. Corresponds to the complex_only
+      option of simplib::passgen.
+    - '--backend': Specific libkv backend to use for passwords.
+    - '--folder': Sub-folder in which to find password names in a libkv
+      key/value store.
+    - '--[no-]validate': Enabled validation of new passwords with
+      libpwquality/cracklib.
+    - '--length': Password length to use when a password is auto-generated.
+    - '-v': Increase verbosity of console output for debug purposes.
+  - Deprecated the following OBE command line options
+    - '--[no-]backup'.  Password backups are now always enabled per
+      standard security policy.
+
+* Fri Aug 30 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 5.1.0
 - Fix Puppet Enterprise support
 
 * Wed Aug 07 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.3

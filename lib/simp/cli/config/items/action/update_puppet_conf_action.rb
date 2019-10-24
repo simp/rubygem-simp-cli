@@ -41,7 +41,7 @@ module Simp::Cli::Config
       puppet_ca = get_item( 'simp_options::puppet::ca' ).value
       puppet_ca_port = get_item( 'simp_options::puppet::ca_port' ).value
 
-      success = show_wait_spinner {
+      success = Simp::Cli::Utils::show_wait_spinner {
         config_success = execute("puppet config set digest_algorithm #{Simp::Cli::PUPPET_DIGEST_ALGORITHM}")
         config_success = config_success && execute("puppet config set keylength #{keylength}")
         config_success = config_success && execute("puppet config set server #{puppet_server}")
