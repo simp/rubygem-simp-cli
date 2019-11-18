@@ -1,0 +1,39 @@
+{
+  "name": "simp-passgen_test",
+  "version": "1.0.0",
+  "author": "simp",
+  "summary": "test manifests for simp passgen testing",
+  "license": "Apache-2.0",
+  "source": "https://github.com/simp/pupmod-simp-passgen_test",
+  "project_page": "https://github.com/simp/pupmod-simp-passgen_test",
+  "issues_url": "https://simp-project.atlassian.net",
+  "tags": [],
+  "dependencies": [
+    {
+      "name": "simp/simplib",
+      "version_requirement": ">= 4.0.0 < 5.0.0"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "CentOS",
+      "operatingsystemrelease": [
+        "6",
+        "7"
+      ]
+    },
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": [
+        "6",
+        "7"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 5.0.0 < 7.0.0"
+    }
+  ]
+}
