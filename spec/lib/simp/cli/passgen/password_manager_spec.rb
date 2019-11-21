@@ -214,9 +214,11 @@ describe Simp::Cli::Passgen::PasswordManager do
   end
 
   describe '#set_password' do
+    let(:new_password) { 'new_password' }
     let(:options) do
       {
         :auto_gen             => false,
+        :password             => new_password,
         :validate             => false,
         :default_length       => 32,
         :minimum_length       => 8,
@@ -230,10 +232,9 @@ describe Simp::Cli::Passgen::PasswordManager do
       }
     end
 
-    let(:new_password) { 'new_password' }
 
-    it 'calls #get_and_set_password and returns new password for name ' +
-       ' in specified env when :auto_gen=false' do
+    it 'calls #get_and_set_password and returns user-provided password for ' +
+       'name in specified env when :auto_gen=false' do
 
       allow(@manager).to receive(:merge_password_options)
         .with(@simple_name, options).and_return(options)
@@ -245,8 +246,8 @@ describe Simp::Cli::Passgen::PasswordManager do
         .to eq(new_password)
     end
 
-    it 'calls #get_and_set_password and returns new password for name ' +
-       'in <env,folder,backend> when :auto_gen=false' do
+    it 'calls #get_and_set_password and returns user-provided password for ' +
+       'name in <env,folder,backend> when :auto_gen=false' do
 
       allow(@manager_custom).to receive(:merge_password_options)
         .with(@complex_name, options).and_return(options)
@@ -331,11 +332,11 @@ describe Simp::Cli::Passgen::PasswordManager do
 
       allow(@manager).to receive(:get_and_set_password)
         .with(@simple_name, options).and_raise(Simp::Cli::ProcessingError,
-        'FATAL: Too many failed attempts to enter password')
+        'Password set failed')
 
       expect { @manager.set_password(@simple_name, options) }.to raise_error(
         Simp::Cli::ProcessingError,
-        'Set failed: FATAL: Too many failed attempts to enter password')
+        'Set failed: Password set failed')
     end
 
     it 'fails if #generate_and_set_password fails' do
@@ -470,8 +471,10 @@ describe Simp::Cli::Passgen::PasswordManager do
   end
 
   describe '#get_and_set_password' do
+    let(:user_input_password) { 'new password from user' }
     let(:options) do
       {
+        :password     => user_input_password,
         :length       => 32,
         :complexity   => 0,
         :complex_only => false,
@@ -479,13 +482,9 @@ describe Simp::Cli::Passgen::PasswordManager do
       }
     end
 
-    let(:user_input_password) { 'new password from user' }
 
-    it 'gets password from user, applies manifest to generate salt and set ' +
+    it 'retrieves password from user, applies manifest to generate salt and set ' +
        'pair, and then returns password' do
-
-      allow(Simp::Cli::Passgen::Utils).to receive(:get_password)
-        .and_return(user_input_password)
 
       allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
         .and_return({}) # don't care about return
@@ -494,11 +493,8 @@ describe Simp::Cli::Passgen::PasswordManager do
         .to eq(user_input_password)
     end
 
-    it 'gets password from user, applies manifest with folder and backend ' +
+    it 'retrieves password from user, applies manifest with folder and backend ' +
        'to generate salt and set pair, and then returns password' do
-
-      allow(Simp::Cli::Passgen::Utils).to receive(:get_password)
-        .and_return(user_input_password)
 
       allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
         .and_return({}) # don't care about return
@@ -507,20 +503,7 @@ describe Simp::Cli::Passgen::PasswordManager do
         .to eq(user_input_password)
     end
 
-    it 'fails if user password input fails' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:get_password)
-        .and_raise(Simp::Cli::ProcessingError,
-        'FATAL: Too many failed attempts to enter password')
-
-      expect{ @manager.get_and_set_password(@simple_name, options) }
-        .to raise_error(Simp::Cli::ProcessingError,
-        'FATAL: Too many failed attempts to enter password')
-    end
-
     it 'fails when manifest apply fails' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:get_password)
-        .and_return(user_input_password)
-
       allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
         .and_raise(Simp::Cli::ProcessingError, 'Password set failed')
 
@@ -901,9 +884,23 @@ describe Simp::Cli::Passgen::PasswordManager do
         Simp::Cli::ProcessingError, 'Missing :auto_gen option')
     end
 
-    it 'fails when :validate option missing' do
+    it 'fails when :password option missing and :auto_gen=true' do
       bad_options = {
         :auto_gen             => false,
+        :validate             => false,
+        :default_length       => 32,
+        :minimum_length       => 8,
+        :default_complexity   => 0,
+        :default_complex_only => false
+      }
+
+      expect { @manager.validate_set_config(bad_options) }.to raise_error(
+        Simp::Cli::ProcessingError, 'Missing :password option')
+    end
+
+    it 'fails when :validate option missing' do
+      bad_options = {
+        :auto_gen             => true,
         :default_length       => 32,
         :default_complexity   => 0,
         :default_complex_only => false,
@@ -916,7 +913,7 @@ describe Simp::Cli::Passgen::PasswordManager do
 
     it 'fails when :default_length option missing' do
       bad_options = {
-        :auto_gen             => false,
+        :auto_gen             => true,
         :validate             => false,
         :minimum_length       => 8,
         :default_complexity   => 0,
@@ -929,7 +926,7 @@ describe Simp::Cli::Passgen::PasswordManager do
 
     it 'fails when :minimum_length option missing' do
       bad_options = {
-        :auto_gen             => false,
+        :auto_gen             => true,
         :validate             => false,
         :default_length       => 32,
         :default_complexity   => 0,
@@ -942,7 +939,7 @@ describe Simp::Cli::Passgen::PasswordManager do
 
     it 'fails when :default_complexity option missing' do
       bad_options = {
-        :auto_gen             => false,
+        :auto_gen             => true,
         :validate             => false,
         :minimum_length       => 8,
         :default_length       => 32,
@@ -955,7 +952,7 @@ describe Simp::Cli::Passgen::PasswordManager do
 
     it 'fails when :default_complex_only option missing' do
       bad_options = {
-        :auto_gen           => false,
+        :auto_gen           => true,
         :validate           => false,
         :minimum_length     => 8,
         :default_length     => 32,

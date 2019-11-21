@@ -1,7 +1,10 @@
 require 'highline/import'
 require 'simp/cli/logging'
-require 'simp/cli/passgen/utils'
 require 'simp/cli/utils'
+
+module Simp; end
+class Simp::Cli; end
+module Simp::Cli::Passgen; end
 
 # Class that provides legacy `simp passgen` operations for environments having
 # old simplib module versions that do not support password management beyond
@@ -197,6 +200,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
   #       contain complex characters
   #
   #   * Optional keys:
+  #     * :password - user-provided password; required if :auto_gen=false
   #     * :length - requested length of auto-generated passwords.
   #       * When nil, the password exists, and the existing password length
   #         >='minimum_length', use the length of the existing password
@@ -270,7 +274,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
     end
   end
 
-  # Generate password or query user for password
+  # Generate password or use password provided by user
   #
   # @param options options for password generation and validation
   #
@@ -293,8 +297,8 @@ class Simp::Cli::Passgen::LegacyPasswordManager
         options[:validate])
       generated = true
     else
-      logger.debug("Gathering password with validate=#{options[:validate]}")
-      password = Simp::Cli::Passgen::Utils::get_password(5, options[:validate])
+      logger.debug('Using user-entered password')
+      password = options[:password]
     end
 
     [ password, generated ]
@@ -350,6 +354,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
 
   # Verifies options contains the following keys:
   # - :auto_gen
+  # - :password (only if :auto_gen=false)
   # - :validate
   # - :default_length
   # - :minimum_length
@@ -362,6 +367,13 @@ class Simp::Cli::Passgen::LegacyPasswordManager
     unless options.key?(:auto_gen)
       err_msg = 'Missing :auto_gen option'
       raise Simp::Cli::ProcessingError.new(err_msg)
+    end
+
+    unless options[:auto_gen]
+      unless options.key?(:password)
+        err_msg = 'Missing :password option'
+        raise Simp::Cli::ProcessingError.new(err_msg)
+      end
     end
 
     unless options.key?(:validate)

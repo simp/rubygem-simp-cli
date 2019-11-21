@@ -1,0 +1,26 @@
+---
+fixtures:
+  # Lazy way to get all the code (puppt modules and otherwise) onto the test
+  # hosts.  Within the tests, we'll relocate and fix permissions appropriately.
+  repositories:
+    # Puppet modules
+    # - Older version of simplib will be cloned in the test, as fixtures code
+    #   can only handle one version per URL
+    libkv: https://github.com/simp/pupmod-simp-libkv
+    simplib: https://github.com/simp/pupmod-simp-simplib
+    stdlib: https://github.com/simp/puppetlabs-stdlib
+
+    # Other assets
+    # - WARNING: rsync data does not remain intact through the fixtures copy
+    #   process...Required empty directories are removed!
+    environment_skeleton: https://github.com/simp/simp-environment-skeleton
+    rsync_data: https://github.com/simp/simp-rsync-skeleton
+    simp_selinux_policy: https://github.com/simp/simp-selinux-policy
+
+  symlinks:
+    # simp cli
+    rubygem_simp_cli: "#{source_dir}"
+
+    # test module that uses simplib::passgen
+    passgen_test:   "#{File.join(source_dir, 'spec', 'support', 'modules', 'passgen_test')}"
+

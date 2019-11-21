@@ -9,6 +9,7 @@ describe Simp::Cli::Config::Item::CliNetworkIPAddress do
 
   describe "#os_value" do
     it "returns the ip address of a valid interface" do
+      allow(Facter).to receive(:value).with('ipaddress_lo').and_return('127.0.0.1')
       nic = Simp::Cli::Config::Item::CliNetworkInterface.new
       nic.value =  'lo'
       @ci.config_items = { nic.key => nic }

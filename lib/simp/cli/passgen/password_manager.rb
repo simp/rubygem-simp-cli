@@ -156,6 +156,7 @@ class Simp::Cli::Passgen::PasswordManager
   #       contain complex characters
   #
   #   * Optional keys:
+  #     * :password - user-provided password; required if :auto_gen=false
   #     * :length - requested length of auto-generated passwords.
   #       * When nil, the password exists, and the existing password length
   #         >='minimum_length', use the length of the existing password
@@ -302,7 +303,7 @@ class Simp::Cli::Passgen::PasswordManager
     password
   end
 
-  # Read in a password from user, generate a salt for it and then set the
+  # Retrieve user-provided password, generate a salt for it and then set the
   # <password,salt> pair.
   #
   # The salt generation and setting of the pair is done via simplib functions.
@@ -317,7 +318,8 @@ class Simp::Cli::Passgen::PasswordManager
   #
   # @return user-supplied password
   def get_and_set_password(fullname, options)
-    password = Simp::Cli::Passgen::Utils::get_password(5, options[:validate])
+    logger.debug('Using user-entered password')
+    password = options[:password]
 
     logger.debug("Generating the salt and setting the password and salt for" +
       " '#{fullname}' with a manifest")
@@ -483,6 +485,7 @@ class Simp::Cli::Passgen::PasswordManager
 
   # Verifies options contains the following keys:
   # - :auto_gen
+  # - :password (only if :auto_gen=false)
   # - :validate
   # - :default_length
   # - :minimum_length
@@ -495,6 +498,13 @@ class Simp::Cli::Passgen::PasswordManager
     unless options.key?(:auto_gen)
       err_msg = 'Missing :auto_gen option'
       raise Simp::Cli::ProcessingError.new(err_msg)
+    end
+
+    unless options[:auto_gen]
+      unless options.key?(:password)
+        err_msg = 'Missing :password option'
+        raise Simp::Cli::ProcessingError.new(err_msg)
+      end
     end
 
     unless options.key?(:validate)

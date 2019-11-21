@@ -482,6 +482,13 @@ class Simp::Cli::Commands::Passgen < Simp::Cli::Commands::Command
       # space at end tells logger to omit <CR>, so spinner+done is on same line
       logger.notice("Processing '#{name}' in #{manager.location}... ")
       begin
+        unless password_gen_options[:auto_gen]
+          validate = password_gen_options[:validate]
+          logger.debug("Gathering password with validate=#{validate}")
+          password_gen_options[:password] =
+            Simp::Cli::Passgen::Utils::get_password(5, validate)
+        end
+
         password = nil
         Simp::Cli::Utils::show_wait_spinner {
           password = manager.set_password(name, password_gen_options)

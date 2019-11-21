@@ -306,6 +306,7 @@ Failed to delete the following password files:
     let(:options) do
       {
         :auto_gen             => false,
+        :password             => 'new_password',
         :validate             => false,
         :default_length       => 32,
         :minimum_length       => 8,
@@ -317,14 +318,14 @@ Failed to delete the following password files:
     it 'updates password file, backs up old files, and returns new password ' +
        'for name in the specified env' do
 
-      # bypass password input
-      allow(@manager).to receive(:get_new_password).and_return(
-        ['first_new_password', false], ['second_new_password', false])
-
-      expect( @manager.set_password('production_name1', options) )
+      new_opts = options.dup
+      new_opts[:password] = 'first_new_password'
+      expect( @manager.set_password('production_name1', new_opts) )
         .to eq('first_new_password')
 
-      expect( @manager.set_password('production_name2', options) )
+      new_opts = options.dup
+      new_opts[:password] = 'second_new_password'
+      expect( @manager.set_password('production_name2', new_opts) )
         .to eq('second_new_password')
 
       expected_file_info = {
@@ -357,9 +358,6 @@ Failed to delete the following password files:
 
       manager = Simp::Cli::Passgen::LegacyPasswordManager.new(@env,
         @alt_password_dir)
-
-      allow(manager).to receive(:get_new_password)
-        .and_return(['new_password',false])
 
       expect( manager.set_password('env1_name4', options) ).to eq('new_password')
 
@@ -394,9 +392,6 @@ Failed to delete the following password files:
     end
 
     it 'creates password file for new name' do
-      allow(@manager).to receive(:get_new_password)
-        .and_return(['new_password',false])
-
       expect( @manager.set_password('new_name', options) ).to eq('new_password')
 
       expected_file_info = {
@@ -411,9 +406,6 @@ Failed to delete the following password files:
     end
 
     it 'allows multiple backups' do
-      allow(@manager).to receive(:get_new_password)
-        .and_return(['new_password',false])
-
       expect { @manager.set_password('name1', options) }.not_to raise_error
       expect { @manager.set_password('name1', options) }.not_to raise_error
     end
@@ -440,12 +432,12 @@ Failed to delete the following password files:
 
     it 'fails if get_new_password fails' do
       allow(@manager).to receive(:get_new_password).and_raise(
-        Simp::Cli::ProcessingError,
-        'FATAL: Too many failed attempts to enter password')
+        Simp::Cli::PasswordError,
+        'FATAL: Failed to generate password in allotted time')
 
       expect { @manager.set_password('new_name', options) }.to raise_error(
         Simp::Cli::ProcessingError,
-        'Set failed: FATAL: Too many failed attempts to enter password')
+        'Set failed: FATAL: Failed to generate password in allotted time')
     end
 
     it 'fails if backup_password_files fails' do
@@ -541,23 +533,6 @@ Failed to delete the following password files:
   end
 
   describe '#get_new_password' do
-    before :each do
-      @input = StringIO.new
-      @output = StringIO.new
-      @prev_terminal = $terminal
-      $terminal = HighLine.new(@input, @output)
-    end
-
-    after :each do
-      @input.close
-      @output.close
-      $terminal = @prev_terminal
-    end
-
-    let(:good_password) { 'A=V3ry=Go0d=P@ssw0r!' }
-    let(:bad_password) { 'password' }
-    let(:short_password) { 'short' }
-
     let(:options) do
       {
         :auto_gen             => false,
@@ -571,6 +546,8 @@ Failed to delete the following password files:
         :complex_only         => true
       }
     end
+
+    let(:user_provided_password) { 'user-provided-password' }
 
     let(:default_chars) do
       (("a".."z").to_a + ("A".."Z").to_a + ("0".."9").to_a).map do|x|
@@ -596,33 +573,10 @@ Failed to delete the following password files:
       expect( generated ).to be(true)
     end
 
-    it 'gathers and returns valid user password when auto_gen=false and ' +
-       ':validate=true' do
-
-      @input << "#{good_password}\n"
-      @input << "#{good_password}\n"
-      @input.rewind
+    it 'returns user password when :auto_gen=false' do
       new_opts = options.dup
-      new_opts[:validate] = true
-      expect( @manager.get_new_password(new_opts)).to eq([good_password, false])
-    end
-
-    it 'gathers and returns insufficient complexity user password when ' +
-       'auto_gen=false and validate=false' do
-
-      @input << "#{bad_password}\n"
-      @input << "#{bad_password}\n"
-      @input.rewind
-      expect( @manager.get_new_password(options)).to eq([bad_password, false])
-    end
-
-    it 'gathers and returns too short user password when auto_gen=false and ' +
-       'validate=false' do
-
-      @input << "#{short_password}\n"
-      @input << "#{short_password}\n"
-      @input.rewind
-      expect( @manager.get_new_password(options)).to eq([short_password, false])
+      new_opts[:password] = user_provided_password
+      expect( @manager.get_new_password(new_opts)).to eq([user_provided_password, false])
     end
   end
 
@@ -749,9 +703,23 @@ Failed to delete the following password files:
         Simp::Cli::ProcessingError, 'Missing :auto_gen option')
     end
 
-    it 'fails when :validate option missing' do
+    it 'fails when :password option missing and :auto_gen=true' do
       bad_options = {
         :auto_gen             => false,
+        :validate             => false,
+        :default_length       => 32,
+        :minimum_length       => 8,
+        :default_complexity   => 0,
+        :default_complex_only => false
+      }
+
+      expect { @manager.validate_set_config(bad_options) }.to raise_error(
+        Simp::Cli::ProcessingError, 'Missing :password option')
+    end
+
+    it 'fails when :validate option missing' do
+      bad_options = {
+        :auto_gen             => true,
         :default_length       => 32,
         :default_complexity   => 0,
         :default_complex_only => false,
@@ -764,7 +732,7 @@ Failed to delete the following password files:
 
     it 'fails when :default_length option missing' do
       bad_options = {
-        :auto_gen             => false,
+        :auto_gen             => true,
         :validate             => false,
         :minimum_length       => 8,
         :default_complexity   => 0,
@@ -777,7 +745,7 @@ Failed to delete the following password files:
 
     it 'fails when :minimum_length option missing' do
       bad_options = {
-        :auto_gen             => false,
+        :auto_gen             => true,
         :validate             => false,
         :default_length       => 32,
         :default_complexity   => 0,
@@ -790,7 +758,7 @@ Failed to delete the following password files:
 
     it 'fails when :default_complexity option missing' do
       bad_options = {
-        :auto_gen             => false,
+        :auto_gen             => true,
         :validate             => false,
         :minimum_length       => 8,
         :default_length       => 32,
@@ -803,7 +771,7 @@ Failed to delete the following password files:
 
     it 'fails when :default_complex_only option missing' do
       bad_options = {
-        :auto_gen           => false,
+        :auto_gen           => true,
         :validate           => false,
         :minimum_length     => 8,
         :default_length     => 32,
