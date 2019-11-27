@@ -403,7 +403,7 @@ EOM
       # This is silly, but there does not seem to be a way to get fixfiles
       # to shut up without specifying a logfile.  Stdout/err still make it to
       # the our logfile.
-      show_wait_spinner {
+      Simp::Cli::Utils::show_wait_spinner {
         execute("fixfiles -l /dev/null -f relabel 2>&1 >> #{@logfile.path}")
       }
     end
@@ -678,8 +678,8 @@ EOM
     else # don't track
       info("Running, please wait ... ")
       $stdout.flush
-      show_wait_spinner {
-        output = %x{#{command}}
+      output = Simp::Cli::Utils::show_wait_spinner {
+        %x{#{command}}
       }
       debug(output)
       linecount = output.split("\n").length
@@ -755,35 +755,6 @@ EOM
   def execute(command)
     debug("Executing: #{command}")
     system(command)
-  end
-
-  # Display an ASCII, spinning progress spinner for the action in a block
-  # and return the result of that block
-  # Example,
-  #    result = show_wait_spinner {
-  #      system('createrepo -q -p --update .')
-  #    }
-  #
-  # Lifted from
-  # http://stackoverflow.com/questions/10262235/printing-an-ascii-spinning-cursor-in-the-console
-  #
-  # FIXME:  This is a duplicate of code in simp/cli/config/items/item.rb.
-  # Need to share that code.
-  def show_wait_spinner(frames_per_second=5)
-    chars = %w[| / - \\]
-    delay = 1.0/frames_per_second
-    iter = 0
-    spinner = Thread.new do
-      while iter do  # Keep spinning until told otherwise
-        print chars[(iter+=1) % chars.length]
-        sleep delay
-        print "\b"
-      end
-    end
-    yield.tap {      # After yielding to the block, save the return value
-      iter = false   # Tell the thread to exit, cleaning up after itself
-      spinner.join   # and wait for it to do so.
-    }                # Use the block's return value as the method's
   end
 
   # Debug logs only go to the console when verbose option specified,

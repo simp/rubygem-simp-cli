@@ -35,7 +35,7 @@ module Simp::Cli::Config
           Dir.chdir('Updates') do
             execute( %q(find .. -type f -name '*.rpm' -exec ln -sf {} \\;) )
             cmd = 'createrepo -q -p --update .'
-            result = show_wait_spinner {
+            result = Simp::Cli::Utils::show_wait_spinner {
               execute(cmd)
             }
             raise YumRepoError.new("'#{cmd}' failed in #{Dir.pwd}") unless result

@@ -10,6 +10,7 @@ describe Simp::Cli::Config::Item::CliNetworkNetmask do
 
   describe "#os_value" do
     it "returns the netmask address of a valid interface" do
+      allow(Facter).to receive(:value).with('netmask_lo').and_return('255.0.0.0')
       nic = Simp::Cli::Config::Item::CliNetworkInterface.new
       nic.value =  'lo'
       @ci.config_items = { nic.key => nic }

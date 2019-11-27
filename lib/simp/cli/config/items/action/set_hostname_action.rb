@@ -45,7 +45,7 @@ module Simp::Cli::Config
         # with the new hostname, if the interface is configured via DHCP
         interface = get_item( 'cli::network::interface' ).value
         info( "Restarting #{interface} interface to update domain info" )
-        show_wait_spinner {
+        Simp::Cli::Utils::show_wait_spinner {
           success = success && execute("/sbin/ifdown #{interface}; /sbin/ifup #{interface} && wait && sleep 10")
         }
 

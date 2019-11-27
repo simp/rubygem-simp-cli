@@ -27,7 +27,7 @@ COMMANDS
   config        Prepare SIMP server for bootstrapping
   doc           Show SIMP documentation in elinks
   environment   Utility to manage and coordinate SIMP omni-environments
-  passgen       Utility for managing 'passgen' passwords
+  passgen       Utility for managing 'simplib::passgen' passwords
   puppetfile    Helper utility to maintain local SIMP Puppetfiles
   version       Display the current version of SIMP.
 

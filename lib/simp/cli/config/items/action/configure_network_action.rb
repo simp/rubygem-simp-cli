@@ -59,7 +59,7 @@ module Simp::Cli::Config
 #   - set $::domain with FACTER_domain=
 #   - set resolv{ named_autoconf => false
 
-      result = show_wait_spinner {
+      result = Simp::Cli::Utils::show_wait_spinner {
         execute(cmd)
       }
 

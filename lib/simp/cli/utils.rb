@@ -103,24 +103,113 @@ module Simp::Cli::Utils
     return @@puppet_info[environment].system_puppet_info
   end
 
-  def generate_password(length = DEFAULT_PASSWORD_LENGTH )
+  # Generate a random password
+  #
+  # When validate is true, will keep regenerating the password until it passes
+  # libpwquality/cracklib validation or the timeout is reached.
+  #
+  # This code is nearly identical to simplib::gen_random_password, which is
+  # used in simplib::passgen.  The differences are the following additions:
+  #
+  # - Validation against a system password validator (pwscore from libpwquality
+  #   or cracklib-check from cracklib) and password generation retry to get a
+  #   password that passes the validation.
+  # - Default complexity of 1, in order to generate user passwords that will
+  #   pass validation on a SIMP server.
+  # - Special treatment of the beginning and ending characters: Forced to be
+  #   alphanumeric when complex_only is false (historical reasons?).
+  #
+  # @param length Length of the new password.
+  #
+  # @param complexity Specifies the types of characters to be used in the
+  #   password
+  #   * `0` => Use only Alphanumeric characters (safest)
+  #   * `1` => Use Alphanumeric characters and reasonably safe symbols
+  #   * `2` => Use any printable ASCII characters
+  #   * Defaults to 1 so that generated password has some special characters.
+  #
+  # @param complex_only Use only the characters explicitly added by the
+  #   complexity rules
+  #
+  # @param timeout_seconds Maximum time allotted to generate
+  #   the password; a value of 0 disables the timeout
+  #
+  # @param validate Whether to regenerate the password if it fails
+  #   libpwquality/cracklib validation.
+  #
+  #   WARNING:  Be sure to set this to false if `length` is less than
+  #   the minimum required length for a user password.  Othewise, this
+  #   will necessarily fail!
+  #
+  # @return [String] Generated password
+  #
+  # @raise Simp::Cli::PasswordError if fails to generate the password within
+  #   the specified time.
+  #
+  def generate_password(length = DEFAULT_PASSWORD_LENGTH, complexity = 1,
+      complex_only = false, timeout_seconds = 10, validate = true )
+
+    require 'timeout'
+
+    default_charlist = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
+    specific_charlist = nil
+    case complexity
+      when 1
+        specific_charlist = ['@','%','-','_','+','=','~']
+      when 2
+        specific_charlist = (' '..'/').to_a + ('['..'`').to_a + ('{'..'~').to_a
+      else
+    end
+
+    unless specific_charlist.nil?
+      if complex_only == true
+        charlists = [ specific_charlist ]
+      else
+        charlists = [ default_charlist, specific_charlist ]
+      end
+
+    else
+      charlists = [ default_charlist ]
+    end
+
     password = ''
     begin
-      special_chars = ['#','%','&','*','+','-','.',':','@']
-      symbols = ('0'..'9').to_a + ('A'..'Z').to_a + ('a'..'z').to_a
-      Integer(length).times { |i| password += (symbols + special_chars)[rand((symbols.length-1 + special_chars.length-1))] }
-      # Ensure that the password does not start or end with a special
-      # character.
-      special_chars.include?(password[0].chr) and password[0] = symbols[rand(symbols.length-1)]
-      special_chars.include?(password[password.length-1].chr) and password[password.length-1] = symbols[rand(symbols.length-1)]
+      Timeout::timeout(timeout_seconds) do
+        begin
+          index = 0
+          Integer(length).times do |i|
+            password += charlists[index][rand(charlists[index].length-1)]
+            index += 1
+            index = 0 if index == charlists.length
+          end
 
-      # make sure password passes validation
-      validate_password(password)
-    rescue Simp::Cli::PasswordError
-      # password failed validation, so re-generate
-      password = ''
-      retry
+          unless complex_only || specific_charlist.nil?
+            # Ensure that the password does not start or end with a special
+            # character.
+            # (Beginning char will always be alphanumeric in current
+            # implementation above, but leaving the check in place in case
+            # the implementation changes.)
+            if specific_charlist.include?(password[0].chr)
+              password[0] = default_charlist[rand(default_charlist.length-1)]
+            end
+
+            if specific_charlist.include?(password[password.length-1].chr)
+              password[-1] = default_charlist[rand(default_charlist.length-1)]
+            end
+          end
+
+          validate_password(password) if validate
+        rescue Simp::Cli::PasswordError
+          # password failed validation, so re-generate
+          password = ''
+          retry
+        end
+      end
+    rescue Timeout::Error
+      err_msg = 'Failed to generate password in allotted time'
+      raise Simp::Cli::PasswordError.new(err_msg)
     end
+
     password
   end
 
@@ -218,11 +307,9 @@ module Simp::Cli::Utils
   #      system('createrepo -q -p --update .')
   #    }
   #
-  # Lifted from
+  # Modification of
   # http://stackoverflow.com/questions/10262235/printing-an-ascii-spinning-cursor-in-the-console
   #
-  # FIXME:  This is a duplicate of code in simp/cli/config/items/item.rb.
-  # Need to share that code.
   def show_wait_spinner(frames_per_second=5)
     chars = %w[| / - \\]
     delay = 1.0/frames_per_second
@@ -234,10 +321,11 @@ module Simp::Cli::Utils
         print "\b"
       end
     end
-    yield.tap {      # After yielding to the block, save the return value
-      iter = false   # Tell the thread to exit, cleaning up after itself
-      spinner.join   # and wait for it to do so.
-    }                # Use the block's return value as the method's
+    yield
+  ensure
+    iter = false   # Tell the thread to exit (even if the yield raises),
+    spinner.join   # and wait for it to do so.
+    print " "
   end
 
   # Returns a timestamp string of the form

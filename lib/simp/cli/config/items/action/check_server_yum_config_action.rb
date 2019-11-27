@@ -43,7 +43,7 @@ DOC
       # If it returns something, we are going to ASSUME the repo is set
       # up, but we have no way to verify that the listed repository
       # is the intended repository.
-      result = show_wait_spinner {
+      result = Simp::Cli::Utils::show_wait_spinner {
         query_result = true
         ['kernel', 'simp', 'puppet-agent'].each do |pkg|
           query = run_command("repoquery -i #{pkg}")[:stdout].strip

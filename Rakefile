@@ -6,6 +6,7 @@ require 'rake/clean'
 require 'rspec/core/rake_task'
 require 'rubygems'
 require 'simp/rake'
+require 'simp/rake/beaker'
 require 'simp/cli/version'
 
 Simp::Rake::Pkg.new(File.dirname(__FILE__))
@@ -26,6 +27,8 @@ Find.find( @rakefile_dir ) do |path|
   end
 end
 
+# Acceptance Tests
+Simp::Rake::Beaker.new(File.dirname(__FILE__))
 
 desc 'Ensure gemspec-safe permissions on all files'
 task :chmod do
@@ -50,10 +53,13 @@ SIMP_RPM_BUILD     when set, alters the gem produced by pkg:gem to be RPM-safe.
   }
 end
 
-desc 'Run spec tests'
-RSpec::Core::RakeTask.new(:spec) do |t|
+# This project has unit tests in nonstandard locations, so redefine the
+# underlying Rake task to pick up its tests
+Rake::Task[:spec_standalone].clear
+RSpec::Core::RakeTask.new(:spec_standalone) do |t|
   t.rspec_opts = ['--color']
-  t.pattern = 'spec/**/*_spec.rb'
+  t.exclude_pattern = '**/{acceptance,fixtures,files}/**/*_spec.rb'
+  t.pattern = 'spec/{lib,bin}/**/*_spec.rb'
 end
 
 namespace :pkg do
