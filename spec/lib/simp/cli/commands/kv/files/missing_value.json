@@ -1,0 +1,9 @@
+{
+  "key1":{ "val":1, "metadata":{}},
+  "key2":{ "value":true, "metadata":{ "foo":"bar"}},
+  "key3":{ "value":[ "hello", "world"], "metadata":{}},
+  "key4":{
+    "value":{ "x's":"marks", "the":"spot"},
+    "metadata":{ "on":"map"}
+  }
+}

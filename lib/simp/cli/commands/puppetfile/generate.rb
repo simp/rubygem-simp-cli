@@ -25,7 +25,7 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
       @puppetfile_type ||= :simp
       @puppet_env = nil
       opts.banner = '== simp puppetfile generate [options]'
-      opts.separator <<-HELP_MSG.gsub(%r{^ {8}}, '')
+      opts.separator <<~HELP_MSG
 
         #{self.class.description}
 
@@ -45,10 +45,11 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
             whose directories are not under Git source control and for which there
             is no local Git repository.
 
-        Usage:
-
+        USAGE:
+          simp puppetfile generate [OPTIONS]
           simp puppetfile generate -h
 
+        EXAMPLES:
           # Generate a SIMP-only Puppetfile
           simp puppetfile generate  > Puppetfile.simp
 
@@ -60,8 +61,7 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
           # and for which no local Git repository exists as `:local => true`
           simp puppetfile generate --skeleton --local-modules ENV > Puppetfile
 
-        Options:
-
+        OPTIONS:
       HELP_MSG
 
       opts.on('-s', '--[no-]skeleton',

@@ -3,11 +3,11 @@ require 'simp/cli/commands/command'
 class Simp::Cli::Commands::Version < Simp::Cli::Commands::Command
 
   def description
-    'Display the current version of SIMP.'
+    'Display the current version of SIMP'
   end
 
   def help
-    puts "\n#{description}\n\nUsage:  simp version\n\n"
+    puts "\n#{description}\n\nUSAGE:  simp version\n\n"
   end
 
   def run(args)

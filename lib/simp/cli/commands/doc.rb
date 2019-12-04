@@ -7,14 +7,14 @@ class Simp::Cli::Commands::Doc < Simp::Cli::Commands::Command
   end
 
   def help
-    puts <<EOM
+    puts <<~EOM
 
-=== The SIMP Doc Tool ===
-Show SIMP documentation in elinks, a text-based web browser
+      === The SIMP Doc Tool ===
+      Show SIMP documentation in elinks, a text-based web browser
 
-Usage:  simp doc
+      USAGE:  simp doc
 
-EOM
+    EOM
   end
 
   def run(args)

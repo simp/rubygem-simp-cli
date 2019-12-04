@@ -10,13 +10,13 @@ describe 'Simp::Cli::Command::Version' do
   context '#run' do
     context 'help' do
       it 'prints help message' do
-        usage = <<-EOM
+        usage = <<~EOM
 
-Display the current version of SIMP.
+          Display the current version of SIMP
 
-Usage:  simp version
+          USAGE:  simp version
 
-EOM
+        EOM
         expect{ @version.run(['-h']) }.to output(usage).to_stdout
         expect{ @version.run(['--help']) }.to output(usage).to_stdout
       end

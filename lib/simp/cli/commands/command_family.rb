@@ -28,9 +28,11 @@ class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
   # @return [String] list of subcommands and their descriptions
   def subcommand_list
     max_chars = sub_commands.keys.map(&:size).max
-    sub_commands.map do |cmd_name, cmd|
+    lines = sub_commands.map do |cmd_name, cmd|
       "    #{cmd_name.ljust(max_chars + 4)} #{cmd.description}"
-    end.join("\n")
+    end
+
+    lines.sort.join("\n")
   end
 
   # Run the command's `--help` action
@@ -53,7 +55,7 @@ class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
       if cmd || !args.empty?
         fail(
           Simp::Cli::ProcessingError,
-          "ERROR: Did not recognize '#{cmd} #{args.join(' ')}'"
+          "ERROR: Did not recognize sub-command '#{cmd} #{args.join(' ')}'"
         )
       end
 
@@ -68,22 +70,19 @@ class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
   def parse_command_line(args)
     opt_parser = OptionParser.new do |opts|
       opts.banner = "\n#{banner}"
-      opts.separator <<-HELP_MSG.gsub(%r{^ {8}}, '')
+      opts.separator <<~HELP_MSG
 
         #{description}
 
-        Usage:
-
+        USAGE:
           simp #{snakecase_name} -h
           simp #{snakecase_name} SUB-COMMAND -h
           simp #{snakecase_name} SUB-COMMAND [sub-command options]
 
-        Sub-commands:
-
+        SUB-COMMANDS:
         #{subcommand_list}
 
-        Options:
-
+        OPTIONS:
       HELP_MSG
 
       opts.on('-h', '--help', 'Print this message') do

@@ -43,17 +43,17 @@ describe Simp::Cli::Commands::Passgen do
   end
 
   let(:module_list_old_simplib) {
-    <<-EOM
-/etc/puppetlabs/code/environments/production/modules
-├── puppet-yum (v3.1.1)
-├── puppetlabs-stdlib (v5.2.0)
-├── simp-aide (v6.3.0)
-├── simp-simplib (v3.15.3)
-/var/simp/environments/production/site_files
-├── krb5_files (???)
-└── pki_files (???)
-/etc/puppetlabs/code/modules (no modules installed)
-/opt/puppetlabs/puppet/modules (no modules installed)
+    <<~EOM
+      /etc/puppetlabs/code/environments/production/modules
+      ├── puppet-yum (v3.1.1)
+      ├── puppetlabs-stdlib (v5.2.0)
+      ├── simp-aide (v6.3.0)
+      ├── simp-simplib (v3.15.3)
+      /var/simp/environments/production/site_files
+      ├── krb5_files (???)
+      └── pki_files (???)
+      /etc/puppetlabs/code/modules (no modules installed)
+      /opt/puppetlabs/puppet/modules (no modules installed)
     EOM
   }
 
@@ -68,9 +68,9 @@ describe Simp::Cli::Commands::Passgen do
   }
 
   let(:missing_deps_warnings) {
-    <<-EOM
-Warning: Missing dependency 'puppetlabs-apt':
-  'puppetlabs-postgresql' (v5.12.1) requires 'puppetlabs-apt' (>= 2.0.0 < 7.0.0)
+    <<~EOM
+      Warning: Missing dependency 'puppetlabs-apt':
+        'puppetlabs-postgresql' (v5.12.1) requires 'puppetlabs-apt' (>= 2.0.0 < 7.0.0)
     EOM
   }
 
@@ -180,7 +180,7 @@ Warning: Missing dependency 'puppetlabs-apt':
     let(:names) { [ 'name1', 'name2', 'name3', 'name4' ] }
 
     it 'removes passwords when force_remove=false & prompt returns yes' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:yes_or_no).and_return(true)
+      allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
 
       # mock the password manager with a double of String in which methods
       # needed have been defined
@@ -189,18 +189,18 @@ Warning: Missing dependency 'puppetlabs-apt':
         :location        => "'production' Environment"
       })
 
-      expected_output = <<-EOM
-Processing 'name1' in 'production' Environment... done.
-  Removed 'name1'
+      expected_output = <<~EOM
+        Processing 'name1' in 'production' Environment... done.
+          Removed 'name1'
 
-Processing 'name2' in 'production' Environment... done.
-  Removed 'name2'
+        Processing 'name2' in 'production' Environment... done.
+          Removed 'name2'
 
-Processing 'name3' in 'production' Environment... done.
-  Removed 'name3'
+        Processing 'name3' in 'production' Environment... done.
+          Removed 'name3'
 
-Processing 'name4' in 'production' Environment... done.
-  Removed 'name4'
+        Processing 'name4' in 'production' Environment... done.
+          Removed 'name4'
 
       EOM
 
@@ -209,19 +209,19 @@ Processing 'name4' in 'production' Environment... done.
     end
 
     it 'does not remove passwords when force_remove=false & prompt returns no' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:yes_or_no).and_return(false)
+      allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(false)
       mock_manager = object_double('Mock Password Manager', {
         :remove_password => nil,
         :location        => "'production' Environment"
       })
-      expected_output = <<-EOM
-Skipped 'name1' in 'production' Environment
+      expected_output = <<~EOM
+        Skipped 'name1' in 'production' Environment
 
-Skipped 'name2' in 'production' Environment
+        Skipped 'name2' in 'production' Environment
 
-Skipped 'name3' in 'production' Environment
+        Skipped 'name3' in 'production' Environment
 
-Skipped 'name4' in 'production' Environment
+        Skipped 'name4' in 'production' Environment
 
       EOM
 
@@ -235,18 +235,18 @@ Skipped 'name4' in 'production' Environment
         :location        => "'production' Environment"
       })
 
-      expected_output = <<-EOM
-Processing 'name1' in 'production' Environment... done.
-  Removed 'name1'
+      expected_output = <<~EOM
+        Processing 'name1' in 'production' Environment... done.
+          Removed 'name1'
 
-Processing 'name2' in 'production' Environment... done.
-  Removed 'name2'
+        Processing 'name2' in 'production' Environment... done.
+          Removed 'name2'
 
-Processing 'name3' in 'production' Environment... done.
-  Removed 'name3'
+        Processing 'name3' in 'production' Environment... done.
+          Removed 'name3'
 
-Processing 'name4' in 'production' Environment... done.
-  Removed 'name4'
+        Processing 'name4' in 'production' Environment... done.
+          Removed 'name4'
 
       EOM
 
@@ -275,25 +275,25 @@ Processing 'name4' in 'production' Environment... done.
         Simp::Cli::ProcessingError, 'Remove failed: permission denied')
 
 
-      expected_stdout = <<-EOM
-Processing 'name1' in 'production' Environment... done.
-  Removed 'name1'
+      expected_stdout = <<~EOM
+        Processing 'name1' in 'production' Environment... done.
+          Removed 'name1'
 
-Processing 'name2' in 'production' Environment... done.
-  Skipped 'name2'
+        Processing 'name2' in 'production' Environment... done.
+          Skipped 'name2'
 
-Processing 'name3' in 'production' Environment... done.
-  Skipped 'name3'
+        Processing 'name3' in 'production' Environment... done.
+          Skipped 'name3'
 
-Processing 'name4' in 'production' Environment... done.
-  Removed 'name4'
+        Processing 'name4' in 'production' Environment... done.
+          Removed 'name4'
 
       EOM
 
-      expected_err_msg = <<-EOM
-Failed to remove the following passwords in 'production' Environment:
-  'name2': Remove failed: password not found
-  'name3': Remove failed: permission denied
+      expected_err_msg = <<~EOM
+        Failed to remove 2 out of 4 passwords in 'production' Environment:
+          'name2': Remove failed: password not found
+          'name3': Remove failed: permission denied
       EOM
 
       expect { @passgen.remove_passwords(mock_manager, names, true) }
@@ -319,18 +319,18 @@ Failed to remove the following passwords in 'production' Environment:
           with(name, password_gen_options).and_return("#{name}_new_password")
       end
 
-      expected_output = <<-EOM
-Processing 'name1' in 'production' Environment... done.
-  'name1' new password: name1_new_password
+      expected_output = <<~EOM
+        Processing 'name1' in 'production' Environment... done.
+          'name1' new password: name1_new_password
 
-Processing 'name2' in 'production' Environment... done.
-  'name2' new password: name2_new_password
+        Processing 'name2' in 'production' Environment... done.
+          'name2' new password: name2_new_password
 
-Processing 'name3' in 'production' Environment... done.
-  'name3' new password: name3_new_password
+        Processing 'name3' in 'production' Environment... done.
+          'name3' new password: name3_new_password
 
-Processing 'name4' in 'production' Environment... done.
-  'name4' new password: name4_new_password
+        Processing 'name4' in 'production' Environment... done.
+          'name4' new password: name4_new_password
 
       EOM
 
@@ -362,18 +362,18 @@ Processing 'name4' in 'production' Environment... done.
           with(name, options).and_return(options[:password])
       end
 
-      expected_output = <<-EOM
-Processing 'name1' in 'production' Environment... done.
-  'name1' new password: name1_new_password
+      expected_output = <<~EOM
+        Processing 'name1' in 'production' Environment... done.
+          'name1' new password: name1_new_password
 
-Processing 'name2' in 'production' Environment... done.
-  'name2' new password: name2_new_password
+        Processing 'name2' in 'production' Environment... done.
+          'name2' new password: name2_new_password
 
-Processing 'name3' in 'production' Environment... done.
-  'name3' new password: name3_new_password
+        Processing 'name3' in 'production' Environment... done.
+          'name3' new password: name3_new_password
 
-Processing 'name4' in 'production' Environment... done.
-  'name4' new password: name4_new_password
+        Processing 'name4' in 'production' Environment... done.
+          'name4' new password: name4_new_password
 
       EOM
 
@@ -401,22 +401,22 @@ Processing 'name4' in 'production' Environment... done.
         and_raise(Simp::Cli::ProcessingError,
        'Set failed: connection timed out')
 
-      expected_stdout = <<-EOM
-Processing 'name1' in 'production' Environment... done.
-  'name1' new password: name1_new_password
+      expected_stdout = <<~EOM
+        Processing 'name1' in 'production' Environment... done.
+          'name1' new password: name1_new_password
 
-Processing 'name2' in 'production' Environment... done.
-  Skipped 'name2'
+        Processing 'name2' in 'production' Environment... done.
+          Skipped 'name2'
 
-Processing 'name3' in 'production' Environment... done.
-  Skipped 'name3'
+        Processing 'name3' in 'production' Environment... done.
+          Skipped 'name3'
 
-Processing 'name4' in 'production' Environment... done.
-  'name4' new password: name4_new_password
+        Processing 'name4' in 'production' Environment... done.
+          'name4' new password: name4_new_password
 
       EOM
 
-      expected_err_msg = <<-EOM
+      expected_err_msg = <<~EOM
 Failed to set 2 out of 4 passwords in 'production' Environment:
   'name2': Set failed: permission denied
   'name3': Set failed: connection timed out
@@ -432,10 +432,10 @@ Failed to set 2 out of 4 passwords in 'production' Environment:
 
   describe '#show_environment_list' do
     it 'lists no environments, when no environments exist' do
-      expected_output =<<-EOM
-Looking for environments with simp-simplib installed... done.
+      expected_output =<<~EOM
+        Looking for environments with simp-simplib installed... done.
 
-No environments with simp-simplib installed were found.
+        No environments with simp-simplib installed were found.
 
       EOM
       @passgen.show_environment_list
@@ -454,10 +454,10 @@ No environments with simp-simplib installed were found.
         .with(command, false, @passgen.logger).and_return(module_list_results)
 
       @passgen.show_environment_list
-      expected_output =<<-EOM
-Looking for environments with simp-simplib installed... done.
+      expected_output =<<~EOM
+        Looking for environments with simp-simplib installed... done.
 
-No environments with simp-simplib installed were found.
+        No environments with simp-simplib installed were found.
 
       EOM
       expect( @output.string ).to eq(expected_output)
@@ -494,13 +494,13 @@ No environments with simp-simplib installed were found.
       allow(Simp::Cli::ExecUtils).to receive(:run_command)
         .with(command, false, @passgen.logger).and_return(module_list_results)
 
-      expected_output = <<-EOM
-Looking for environments with simp-simplib installed... done.
+      expected_output = <<~EOM
+        Looking for environments with simp-simplib installed... done.
 
-Environments
-============
-production
-test
+        Environments
+        ============
+        production
+        test
 
       EOM
 
@@ -532,10 +532,10 @@ test
         :location  => "'production' Environment"
       })
 
-      expected_output =<<-EOM
-Retrieving password names... done.
+      expected_output =<<~EOM
+        Retrieving password names... done.
 
-No passwords found in 'production' Environment
+        No passwords found in 'production' Environment
 
       EOM
 
@@ -549,14 +549,14 @@ No passwords found in 'production' Environment
         :location  => "'production' Environment"
       })
 
-      expected_output = <<-EOM
-Retrieving password names... done.
+      expected_output = <<~EOM
+        Retrieving password names... done.
 
-'production' Environment Password Names
-=======================================
-name1
-name2
-name3
+        'production' Environment Password Names
+        =======================================
+        name1
+        name2
+        name3
 
       EOM
 
@@ -609,25 +609,25 @@ name3
         }
       )
 
-      expected_output = <<-EOM
-Retrieving password information... done.
+      expected_output = <<~EOM
+        Retrieving password information... done.
 
-'production' Environment Passwords
-==================================
-Name: name1
-  Current:  name1_password
-  Previous: name1_password_last
+        'production' Environment Passwords
+        ==================================
+        Name: name1
+          Current:  name1_password
+          Previous: name1_password_last
 
-Name: name2
-  Current:  name2_password
-  Previous: name2_password_last
+        Name: name2
+          Current:  name2_password
+          Previous: name2_password_last
 
-Name: name3
-  Current:  name3_password
+        Name: name3
+          Current:  name3_password
 
-Name: name4
-  Current:  name4_password
-  Previous: name4_password_last
+        Name: name4
+          Current:  name4_password
+          Previous: name4_password_last
 
       EOM
 
@@ -663,31 +663,31 @@ Name: name4
         and_raise(Simp::Cli::ProcessingError,
        'Set failed: connection timed out')
 
-      expected_stdout = <<-EOM
-Retrieving password information... done.
+      expected_stdout = <<~EOM
+       Retrieving password information... done.
 
-'production' Environment Passwords
-==================================
-Name: name1
-  Current:  name1_password
-  Previous: name1_password_last
+       'production' Environment Passwords
+       ==================================
+       Name: name1
+         Current:  name1_password
+         Previous: name1_password_last
 
-Name: name2
-  Skipped
+       Name: name2
+         Skipped
 
-Name: name3
-  Skipped
+       Name: name3
+         Skipped
 
-Name: name4
-  Current:  name4_password
-  Previous: name4_password_last
+       Name: name4
+         Current:  name4_password
+         Previous: name4_password_last
 
       EOM
 
-      expected_err_msg = <<-EOM
-Failed to retrieve 2 out of 4 passwords in 'production' Environment:
-  'name2': Set failed: permission denied
-  'name3': Set failed: connection timed out
+      expected_err_msg = <<~EOM
+        Failed to retrieve 2 out of 4 passwords in 'production' Environment:
+          'name2': Set failed: permission denied
+          'name3': Set failed: connection timed out
       EOM
 
       expect { @passgen.show_passwords(mock_manager, names) }.to raise_error(
@@ -737,13 +737,13 @@ Failed to retrieve 2 out of 4 passwords in 'production' Environment:
           .with(@module_list_command_dev, false, @passgen.logger)
           .and_return(@new_simplib_module_list_results)
 
-        expected_output = <<-EOM
-Looking for environments with simp-simplib installed... done.
+        expected_output = <<~EOM
+          Looking for environments with simp-simplib installed... done.
 
-Environments
-============
-dev
-production
+          Environments
+          ============
+          dev
+          production
 
         EOM
 
@@ -812,14 +812,14 @@ production
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('production', nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Retrieving password names... done.
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Retrieving password names... done.
 
-'production' Environment Password Names
-=======================================
-name1
-name2
+            'production' Environment Password Names
+            =======================================
+            name1
+            name2
 
           EOM
 
@@ -835,13 +835,13 @@ name2
 
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('dev', nil).and_return(mock_manager)
-          expected_output = <<-EOM
-Initializing for environment 'dev'... done.
-Retrieving password names... done.
+          expected_output = <<~EOM
+            Initializing for environment 'dev'... done.
+            Retrieving password names... done.
 
-'dev' Environment Password Names
-================================
-name1
+            'dev' Environment Password Names
+            ================================
+            name1
 
           EOM
 
@@ -857,13 +857,13 @@ name1
 
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('production', '/some/passgen/path').and_return(mock_manager)
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Retrieving password names... done.
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Retrieving password names... done.
 
-/some/passgen/path Password Names
-=================================
-name1
+            /some/passgen/path Password Names
+            =================================
+            name1
 
           EOM
 
@@ -893,14 +893,14 @@ name1
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('production', nil, nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Retrieving password names... done.
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Retrieving password names... done.
 
-'production' Environment Password Names
-=======================================
-name1
-name2
+            'production' Environment Password Names
+            =======================================
+            name1
+            name2
 
           EOM
 
@@ -918,13 +918,13 @@ name2
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('dev', 'backend3', 'folder1').and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'dev'... done.
-Retrieving password names... done.
+          expected_output = <<~EOM
+            Initializing for environment 'dev'... done.
+            Retrieving password names... done.
 
-'dev' Environment, 'folder1' Folder, 'backend3' libkv Backend Password Names
-============================================================================
-name1
+            'dev' Environment, 'folder1' Folder, 'backend3' libkv Backend Password Names
+            ============================================================================
+            name1
 
           EOM
 
@@ -987,18 +987,18 @@ name1
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('production', nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Retrieving password information... done.
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Retrieving password information... done.
 
-'production' Environment Passwords
-==================================
-Name: name1
-  Current:  password1
-  Previous: password1_old
+            'production' Environment Passwords
+            ==================================
+            Name: name1
+              Current:  password1
+              Previous: password1_old
 
-Name: name2
-  Current:  password2
+            Name: name2
+              Current:  password2
 
           EOM
 
@@ -1017,15 +1017,15 @@ Name: name2
 
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('dev', nil).and_return(mock_manager)
-          expected_output = <<-EOM
-Initializing for environment 'dev'... done.
-Retrieving password information... done.
+          expected_output = <<~EOM
+            Initializing for environment 'dev'... done.
+            Retrieving password information... done.
 
-'dev' Environment Passwords
-===========================
-Name: name1
-  Current:  password1
-  Previous: password1_old
+            'dev' Environment Passwords
+            ===========================
+            Name: name1
+              Current:  password1
+              Previous: password1_old
 
           EOM
 
@@ -1060,18 +1060,18 @@ Name: name1
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('production', nil, nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Retrieving password information... done.
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Retrieving password information... done.
 
-'production' Environment Passwords
-==================================
-Name: name1
-  Current:  password1
-  Previous: password1_old
+            'production' Environment Passwords
+            ==================================
+            Name: name1
+              Current:  password1
+              Previous: password1_old
 
-Name: name2
-  Current:  password2
+            Name: name2
+              Current:  password2
 
           EOM
 
@@ -1094,15 +1094,15 @@ Name: name2
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('dev', 'backend3', 'folder1').and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'dev'... done.
-Retrieving password information... done.
+          expected_output = <<~EOM
+            Initializing for environment 'dev'... done.
+            Retrieving password information... done.
 
-'dev' Environment, 'folder1' Folder, 'backend3' libkv Backend Passwords
-=======================================================================
-Name: name1
-  Current:  password1
-  Previous: password1_old
+            'dev' Environment, 'folder1' Folder, 'backend3' libkv Backend Passwords
+            =======================================================================
+            Name: name1
+              Current:  password1
+              Previous: password1_old
 
           EOM
 
@@ -1130,7 +1130,7 @@ Name: name1
         end
 
         it 'removes names for default env when prompt returns yes' do
-          allow(Simp::Cli::Passgen::Utils).to receive(:yes_or_no)
+          allow(Simp::Cli::Utils).to receive(:yes_or_no)
             .and_return(true)
 
           mock_manager = object_double('Mock LegacyPasswordManager', {
@@ -1147,13 +1147,13 @@ Name: name1
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('production', nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Processing 'name1' in 'production' Environment... done.
-  Removed 'name1'
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Processing 'name1' in 'production' Environment... done.
+              Removed 'name1'
 
-Processing 'name2' in 'production' Environment... done.
-  Removed 'name2'
+            Processing 'name2' in 'production' Environment... done.
+              Removed 'name2'
 
           EOM
 
@@ -1175,10 +1175,10 @@ Processing 'name2' in 'production' Environment... done.
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('production', nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Processing 'name1' in 'production' Environment...
-  Removed 'name1'
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Processing 'name1' in 'production' Environment...
+              Removed 'name1'
 
           EOM
 
@@ -1187,7 +1187,7 @@ Processing 'name1' in 'production' Environment...
         end
 
         it 'removes names for specified env' do
-          allow(Simp::Cli::Passgen::Utils).to receive(:yes_or_no)
+          allow(Simp::Cli::Utils).to receive(:yes_or_no)
             .and_return(true)
 
           mock_manager = object_double('Mock LegacyPasswordManager', {
@@ -1201,10 +1201,10 @@ Processing 'name1' in 'production' Environment...
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('dev', nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'dev'... done.
-Processing 'name1' in 'dev' Environment... done.
-  Removed 'name1'
+          expected_output = <<~EOM
+            Initializing for environment 'dev'... done.
+            Processing 'name1' in 'dev' Environment... done.
+              Removed 'name1'
 
           EOM
 
@@ -1225,7 +1225,7 @@ Processing 'name1' in 'dev' Environment... done.
         end
 
         it 'removes names for default env when prompt returns yes' do
-          allow(Simp::Cli::Passgen::Utils).to receive(:yes_or_no)
+          allow(Simp::Cli::Utils).to receive(:yes_or_no)
             .and_return(true)
 
           mock_manager = object_double('Mock PasswordManager', {
@@ -1242,13 +1242,13 @@ Processing 'name1' in 'dev' Environment... done.
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('production', nil, nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Processing 'name1' in 'production' Environment... done.
-  Removed 'name1'
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Processing 'name1' in 'production' Environment... done.
+              Removed 'name1'
 
-Processing 'name2' in 'production' Environment... done.
-  Removed 'name2'
+            Processing 'name2' in 'production' Environment... done.
+              Removed 'name2'
 
           EOM
 
@@ -1270,10 +1270,10 @@ Processing 'name2' in 'production' Environment... done.
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('production', nil, nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Processing 'name1' in 'production' Environment... done.
-  Removed 'name1'
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Processing 'name1' in 'production' Environment... done.
+              Removed 'name1'
 
           EOM
 
@@ -1284,7 +1284,7 @@ Processing 'name1' in 'production' Environment... done.
         it 'removes passwords for specified names in specified ' +
            '<env,folder,backend>' do
 
-          allow(Simp::Cli::Passgen::Utils).to receive(:yes_or_no)
+          allow(Simp::Cli::Utils).to receive(:yes_or_no)
             .and_return(true)
 
           mock_manager = object_double('Mock PasswordManager', {
@@ -1299,10 +1299,10 @@ Processing 'name1' in 'production' Environment... done.
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('dev', 'backend3', 'folder1').and_return(mock_manager)
 
-expected_output = <<-EOM
-Initializing for environment 'dev'... done.
-Processing 'name1' in 'dev' Environment, 'folder1' Folder, 'backend3' libkv Backend... done.
-  Removed 'name1'
+          expected_output = <<~EOM
+            Initializing for environment 'dev'... done.
+            Processing 'name1' in 'dev' Environment, 'folder1' Folder, 'backend3' libkv Backend... done.
+              Removed 'name1'
 
           EOM
 
@@ -1390,13 +1390,13 @@ Processing 'name1' in 'dev' Environment, 'folder1' Folder, 'backend3' libkv Back
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('production', nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Processing 'name1' in 'production' Environment... done.
-  'name1' new password: name1_new_password
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Processing 'name1' in 'production' Environment... done.
+              'name1' new password: name1_new_password
 
-Processing 'name2' in 'production' Environment... done.
-  'name2' new password: name2_new_password
+            Processing 'name2' in 'production' Environment... done.
+              'name2' new password: name2_new_password
 
           EOM
 
@@ -1416,10 +1416,10 @@ Processing 'name2' in 'production' Environment... done.
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('dev', nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'dev'... done.
-Processing 'name1' in 'dev' Environment... done.
-  'name1' new password: name1_new_password
+          expected_output = <<~EOM
+            Initializing for environment 'dev'... done.
+            Processing 'name1' in 'dev' Environment... done.
+              'name1' new password: name1_new_password
 
           EOM
 
@@ -1462,13 +1462,13 @@ Processing 'name1' in 'dev' Environment... done.
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('production', nil, nil).and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'production'... done.
-Processing 'name1' in 'production' Environment... done.
-  'name1' new password: name1_new_password
+          expected_output = <<~EOM
+            Initializing for environment 'production'... done.
+            Processing 'name1' in 'production' Environment... done.
+              'name1' new password: name1_new_password
 
-Processing 'name2' in 'production' Environment... done.
-  'name2' new password: name2_new_password
+            Processing 'name2' in 'production' Environment... done.
+              'name2' new password: name2_new_password
 
           EOM
 
@@ -1489,10 +1489,10 @@ Processing 'name2' in 'production' Environment... done.
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('dev', 'backend3', 'folder1').and_return(mock_manager)
 
-          expected_output = <<-EOM
-Initializing for environment 'dev'... done.
-Processing 'name1' in 'dev' Environment, 'folder1' Folder, 'backend3' libkv Backend... done.
-  'name1' new password: name1_new_password
+          expected_output = <<~EOM
+            Initializing for environment 'dev'... done.
+            Processing 'name1' in 'dev' Environment, 'folder1' Folder, 'backend3' libkv Backend... done.
+              'name1' new password: name1_new_password
 
           EOM
 

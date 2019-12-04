@@ -129,7 +129,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Thu Nov 14 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.1.0
+* Mon Dec 09 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.1.0
+- Added simp kv command family to allow users to manage and inspect
+  entries in a libkv key/value store
 - simp passgen changes
   - Updated to work with libkv-enabled simplib::passgen.  Automatically
     detects whether simplib::passgen is operating in legacy mode or

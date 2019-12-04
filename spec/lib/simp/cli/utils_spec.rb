@@ -158,4 +158,74 @@ describe Simp::Cli::Utils do
       end
     end
   end
+
+  describe '.yes_or_no' do
+    before :each do
+      @input = StringIO.new
+      @output = StringIO.new
+      @prev_terminal = $terminal
+      $terminal = HighLine.new(@input, @output)
+    end
+
+    after :each do
+      @input.close
+      @output.close
+      $terminal = @prev_terminal
+    end
+
+    it "when default_yes=true, prompts, accepts default of 'yes' and " +
+       'returns true' do
+
+      @input << "\n"
+      @input.rewind
+
+      expect( Simp::Cli::Utils.yes_or_no('Remove backups', true) )
+        .to eq true
+
+      expect( @output.string.uncolor ).to eq '> Remove backups: |yes| '
+    end
+
+    it "when default_yes=false, prompts, accepts default of 'no' and " +
+       'returns false' do
+
+      @input << "\n"
+      @input.rewind
+      expect( Simp::Cli::Utils.yes_or_no('Remove backups', false) )
+        .to eq false
+
+      expect( @output.string.uncolor ).to eq '> Remove backups: |no| '
+    end
+
+    ['yes', 'YES', 'y', 'Y'].each do |response|
+      it "accepts '#{response}' and returns true" do
+        @input << "#{response}\n"
+        @input.rewind
+        expect( Simp::Cli::Utils.yes_or_no('Remove backups', false) )
+          .to eq true
+      end
+    end
+
+    ['no', 'NO', 'n', 'N'].each do |response|
+      it "accepts '#{response}' and returns false" do
+        @input << "#{response}\n"
+        @input.rewind
+        expect( Simp::Cli::Utils.yes_or_no('Remove backups', false) )
+          .to eq false
+      end
+    end
+
+    it 're-prompts user when user does not enter a string that begins ' +
+       'with Y, y, N, or n' do
+
+      @input << "oops\n"
+      @input << "I\n"
+      @input << "can't\n"
+      @input << "type!\n"
+      @input << "yes\n"
+      @input.rewind
+      expect( Simp::Cli::Utils.yes_or_no('Remove backups', false) )
+        .to eq true
+    end
+  end
+
 end
