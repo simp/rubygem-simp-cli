@@ -122,4 +122,8 @@ namespace :pkg do
 
   Rake::Task[:compare_latest_tag].enhance [:validate_ruby_version]
 end
+
+# Make sure gem packages are built because they will be installed in
+# the acceptance test
+Rake::Task['beaker:suites'].enhance ['pkg:gem']
 # vim: syntax=ruby

@@ -7,3 +7,5 @@
 /vendor
 Gemfile.lock
 spec/lib/simp/cli/config/item/tmp/
+spec/fixtures
+.vagrant

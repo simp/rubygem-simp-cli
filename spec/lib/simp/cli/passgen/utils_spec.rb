@@ -32,7 +32,7 @@ EOM
       expect(@output.string.uncolor).to eq expected
     end
 
-    it 're-prompts when the entered password fails validation' do
+    it 're-prompts when the entered password fails system validation' do
       @input << "short\n"
       @input << "#{password1}\n"
       @input << "#{password1}\n"
@@ -80,13 +80,37 @@ EOM
         .to raise_error(Simp::Cli::ProcessingError)
     end
 
-    it 'accepts an invalid password when validation disabled' do
+    it 'accepts an simple password when system validation disabled' do
       simple_password = 'password'
       @input << "#{simple_password}\n"
       @input << "#{simple_password}\n"
       @input.rewind
       expect( Simp::Cli::Passgen::Utils.get_password(5, false) )
         .to eq simple_password
+    end
+
+    it 'rejects a short password when system validation disabled' do
+      short_password = '12345678'
+      ok_password = '123456789'
+      @input << "#{short_password}\n"
+      @input << "#{short_password}\n"
+      @input << "#{ok_password}\n"
+      @input << "#{ok_password}\n"
+      @input.rewind
+      expect( Simp::Cli::Passgen::Utils.get_password(5, false, 9) )
+        .to eq ok_password
+   end
+  end
+
+  describe '.validate_password_length' do
+    it 'returns true when password has valid length' do
+      expect( Simp::Cli::Passgen::Utils.validate_password_length('1234', 4) )
+        .to be true
+    end
+
+    it 'returns false when password has invalid length' do
+      expect( Simp::Cli::Passgen::Utils.validate_password_length('1234', 5) )
+        .to be false
     end
   end
 

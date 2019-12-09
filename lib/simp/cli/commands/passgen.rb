@@ -70,7 +70,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli::Commands::Command
     if @operation == :show_environment_list
       show_environment_list
     else
-      # space at end tells logger to omit <CR>, so spinner+done is on same line
+      # space at end tells logger to omit <CR>, so spinner+done are on same line
       logger.notice("Initializing for environment '#{@environment}'... ")
       manager = nil
       Simp::Cli::Utils::show_wait_spinner {
@@ -440,7 +440,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli::Commands::Command
       end
 
       if remove
-        # space at end tells logger to omit <CR>, so spinner+done is on same
+        # space at end tells logger to omit <CR>, so spinner+done are on same
         # line
         logger.notice("Processing '#{name}' in #{manager.location}... ")
         begin
@@ -479,14 +479,17 @@ class Simp::Cli::Commands::Passgen < Simp::Cli::Commands::Command
   def set_passwords(manager, names, password_gen_options)
     errors = []
     names.each do |name|
-      # space at end tells logger to omit <CR>, so spinner+done is on same line
+      # space at end tells logger to omit <CR>, so spinner+done are on same line
       logger.notice("Processing '#{name}' in #{manager.location}... ")
       begin
         unless password_gen_options[:auto_gen]
           validate = password_gen_options[:validate]
-          logger.debug("Gathering password with validate=#{validate}")
+          min_length = password_gen_options[:minimum_length]
+          logger.debug("Gathering password with validate=#{validate} " +
+            "min_length=#{min_length}")
+
           password_gen_options[:password] =
-            Simp::Cli::Passgen::Utils::get_password(5, validate)
+            Simp::Cli::Passgen::Utils::get_password(5, validate, min_length)
         end
 
         password = nil
@@ -533,7 +536,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli::Commands::Command
   #   for any Puppet environment
   #
   def show_environment_list
-    # space at end tells logger to omit <CR>, so spinner+done is on same line
+    # space at end tells logger to omit <CR>, so spinner+done are on same line
     logger.notice('Looking for environments with simp-simplib installed... ')
     valid_envs = nil
     Simp::Cli::Utils::show_wait_spinner {
@@ -560,7 +563,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli::Commands::Command
   # @raise Simp::Cli::ProcessingError if retrieval of password list fails
   #
   def show_name_list(manager)
-    # space at end tells logger to omit <CR>, so spinner+done is on same line
+    # space at end tells logger to omit <CR>, so spinner+done are on same line
     logger.notice('Retrieving password names... ')
     begin
       names = nil
@@ -597,7 +600,7 @@ class Simp::Cli::Commands::Passgen < Simp::Cli::Commands::Command
   #   info for all names
   #
   def show_passwords(manager, names)
-    # space at end tells logger to omit <CR>, so spinner+done is on same line
+    # space at end tells logger to omit <CR>, so spinner+done are on same line
     logger.notice("Retrieving password information... ")
     results = []
     errors = []
