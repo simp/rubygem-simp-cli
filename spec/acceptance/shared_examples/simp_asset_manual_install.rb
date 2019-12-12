@@ -61,18 +61,28 @@ shared_examples 'simp asset manual install' do |master|
       on(master, "#{asset_staging_dir}/simp_selinux_policy/sbin/set_simp_selinux_policy install")
     end
 
+    it 'should install simp-cli and highline gems in /usr/share/simp/ruby' do
+      gemdir = '/usr/share/simp/ruby'
+      on(master, "mkdir -p #{gemdir}")
+      cmd_prefix = [
+        '/opt/puppetlabs/puppet/bin/gem',
+        'install',
+        '--local',
+        "--install-dir #{gemdir}",
+        '--force'
+      ].join(' ')
+
+      on(master, "#{cmd_prefix} #{asset_staging_dir}/rubygem_simp_cli/dist/simp-cli*gem")
+      on(master, "#{cmd_prefix} #{asset_staging_dir}/rubygem_simp_cli/dist/highline*gem")
+    end
+
     it "should install 'simp' script similar to that done by the rubygem-simp-cli RPM" do
-      # This is a ninja hack to create a working /bin/simp.  We don't
-      # need to create and install the gems in rubygem-simp-cli.  We
-      # simply need to create the script pointing to our staged
-      # rubygem-simp-cli clone.
-      #
       simp_script = <<-EOM
 #!/bin/bash
 
 PATH=/opt/puppetlabs/bin:/opt/puppetlabs/puppet/bin:$PATH
 
-#{asset_staging_dir}/rubygem_simp_cli/bin/simp $@
+/usr/share/simp/ruby/gems/simp-cli-*/bin/simp $@
 
       EOM
       create_remote_file(master, '/bin/simp', simp_script)

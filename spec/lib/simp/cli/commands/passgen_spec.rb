@@ -344,15 +344,17 @@ Processing 'name4' in 'production' Environment... done.
         passwords << "#{name}_new_password"
       end
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:get_password).with(5, false)
-        .and_return(*passwords)
+      allow(Simp::Cli::Passgen::Utils).to receive(:get_password)
+        .with(5, false, 8).and_return(*passwords)
 
       mock_manager = object_double('Mock Password Manager', {
         :set_password => nil,
         :location     => "'production' Environment"
       })
 
-      password_options = { :auto_gen => false, :validate => false }
+      password_options = { :auto_gen => false, :validate => false,
+        :minimum_length => 8 }
+
       names.each do |name|
         options = { :password => "#{name}_new_password" }
         options.merge!(password_options)
@@ -1366,7 +1368,8 @@ Processing 'name1' in 'dev' Environment, 'folder1' Folder, 'backend3' libkv Back
         end
 
         it 'sets passwords for names in default env using default options' do
-          allow(Simp::Cli::Passgen::Utils).to receive(:get_password).with(5, false)
+          allow(Simp::Cli::Passgen::Utils).to receive(:get_password)
+            .with(5, false, 8)
             .and_return('name1_new_password', 'name2_new_password')
 
           mock_manager = object_double('Mock LegacyPasswordManager', {
@@ -1437,7 +1440,8 @@ Processing 'name1' in 'dev' Environment... done.
         end
 
         it 'sets passwords for names in default env using default options' do
-          allow(Simp::Cli::Passgen::Utils).to receive(:get_password).with(5, false)
+          allow(Simp::Cli::Passgen::Utils).to receive(:get_password)
+            .with(5, false, 8)
             .and_return('name1_new_password', 'name2_new_password')
 
           mock_manager = object_double('Mock PasswordManager', {
