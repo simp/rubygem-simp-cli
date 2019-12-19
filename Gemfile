@@ -22,8 +22,6 @@ group :testing do
   # bootstrap common environment variables
   gem 'dotenv'
 
-  gem 'travis-lint'
-
   # Ruby code coverage
   gem 'simplecov'
 
@@ -42,5 +40,4 @@ group :development do
   gem 'rubocop'
   gem 'rubocop-performance'
   gem 'rubocop-rspec'
-  gem 'travis'
 end

@@ -10,14 +10,14 @@ describe 'Simp::Cli::Command::Doc' do
   context '#run' do
     context 'help' do
       it 'prints help message' do
-        usage = <<-EOM
+        usage = <<~EOM
 
-=== The SIMP Doc Tool ===
-Show SIMP documentation in elinks, a text-based web browser
+          === The SIMP Doc Tool ===
+          Show SIMP documentation in elinks, a text-based web browser
 
-Usage:  simp doc
+          USAGE:  simp doc
 
-EOM
+        EOM
         expect{ @doc.run(['-h']) }.to output(usage).to_stdout
         expect{ @doc.run(['--help']) }.to output(usage).to_stdout
       end

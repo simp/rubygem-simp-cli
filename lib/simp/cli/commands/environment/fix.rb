@@ -46,23 +46,21 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = '== simp environment fix [options]'
-      opts.separator <<-HELP_MSG.gsub(%r{^ {8}}, '')
+      opts.separator <<~HELP_MSG
 
         #{self.class.description}
 
-        Usage:
-
+        USAGE:
             simp environment fix ENVIRONMENT [OPTIONS]
 
-        Actions:
+        Executes the following actions:
 
           * Ensure SELinux contexts under all SIMP Omni environment directories
           * Restore FACLs under all SIMP Omni environment directories
           * Restore Puppet permissions under appropriate SIMP Omni environment
             (sub-)directories
 
-        Options:
-
+        OPTIONS:
       HELP_MSG
 
       opts.on('--[no-]puppet-env',

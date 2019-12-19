@@ -17,13 +17,12 @@ class Simp::Cli
   def self.menu
     puts 'SIMP Command Line Interface'
     puts
-    puts 'Usage:'
-    puts
+    puts 'USAGE:'
     puts ' simp -h'
     puts ' simp COMMAND -h'
     puts ' simp COMMAND [command options]'
     puts
-    puts 'COMMANDS'
+    puts 'COMMANDS:'
     command_array = @commands.sort
     max_length = command_array.map { |command, command_obj| command.length }.max
     command_array.each do |command, command_obj|

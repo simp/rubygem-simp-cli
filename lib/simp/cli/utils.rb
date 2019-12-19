@@ -1,4 +1,8 @@
 require 'simp/cli/errors'
+require 'highline'
+require 'highline/import'
+
+HighLine.colorize_strings
 
 module Simp; end
 class Simp::Cli; end
@@ -7,7 +11,7 @@ module Simp::Cli::Utils
 
   ###################################################################
   # Let's be DRY.  Before adding methods to this file, first see if
-  # Simp::Cli::Config::Utils has what you need and, if so, move that
+  # Simp::Cli::***::Utils has what you need and, if so, move that
   # common functionality here!
   ###################################################################
 
@@ -387,5 +391,23 @@ module Simp::Cli::Utils
         }
       },
     }
+  end
+
+  # Prompt the user for a 'yes' or 'no' value, read it in and convert
+  # to a Boolean
+  #
+  # @return true if the user entered 'yes' or 'y'; false if the user
+  #   entered 'no' or 'n'
+  #
+  def yes_or_no(prompt, default_yes)
+    question = "> #{prompt.bold}: "
+    answer = ask(question) do |q|
+      q.validate = /^y$|^n$|^yes$|^no$/i
+      q.default = (default_yes ? 'yes' : 'no')
+      q.responses[:not_valid] = "Invalid response. Please enter 'yes' or 'no'".red
+      q.responses[:ask_on_error] = :question
+      q
+    end
+    result = (answer.downcase[0] == 'y')
   end
 end

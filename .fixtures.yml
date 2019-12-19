@@ -24,3 +24,6 @@ fixtures:
     # test module that uses simplib::passgen
     passgen_test:   "#{File.join(source_dir, 'spec', 'support', 'modules', 'passgen_test')}"
 
+    # test module that uses libkv::xxx
+    kv_test:   "#{File.join(source_dir, 'spec', 'support', 'modules', 'kv_test')}"
+

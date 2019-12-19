@@ -46,8 +46,18 @@ module TestUtils
     end
 
     def self.run_command(cmd)
-      puts "Executing: #{cmd}"
-      success = system(cmd)
+      git_author = 'test'
+      git_email = 'test@local.host'
+      full_cmd = [
+        # these are not needed for all git commands, but do no harm
+        "GIT_COMMITTER_NAME='#{git_author}'",
+        "GIT_COMMITTER_EMAIL='#{git_email}'",
+        "GIT_AUTHOR_NAME='#{git_author}'",
+        "GIT_AUTHOR_EMAIL='#{git_email}'",
+        cmd
+      ].join(' ')
+      puts "Executing: #{full_cmd}"
+      success = system(full_cmd)
       fail("'#{cmd}' failed") unless success
     end
   end

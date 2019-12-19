@@ -1,0 +1,47 @@
+{
+  "name": "simp-kv_test",
+  "version": "1.0.0",
+  "author": "simp",
+  "summary": "test manifests for simp kv testing",
+  "license": "Apache-2.0",
+  "source": "https://github.com/simp/pupmod-simp-kv_test",
+  "project_page": "https://github.com/simp/pupmod-simp-kv_test",
+  "issues_url": "https://simp-project.atlassian.net",
+  "tags": [],
+  "dependencies": [
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">= 4.9.0 < 7.0.0"
+    },
+    {
+      "name": "simp/libkv",
+      "version_requirement": ">= 0.7.0"
+    },
+    {
+      "name": "simp/simplib",
+      "version_requirement": ">= 4.0.0 < 5.0.0"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "CentOS",
+      "operatingsystemrelease": [
+        "6",
+        "7"
+      ]
+    },
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": [
+        "6",
+        "7"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 5.0.0 < 7.0.0"
+    }
+  ]
+}

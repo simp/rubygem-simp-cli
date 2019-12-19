@@ -8,7 +8,7 @@ describe 'simp passgen set up' do
     context 'Puppet master set up' do
       include_examples 'fixtures move', host
       include_examples 'simp asset manual install', host
-      include_examples 'test environments set up', host
+      include_examples 'passgen test environments set up', host
       include_examples 'puppetserver set up', host
     end
 

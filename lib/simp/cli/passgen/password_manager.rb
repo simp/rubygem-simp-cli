@@ -1,9 +1,13 @@
 require 'highline/import'
+require 'simp/cli/apply_utils'
 require 'simp/cli/exec_utils'
 require 'simp/cli/logging'
-require 'simp/cli/passgen/utils'
 require 'simp/cli/utils'
 require 'tmpdir'
+
+module Simp; end
+class Simp::Cli; end
+module Simp::Cli::Passgen; end
 
 class Simp::Cli::Passgen::PasswordManager
 
@@ -108,33 +112,22 @@ class Simp::Cli::Passgen::PasswordManager
     fullname = @folder.nil? ? name : "#{@folder}/#{name}"
     args = "'#{fullname}'"
     args += ", #{@custom_options}" if @custom_options
-    failure_message = 'Password not found'
-    manifest = <<-EOM.gsub(/^      /,'')
+    failure_message = "'#{name}' password not found"
+    manifest = <<~EOM
       if empty(simplib::passgen::get(#{args})) {
-        fail('#{failure_message}')
+        fail("#{failure_message}")
       } else {
         simplib::passgen::remove(#{args})
       }
     EOM
 
     logger.debug("Removing the password info for '#{fullname}' with a manifest")
-    opts = { :title => 'Password remove', :env => @environment }
+    opts = apply_options('Password remove', failure_message)
     begin
-      Simp::Cli::Passgen::Utils::apply_manifest(manifest, opts, logger)
-    rescue Simp::Cli::ProcessingError => e
-      err_lines = e.message.split("\n").select do |line|
-        line.start_with?('Error')
-      end
-
-      if err_lines.join("\n").include?(failure_message)
-        # Don't spew out a bunch of error debug for a failure
-        # we have generated!
-        err_msg = "Remove failed: '#{name}' password not found"
-        raise Simp::Cli::ProcessingError.new(err_msg)
-      else
-        err_msg = "Remove failed: #{e.message}"
-        raise Simp::Cli::ProcessingError.new(err_msg)
-      end
+      Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
+    rescue => e
+      err_msg = "Remove failed: #{e.message}"
+      raise Simp::Cli::ProcessingError.new(err_msg)
     end
   end
 
@@ -194,6 +187,26 @@ class Simp::Cli::Passgen::PasswordManager
   # Helpers
   #####################################################
 
+  # @return options appropriate for puppet apply via
+  #   Simp::Cli::ApplyUtils::apply_manifest_with_spawn
+  #
+  # @param title Brief description of operation to use in error reporting
+  # @param failure_message Error message to search for in the stderr output of
+  #    a failed apply and then use as the (simplified) failure message if found
+  #lib/simp/cli/kv/info_validator.rb
+  def apply_options(title, failure_message=nil)
+    opts = {
+      :title         => title,
+      :env           => @environment,
+      :fail          => true,
+      :group         => @puppet_info[:config]['group'],
+      :puppet_config => { 'vardir' => @puppet_info[:config]['vardir'] }
+    }
+
+    opts[:fail_filter] = failure_message unless failure_message.nil?
+    opts
+  end
+
   # Retrieve the current password info for a name
   #
   # @param fullname The full password name.  For legacy passgen, this is simply
@@ -217,14 +230,14 @@ class Simp::Cli::Passgen::PasswordManager
       args += ", #{@custom_options}" if @custom_options
       # persist to file, because log scraping is fragile
       result_file = File.join(tmpdir, 'password_info.yaml')
-      manifest =<<-EOM.gsub(/^[ ]+/,'')
+      manifest =<<~EOM
         $password_info = simplib::passgen::get(#{args})
         file { '#{result_file}': content => to_yaml($password_info) }
       EOM
 
-      opts = { :title => 'Current password retrieve', :env => @environment }
-      Simp::Cli::Passgen::Utils::apply_manifest(manifest, opts, logger)
-      password_info = Simp::Cli::Passgen::Utils::load_yaml(result_file,
+      opts = apply_options('Current password retrieve')
+      Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
+      password_info = Simp::Cli::ApplyUtils::load_yaml(result_file,
         'password info', logger)
     ensure
       FileUtils.remove_entry_secure(tmpdir)
@@ -270,7 +283,7 @@ class Simp::Cli::Passgen::PasswordManager
       result_file = File.join(tmpdir, 'password.txt')
       generate_timeout_seconds = 30
       custom_options = @custom_options ? ", #{@custom_options}" : ''
-      manifest =<<-EOM.gsub(/^        /,'')
+      manifest =<<~EOM
         [ $password, $salt ] = simplib::passgen::gen_password_and_salt(
           #{options[:length]}, # length
           #{options[:complexity]}, # complexity
@@ -289,8 +302,8 @@ class Simp::Cli::Passgen::PasswordManager
         file { '#{result_file}': content => $password }
       EOM
 
-      opts = { :title => 'Password generate and set', :env => @environment }
-      Simp::Cli::Passgen::Utils::apply_manifest(manifest, opts, logger)
+      opts = apply_options('Password generate and set')
+      Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
       begin
         password = File.read(result_file)
       rescue Exception => e
@@ -325,7 +338,7 @@ class Simp::Cli::Passgen::PasswordManager
       " '#{fullname}' with a manifest")
 
     custom_options = @custom_options ? ", #{@custom_options}" : ''
-    manifest =<<-EOM.gsub(/^      /,'')
+    manifest =<<~EOM
       $salt = simplib::passgen::gen_salt(30)  # 30 second generate timeout
       $password_options = {
         'complexity'   => #{options[:complexity]},
@@ -337,8 +350,8 @@ class Simp::Cli::Passgen::PasswordManager
         $salt, $password_options#{custom_options})
     EOM
 
-    opts = { :title => 'Password set', :env => @environment }
-    Simp::Cli::Passgen::Utils::apply_manifest(manifest, opts, logger)
+    opts = apply_options('Password set')
+    Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
     password
   end
 
@@ -421,15 +434,15 @@ class Simp::Cli::Passgen::PasswordManager
       # persist to file, because content may be large and log scraping
       # is fragile
       result_file = File.join(tmpdir, 'list.yaml')
-      manifest =<<-EOM.gsub(/^[ ]+/,'')
+      manifest =<<~EOM
         $list = simplib::passgen::list(#{args})
         file { '#{result_file}': content => to_yaml($list) }
       EOM
 
-      opts = { :title => 'Password list', :env => @environment }
-      Simp::Cli::Passgen::Utils::apply_manifest(manifest, opts, logger)
-      list = Simp::Cli::Passgen::Utils::load_yaml(result_file,
-        'password list', logger)
+      opts = apply_options('Password list')
+      Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
+      list = Simp::Cli::ApplyUtils::load_yaml(result_file, 'password list',
+        logger)
 
       # make sure results are something we can process...should only have a
       # problem if simplib::passgen::list changes and this software was not

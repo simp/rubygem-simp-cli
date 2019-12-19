@@ -175,24 +175,22 @@ describe Simp::Cli::Passgen::PasswordManager do
 
   describe '#remove_password' do
     it 'removes password for name in the specified env' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
       expect{ @manager.remove_password('name1') }.to_not raise_error
     end
 
     it 'removes password for name in <env,folder,backend>' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
       expect{ @manager_custom.remove_password('name1') }.to_not raise_error
     end
 
     it 'fails when no password for the name exists' do
-      err_msg = "Error: Evaluation Error: Error while evaluating a" +
-        " Function Call, Password not found (location info)"
-
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      err_msg = "'oops' password not found"
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_raise(Simp::Cli::ProcessingError, err_msg)
 
       expect { @manager.remove_password('oops') }.to raise_error(
@@ -204,7 +202,7 @@ describe Simp::Cli::Passgen::PasswordManager do
       err_msg = "Error: Evaluation Error: Error while evaluating a" +
         " Function Call, libkv Configuration Error for libkv::exists with..."
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_raise(Simp::Cli::ProcessingError, err_msg)
 
       expect { @manager.remove_password('oops') }.to raise_error(
@@ -367,10 +365,10 @@ describe Simp::Cli::Passgen::PasswordManager do
     } }
 
     it 'applies manifest to retrieve password info and then returns it' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:load_yaml)
+      allow(Simp::Cli::ApplyUtils).to receive(:load_yaml)
         .and_return(password_info)
 
       expect( @manager.current_password_info(@simple_name) )
@@ -380,10 +378,10 @@ describe Simp::Cli::Passgen::PasswordManager do
     it 'applies manifest with folder and backend to retrieve password info ' +
        'and then returns it' do
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:load_yaml)
+      allow(Simp::Cli::ApplyUtils).to receive(:load_yaml)
         .and_return(password_info)
 
       expect( @manager_custom.current_password_info(@complex_name) )
@@ -391,7 +389,7 @@ describe Simp::Cli::Passgen::PasswordManager do
     end
 
     it 'fails when manifest apply fails' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_raise(Simp::Cli::ProcessingError, 'Password retrieve failed')
 
       expect{ @manager_custom.current_password_info(@complex_name) }
@@ -399,10 +397,10 @@ describe Simp::Cli::Passgen::PasswordManager do
     end
 
     it 'fails when interim password info YAML fails to load' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:load_yaml).and_raise(
+      allow(Simp::Cli::ApplyUtils).to receive(:load_yaml).and_raise(
         Simp::Cli::ProcessingError, 'Failed to load password info YAML')
 
       expect{ @manager_custom.current_password_info(@complex_name) }
@@ -425,7 +423,7 @@ describe Simp::Cli::Passgen::PasswordManager do
     it 'applies manifest to generate and set <password,salt> and then ' +
        'returns generated password' do
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
       allow(File).to receive(:read).with(/password.txt$/).and_return(generated_password)
@@ -437,7 +435,7 @@ describe Simp::Cli::Passgen::PasswordManager do
     it 'applies manifest with folder and backend to generate and set ' +
        '<password,salt> and then returns generated password' do
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
       allow(File).to receive(:read).with(/password.txt$/)
@@ -448,7 +446,7 @@ describe Simp::Cli::Passgen::PasswordManager do
     end
 
     it 'fails when manifest apply fails' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest).and_raise(
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn).and_raise(
         Simp::Cli::ProcessingError, 'Password generate and set failed')
 
       expect{ @manager.generate_and_set_password(@simple_name, options) }
@@ -457,7 +455,7 @@ describe Simp::Cli::Passgen::PasswordManager do
     end
 
     it 'fails when interim password file cannot be read' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
       allow(File).to receive(:read).with(/password.txt$/).and_raise(
@@ -486,7 +484,7 @@ describe Simp::Cli::Passgen::PasswordManager do
     it 'retrieves password from user, applies manifest to generate salt and set ' +
        'pair, and then returns password' do
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
       expect( @manager.get_and_set_password(@simple_name, options) )
@@ -496,7 +494,7 @@ describe Simp::Cli::Passgen::PasswordManager do
     it 'retrieves password from user, applies manifest with folder and backend ' +
        'to generate salt and set pair, and then returns password' do
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
       expect( @manager_custom.get_and_set_password(@complex_name, options) )
@@ -504,7 +502,7 @@ describe Simp::Cli::Passgen::PasswordManager do
     end
 
     it 'fails when manifest apply fails' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_raise(Simp::Cli::ProcessingError, 'Password set failed')
 
       expect{ @manager.get_and_set_password(@simple_name, options) }
@@ -720,10 +718,10 @@ describe Simp::Cli::Passgen::PasswordManager do
     } }
 
     it 'applies manifest to retrieve password list and then returns it' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:load_yaml)
+      allow(Simp::Cli::ApplyUtils).to receive(:load_yaml)
         .and_return(password_list)
 
       expect( @manager.password_list ).to eq(password_list)
@@ -732,17 +730,17 @@ describe Simp::Cli::Passgen::PasswordManager do
     it 'applies manifest with folder and backend to retrieve password list ' +
            'and then returns it' do
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:load_yaml)
+      allow(Simp::Cli::ApplyUtils).to receive(:load_yaml)
         .and_return(password_list)
 
       expect( @manager_custom.password_list ).to eq(password_list)
     end
 
     it 'fails when manifest apply fails' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_raise(Simp::Cli::ProcessingError, 'Password list retrieve failed')
 
       expect{ @manager_custom.password_list }.to raise_error(
@@ -750,10 +748,10 @@ describe Simp::Cli::Passgen::PasswordManager do
     end
 
     it 'fails when interim password list YAML fails to load' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
-      allow(Simp::Cli::Passgen::Utils).to receive(:load_yaml).and_raise(
+      allow(Simp::Cli::ApplyUtils).to receive(:load_yaml).and_raise(
         Simp::Cli::ProcessingError, 'Failed to load password list YAML')
 
       expect{ @manager_custom.password_list }.to raise_error(
@@ -761,11 +759,11 @@ describe Simp::Cli::Passgen::PasswordManager do
     end
 
     it 'fails when retrieved password list is missing required keys' do
-      allow(Simp::Cli::Passgen::Utils).to receive(:apply_manifest)
+      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
       invalid_password_list = { 'oops' => {} }
-      allow(Simp::Cli::Passgen::Utils).to receive(:load_yaml)
+      allow(Simp::Cli::ApplyUtils).to receive(:load_yaml)
         .and_return(invalid_password_list)
 
       expect{ @manager_custom.password_list }.to raise_error(

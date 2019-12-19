@@ -1,0 +1,14 @@
+{
+  "key1":{ "value":1, "metadata":{}},
+  "key2":{ "value":true, "metadata":{ "foo":"bar"}},
+  "key3":{
+    "value":"aGVsbG8gd29ybGQ=",
+    "encoding":"base64",
+    "original_encoding":"ASCII-8BIT",
+    "metadata":{}
+  },
+  "key4":{
+    "value"   :{ "x's":"marks", "the":"spot"},
+    "metadata":{ "on":"map"}
+  }
+}

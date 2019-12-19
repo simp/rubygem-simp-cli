@@ -16,20 +16,20 @@ describe 'Simp::Cli' do
         usage = <<EOM
 SIMP Command Line Interface
 
-Usage:
-
+USAGE:
  simp -h
  simp COMMAND -h
  simp COMMAND [command options]
 
-COMMANDS
+COMMANDS:
   bootstrap     Bootstrap initial SIMP server
   config        Prepare SIMP server for bootstrapping
   doc           Show SIMP documentation in elinks
   environment   Utility to manage and coordinate SIMP omni-environments
-  passgen       Utility for managing 'simplib::passgen' passwords
-  puppetfile    Helper utility to maintain local SIMP Puppetfiles
-  version       Display the current version of SIMP.
+  kv            Utility to inspect and manage content in key/value stores
+  passgen       Utility to inspect and manage 'simplib::passgen' passwords
+  puppetfile    Utility to maintain local SIMP Puppetfiles
+  version       Display the current version of SIMP
 
 EOM
        @usage_regex = Regexp.new(Regexp.escape(usage))

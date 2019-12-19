@@ -59,12 +59,11 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = '== simp environment new [options]'
-      opts.separator <<-HELP_MSG.gsub(%r{^ {8}}, '')
+      opts.separator <<~HELP_MSG
 
         #{self.class.description}
 
-        Usage:
-
+        USAGE:
           simp environment new ENVIRONMENT [OPTIONS]
 
         By default, this command will:
@@ -73,34 +72,33 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
           * raise an error if an environment directory already exists
 
-        Examples:
+        EXAMPLES:
+          # Generate a new Omni environment skeleton (default)
+          #   * Creates skeleton Puppet and Secondary environment directories
+          #   * Generates new Puppetfile and Puppetfile.simp files in the Puppet
+          #     environment
+          #     - see: `simp puppetfile generate --help`
+          #
+          simp environment new development
 
-             # Generate a new Omni environment skeleton (default)
-             #   * Creates skeleton Puppet and Secondary environment directories
-             #   * Generates new Puppetfile and Puppetfile.simp files in the Puppet
-             #     environment
-             #     - see: `simp puppetfile generate --help`
-             #
-             simp environment new development
+          # Generates a new Omni environment
+          #   * Creates a new Omni environment skeleton
+          #   * Deploys modules in the generated Puppetfiles using
+          #     `r10k puppetfile install`
+          simp environment new dev2 --puppetfile-install
 
-             # Generates a new Omni environment
-             #   * Creates a new Omni environment skeleton
-             #   * Deploys modules in the generated Puppetfiles using
-             #     `r10k puppetfile install`
-             simp environment new dev2 --puppetfile-install
+          # Generate just the directory skeletons for a new Omni
+          # environment
+          simp environment new dev3 --no-puppetfile-gen
 
-             # Generate just the directory skeletons for a new Omni
-             # environment
-             simp environment new dev3 --no-puppetfile-gen
+          # Create a new Omni environment with a copy of an existing
+          # environment's Puppet environment and links to that
+          # environment's Secondary and Writable env dirs
+          simp environment new staging --link production
 
-             # Create a new Omni environment with a copy of an existing
-             # environment's Puppet environment and links to that
-             # environment's Secondary and Writable env dirs
-             simp environment new staging --link production
-
-             # Create a separate copy of an existing environment
-             # (will diverge over time)
-             simp environment new new_prod --copy production
+          # Create a separate copy of an existing environment
+          # (will diverge over time)
+          simp environment new new_prod --copy production
 
       HELP_MSG
 

@@ -1,10 +1,14 @@
 require 'beaker-rspec'
+require_relative 'acceptance/helpers'
 require_relative 'acceptance/shared_examples'
 
 require 'tmpdir'
 require 'yaml'
 require 'simp/beaker_helpers'
+
 include Simp::BeakerHelpers
+include Acceptance::Helpers::EnvHelper
+include Acceptance::Helpers::KvTestData
 
 unless ENV['BEAKER_provision'] == 'no'
   hosts.each do |host|
