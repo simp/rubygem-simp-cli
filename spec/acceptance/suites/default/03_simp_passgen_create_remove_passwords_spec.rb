@@ -18,7 +18,7 @@ describe 'simp passgen create and remove passwords' do
       context 'Password name creation' do
         it "should create new passwords in #{env}" do
           new_names.each do |name|
-            cmd = "simp passgen -e #{env} -s #{name} --auto-gen"
+            cmd = "simp passgen set #{name} -e #{env} --auto-gen"
             set_result = on(host, cmd).stdout
             new_password = set_result.match(/.*new password: (.*)/m)[1].chomp!.chomp!
             saved_new_passwords[name] = new_password
@@ -26,7 +26,7 @@ describe 'simp passgen create and remove passwords' do
         end
 
         it "should list the new password names in #{env}" do
-          result = on(host, "simp passgen -e #{env} -l").stdout
+          result = on(host, "simp passgen list -e #{env}").stdout
           new_names.each do |name|
             expect(result).to match(/#{name}/)
           end
@@ -72,11 +72,11 @@ describe 'simp passgen create and remove passwords' do
       context 'Password name removal' do
         it "should remove passwords in #{env}" do
           new_names.each do |name|
-            cmd = "simp passgen -e #{env} -r #{name} --force-remove"
+            cmd = "simp passgen remove #{name} -e #{env} --force"
             on(host, cmd).stdout
           end
 
-          result = on(host, "simp passgen -e #{env} -l").stdout
+          result = on(host, "simp passgen list -e #{env}").stdout
           new_names.each do |name|
             expect(result).to_not match(/#{name}/)
           end

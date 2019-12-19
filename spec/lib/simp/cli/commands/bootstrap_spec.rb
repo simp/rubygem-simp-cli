@@ -10,27 +10,27 @@ describe 'Simp::Cli::Command::Bootstrap' do
   context '#run' do
     context 'help' do
       it 'prints help message' do
-        options_help = <<-EOM
-OPTIONS:
-    -k, --kill_agent                 Ignore agent_catalog_run_lockfile
-                                     status and force kill active puppet
-                                     agents at the beginning of bootstrap.
-    -r, --[no-]remove_ssldir         Remove the existing puppet ssldir.
-                                     If unspecified, user will be prompted
-                                     for action to take.
-    -t, --[no-]track                 Enables/disables the tracker.
-                                     Default is enabled.
-    -u, --unsafe                     Run bootstrap in 'unsafe' mode.
-                                     Interrupts are NOT captured and ignored,
-                                     which may result in a corrupt system.
-                                     Useful for debugging.
-                                     Default is SAFE.
-    -w MIN,                          Number of minutes to wait for the
-        --puppetserver-wait-minutes  puppetserver to start.
-                                     Default is 5 minutes.
-    -v, --[no-]verbose               Enables/disables verbose mode. Prints out
-                                     verbose information.
-    -h, --help                       Print out this message.
+        options_help = <<~EOM
+          OPTIONS:
+              -k, --kill_agent                 Ignore agent_catalog_run_lockfile
+                                               status and force kill active puppet
+                                               agents at the beginning of bootstrap.
+              -r, --[no-]remove_ssldir         Remove the existing puppet ssldir.
+                                               If unspecified, user will be prompted
+                                               for action to take.
+              -t, --[no-]track                 Enables/disables the tracker.
+                                               Default is enabled.
+              -u, --unsafe                     Run bootstrap in 'unsafe' mode.
+                                               Interrupts are NOT captured and ignored,
+                                               which may result in a corrupt system.
+                                               Useful for debugging.
+                                               Default is SAFE.
+              -w MIN,                          Number of minutes to wait for the
+                  --puppetserver-wait-minutes  puppetserver to start.
+                                               Default is 5 minutes.
+              -v, --[no-]verbose               Enables/disables verbose mode. Prints out
+                                               verbose information.
+              -h, --help                       Print out this message.
         EOM
         expected_regex = Regexp.new(Regexp.escape(options_help.strip))
         expect{ @bootstrap.run(['-h']) }.to output(expected_regex).to_stdout

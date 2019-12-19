@@ -259,10 +259,10 @@ describe Simp::Cli::Passgen::LegacyPasswordManager do
           Errno::EACCES, 'failed delete')
       end
 
-      expected_err_msg = <<-EOM
-Failed to delete the following password files:
-  '#{unreadable_files[0]}': Permission denied - failed delete
-  '#{unreadable_files[1]}': Permission denied - failed delete
+      expected_err_msg = <<~EOM
+        Failed to delete the following password files:
+          '#{unreadable_files[0]}': Permission denied - failed delete
+          '#{unreadable_files[1]}': Permission denied - failed delete
       EOM
 
       names = ['production_name1', 'production_name2', 'production_name3']

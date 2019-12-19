@@ -203,23 +203,6 @@ describe 'Simp::Cli::Command::Config#run' do
       expect( File.exists?( @answers_output_file ) ).to be true
     end
 
-    it 'allows deprecated --non-interactive in lieu of --force-defaults' do
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run(['-o', @answers_output_file,
-          '-l', @log_file, '--dry-run', '--non-interactive',
-          'cli::network::interface=enp0s3',
-          'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
-          'grub::password=$6$5y9dzds$bp8Vo6kJK9pJkw4Y4nv.UvFuwZx49O/6W1kxy5HdDHRdMEfB59YrUoxL6.daja9xp9HuwqsLr1HCg5v4wbygX.' ])
-        end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
-      expect( File.exists?( @answers_output_file ) ).to be true
-    end
-
     it 'creates valid file from valid answers file using --apply-with-questions and no prompts' do
       input_answers_file = File.join(files_dir, 'prev_simp_conf.yaml')
       begin

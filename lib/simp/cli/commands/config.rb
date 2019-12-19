@@ -371,12 +371,6 @@ EOM
         @options[:force_defaults] = true
       end
 
-      opts.on('--non-interactive',
-              'DEPRECATED: This has been deprecated by --force-defaults',
-              'for clarity and will be removed in a future release.') do |x|
-        @options[:force_defaults] = true
-      end
-
       opts.on('-D', '--disable-queries',
               'Run completely non-interactively. All',
               'answers must be specified by an answers',

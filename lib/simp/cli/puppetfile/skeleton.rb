@@ -11,7 +11,7 @@ module Simp::Cli::Puppetfile
     SECTION_SEPARATOR    = '='*78
     SUBSECTION_SEPARATOR = '-'*78
 
-    INTRO_SECTION = <<-INTRO.gsub(/ {6}/,'')
+    INTRO_SECTION = <<~INTRO
       # #{SECTION_SEPARATOR}
       # SIMP Puppet modules
       # #{SUBSECTION_SEPARATOR}
@@ -32,14 +32,14 @@ module Simp::Cli::Puppetfile
       # #{SUBSECTION_SEPARATOR}
     INTRO
 
-    LOCAL_MODULE_SECTION = <<-LOCAL.gsub(/ {6}/,'')
+    LOCAL_MODULE_SECTION = <<~LOCAL
       # #{SECTION_SEPARATOR}
       # Your site's Puppet modules
       # #{SUBSECTION_SEPARATOR}
       # Add your own Puppet modules here
     LOCAL
 
-    ROLES_PROFILES_SECTION = <<-ROLES_PROFILES.gsub(/ {6}/,'')
+    ROLES_PROFILES_SECTION = <<~ROLES_PROFILES
       # #{SECTION_SEPARATOR}
       # A note about Roles and Profiles
       # #{SUBSECTION_SEPARATOR}
@@ -78,7 +78,7 @@ module Simp::Cli::Puppetfile
     #   specific Puppet environment.
     def to_puppetfile
       puppetfile = header
-      puppetfile += <<-PUPPETFILE.gsub(/ {8}/,'')
+      puppetfile += <<~PUPPETFILE
         #{INTRO_SECTION}
         instance_eval(File.read(File.join(__dir__,"Puppetfile.simp")))
 
@@ -157,7 +157,7 @@ module Simp::Cli::Puppetfile
     #   in the generated Puppetfile
     def header
       return '' if  local_modules.empty?
-      <<-HEADER.gsub(/ {8}/,'')
+      <<~HEADER
         # #{SECTION_SEPARATOR}
         # Puppetfile (Generated at #{Simp::Cli::Utils::timestamp} with local modules from
         # '#{@puppet_env}' Puppet environment)

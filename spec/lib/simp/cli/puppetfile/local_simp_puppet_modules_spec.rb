@@ -132,7 +132,7 @@ describe Simp::Cli::Puppetfile::LocalSimpPuppetModules do
 
   describe '#to_puppetfile' do
     it 'prints the expected Puppetfile' do
-      expected_puppetfile = <<-PUPPETFILE.gsub(%r{^ {8}}, '')
+      expected_puppetfile = <<~PUPPETFILE
         # ------------------------------------------------------------------------------
         # SIMP Puppetfile (Generated at YYYY-mm-dd HH:MM:SS)
         # ------------------------------------------------------------------------------

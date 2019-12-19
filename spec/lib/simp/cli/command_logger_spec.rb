@@ -75,38 +75,38 @@ describe Simp::Cli::CommandLogger do
   describe '.add_logging_command_options' do
     it 'adds common logging options inside OptionsParser block at location specified' do
       options = { :log_basename => 'test.log', :verbose => 1 }
-      expected = <<-EOM
-=== My Tester Inline ===
-    -i, --input FILE                 Input file
-    -l, --log-file FILE              Log file. Defaults to
-                                     #{Simp::Cli::SIMP_CLI_HOME}/test.log.<timestamp>
-    -v, --verbose                    Verbose console output (stacks). All details
-                                     are recorded in the log file regardless.
-    -q, --quiet                      Quiet console output.  Only errors are
-                                     reported to the console. All details are
-                                     recorded in the log file regardless.
-        --console-only               Suppress logging to file.
-    -o, --output FILE                Output file
-    -h, --help                       Print this message
+      expected = <<~EOM
+        === My Tester Inline ===
+            -i, --input FILE                 Input file
+            -l, --log-file FILE              Log file. Defaults to
+                                             #{Simp::Cli::SIMP_CLI_HOME}/test.log.<timestamp>
+            -v, --verbose                    Verbose console output (stacks). All details
+                                             are recorded in the log file regardless.
+            -q, --quiet                      Quiet console output.  Only errors are
+                                             reported to the console. All details are
+                                             recorded in the log file regardless.
+                --console-only               Suppress logging to file.
+            -o, --output FILE                Output file
+            -h, --help                       Print this message
       EOM
       expect { @command.parse_command_line_add_inline([ '-h' ], options) }.to output(expected).to_stdout
     end
 
     it 'adds common logging options to existing OptionsParser prior to tail_on' do
       options = { :log_basename => 'test.log', :verbose => 1 }
-      expected = <<-EOM
-=== My Tester Append ===
-    -i, --input FILE                 Input file
-    -o, --output FILE                Output file
-    -l, --log-file FILE              Log file. Defaults to
-                                     #{Simp::Cli::SIMP_CLI_HOME}/test.log.<timestamp>
-    -v, --verbose                    Verbose console output (stacks). All details
-                                     are recorded in the log file regardless.
-    -q, --quiet                      Quiet console output.  Only errors are
-                                     reported to the console. All details are
-                                     recorded in the log file regardless.
-        --console-only               Suppress logging to file.
-    -h, --help                       Print this message
+      expected = <<~EOM
+        === My Tester Append ===
+            -i, --input FILE                 Input file
+            -o, --output FILE                Output file
+            -l, --log-file FILE              Log file. Defaults to
+                                             #{Simp::Cli::SIMP_CLI_HOME}/test.log.<timestamp>
+            -v, --verbose                    Verbose console output (stacks). All details
+                                             are recorded in the log file regardless.
+            -q, --quiet                      Quiet console output.  Only errors are
+                                             reported to the console. All details are
+                                             recorded in the log file regardless.
+                --console-only               Suppress logging to file.
+            -h, --help                       Print this message
       EOM
       expect { @command.parse_command_line_append([ '-h' ], options) }.to output(expected).to_stdout
     end
@@ -238,13 +238,13 @@ describe Simp::Cli::CommandLogger do
     end
 
     context 'console and logger verbosity' do
-      let(:expected_file_output) { <<-EOM
-2017-01-13 11:42:03: a debug message
-2017-01-13 11:42:03: an info message
-2017-01-13 11:42:03: a notice message
-2017-01-13 11:42:03: a warn message
-2017-01-13 11:42:03: an error message
-2017-01-13 11:42:03: a fatal message
+      let(:expected_file_output) { <<~EOM
+          2017-01-13 11:42:03: a debug message
+          2017-01-13 11:42:03: an info message
+          2017-01-13 11:42:03: a notice message
+          2017-01-13 11:42:03: a warn message
+          2017-01-13 11:42:03: an error message
+          2017-01-13 11:42:03: a fatal message
         EOM
       }
 
@@ -252,11 +252,11 @@ describe Simp::Cli::CommandLogger do
         options = { :log_file => File.join(@tmp_dir, 'command_logger_test.log') }
         @command.set_up_and_use_logger(options)
 
-        expected_console = <<-EOM
-a notice message
-a warn message
-an error message
-a fatal message
+        expected_console = <<~EOM
+          a notice message
+          a warn message
+          an error message
+          a fatal message
         EOM
         expect( @output.string ).to eq expected_console
         expect( IO.read(options[:log_file]) ).to eq expected_file_output
@@ -266,14 +266,14 @@ a fatal message
         options = { :log_file => File.join(@tmp_dir, 'command_logger_test.log'), :verbose => 3 }
         @command.set_up_and_use_logger(options)
 
-        expected_console = <<-EOM
-a trace message
-a debug message
-an info message
-a notice message
-a warn message
-an error message
-a fatal message
+        expected_console = <<~EOM
+          a trace message
+          a debug message
+          an info message
+          a notice message
+          a warn message
+          an error message
+          a fatal message
         EOM
         expect( @output.string ).to eq expected_console
         expect( IO.read(options[:log_file]) ).to eq expected_file_output

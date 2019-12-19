@@ -47,7 +47,7 @@ module Simp::Cli::Passgen::Utils
         else
           # Make sure the length is not too short or manifest will fail
           # to apply with a difficult-to-understand error message!
-          valid =self.validate_password_length(answer, min_length)
+          valid = self.validate_password_length(answer, min_length)
         end
         valid
       }

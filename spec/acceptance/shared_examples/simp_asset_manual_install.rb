@@ -72,17 +72,23 @@ shared_examples 'simp asset manual install' do |master|
         '--force'
       ].join(' ')
 
-      on(master, "#{cmd_prefix} #{asset_staging_dir}/rubygem_simp_cli/dist/simp-cli*gem")
-      on(master, "#{cmd_prefix} #{asset_staging_dir}/rubygem_simp_cli/dist/highline*gem")
+      # install only the latest simp-cli and highline gems available, not all,
+      # or the /bin/simp script will fail!
+      cmd = "ls #{asset_staging_dir}/rubygem_simp_cli/dist/simp-cli*gem | tail -n 1"
+      simp_cli_gem = on(master, cmd).stdout.strip
+      on(master, "#{cmd_prefix} #{simp_cli_gem}")
+      cmd = "ls #{asset_staging_dir}/rubygem_simp_cli/dist/highline*gem | tail -n 1"
+      highline_gem = on(master, cmd).stdout.strip
+      on(master, "#{cmd_prefix} #{highline_gem}")
     end
 
     it "should install 'simp' script similar to that done by the rubygem-simp-cli RPM" do
-      simp_script = <<-EOM
-#!/bin/bash
+      simp_script = <<~EOM
+        #!/bin/bash
 
-PATH=/opt/puppetlabs/bin:/opt/puppetlabs/puppet/bin:$PATH
+        PATH=/opt/puppetlabs/bin:/opt/puppetlabs/puppet/bin:$PATH
 
-/usr/share/simp/ruby/gems/simp-cli-*/bin/simp $@
+        /usr/share/simp/ruby/gems/simp-cli-*/bin/simp $@
 
       EOM
       create_remote_file(master, '/bin/simp', simp_script)

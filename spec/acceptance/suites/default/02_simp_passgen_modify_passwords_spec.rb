@@ -78,7 +78,7 @@ describe 'simp passgen modify existing passwords' do
             it "should regen passwords with current length+complexity+complex_only in #{env}" do
               saved_latest_passwords.clear
               names.each do |name, options|
-                cmd = "simp passgen -e #{env} -s #{name} --auto-gen"
+                cmd = "simp passgen set #{name} -e #{env} --auto-gen"
                 set_result = on(host, cmd).stdout
                 new_password = set_result.match(/.*new password: (.*)/)[1]
                 saved_latest_passwords[name] = new_password
@@ -88,7 +88,7 @@ describe 'simp passgen modify existing passwords' do
 
               [ 'app1', 'app2', 'app3'].each do |folder|
                 names.each do |name, options|
-                  cmd = "simp passgen -e #{env} -s sub_#{name} --auto-gen --folder #{folder}"
+                  cmd = "simp passgen set #{folder}/sub_#{name} -e #{env} --auto-gen"
                   set_result = on(host, cmd).stdout
                   new_password = set_result.match(/.*new password: (.*)/)[1]
                   saved_latest_passwords["#{folder}/sub_#{name}"] = new_password
@@ -104,7 +104,7 @@ describe 'simp passgen modify existing passwords' do
             it "should regen passwords with current length in #{env}" do
               saved_latest_passwords.clear
               names.each do |name, options|
-                cmd = "simp passgen -e #{env} -s #{name} --auto-gen"
+                cmd = "simp passgen set #{name} -e #{env} --auto-gen"
                 set_result = on(host, cmd).stdout
                 new_password = set_result.match(/.*new password: (.*)/)[1]
                 saved_latest_passwords[name] = new_password
@@ -116,7 +116,7 @@ describe 'simp passgen modify existing passwords' do
 
           it "should list current and previous passwords in top folder in #{env}" do
             names.keys.each do |name|
-              list_result = on(host, "simp passgen -e #{env} -n #{name}").stdout
+              list_result = on(host, "simp passgen show #{name} -e #{env}").stdout
 
               curr_value = saved_latest_passwords[name]
               prev_value = on(host, "cat /var/passgen_test/#{env}-#{name}").stdout
@@ -129,7 +129,7 @@ describe 'simp passgen modify existing passwords' do
             [ 'app1', 'app2', 'app3'].each do |folder|
               it "should list current and previous passwords for #{folder}/ names in #{env}" do
                 names.keys.each do |name|
-                  cmd = "simp passgen -e #{env} -n sub_#{name} --folder #{folder}"
+                  cmd = "simp passgen show #{folder}/sub_#{name} -e #{env}"
                   list_result = on(host, cmd).stdout
 
                   curr_value = saved_latest_passwords["#{folder}/sub_#{name}"]
@@ -146,9 +146,9 @@ describe 'simp passgen modify existing passwords' do
         context 'specifying characteristics' do
           it "should regen passwords with specified length+complexity+complex_only in #{env}" do
             names.each do |name, options|
-              cmd = "simp passgen -e #{env} -s #{name} --auto-gen " +
-                "--complexity=#{options[:complexity]} " +
-                "--length=#{options[:length]}"
+              cmd = "simp passgen set #{name} -e #{env} --auto-gen "\
+                    "--complexity=#{options[:complexity]} "\
+                    "--length=#{options[:length]}"
               cmd += ' --complex_only' if options[:complex_only]
               set_result = on(host, cmd).stdout
               new_password = set_result.match(/.*new password: (.*)/)[1]
@@ -165,7 +165,7 @@ describe 'simp passgen modify existing passwords' do
           # Just spot check one name for this test:
           #  passgen_test_c0_8 - complexity 0, length 8
           stdin = "password\n"*2
-          cmd = "simp passgen -e #{env} -s passgen_test_c0_8"
+          cmd = "simp passgen set passgen_test_c0_8 -e #{env}"
           retries = 3
           begin
             # sometimes :pty + :stdin doesn't work properly...the text in :stdin

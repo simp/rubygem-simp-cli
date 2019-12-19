@@ -33,7 +33,7 @@ module Simp::Cli::Puppetfile
 
     # @return [String] module data as a line in a Puppetfile
     def to_s
-      <<-TO_S.gsub(%r{^ {8}}, '')
+      <<~TO_S
         mod '#{@data['name']}',
           :git => 'file://#{local_git_repo_path}',
           :tag => '#{@data['version']}'
