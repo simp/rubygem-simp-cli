@@ -43,14 +43,14 @@ class Simp::Cli::Passgen::PasswordManager
   # @raise Simp::Cli::ProcessingError if the password list operation failed or
   #   information retrieved is malformed
   def name_list
-    logger.info('Retrieving list of password names with simplib::passgen' +
+    logger.info('Retrieving list of password names with simplib::passgen ' +
       'functions')
 
     begin
       password_list.key?('keys') ? password_list['keys'].keys.sort : []
     rescue Exception => e
       err_msg = "List failed: #{e}"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
   end
 
@@ -78,7 +78,7 @@ class Simp::Cli::Passgen::PasswordManager
 
       if info.empty?
         err_msg = "'#{name}' password not found"
-        raise Simp::Cli::ProcessingError.new(err_msg)
+        raise Simp::Cli::ProcessingError, err_msg
       end
 
       # make sure results are something we can process...should only have a
@@ -88,11 +88,11 @@ class Simp::Cli::Passgen::PasswordManager
         err_msg = 'Invalid result returned from simplib::passgen::get:' +
           "\n\n#{info}"
 
-        raise Simp::Cli::ProcessingError.new(err_msg)
+        raise Simp::Cli::ProcessingError, err_msg
       end
     rescue Exception => e
       err_msg = "Retrieve failed: #{e}"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     info
@@ -127,7 +127,7 @@ class Simp::Cli::Passgen::PasswordManager
       Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
     rescue => e
       err_msg = "Remove failed: #{e.message}"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
   end
 
@@ -177,7 +177,7 @@ class Simp::Cli::Passgen::PasswordManager
       end
     rescue Exception => e
       err_msg = "Set failed: #{e}"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     password
@@ -272,9 +272,9 @@ class Simp::Cli::Passgen::PasswordManager
   def generate_and_set_password(fullname, options)
     logger.debug("Generating and setting the password and salt for" +
       " '#{fullname}' with password length=#{options[:length]}," +
-        " complexity=#{options[:complexity]}, and" +
-        " complex_only=#{options[:complex_only]}" +
-        " via a manifest")
+      " complexity=#{options[:complexity]}, and" +
+      " complex_only=#{options[:complex_only]}" +
+      " via a manifest")
 
     tmpdir = Dir.mktmpdir( File.basename( __FILE__ ) )
     password = nil
@@ -308,7 +308,7 @@ class Simp::Cli::Passgen::PasswordManager
         password = File.read(result_file)
       rescue Exception => e
         err_msg = "Failed to read generated password: #{e}"
-        raise Simp::Cli::ProcessingError.new(err_msg)
+        raise Simp::Cli::ProcessingError, err_msg
       end
     ensure
       FileUtils.remove_entry_secure(tmpdir)
@@ -451,7 +451,7 @@ class Simp::Cli::Passgen::PasswordManager
         err_msg = 'Invalid result returned from simplib::passgen::list:' +
           "\n\n#{list}"
 
-        raise Simp::Cli::ProcessingError.new(err_msg)
+        raise Simp::Cli::ProcessingError, err_msg
       end
     ensure
       FileUtils.remove_entry_secure(tmpdir)
@@ -510,39 +510,39 @@ class Simp::Cli::Passgen::PasswordManager
   def validate_set_config(options)
     unless options.key?(:auto_gen)
       err_msg = 'Missing :auto_gen option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options[:auto_gen]
       unless options.key?(:password)
         err_msg = 'Missing :password option'
-        raise Simp::Cli::ProcessingError.new(err_msg)
+        raise Simp::Cli::ProcessingError, err_msg
       end
     end
 
     unless options.key?(:validate)
       err_msg = 'Missing :validate option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options.key?(:default_length)
       err_msg = 'Missing :default_length option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options.key?(:minimum_length)
       err_msg = 'Missing :minimum_length option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options.key?(:default_complexity)
       err_msg = 'Missing :default_complexity option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options.key?(:default_complex_only)
       err_msg = 'Missing :default_complex_only option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
   end
 

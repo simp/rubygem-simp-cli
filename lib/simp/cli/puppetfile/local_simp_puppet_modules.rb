@@ -67,7 +67,7 @@ module Simp::Cli::Puppetfile
     # @return [String] all modules' data as a Puppetfile
     def to_puppetfile
       hr = '-' * 78
-      <<-TO_S.gsub(%r{^ {8}}, '')
+      <<~TO_S
         # #{hr}
         # SIMP Puppetfile (Generated at #{Simp::Cli::Utils::timestamp})
         # #{hr}

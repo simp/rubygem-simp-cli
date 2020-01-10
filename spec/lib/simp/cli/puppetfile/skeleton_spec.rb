@@ -122,7 +122,7 @@ describe Simp::Cli::Puppetfile::Skeleton do
 
   describe '.to_puppetfile' do
     let(:expected_skeleton_only) do
-      <<-PUPPETFILE.gsub(/ {8}/,'')
+      <<~PUPPETFILE
         #{Simp::Cli::Puppetfile::Skeleton::INTRO_SECTION}
         instance_eval(File.read(File.join(__dir__,"Puppetfile.simp")))
 
@@ -137,7 +137,7 @@ describe Simp::Cli::Puppetfile::Skeleton do
     end
 
     let(:expected_skeleton_with_extras) do
-      <<-PUPPETFILE.gsub(/ {8}/,'')
+      <<~PUPPETFILE
         # ==============================================================================
         # Puppetfile (Generated at YYYY-mm-dd HH:MM:SS with local modules from
         # 'testenv' Puppet environment)
@@ -217,10 +217,10 @@ describe Simp::Cli::Puppetfile::Skeleton do
           test_puppet_info = { :environment_path => @environmentpaths['local modules with obsoletes'][:environmentpath] }
           allow(Simp::Cli::Utils).to receive(:puppet_info).with(@puppet_env).and_return(test_puppet_info)
           generator =  Simp::Cli::Puppetfile::Skeleton.new(@puppet_env, @local_repo_dir)
-          query_result = <<-EOM
-pupmod-simp-timezone < 5.0.3-0.obsolete
-pupmod-timezone < 5.1.1-0
-saz-timezone < 5.1.1-0
+          query_result = <<~EOM
+            pupmod-simp-timezone < 5.0.3-0.obsolete
+            pupmod-timezone < 5.1.1-0
+            saz-timezone < 5.1.1-0
           EOM
           allow(generator).to receive(:`).with('rpm -q pupmod-saz-timezone').and_return(query_result)
 
@@ -233,7 +233,7 @@ saz-timezone < 5.1.1-0
           test_puppet_info = { :environment_path => @environmentpaths['all local modules'][:environmentpath] }
           allow(Simp::Cli::Utils).to receive(:puppet_info).with(@puppet_env).and_return(test_puppet_info)
 
-          expected = <<-PUPPETFILE.gsub(/ {12}/,'')
+          expected = <<~PUPPETFILE
             # ==============================================================================
             # Puppetfile (Generated at YYYY-mm-dd HH:MM:SS with local modules from
             # 'testenv' Puppet environment)

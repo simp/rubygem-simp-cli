@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 5.1.0
+%global cli_version 6.0.0
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,37 +129,45 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Mon Dec 09 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.1.0
+* Fri Jan 03 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.0.0
 - Added simp kv command family to allow users to manage and inspect
   entries in a libkv key/value store
 - simp passgen changes
+  - Split into sub-commands for ease of use:
+    - 'simp passgen envs': List environments that may have 'simplib::passgen'
+      passwords
+    - 'simp passgen list': List names of 'simplib::passgen' passwords
+    - 'simp passgen remove': Remove 'simplib::passgen' passwords
+    - 'simp passgen set': Set 'simplib::passgen' passwords
+    - 'simp passgen show':  Show 'simplib::passgen' passwords and other
+      stored attributes
   - Updated to work with libkv-enabled simplib::passgen.  Automatically
     detects whether simplib::passgen is operating in legacy mode or
     libkv mode in the specified environment, and then executes password
     operations using the appropriate mechanism for that mode.
-  - Disabled libpwquality/cracklib validation of user-entered passwords,
-    by default, because not all passwords managed by simplib::passgen
-    are user passwords.  This validation can be re-enabled with the new
-    '--validate' option.
-  - Added the following command line options
+  - When setting passwords, disabled libpwquality/cracklib validation of
+    user-entered passwords, by default, because not all passwords managed
+    by simplib::passgen are user passwords.  This validation can be
+    re-enabled with the '--validate' option of the 'simp passgen set' command.
+  - Added the following command line options when creating passwords
     - '--[no-]auto-gen': Whether to auto-generate new passwords.
     - '--complexity': Password complexity to use when a password is
       auto-generated. Corresponds to the complexity option of simplib::passgen.
     - '--[no-]complex-only': Whether to only use only complex characters
       when a password is auto-generated. Corresponds to the complex_only
       option of simplib::passgen.
-    - '--backend': Specific libkv backend to use for passwords.
-    - '--folder': Sub-folder in which to find password names in a libkv
       key/value store.
     - '--[no-]validate': Enabled validation of new passwords with
       libpwquality/cracklib.
     - '--length': Password length to use when a password is auto-generated.
-    - '-v': Increase verbosity of console output for debug purposes.
-  - Deprecated the following OBE command line options
-    - '--[no-]backup'.  Password backups are now always enabled per
-      standard security policy.
+  - Added '--[no-]details' option when showing password information.  When
+    enabled, all available password information is displayed, not just the
+    current and previous password values.
+- simp config changes
+  - Removed deprecated '--non-interactive' option.  Use '--force-defaults'
+    instead.
 
-* Fri Aug 30 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 5.1.0
+* Fri Aug 30 2019 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.0.0
 - Fix Puppet Enterprise support
 
 * Wed Aug 07 2019 Liz Nemsick <lnemsick.simp@gmail.com> - 5.0.3

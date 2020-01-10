@@ -111,12 +111,12 @@ describe Simp::Cli::Config::Item::CliNetworkInterface do
   describe '#interface_table' do
     it 'returns table with non-loopback interfaces from the networking fact' do
       allow(Facter).to receive(:value).with('networking').and_return(networking_fact)
-      expected = <<-EOM
-AVAILABLE INTERFACES:
-    Interface  IP Address
-    ---------  ----------
-    br1        10.0.2.10
-    enp0s3     N/A
+      expected = <<~EOM
+        AVAILABLE INTERFACES:
+            Interface  IP Address
+            ---------  ----------
+            br1        10.0.2.10
+            enp0s3     N/A
       EOM
       expect( @ci.interface_table ).to eq expected.strip
     end
@@ -130,10 +130,10 @@ AVAILABLE INTERFACES:
   describe '#not_valid_message' do
     it 'lists available interfaces' do
       allow(Facter).to receive(:value).with('networking').and_return(networking_fact)
-      expected = <<-EOM
-Acceptable values:
-  br1
-  enp0s3
+      expected = <<~EOM
+        Acceptable values:
+          br1
+          enp0s3
       EOM
       expect( @ci.not_valid_message ).to eq expected.strip
     end

@@ -89,7 +89,7 @@ describe Simp::Cli::Puppetfile::LocalSimpPuppetModule do
 
       describe '#to_s' do
         it 'returns the expected Puppetfile entry' do
-          expect( described_class.new(metadata, @tmp_dir).to_s ).to eql <<-MOD_ENTRY.gsub(%r{^ {12}}, '')
+          expect( described_class.new(metadata, @tmp_dir).to_s ).to eql <<~MOD_ENTRY
             mod '#{metadata['name']}',
               :git => 'file://#{module_git_dir}',
               :tag => '#{metadata['version']}'

@@ -43,7 +43,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
 
     if File.exist?(@password_dir) && !File.directory?(@password_dir)
       err_msg = "Password directory '#{@password_dir}' is not a directory"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
   end
 
@@ -71,7 +71,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
       end
     rescue Exception => e
       err_msg = "List failed: #{e}"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     names.sort
@@ -95,7 +95,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
     current_password_filename = File.join(@password_dir, name)
     unless File.exist?(current_password_filename)
       err_msg = "'#{name}' password not present"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError,  err_msg
     end
 
     info = {
@@ -129,7 +129,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
       end
     rescue Exception => e
       err_msg = "Retrieve failed: #{e}"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     info
@@ -169,14 +169,14 @@ class Simp::Cli::Passgen::LegacyPasswordManager
 
     if num_existing_files == 0
       err_msg = "'#{name}' password not found"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless errors.empty?
       err_msg = "Failed to delete the following password files:\n  " +
         errors.join("\n  ")
 
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
   end
 
@@ -238,7 +238,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
       FileUtils.chmod(0640, password_filename)
     rescue Exception => e
       err_msg = "Set failed: #{e}"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     password
@@ -270,7 +270,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
     rescue Exception => err
       name = File.basename(password_filename)
       err_msg = "Error occurred while backing up '#{name}': #{err}"
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
   end
 
@@ -328,7 +328,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
           length = password.length
         rescue Exception => e
           err_msg = "Error occurred while reading '#{password_file}': #{e}"
-          raise Simp::Cli::ProcessingError.new(err_msg)
+          raise Simp::Cli::ProcessingError, err_msg
         end
       end
     else
@@ -366,39 +366,39 @@ class Simp::Cli::Passgen::LegacyPasswordManager
   def validate_set_config(options)
     unless options.key?(:auto_gen)
       err_msg = 'Missing :auto_gen option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options[:auto_gen]
       unless options.key?(:password)
         err_msg = 'Missing :password option'
-        raise Simp::Cli::ProcessingError.new(err_msg)
+        raise Simp::Cli::ProcessingError, err_msg
       end
     end
 
     unless options.key?(:validate)
       err_msg = 'Missing :validate option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options.key?(:default_length)
       err_msg = 'Missing :default_length option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options.key?(:minimum_length)
       err_msg = 'Missing :minimum_length option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options.key?(:default_complexity)
       err_msg = 'Missing :default_complexity option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options.key?(:default_complex_only)
       err_msg = 'Missing :default_complex_only option'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
   end
 
