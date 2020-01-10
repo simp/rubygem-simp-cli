@@ -111,16 +111,16 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
         EXAMPLES:
           # Set specific passwords in the production environment to values entered
           # by the user
-          simp passgen app1_admin,app2_auth
+          simp passgen set app1_admin,app2_auth
 
           # Automatically generate specific passwords in the dev environment, using
           # existing password settings for each password, if available, and defaults
           # otherwise
-          simp passgen app1_admin,app2_auth --auto-gen -e dev
+          simp passgen set app1_admin,app2_auth --auto-gen -e dev
 
           # Automatically generate specific passwords in the dev environment, using
           # explicit password settings
-          simp passgen app1_admin,app2_auth --auto-gen --complexity 2 --complex-only \\
+          simp passgen set app1_admin,app2_auth --auto-gen --complexity 2 --complex-only \\
             --length 48 -e dev
 
         OPTIONS:
