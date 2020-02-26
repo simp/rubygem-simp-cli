@@ -131,7 +131,7 @@ EOM
 %changelog
 * Fri Jan 03 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.0.0
 - Added simp kv command family to allow users to manage and inspect
-  entries in a libkv key/value store
+  entries in a simpkv key/value store
 - simp passgen changes
   - Split into sub-commands for ease of use:
     - 'simp passgen envs': List environments that may have 'simplib::passgen'
@@ -141,9 +141,9 @@ EOM
     - 'simp passgen set': Set 'simplib::passgen' passwords
     - 'simp passgen show':  Show 'simplib::passgen' passwords and other
       stored attributes
-  - Updated to work with libkv-enabled simplib::passgen.  Automatically
+  - Updated to work with simpkv-enabled simplib::passgen.  Automatically
     detects whether simplib::passgen is operating in legacy mode or
-    libkv mode in the specified environment, and then executes password
+    simpkv mode in the specified environment, and then executes password
     operations using the appropriate mechanism for that mode.
   - When setting passwords, disabled libpwquality/cracklib validation of
     user-entered passwords, by default, because not all passwords managed

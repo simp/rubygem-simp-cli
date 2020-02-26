@@ -3,14 +3,14 @@ require 'simp/cli/exec_utils'
 require 'simp/cli/kv/operator_base'
 
 # Class to check the existence of a folder/key in a key/value store using
-# the simp-libkv Puppet module
+# the simp-simpkv Puppet module
 class Simp::Cli::Kv::EntityChecker < Simp::Cli::Kv::OperatorBase
 
   # @param env Puppet environment.  Used to specify the location of non-global
   #   keys/folders in the key/value folder tree as well as where to find the
-  #   libkv backend configuration
+  #   simpkv backend configuration
   #
-  # @param backend Name of key/value store in libkv configuration
+  # @param backend Name of key/value store in simpkv configuration
   #
   def initialize(env, backend)
     super(env, backend)
@@ -40,7 +40,7 @@ class Simp::Cli::Kv::EntityChecker < Simp::Cli::Kv::OperatorBase
   end
 
   # Check whether a folder/key exists via puppet apply of a manifest that uses
-  # libkv::exists()
+  # simpkv::exists()
   #
   # @param entity Folder/key to locate
   # @param global Whether folder/key is global
@@ -53,14 +53,14 @@ class Simp::Cli::Kv::EntityChecker < Simp::Cli::Kv::OperatorBase
     logger.debug("Checking existence of #{full_store_path(entity, global)} "\
       "with a puppet apply")
 
-    args = "'#{entity}', #{libkv_options(global)}"
+    args = "'#{entity}', #{simpkv_options(global)}"
     opts = apply_options('Folder/key exists')
 
     # such a trivial operation, going to use log scraping to gather result
     found_string = "'#{entity}' EXISTS"
     missing_string ="'#{entity}' DOES NOT EXIST"
     manifest =<<~EOM
-      if libkv::exists(#{args}) {
+      if simpkv::exists(#{args}) {
         warning("#{found_string}")
       } else {
         warning("#{missing_string}")

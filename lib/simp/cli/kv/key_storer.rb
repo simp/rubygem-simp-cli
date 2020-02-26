@@ -2,15 +2,15 @@ require 'simp/cli/apply_utils'
 require 'simp/cli/exec_utils'
 require 'simp/cli/kv/operator_base'
 
-# Class to set key info in a key/value store using the simp-libkv Puppet
+# Class to set key info in a key/value store using the simp-simpkv Puppet
 # module
 class Simp::Cli::Kv::KeyStorer < Simp::Cli::Kv::OperatorBase
 
   # @param env Puppet environment.  Used to specify the location of non-global
   #   keys/folders in the key/value folder tree as well as where to find the
-  #   libkv backend configuration
+  #   simpkv backend configuration
   #
-  # @param backend Name of key/value store in libkv configuration
+  # @param backend Name of key/value store in simpkv configuration
   #
   def initialize(env, backend)
     super(env, backend)
@@ -47,7 +47,7 @@ class Simp::Cli::Kv::KeyStorer < Simp::Cli::Kv::OperatorBase
   end
 
   # Set a key's stored info via puppet apply of a manifest that uses
-  # libkv::put(), when the key's value is a binary string
+  # simpkv::put(), when the key's value is a binary string
   #
   # @param key Key to store
   # @param value Key's Base64-encoded value
@@ -59,18 +59,18 @@ class Simp::Cli::Kv::KeyStorer < Simp::Cli::Kv::OperatorBase
   def put_binary_key(key, value, metadata, global)
     logger.debug("Setting #{full_store_path(key, global)} with a puppet apply")
 
-    args = "'#{key}', $value_binary, #{metadata}, #{libkv_options(global)}"
+    args = "'#{key}', $value_binary, #{metadata}, #{simpkv_options(global)}"
     opts = apply_options('Key put')
     manifest = <<~EOM
       $value_binary = Binary.new('#{value}', '%B')
-      libkv::put(#{args})
+      simpkv::put(#{args})
     EOM
 
     Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
   end
 
   # Set a key's stored info via puppet apply of a manifest that uses
-  # libkv::put(), when the key's value is not a binary string
+  # simpkv::put(), when the key's value is not a binary string
   #
   # @param key Key to store
   # @param value Key's value
@@ -85,9 +85,9 @@ class Simp::Cli::Kv::KeyStorer < Simp::Cli::Kv::OperatorBase
     # * The odd looking escape of single quotes is required because
     #   \' is a back reference in gsub.
     val = value.is_a?(String) ? "'#{value.gsub("'", "\\\\'")}'" : value
-    args = "'#{key}', #{val}, #{metadata}, #{libkv_options(global)}"
+    args = "'#{key}', #{val}, #{metadata}, #{simpkv_options(global)}"
     opts = apply_options('Key put')
-    manifest = "libkv::put(#{args})"
+    manifest = "simpkv::put(#{args})"
     Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
   end
 end

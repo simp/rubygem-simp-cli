@@ -9,7 +9,7 @@ describe 'simp kv delete operations' do
   let(:keys_global) { ['global_float', 'global_complex/array_integers'] }
 
   # In the test set up, production and dev Puppet envs both share the same
-  # libkv backends (default and custom).  So, to cleanly test key removals
+  # simpkv backends (default and custom).  So, to cleanly test key removals
   # in each environment, this test will apply changes to the default backend
   # via the production env, only, and apply changes to the custom backend via
   # the dev environment, only.

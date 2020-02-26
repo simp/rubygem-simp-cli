@@ -1,13 +1,13 @@
 function kv_test::retrieve_and_persist_key(
   String $key,
-  Hash   $libkv_opts,
+  Hash   $simpkv_opts,
   String $outfile
 ) {
 
-  if libkv::exists($key, $libkv_opts) {
+  if simpkv::exists($key, $simpkv_opts) {
     file { $outfile:
       ensure  => present,
-      content => to_json_pretty(libkv::get($key, $libkv_opts))
+      content => to_json_pretty(simpkv::get($key, $simpkv_opts))
     }
   } else {
     file { $outfile: ensure => absent }

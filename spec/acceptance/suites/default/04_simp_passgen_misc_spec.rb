@@ -9,11 +9,11 @@ describe 'simp passgen miscelleous' do
     [
       'old_simplib',
       'new_simplib_legacy_passgen',
-      'new_simplib_libkv_passgen'
+      'new_simplib_simpkv_passgen'
     ].each do |env|
 
-      if env == 'new_simplib_libkv_passgen'
-        context 'Specifying libkv backend' do
+      if env == 'new_simplib_simpkv_passgen'
+        context 'Specifying simpkv backend' do
           let(:valid_backend) { 'default' }
           let(:names) { [
             'passgen_test_default',
@@ -69,7 +69,7 @@ describe 'simp passgen miscelleous' do
           on(host, cmd, :acceptable_exit_codes => 1)
         end
 
-        if env == 'new_simplib_libkv_passgen'
+        if env == 'new_simplib_simpkv_passgen'
           it "should fail name list when invalid backend specified in #{env}" do
             cmd = "simp passgen list -e #{env} --backend #{invalid_backend}"
             on(host, cmd, :acceptable_exit_codes => 1)

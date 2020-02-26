@@ -81,7 +81,7 @@ describe Simp::Cli::Passgen::CommandCommon do
   }
 
   describe '#get_password_manager' do
-    let(:opts_libkv) {{
+    let(:opts_simpkv) {{
       :env     => 'production',
       :backend => 'default',
       :folder  => 'app1'
@@ -104,10 +104,10 @@ describe Simp::Cli::Passgen::CommandCommon do
         .and_return(module_list_results)
 
       expect( Simp::Cli::Passgen::PasswordManager ).to receive(:new)
-        .with(opts_libkv[:env], opts_libkv[:backend], opts_libkv[:folder])
+        .with(opts_simpkv[:env], opts_simpkv[:backend], opts_simpkv[:folder])
         .and_call_original
 
-      manager = @passgen_cmd.get_password_manager(opts_libkv)
+      manager = @passgen_cmd.get_password_manager(opts_simpkv)
       expect( manager.is_a?(Simp::Cli::Passgen::PasswordManager) ).to be true
     end
 
@@ -132,7 +132,7 @@ describe Simp::Cli::Passgen::CommandCommon do
 
     it 'fails when Puppet environment does not exist' do
       FileUtils.rm_rf(@production_env_dir)
-      expect { @passgen_cmd.get_password_manager(opts_libkv) }.to raise_error(
+      expect { @passgen_cmd.get_password_manager(opts_simpkv) }.to raise_error(
         Simp::Cli::ProcessingError,
         "Invalid Puppet environment 'production': Does not exist")
     end
@@ -148,7 +148,7 @@ describe Simp::Cli::Passgen::CommandCommon do
         .with(@module_list_command_prod, false, @passgen_cmd.logger)
         .and_return(module_list_results)
 
-      expect { @passgen_cmd.get_password_manager(opts_libkv) }.to raise_error(
+      expect { @passgen_cmd.get_password_manager(opts_simpkv) }.to raise_error(
           Simp::Cli::ProcessingError,
           "Invalid Puppet environment 'production': " +
           'simp-simplib is not installed')

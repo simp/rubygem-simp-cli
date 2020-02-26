@@ -27,8 +27,8 @@ class passgen_test(
     }
   }
 
-  $_use_libkv = simplib::lookup('simplib::passgen::libkv', { 'default_value' => false })
-  if $_use_libkv {
+  $_use_simpkv = simplib::lookup('simplib::passgen::simpkv', { 'default_value' => false })
+  if $_use_simpkv {
     $folders.each |String $folder| {
       file { "${test_dir}/${::environment}-${folder}":
         ensure => directory

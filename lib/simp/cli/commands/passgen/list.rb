@@ -8,8 +8,8 @@ class Simp::Cli::Commands::Passgen::List < Simp::Cli::Commands::Command
   def initialize
     @opts = {
       :env          => DEFAULT_PUPPET_ENVIRONMENT,
-      :backend      => nil, # libkv backend
-      :folder       => nil, # passgen sub-folder in libkv
+      :backend      => nil, # simpkv backend
+      :folder       => nil, # passgen sub-folder in simpkv
       :password_dir => nil, # fully qualified path to a legacy passgen dir
       :verbose      => 0    # Verbosity of console output:
       #                        -1 = ERROR  and above
@@ -90,7 +90,7 @@ class Simp::Cli::Commands::Passgen::List < Simp::Cli::Commands::Command
       HELP_MSG
 
       opts.on('--backend BACKEND',
-              'Specific libkv backend to use for',
+              'Specific simpkv backend to use for',
               'passwords. Rarely needs to be set.',
               'Overrides the appropriate backend',
               'for the environment.') do |backend|
@@ -112,7 +112,7 @@ class Simp::Cli::Commands::Passgen::List < Simp::Cli::Commands::Command
 
       opts.on('--folder FOLDER',
               'Sub-folder in which to find password names',
-              'in a libkv key/value store. Defaults to the',
+              'in a simpkv key/value store. Defaults to the',
               'top-level folder for simplib::passgen.' ) do |folder|
         @opts[:folder] = folder
       end

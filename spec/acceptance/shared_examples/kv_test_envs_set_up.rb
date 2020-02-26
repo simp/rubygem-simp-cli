@@ -1,27 +1,27 @@
-# creates libkv-enabled production and dev SIMP Omni environments, each
-# with two libkv file backends
+# creates simpkv-enabled production and dev SIMP Omni environments, each
+# with two simpkv file backends
 shared_examples 'kv test environments set up' do |master|
 
   context 'module installation from fixtures staging dir' do
     let(:module_staging_dir) { '/root/fixtures/modules' }
     let(:envs_dir) { '/etc/puppetlabs/code/environments' }
     let(:base_hiera) { {
-      'libkv::backend::file_default' => {
+      'simpkv::backend::file_default' => {
         'type'      => 'file',
         'id'        => 'default',
-        'root_path' => '/var/simp/libkv/file/default'
+        'root_path' => '/var/simp/simpkv/file/default'
       },
-      'libkv::backend::file_custom' => {
+      'simpkv::backend::file_custom' => {
         'type'      => 'file',
         'id'        => 'custom',
-        'root_path' => '/var/simp/libkv/file/custom'
+        'root_path' => '/var/simp/simpkv/file/custom'
       },
 
-      'libkv::options' => {
+      'simpkv::options' => {
         'softfail'    => false,
         'backends' => {
-          'default' => "%{alias('libkv::backend::file_default')}",
-          'custom'  => "%{alias('libkv::backend::file_custom')}"
+          'default' => "%{alias('simpkv::backend::file_default')}",
+          'custom'  => "%{alias('simpkv::backend::file_custom')}"
         }
       }
 
@@ -31,7 +31,7 @@ shared_examples 'kv test environments set up' do |master|
       :envs_dir           => envs_dir,
       :module_staging_dir => module_staging_dir,
       :modules_to_copy    => [
-        'libkv',
+        'simpkv',
         'kv_test',
         'simplib',
         'stdlib'
@@ -55,14 +55,14 @@ shared_examples 'kv test environments set up' do |master|
       create_env_and_install_modules(master, opts)
     end
 
-    it 'should create libkv directory fully accessible by Puppet for file plugin' do
-      # Can't do this in the kv_test class, because libkv::xxx functions run
+    it 'should create simpkv directory fully accessible by Puppet for file plugin' do
+      # Can't do this in the kv_test class, because simpkv::xxx functions run
       # during compilation and will fail before the manifest
-      # apply can create the directory!  In other words, the libkv functions need
+      # apply can create the directory!  In other words, the simpkv functions need
       # the directory to be available at compile time.
-      on(master, 'mkdir -p /var/simp/libkv')
-      on(master, 'chown root:puppet /var/simp/libkv')
-      on(master, 'chmod 0770 /var/simp/libkv')
+      on(master, 'mkdir -p /var/simp/simpkv')
+      on(master, 'chown root:puppet /var/simp/simpkv')
+      on(master, 'chmod 0770 /var/simp/simpkv')
     end
   end
 end

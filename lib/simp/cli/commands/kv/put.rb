@@ -13,7 +13,7 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
   def initialize
     @opts = {
       :env     => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
-      :backend => Simp::Cli::Kv::DEFAULT_LIBKV_BACKEND,
+      :backend => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
       :global  => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
       :force   => Simp::Cli::Kv::DEFAULT_FORCE,
       :verbose => 0  # Verbosity of console output:
@@ -31,7 +31,7 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
 
   # @return [String] description of command
   def self.description
-    'Set the value and metadata for keys in a libkv backend'
+    'Set the value and metadata for keys in a simpkv backend'
   end
 
   # Run the command's `--help` action
@@ -167,7 +167,7 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
 
         #{self.class.description}
 
-        This command sets the value and metadata for one or more keys in a libkv
+        This command sets the value and metadata for one or more keys in a simpkv
         backend (key/value store) from JSON.  This will create the key entry if it
         does not already exist.
 
@@ -180,19 +180,19 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
 
         EXAMPLES:
           # Set key info from a JSON string for '/production/keyD' in 'default'
-          # backend, using libkv config from 'production' Puppet environment
+          # backend, using simpkv config from 'production' Puppet environment
           simp kv put --json='{"keyD":{"value":10,"metadata":{"foo":"bar","baz":10}}}'
 
           # Set key info from a JSON file for '/production/<key name>' keys in
-          # 'dev' backend, using libkv config from 'dev' Puppet environment
+          # 'dev' backend, using simpkv config from 'dev' Puppet environment
           simp kv put -i keys.json -e dev
 
           # Set key info from a JSON file for global keys in 'default' backend without
-          # confirmation prompt, using libkv config from 'production' Puppet environment
+          # confirmation prompt, using simpkv config from 'production' Puppet environment
           simp kv put -i global_keys.json --global --force
 
           # Set key info from a JSON string for 'app1/global_keyQ' global key in
-          # 'default' backend, using libkv config from 'production' Puppet environment
+          # 'default' backend, using simpkv config from 'production' Puppet environment
           simp kv put --global\\
             --json='{"app1/global_keyQ":{"value":{"foo":"bar"},"metadata":{}}}'
 
@@ -200,8 +200,8 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
       HELP_MSG
 
       opts.on('-b', '--backend BACKEND',
-              'Name of the libkv backend to use for the',
-              'operation. When libkv::options::backends',
+              'Name of the simpkv backend to use for the',
+              'operation. When simpkv::options::backends',
               'exists in hieradata, must be a key in that',
               "Hash. Otherwise, must be 'default'.",
               "Defaults to '#{@opts[:backend]}'.") do |backend|
@@ -210,7 +210,7 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
 
       opts.on('-e', '--environment ENV',
               'Puppet environment for the key and backend',
-              'configuration. Specifies the libkv top-',
+              'configuration. Specifies the simpkv top-',
               'level folder in which to put the key,',
               'and where to find backend configuration.',
               'When --global is set, ENV is simply used to',
@@ -230,7 +230,7 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
 
       opts.on('--[no-]global',
               'Indicates whether the key is global',
-              '(i.e., is not stored within a libkv folder',
+              '(i.e., is not stored within a simpkv folder',
               'for a Puppet environment).',
               "Defaults to #{@opts[:global]}." ) do |global|
         @opts[:global] = global

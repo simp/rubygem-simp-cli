@@ -4,15 +4,15 @@ require 'simp/cli/kv/info_validator'
 require 'simp/cli/kv/operator_base'
 require 'tmpdir'
 
-# Class to retrieve folder info from a key/value store using the simp-libkv
+# Class to retrieve folder info from a key/value store using the simp-simpkv
 # Puppet module
 class Simp::Cli::Kv::ListRetriever < Simp::Cli::Kv::OperatorBase
 
   # @param env Puppet environment.  Used to specify the location of non-global
   #   keys/folders in the key/value folder tree as well as where to find the
-  #   libkv backend configuration
+  #   simpkv backend configuration
   #
-  # @param backend Name of key/value store in libkv configuration
+  # @param backend Name of key/value store in simpkv configuration
   #
   def initialize(env, backend)
     super(env, backend)
@@ -53,7 +53,7 @@ class Simp::Cli::Kv::ListRetriever < Simp::Cli::Kv::OperatorBase
   end
 
   # Retrieve a list of key info and sub-folders for a folder via puppet apply
-  # of a manifest that uses libkv::list()
+  # of a manifest that uses simpkv::list()
   #
   # @param folder Folder to list
   # @param global Whether folder is global
@@ -75,7 +75,7 @@ class Simp::Cli::Kv::ListRetriever < Simp::Cli::Kv::OperatorBase
     list = nil
 
     begin
-      args = "'#{folder}', #{libkv_options(global)}"
+      args = "'#{folder}', #{simpkv_options(global)}"
 
       # persist to file, because content may be large and log scraping
       # is fragile
@@ -83,8 +83,8 @@ class Simp::Cli::Kv::ListRetriever < Simp::Cli::Kv::OperatorBase
       failure_message = "Folder '#{folder}' not found"
       opts = apply_options('Folder list', failure_message)
       manifest =<<~EOM
-        if libkv::exists(#{args}) {
-          $list = libkv::list(#{args})
+        if simpkv::exists(#{args}) {
+          $list = simpkv::list(#{args})
           file { '#{result_file}': content => to_yaml($list) }
         } else {
           fail("#{failure_message}")

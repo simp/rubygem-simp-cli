@@ -1,7 +1,7 @@
 # create 3 test environments:
 # * old_simplib:                 simplib with only legacy passgen
-# * new_simplib_legacy_passgen:  libkv-enabled simplib::passgen in legacy mode
-# * new_simplib_libkv_passgen:   libkv-enabled simplib::passgen in libkv mode
+# * new_simplib_legacy_passgen:  simpkv-enabled simplib::passgen in legacy mode
+# * new_simplib_simpkv_passgen:   simpkv-enabled simplib::passgen in simpkv mode
 
 shared_examples 'passgen test environments set up' do |master|
 
@@ -17,19 +17,19 @@ shared_examples 'passgen test environments set up' do |master|
       'classes' => [ 'passgen_test' ]
     } }
 
-    let(:libkv_hiera) { {
+    let(:simpkv_hiera) { {
 
-        'libkv::backend::file_default' => {
+        'simpkv::backend::file_default' => {
           'type'      => 'file',
           'id'        => 'default',
-          'root_path' => '/var/simp/libkv/file/default'
+          'root_path' => '/var/simp/simpkv/file/default'
         },
 
-       'libkv::options' => {
+       'simpkv::options' => {
           'environment' => '%{server_facts.environment}',
           'softfail'    => false,
           'backends' => {
-            'default' => "%{alias('libkv::backend::file_default')}"
+            'default' => "%{alias('simpkv::backend::file_default')}"
           }
         }
 
@@ -72,46 +72,46 @@ shared_examples 'passgen test environments set up' do |master|
       opts = create_options_base.dup
       opts[:env] = 'new_simplib_legacy_passgen'
       opts[:modules_to_copy] = [
-        'libkv',
+        'simpkv',
         'passgen_test',
         'simplib',
         'stdlib'
       ]
 
       default_hiera = base_hiera.dup
-      default_hiera['simplib::passgen::libkv'] = false
-      default_hiera.merge!(libkv_hiera)
+      default_hiera['simplib::passgen::simpkv'] = false
+      default_hiera.merge!(simpkv_hiera)
       opts[:hieradata] = default_hiera
 
       create_env_and_install_modules(master, opts)
     end
 
-    it 'should create new_simplib_libkv_passgen environment' do
+    it 'should create new_simplib_simpkv_passgen environment' do
       opts = create_options_base.dup
-      opts[:env] = 'new_simplib_libkv_passgen'
+      opts[:env] = 'new_simplib_simpkv_passgen'
       opts[:modules_to_copy] = [
-        'libkv',
+        'simpkv',
         'passgen_test',
         'simplib',
         'stdlib'
       ]
 
       default_hiera = base_hiera.dup
-      default_hiera['simplib::passgen::libkv'] = true
-      default_hiera.merge!(libkv_hiera)
+      default_hiera['simplib::passgen::simpkv'] = true
+      default_hiera.merge!(simpkv_hiera)
       opts[:hieradata] = default_hiera
 
       create_env_and_install_modules(master, opts)
     end
 
-    it 'should create libkv directory fully accessible by Puppet for file plugin' do
+    it 'should create simpkv directory fully accessible by Puppet for file plugin' do
       # Can't do this in the passgen_test class, because simplib::passgen
       # functions run during compilation and will fail before the manifest
-      # apply can create the directory!  In other words, the libkv functions need
+      # apply can create the directory!  In other words, the simpkv functions need
       # the directory to be available at compile time.
-      on(master, 'mkdir -p /var/simp/libkv')
-      on(master, 'chown root:puppet /var/simp/libkv')
-      on(master, 'chmod 0770 /var/simp/libkv')
+      on(master, 'mkdir -p /var/simp/simpkv')
+      on(master, 'chown root:puppet /var/simp/simpkv')
+      on(master, 'chmod 0770 /var/simp/simpkv')
     end
   end
 end

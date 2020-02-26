@@ -4,15 +4,15 @@ require 'simp/cli/kv/info_validator'
 require 'simp/cli/kv/operator_base'
 require 'tmpdir'
 
-# Class to retrieve info for a key from a key/value store using the simp-libkv
+# Class to retrieve info for a key from a key/value store using the simp-simpkv
 # Puppet module
 class Simp::Cli::Kv::KeyRetriever < Simp::Cli::Kv::OperatorBase
 
   # @param env Puppet environment.  Used to specify the location of non-global
   #   keys/folders in the key/value folder tree as well as where to find the
-  #   libkv backend configuration
+  #   simpkv backend configuration
   #
-  # @param backend Name of key/value store in libkv configuration
+  # @param backend Name of key/value store in simpkv configuration
   #
   def initialize(env, backend)
     super(env, backend)
@@ -51,7 +51,7 @@ class Simp::Cli::Kv::KeyRetriever < Simp::Cli::Kv::OperatorBase
   end
 
   # Retrieve the info for a key info via puppet apply of a manifest using
-  # libkv::get()
+  # simpkv::get()
   #
   # @param key Key to retrieve
   # @param global Whether key is global
@@ -72,15 +72,15 @@ class Simp::Cli::Kv::KeyRetriever < Simp::Cli::Kv::OperatorBase
     key_info = nil
 
     begin
-      args = "'#{key}', #{libkv_options(global)}"
+      args = "'#{key}', #{simpkv_options(global)}"
 
       # persist to file, because log scraping is fragile
       result_file = File.join(tmpdir, 'get.yaml')
       failure_message = "Key '#{key}' not found"
       opts = apply_options('Key get', failure_message)
       manifest =<<~EOM
-        if libkv::exists(#{args}) {
-          $key_info = libkv::get(#{args})
+        if simpkv::exists(#{args}) {
+          $key_info = simpkv::get(#{args})
           file { '#{result_file}': content => to_yaml($key_info) }
         } else {
           fail("#{failure_message}")
@@ -90,7 +90,7 @@ class Simp::Cli::Kv::KeyRetriever < Simp::Cli::Kv::OperatorBase
       Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
       key_info = Simp::Cli::ApplyUtils::load_yaml(result_file, 'get', logger)
 
-      # Currently, libkv::get() will omit 'metadata' attribute from returned
+      # Currently, simpkv::get() will omit 'metadata' attribute from returned
       # results if it is an empty Hash, but 'simp kv get' expects it to be
       # present.
       key_info['metadata'] = {} unless key_info.key?('metadata')

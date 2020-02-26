@@ -21,12 +21,12 @@ describe 'Simp::Cli::Command::Kv' do
             simp kv SUB-COMMAND [sub-command options]
 
           SUB-COMMANDS:
-              delete         Delete keys from a libkv backend
-              deletetree     Delete folders from a libkv backend
-              exists         Check for existence of keys/folders in a libkv backend
-              get            Retrieve values and metadata for keys in a libkv backend
-              list           List the contents of a folder in a libkv backend
-              put            Set the value and metadata for keys in a libkv backend
+              delete         Delete keys from a simpkv backend
+              deletetree     Delete folders from a simpkv backend
+              exists         Check for existence of keys/folders in a simpkv backend
+              get            Retrieve values and metadata for keys in a simpkv backend
+              list           List the contents of a folder in a simpkv backend
+              put            Set the value and metadata for keys in a simpkv backend
 
           OPTIONS:
               -h, --help                       Print this message

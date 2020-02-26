@@ -10,7 +10,7 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
   def initialize
     @opts = {
       :env     => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
-      :backend => Simp::Cli::Kv::DEFAULT_LIBKV_BACKEND,
+      :backend => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
       :global  => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
       :verbose      => 0  # Verbosity of console output:
       #                -1 = ERROR  and above
@@ -27,7 +27,7 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
 
   # @return [String] description of command
   def self.description
-    'Check for existence of keys/folders in a libkv backend'
+    'Check for existence of keys/folders in a simpkv backend'
   end
 
   # Run the command's `--help` action
@@ -95,7 +95,7 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
         #{self.class.description}
 
         This command checks for the existence of one or more keys/folders in a
-        libkv backend (key/value store).
+        simpkv backend (key/value store).
 
         USAGE:
           simp kv exists -h
@@ -104,18 +104,18 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
 
         EXAMPLES:
           # Check if '/production/keyD' and '/production/app2/groupY/keyC' exist in
-          # 'default' backend, using libkv config from 'production' Puppet environment
+          # 'default' backend, using simpkv config from 'production' Puppet environment
           simp kv exists keyD,app2/groupY/keyC
 
-          # Check if '/dev/app1/' exists in 'customA' backend, using libkv config
+          # Check if '/dev/app1/' exists in 'customA' backend, using simpkv config
           # from 'dev' Puppet environment
           simp kv exists app1 -e dev -b customA
 
           # Check if '/global_keyR' global key exists in 'default' backend, using
-          # libkv config from 'production' Puppet environment
+          # simpkv config from 'production' Puppet environment
           simp kv exists global_keyR --global
 
-          # Check if '/app1/' global folder exists in 'default' backend, using libkv
+          # Check if '/app1/' global folder exists in 'default' backend, using simpkv
           # config from 'production' Puppet environment
           simp kv exists app1 --global
 
@@ -123,8 +123,8 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
       HELP_MSG
 
       opts.on('-b', '--backend BACKEND',
-              'Name of the libkv backend to use for the',
-              'operation. When libkv::options::backends',
+              'Name of the simpkv backend to use for the',
+              'operation. When simpkv::options::backends',
               'exists in hieradata, must be a key in that',
               "Hash. Otherwise, must be 'default'.",
               "Defaults to '#{@opts[:backend]}'.") do |backend|
@@ -133,7 +133,7 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
 
       opts.on('-e', '--environment ENV',
               'Puppet environment for the keys/folders and',
-              'backend configuration. Specifies the libkv',
+              'backend configuration. Specifies the simpkv',
               'top-level folder in which to find the keys/',
               'folders, and where to find backend',
               'configuration. When --global is set, ENV',
@@ -145,7 +145,7 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
 
       opts.on('--[no-]global',
               'Indicates whether the keys/folders are',
-              'global (i.e., is not stored within a libkv',
+              'global (i.e., is not stored within a simpkv',
               'folder for a Puppet environment).',
               "Defaults to #{@opts[:global]}." ) do |global|
         @opts[:global] = global

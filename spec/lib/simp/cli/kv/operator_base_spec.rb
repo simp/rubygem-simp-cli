@@ -78,15 +78,15 @@ describe Simp::Cli::Kv::OperatorBase do
     end
   end
 
-  describe '#libkv_options' do
+  describe '#simpkv_options' do
     it 'returns hash with environment set when not global' do
       expected = { 'backend' => @backend, 'environment' => @env }
-      expect( @base.libkv_options(false) ).to eq(expected)
+      expect( @base.simpkv_options(false) ).to eq(expected)
     end
 
     it 'returns hash with environment empty when global' do
       expected = { 'backend' => @backend, 'environment' => '' }
-      expect( @base.libkv_options(true) ).to eq(expected)
+      expect( @base.simpkv_options(true) ).to eq(expected)
     end
   end
 

@@ -69,12 +69,12 @@ describe 'simp passgen modify existing passwords' do
     [
       'old_simplib',
       'new_simplib_legacy_passgen',
-      'new_simplib_libkv_passgen'
+      'new_simplib_simpkv_passgen'
     ].each do |env|
       context 'Password auto-regeneration' do
         context 'using defaults' do
 
-          if env == 'new_simplib_libkv_passgen'
+          if env == 'new_simplib_simpkv_passgen'
             it "should regen passwords with current length+complexity+complex_only in #{env}" do
               saved_latest_passwords.clear
               names.each do |name, options|
@@ -125,7 +125,7 @@ describe 'simp passgen modify existing passwords' do
             end
           end
 
-          if env == 'new_simplib_libkv_passgen'
+          if env == 'new_simplib_simpkv_passgen'
             [ 'app1', 'app2', 'app3'].each do |folder|
               it "should list current and previous passwords for #{folder}/ names in #{env}" do
                 names.keys.each do |name|
@@ -214,7 +214,7 @@ describe 'simp passgen modify existing passwords' do
             end
           end
 
-          if env == 'new_simplib_libkv_passgen'
+          if env == 'new_simplib_simpkv_passgen'
             [ 'app1', 'app2', 'app3'].each do |folder|
               [
                "/var/passgen_test/#{env}-#{folder}/sub_passgen_test_default",
