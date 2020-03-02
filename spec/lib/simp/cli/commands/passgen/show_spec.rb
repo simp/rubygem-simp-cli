@@ -660,7 +660,7 @@ describe Simp::Cli::Commands::Passgen::Show do
             Retrieving password information... done.
 
             'dev' Environment, 'backend3' simpkv Backend Passwords
-            =====================================================
+            ======================================================
             Name: name1
               Current:  password1
               Previous: password1_old

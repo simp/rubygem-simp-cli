@@ -339,7 +339,7 @@ describe Simp::Cli::Commands::Passgen::List do
             Retrieving password names... done.
 
             'dev' Environment, 'folder1' Folder, 'backend3' simpkv Backend Password Names
-            ============================================================================
+            =============================================================================
             name1
 
           EOM
