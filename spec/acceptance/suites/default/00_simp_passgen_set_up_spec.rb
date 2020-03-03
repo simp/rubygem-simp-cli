@@ -16,7 +16,7 @@ describe 'simp passgen set up' do
       [
         'old_simplib',
         'new_simplib_legacy_passgen',
-        'new_simplib_libkv_passgen'
+        'new_simplib_simpkv_passgen'
       ].each do |env|
         context 'puppet agent prep' do
           include_examples 'configure puppet env', host, env
@@ -40,7 +40,7 @@ describe 'simp passgen set up' do
             end
           end
 
-          if env == 'new_simplib_libkv_passgen'
+          if env == 'new_simplib_simpkv_passgen'
             [ 'app1', 'app2', 'app3'].each do |folder|
               [
                "/var/passgen_test/#{env}-#{folder}/sub_passgen_test_default",

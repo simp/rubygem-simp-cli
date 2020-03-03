@@ -11,7 +11,7 @@ describe 'simp passgen list operations' do
         result = on(host, 'simp passgen envs').stdout
         expect(result).to match(/old_simplib/)
         expect(result).to match(/new_simplib_legacy_passgen/)
-        expect(result).to match(/new_simplib_libkv_passgen/)
+        expect(result).to match(/new_simplib_simpkv_passgen/)
         expect(result).to_not match(/production/)
       end
     end
@@ -28,7 +28,7 @@ describe 'simp passgen list operations' do
       [
         'old_simplib',
         'new_simplib_legacy_passgen',
-        'new_simplib_libkv_passgen'
+        'new_simplib_simpkv_passgen'
       ].each do |env|
         context "name list for #{env} environment" do
           it 'should list top folder names from passgen_test' do
@@ -38,7 +38,7 @@ describe 'simp passgen list operations' do
             end
           end
 
-          if env == 'new_simplib_libkv_passgen'
+          if env == 'new_simplib_simpkv_passgen'
             [ 'app1', 'app2', 'app3'].each do |folder|
               it "should list #{folder} folder names from passgen_test" do
                 cmd = "simp passgen list -e #{env} --folder #{folder}"
@@ -68,7 +68,7 @@ describe 'simp passgen list operations' do
             end
           end
 
-          if env == 'new_simplib_libkv_passgen'
+          if env == 'new_simplib_simpkv_passgen'
             [ 'app1', 'app2', 'app3'].each do |folder|
               it "should list basic password info for #{folder}/ names from passgen_test" do
                 names.each do |name|

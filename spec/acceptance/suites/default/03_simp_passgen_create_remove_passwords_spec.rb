@@ -13,7 +13,7 @@ describe 'simp passgen create and remove passwords' do
     [
       'old_simplib',
       'new_simplib_legacy_passgen',
-      'new_simplib_libkv_passgen'
+      'new_simplib_simpkv_passgen'
     ].each do |env|
       context 'Password name creation' do
         it "should create new passwords in #{env}" do

@@ -17,12 +17,12 @@ module Simp::Cli::Passgen::CommandCommon
   DEFAULT_PUPPET_ENVIRONMENT = 'production'
   DEFAULT_FORCE              = false # true = do not prompt user to confirm operation
 
-  # First simplib version in which simplib::passgen could use libkv
-  LIBKV_SIMPLIB_VERSION = '4.0.0'
+  # First simplib version in which simplib::passgen could use simpkv
+  SIMPKV_SIMPLIB_VERSION = '4.0.0'
 
   AUTO_LOCATION_INFO = <<~AUTO
     Automatically determines the correct location of the passwords for the
-    Puppet environment, whether the passwords are stored in a libkv-managed
+    Puppet environment, whether the passwords are stored in a simpkv-managed
     key/value store or in legacy files on the local filesystem.
   AUTO
 
@@ -69,7 +69,7 @@ module Simp::Cli::Passgen::CommandCommon
 
       # This environment has Puppet functions to manage simplib::passgen
       # passwords, whether they are stored in the legacy directory for the
-      # environment or in a key/value store via libkv.  The functions figure
+      # environment or in a key/value store via simpkv.  The functions figure
       # out where the passwords are stored and execute appropriate logic.
       manager = Simp::Cli::Passgen::PasswordManager.new(opts[:env],
        opts[:backend],opts[:folder])
@@ -111,7 +111,7 @@ module Simp::Cli::Passgen::CommandCommon
   #   that does not provide password-managing Puppet functions
   #
   def legacy_passgen?(env_version)
-    env_version.split('.')[0].to_i < LIBKV_SIMPLIB_VERSION.split('.')[0].to_i
+    env_version.split('.')[0].to_i < SIMPKV_SIMPLIB_VERSION.split('.')[0].to_i
   end
 
   # Translate a boolean command line option into 'enabled' or 'disabled

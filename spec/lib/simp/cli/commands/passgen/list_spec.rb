@@ -328,7 +328,7 @@ describe Simp::Cli::Commands::Passgen::List do
           mock_manager = object_double('Mock PasswordManager', {
             :name_list => [ 'name1' ],
             :location  =>
-              "'dev' Environment, 'folder1' Folder, 'backend3' libkv Backend"
+              "'dev' Environment, 'folder1' Folder, 'backend3' simpkv Backend"
           })
 
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
@@ -338,8 +338,8 @@ describe Simp::Cli::Commands::Passgen::List do
             Initializing for environment 'dev'... done.
             Retrieving password names... done.
 
-            'dev' Environment, 'folder1' Folder, 'backend3' libkv Backend Password Names
-            ============================================================================
+            'dev' Environment, 'folder1' Folder, 'backend3' simpkv Backend Password Names
+            =============================================================================
             name1
 
           EOM

@@ -15,9 +15,9 @@ class Simp::Cli::Kv::OperatorBase
 
   # @param env Puppet environment.  Used to specify the location of non-global
   #   keys/folders in the key/value folder tree as well as where to find the
-  #   libkv backend configuration
+  #   simpkv backend configuration
   #
-  # @param backend Name of key/value store in libkv configuration
+  # @param backend Name of key/value store in simpkv configuration
   #
   def initialize(env, backend)
     @env = env
@@ -55,11 +55,11 @@ class Simp::Cli::Kv::OperatorBase
     Pathname.new(path).cleanpath.to_s
   end
 
-  # @return Appropriate libkv options for the libkv function call
+  # @return Appropriate simpkv options for the simpkv function call
   #
   # @param global Whether folder/key is global
   #
-  def libkv_options(global)
+  def simpkv_options(global)
     {
       'backend'     => @backend,
       'environment' => (global ? '' : @env)

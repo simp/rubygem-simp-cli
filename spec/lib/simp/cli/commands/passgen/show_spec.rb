@@ -201,7 +201,7 @@ describe Simp::Cli::Commands::Passgen::Show do
           :location      => "'production' Environment"
         })
 
-        # full set of info with history, as would be from a passgen entry in libkv
+        # full set of info with history, as would be from a passgen entry in simpkv
         allow(mock_manager).to receive(:password_info).with('name1').and_return(
           {
             'value' => {
@@ -219,7 +219,7 @@ describe Simp::Cli::Commands::Passgen::Show do
           }
         )
 
-        # full set of info with empty history, as would be from a passgen entry in libkv
+        # full set of info with empty history, as would be from a passgen entry in simpkv
         allow(mock_manager).to receive(:password_info).with('name2').and_return(
           {
             'value' => {
@@ -646,7 +646,7 @@ describe Simp::Cli::Commands::Passgen::Show do
           mock_manager = object_double('Mock PasswordManager', {
             :password_info => nil,
             :location      =>
-              "'dev' Environment, 'backend3' libkv Backend"
+              "'dev' Environment, 'backend3' simpkv Backend"
           })
 
           allow(mock_manager).to receive(:password_info).with('name1')
@@ -659,8 +659,8 @@ describe Simp::Cli::Commands::Passgen::Show do
             Initializing for environment 'dev'... done.
             Retrieving password information... done.
 
-            'dev' Environment, 'backend3' libkv Backend Passwords
-            =====================================================
+            'dev' Environment, 'backend3' simpkv Backend Passwords
+            ======================================================
             Name: name1
               Current:  password1
               Previous: password1_old

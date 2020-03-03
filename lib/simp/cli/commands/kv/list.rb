@@ -11,7 +11,7 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
 
   def initialize
     @opts = {
-      :backend => Simp::Cli::Kv::DEFAULT_LIBKV_BACKEND,
+      :backend => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
       :brief   => DEFAULT_BRIEF,
       :env     => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
       :global  => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
@@ -31,7 +31,7 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
 
   # @return [String] description of command
   def self.description
-    'List the contents of a folder in a libkv backend'
+    'List the contents of a folder in a simpkv backend'
   end
 
   # Run the command's `--help` action
@@ -120,7 +120,7 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
 
         #{self.class.description}
 
-        This command lists the contents of one or more folders in a libkv backend
+        This command lists the contents of one or more folders in a simpkv backend
         (key/value store).  It lists key names/info and sub-folders for the each
         specified folder, but does **not** recurse into sub-folders for a full tree
         listing.
@@ -132,28 +132,28 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
 
         EXAMPLES:
           # List key names and sub-folders in '/production/app1/' and
-          # '/production/app2/groupY/' in 'default' backend, using libkv config
+          # '/production/app2/groupY/' in 'default' backend, using simpkv config
           # from 'production' Puppet environment
           simp kv list app1,app2/groupY
 
           # List key info (values and metadata) and sub-folders in '/dev/app1/' in
-          # 'customA' backend, using libkv config from 'dev' Puppet environment
+          # 'customA' backend, using simpkv config from 'dev' Puppet environment
           simp kv list /dev/app1 -e dev -b customA --no-brief
 
           # List key names and sub-folders in '/app1/' global folder in 'default'
-          # backend, using libkv config from 'production' Puppet environment
+          # backend, using simpkv config from 'production' Puppet environment
           simp kv list /app1 --global
 
           # List key names and sub-folders in 'default' backend's root folder,
-          # using libkv config from 'production' Puppet environment
+          # using simpkv config from 'production' Puppet environment
           simp kv list / --global
 
         OPTIONS:
       HELP_MSG
 
       opts.on('-b', '--backend BACKEND',
-              'Name of the libkv backend to use for the',
-              'operation. When libkv::options::backends',
+              'Name of the simpkv backend to use for the',
+              'operation. When simpkv::options::backends',
               'exists in hieradata, must be a key in that',
               "Hash. Otherwise, must be 'default'.",
               "Defaults to '#{@opts[:backend]}'.") do |backend|
@@ -170,7 +170,7 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
 
       opts.on('-e', '--environment ENV',
               'Puppet environment for the folders and',
-              'backend configuration. Specifies the libkv',
+              'backend configuration. Specifies the simpkv',
               'top-level folder in which to find the',
               'folders, and where to find backend',
               'configuration. When --global is set, ENV',
@@ -182,7 +182,7 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
 
       opts.on('--[no-]global',
               'Indicates whether the folders are global',
-              '(i.e., is not stored within a libkv folder',
+              '(i.e., is not stored within a simpkv folder',
               'for a Puppet environment).',
               "Defaults to #{@opts[:global]}." ) do |global|
         @opts[:global] = global

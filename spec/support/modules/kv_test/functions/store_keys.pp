@@ -14,8 +14,8 @@ function kv_test::store_keys(
   }
 
   $key_value_pairs.each |$key, $value| {
-    libkv::put($key, $value, { 'id' => "${backend} ${::environment} ${key}" }, $_env_opts)
-    libkv::put("global_${key}", $value, { 'id' => "${backend} global global_${key}" }, $_global_opts)
+    simpkv::put($key, $value, { 'id' => "${backend} ${::environment} ${key}" }, $_env_opts)
+    simpkv::put("global_${key}", $value, { 'id' => "${backend} global global_${key}" }, $_global_opts)
   }
 }
 

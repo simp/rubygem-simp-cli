@@ -13,14 +13,14 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
   DEFAULT_COMPLEX_ONLY       = false
   DEFAULT_VALIDATE           = false
 
-  # First simplib version in which simplib::passgen could use libkv
-  LIBKV_SIMPLIB_VERSION = '4.0.0'
+  # First simplib version in which simplib::passgen could use simpkv
+  SIMPKV_SIMPLIB_VERSION = '4.0.0'
 
   def initialize
     @opts = {
       :env          => DEFAULT_PUPPET_ENVIRONMENT,
-      :backend      => nil, # libkv backend
-      :folder       => nil, # passgen sub-folder in libkv
+      :backend      => nil, # simpkv backend
+      :folder       => nil, # passgen sub-folder in simpkv
       :names        => [],  # names of passwords to set
       :gen_options  => {    # password generation options
         :auto_gen             => DEFAULT_AUTO_GEN_PASSWORDS,
@@ -137,7 +137,7 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
       opts.on('--complexity COMPLEXITY', Integer,
               'Password complexity to use when a password',
               'is auto-generated. For existing passwords',
-              'stored in a libkv key/value store, defaults',
+              'stored in a simpkv key/value store, defaults',
               'to the current password complexity.',
               'Otherwise, defaults to '\
               "#{@opts[:gen_options][:default_complexity]}.",
@@ -148,7 +148,7 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
       opts.on('--[no-]complex-only',
               'Whether to only use only complex characters',
               'when a password is auto-generated. For',
-              'existing passwords in a libkv key/value',
+              'existing passwords in a simpkv key/value',
               'store, defaults to the current password',
               'setting. Otherwise, ' +
               translate_bool(@opts[:gen_options][:default_complex_only]) +
@@ -158,7 +158,7 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
 
 
       opts.on('--backend BACKEND',
-              'Specific libkv backend to use for',
+              'Specific simpkv backend to use for',
               'passwords. Rarely needs to be set.',
               'Overrides the appropriate backend',
               'for the environment.') do |backend|
@@ -194,7 +194,7 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
             'for user passwords and does not apply to',
             'passwords generated via simp-simplib',
             'functions (environments with simplib >=',
-            "#{LIBKV_SIMPLIB_VERSION}). Defaults to "\
+            "#{SIMPKV_SIMPLIB_VERSION}). Defaults to "\
             "#{translate_bool(@opts[:gen_options][:validate])}.") do |validate|
         @opts[:gen_options][:validate] = validate
       end

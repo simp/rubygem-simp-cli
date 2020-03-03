@@ -465,7 +465,7 @@ Failed to set 2 out of 4 passwords in 'production' Environment:
           mock_manager = object_double('Mock PasswordManager', {
             :set_password => nil,
             :location     =>
-              "'dev' Environment, 'backend3' libkv Backend"
+              "'dev' Environment, 'backend3' simpkv Backend"
           })
 
           allow(mock_manager).to receive(:set_password)
@@ -476,7 +476,7 @@ Failed to set 2 out of 4 passwords in 'production' Environment:
 
           expected_output = <<~EOM
             Initializing for environment 'dev'... done.
-            Processing 'name1' in 'dev' Environment, 'backend3' libkv Backend... done.
+            Processing 'name1' in 'dev' Environment, 'backend3' simpkv Backend... done.
               'name1' new password: name1_new_password
 
           EOM

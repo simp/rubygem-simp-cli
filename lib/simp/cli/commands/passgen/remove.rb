@@ -8,8 +8,8 @@ class Simp::Cli::Commands::Passgen::Remove < Simp::Cli::Commands::Command
   def initialize
     @opts = {
       :env          => DEFAULT_PUPPET_ENVIRONMENT,
-      :backend      => nil, # libkv backend
-      :folder       => nil, # passgen sub-folder in libkv
+      :backend      => nil, # simpkv backend
+      :folder       => nil, # passgen sub-folder in simpkv
       :force_remove => DEFAULT_FORCE, # whether to remove without prompting
       :names        => [],  # names of passwords to remove
       :password_dir => nil, # fully qualified path to a legacy passgen dir
@@ -95,7 +95,7 @@ class Simp::Cli::Commands::Passgen::Remove < Simp::Cli::Commands::Command
       HELP_MSG
 
       opts.on('--backend BACKEND',
-              'Specific libkv backend to use for',
+              'Specific simpkv backend to use for',
               'passwords. Rarely needs to be set.',
               'Overrides the appropriate backend',
               'for the environment.') do |backend|

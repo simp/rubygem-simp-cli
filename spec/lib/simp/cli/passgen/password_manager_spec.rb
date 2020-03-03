@@ -46,7 +46,7 @@ describe Simp::Cli::Passgen::PasswordManager do
 
     it 'returns string with env and backend when folder is not specified' do
       manager = Simp::Cli::Passgen::PasswordManager.new(@env, @backend, nil)
-      expected = "'#{@env}' Environment, '#{@backend}' libkv Backend"
+      expected = "'#{@env}' Environment, '#{@backend}' simpkv Backend"
       expect( manager.location ).to eq(expected)
     end
 
@@ -59,7 +59,7 @@ describe Simp::Cli::Passgen::PasswordManager do
     it 'returns string with env, backend, and folder when all specified' do
       manager = Simp::Cli::Passgen::PasswordManager.new(@env, @backend, @folder)
       expected = "'#{@env}' Environment, '#{@folder}' Folder, " +
-        "'#{@backend}' libkv Backend"
+        "'#{@backend}' simpkv Backend"
 
       expect( manager.location ).to eq(expected)
     end
@@ -200,7 +200,7 @@ describe Simp::Cli::Passgen::PasswordManager do
 
     it 'fails when puppet apply with remove operation fails' do
       err_msg = "Error: Evaluation Error: Error while evaluating a" +
-        " Function Call, libkv Configuration Error for libkv::exists with..."
+        " Function Call, simpkv Configuration Error for simpkv::exists with..."
 
       allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_raise(Simp::Cli::ProcessingError, err_msg)

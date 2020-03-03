@@ -9,13 +9,13 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
 
   # @return [String] description of command
   def self.description
-    'Retrieve values and metadata for keys in a libkv backend'
+    'Retrieve values and metadata for keys in a simpkv backend'
   end
 
   def initialize
     @opts = {
       :env     => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
-      :backend => Simp::Cli::Kv::DEFAULT_LIBKV_BACKEND,
+      :backend => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
       :global  => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
       :outfile => nil,
       :verbose => 0  # Verbosity of console output:
@@ -94,7 +94,7 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
 
         #{self.class.description}
 
-        This command retrieves the value and metadata for one or more keys in a libkv
+        This command retrieves the value and metadata for one or more keys in a simpkv
         backend (key/value store).
 
         USAGE:
@@ -104,27 +104,27 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
 
         EXAMPLES:
           # Print info for '/production/keyD' and '/production/app2/groupY/keyC' stored
-          # in 'default' backend, using libkv config from 'production' Puppet environment
+          # in 'default' backend, using simpkv config from 'production' Puppet environment
           simp kv get keyD,app2/groupY/keyC
 
-          # Write to file info for '/dev/app1/' stored in 'customA' backend, using libkv
+          # Write to file info for '/dev/app1/' stored in 'customA' backend, using simpkv
           # config from 'dev' Puppet environment
           simp kv get app1 -e dev -b customA -o app1.json
 
           # Print info for '/global_keyR' global key stored in 'default' backend, using
-          # libkv config from 'production' Puppet environment
+          # simpkv config from 'production' Puppet environment
           simp kv get global_keyR --global
 
           # Print info '/app1/global_keyQ' global key stored in 'default' backend, using
-          # libkv config from 'production' Puppet environment
+          # simpkv config from 'production' Puppet environment
           simp kv get app1/global_keyQ --global
 
         OPTIONS:
       HELP_MSG
 
       opts.on('-b', '--backend BACKEND',
-              'Name of the libkv backend to use for the',
-              'operation. When libkv::options::backends',
+              'Name of the simpkv backend to use for the',
+              'operation. When simpkv::options::backends',
               'exists in hieradata, must be a key in that',
               "Hash. Otherwise, must be 'default'.",
               "Defaults to '#{@opts[:backend]}'.") do |backend|
@@ -133,7 +133,7 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
 
       opts.on('-e', '--environment ENV',
               'Puppet environment for the keys and backend',
-              'configuration. Specifies the libkv top-',
+              'configuration. Specifies the simpkv top-',
               'level folder in which to find the keys,',
               'and where to find backend configuration.',
               'When --global is set, ENV is simply used to',
@@ -144,7 +144,7 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
 
       opts.on('--[no-]global',
               'Indicates whether the keys are global',
-              '(i.e., is not stored within a libkv folder',
+              '(i.e., is not stored within a simpkv folder',
               'for a Puppet environment).',
               "Defaults to #{@opts[:global]}." ) do |global|
         @opts[:global] = global

@@ -9,7 +9,7 @@ describe 'simp kv put operations' do
   let(:outfile) { '/root/list.json' }
 
   # In the test set up, production and dev Puppet envs both share the same
-  # libkv backends (default and custom).  So, to cleanly test key modifications
+  # simpkv backends (default and custom).  So, to cleanly test key modifications
   # and additions in each environment, this test will apply changes to the
   # default backend via the production env, only, and apply changes to the
   # custom backend via the dev environment, only.

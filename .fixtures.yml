@@ -3,10 +3,10 @@ fixtures:
   # Lazy way to get all the code (puppt modules and otherwise) onto the test
   # hosts.  Within the tests, we'll relocate and fix permissions appropriately.
   repositories:
+    simpkv: https://github.com/simp/pupmod-simp-simpkv
     # Puppet modules
     # - Older version of simplib will be cloned in the test, as fixtures code
     #   can only handle one version per URL
-    libkv: https://github.com/simp/pupmod-simp-libkv
     simplib: https://github.com/simp/pupmod-simp-simplib
     stdlib: https://github.com/simp/puppetlabs-stdlib
 

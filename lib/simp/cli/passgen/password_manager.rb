@@ -25,7 +25,7 @@ class Simp::Cli::Passgen::PasswordManager
     if @folder or @backend
       qualifiers = []
       qualifiers << "'#{@folder}' Folder" if @folder
-      qualifiers << "'#{@backend}' libkv Backend" if @backend
+      qualifiers << "'#{@backend}' simpkv Backend" if @backend
       @location += ", #{qualifiers.join(', ')}"
     end
 
@@ -210,7 +210,7 @@ class Simp::Cli::Passgen::PasswordManager
   # Retrieve the current password info for a name
   #
   # @param fullname The full password name.  For legacy passgen, this is simply
-  #   the password name. For libkv, this is the password name prepended with
+  #   the password name. For simpkv, this is the password name prepended with
   #   the folder, as appropriate.
   #
   # @return Hash of password information returned by simplib::passgen::get
@@ -254,11 +254,11 @@ class Simp::Cli::Passgen::PasswordManager
   # In simplib::passgen::set, note the following:
   # * 'user' option is essential for legacy password files or the generated
   #    files will be owned by root and fail simplib::passgen's file validation.
-  # * 'complexity' and 'complex_only' are required in libkv mode; persisted with
-  #    the password, salt, and history in libkv mode; and unused in legacy mode.
+  # * 'complexity' and 'complex_only' are required in simpkv mode; persisted with
+  #    the password, salt, and history in simpkv mode; and unused in legacy mode.
   #
   # @param fullname The full password name.  For legacy passgen, this is simply
-  #   the password name. For libkv, this is the password name prepended with
+  #   the password name. For simpkv, this is the password name prepended with
   #   the folder, as appropriate.
   #
   # @param options Password generation options
@@ -324,8 +324,8 @@ class Simp::Cli::Passgen::PasswordManager
   # In simplib::passgen::set, note the following:
   # * 'user' option is essential for legacy password files or the generated
   #    files will be owned by root and fail simplib::passgen's file validation.
-  # * 'complexity' and 'complex_only' are required in libkv mode; persisted with
-  #    the password, salt, and history in libkv mode; and unused in legacy mode.
+  # * 'complexity' and 'complex_only' are required in simpkv mode; persisted with
+  #    the password, salt, and history in simpkv mode; and unused in legacy mode.
   # * The odd looking escape of single quotes is required because
   #   \' is a back reference in gsub.
   #

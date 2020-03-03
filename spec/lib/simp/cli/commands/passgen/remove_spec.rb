@@ -474,7 +474,7 @@ describe Simp::Cli::Commands::Passgen::Remove do
           mock_manager = object_double('Mock PasswordManager', {
             :remove_password => nil,
             :location        =>
-              "'dev' Environment, 'backend3' libkv Backend"
+              "'dev' Environment, 'backend3' simpkv Backend"
           })
 
           allow(mock_manager).to receive(:remove_password).with('name1')
@@ -485,7 +485,7 @@ describe Simp::Cli::Commands::Passgen::Remove do
 
           expected_output = <<~EOM
             Initializing for environment 'dev'... done.
-            Processing 'name1' in 'dev' Environment, 'backend3' libkv Backend... done.
+            Processing 'name1' in 'dev' Environment, 'backend3' simpkv Backend... done.
               Removed 'name1'
 
           EOM
