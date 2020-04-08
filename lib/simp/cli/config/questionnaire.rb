@@ -54,7 +54,9 @@ class Simp::Cli::Config::Questionnaire
 
   def process_pass2(deferred_queue, answers)
     logger.notice( "\n#{'='*80}\n" )
-    if !@options[:user_overrides] && @options[:allow_queries] && !@options[:force_defaults]
+    if @options[:allow_queries] && !(
+        @options[:dry_run] || @options[:user_overrides] || @options[:force_defaults]
+    )
       # space at end of question tells HighLine to remain on the prompt line
       # when gathering user input
       logger.notice("Questionnaire is now finished.\n".green)
