@@ -129,7 +129,7 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
       expect( @ci.applied_status ).to eq :succeeded
     end
 
-    it 'writes out a classes array when :global_class Items exist' do
+    it 'writes out a simp::classes array when :global_class Items exist' do
       item = Simp::Cli::Config::Item::SimpYumRepoInternetSimpDependenciesClass.new(@puppet_env_info)
       @ci.config_items[item.key] = item
 

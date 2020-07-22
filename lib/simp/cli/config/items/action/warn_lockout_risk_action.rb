@@ -102,9 +102,9 @@ in the `production` Puppet environment.  Execute these operations as `root`.
 
    Edit the SIMP server's YAML file,
    `/etc/puppetlabs/code/environments/production/data/<SIMP server FQDN>.yaml`
-   and add the `mymodule::local_user` to the `classes` array:
+   and add the `mymodule::local_user` to the `simp::classes` array:
 
-     classes:
+     simp::classes:
        - mymodule::local_user
 
 5. If the local user is configured to login with pre-shared keys instead of a

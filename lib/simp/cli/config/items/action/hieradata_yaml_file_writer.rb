@@ -41,7 +41,7 @@ module Simp::Cli::Config
               iostream.puts
             end
           elsif v.data_type == :global_class
-            # gather up the classes to be added to a  'classes' sequence at the end of the file
+            # gather up the classes to be added to a  'simp::classes' sequence at the end of the file
             global_classes << v.key
           end
         end
@@ -49,7 +49,7 @@ module Simp::Cli::Config
 
       unless global_classes.empty?
         iostream.puts
-        iostream.puts 'classes:'
+        iostream.puts 'simp::classes:'
         global_classes.each { |global_class| iostream.puts "  - #{global_class}" }
       end
     end

@@ -129,10 +129,13 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Tue Apr 07 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.0.0
+* Wed Jun 22 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.0.0
 - Fixed an issue where --dry-run would prompt the user to apply instead of
   simply skipping to the (skipped) action items and then writing the
   ~/.simp/simp_conf.yaml file
+- Ensure that `simp config` uses the `simp::classes` parameter instead
+  of `classes` by default
+- Accept both `simp::classes` and `classes` as valid existing configurations
 
 * Fri Jan 03 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.0.0
 - Added simp kv command family to allow users to manage and inspect

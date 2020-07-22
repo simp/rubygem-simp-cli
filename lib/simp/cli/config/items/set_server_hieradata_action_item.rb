@@ -50,11 +50,22 @@ module Simp::Cli::Config
 
       info( "Adding #{hiera_key} to #{File.basename(@file)}" )
       yaml = IO.readlines(@file)
+
+      classes_key_regex = Regexp.new(/^simp::server::classes\s*:/)
+
+      unless yaml.find{|x| x.match?(classes_key_regex)}
+        classes_key_regex = Regexp.new(/^simp::classes\s*:/)
+      end
+
+      unless yaml.find{|x| x.match?(classes_key_regex)}
+        classes_key_regex = Regexp.new(/^classes\s*:/)
+      end
+
       line_written = false
       File.open(@file, 'w') do |f|
         yaml.each do |line|
           line.chomp!
-          if line =~ /^classes\s*:/
+          if line.match?(classes_key_regex)
             f.puts full_yaml_string
             f.puts line
             line_written = true
