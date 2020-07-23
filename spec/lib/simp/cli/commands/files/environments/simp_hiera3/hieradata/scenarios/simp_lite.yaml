@@ -39,7 +39,7 @@ simp_options::tcpwrappers: false
 simp_options::ipsec: false
 simp_options::kerberos: false
 
-classes:
+simp::classes:
   - 'aide'
   - 'auditd'
   # Virus scanning.

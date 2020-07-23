@@ -36,7 +36,7 @@ simp_options::fips: false
 simp_options::puppet::server: puppet.domain.tld
 
 
-classes:
+simp::classes:
   - simp::yum::repo::internet_simp_dependencies
   - simp::yum::repo::local_os_updates
   - simp::yum::repo::local_simp

@@ -27,10 +27,20 @@ module Simp::Cli::Config
         info( "Adding #{@class_to_add} to the class list in #{fqdn}.yaml file", [:GREEN] )
         yaml = IO.readlines(@file)
 
+        classes_key_regex = Regexp.new(/^simp::server::classes\s*:/)
+
+        unless yaml.find{|x| x.match?(classes_key_regex)}
+          classes_key_regex = Regexp.new(/^simp::classes\s*:/)
+        end
+
+        unless yaml.find{|x| x.match?(classes_key_regex)}
+          classes_key_regex = Regexp.new(/^classes\s*:/)
+        end
+
         File.open(@file, 'w') do |f|
           yaml.each do |line|
             line.chomp!
-            if line =~ /^classes\s*:/
+            if line.match?(classes_key_regex)
               f.puts line
               f.puts "  - '#{@class_to_add}'"
             else
@@ -51,7 +61,7 @@ module Simp::Cli::Config
 
     # whether a line from the YAML file contains the class
     def contains_class?(line)
-      return line.=~ /^\s*-\s+['"]*#{@class_to_add}['"]*/
+      return line.match?(/^\s*-\s+['"]*#{@class_to_add}['"]*/)
     end
   end
 end
