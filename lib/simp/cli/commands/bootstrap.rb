@@ -56,6 +56,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose" +
       " --no-splay --agent_disabled_lockfile=#{agent_lockfile}" +
+      " --environment=#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}" +
       " --masterport=#{@initial_puppetserver_port} --ca_port=#{@initial_puppetserver_port}"
 
     num_tagged_runs = 3
@@ -89,6 +90,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     num_runs = 4
     info("Running puppet agent without tags #{num_runs} times...", 'cyan')
     pupcmd = 'puppet agent --onetime --no-daemonize --no-show_diff --verbose --no-splay' +
+      " --environment=#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}" +
       " --agent_disabled_lockfile=#{agent_lockfile}"
     # This is ugly, but until we devise an intelligent way to determine when your system
     # is 'bootstrapped', we're going to run puppet in a loop.

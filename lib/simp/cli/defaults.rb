@@ -7,7 +7,7 @@ class Simp::Cli
 # Git to access SIMP asset files, such as those for the
 # simp-environment-skeleton.
   SIMP_CLI_HOME                  = "#{ENV['HOME']}/.simp"
-  BOOTSTRAP_PUPPET_ENV           = 'production'
+  BOOTSTRAP_PUPPET_ENV           = ENV.fetch('SIMP_ENVIRONMENT', 'production')
   BOOTSTRAP_START_LOCK_FILE      = File.join(SIMP_CLI_HOME, 'simp_bootstrap_start_lock')
   CONFIG_ANSWERS_OUTFILE         = File.join(SIMP_CLI_HOME, 'simp_conf.yaml')
   CONFIG_GLOBAL_HIERA_FILENAME   = 'simp_config_settings.yaml'
