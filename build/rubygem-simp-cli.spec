@@ -129,7 +129,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Wed Jun 22 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.0.0
+* Thu Aug 13 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.0.0
+- Allow users to set the SIMP_ENVIRONMENT environment variable to change the
+  initial environment from 'production' to a custom value
 - Fixed an issue where --dry-run would prompt the user to apply instead of
   simply skipping to the (skipped) action items and then writing the
   ~/.simp/simp_conf.yaml file
