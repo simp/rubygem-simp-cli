@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 6.0.0
+%global cli_version 6.0.1
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,6 +129,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Sep 01 2020 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.0.1
+- In Rakefile check if task spec_standalone exists before trying to
+  clear it
+
 * Thu Aug 13 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.0.0
 - Allow users to set the SIMP_ENVIRONMENT environment variable to change the
   initial environment from 'production' to a custom value

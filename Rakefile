@@ -55,7 +55,7 @@ end
 
 # This project has unit tests in nonstandard locations, so redefine the
 # underlying Rake task to pick up its tests
-Rake::Task[:spec_standalone].clear
+Rake::Task[:spec_standalone].clear if Rake::Task.task_defined?(:spec_standalone)
 RSpec::Core::RakeTask.new(:spec_standalone) do |t|
   t.rspec_opts = ['--color']
   t.exclude_pattern = '**/{acceptance,fixtures,files}/**/*_spec.rb'
