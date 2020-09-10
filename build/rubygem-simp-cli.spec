@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 6.0.1
+%global cli_version 6.0.2
 %global highline_version 1.7.8
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,6 +129,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Sep 10 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.0.2
+- Fix a typo in an error message emitted when 'simp config' cannot
+  proceed because the environment to configure already exists.
+
 * Tue Sep 01 2020 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.0.1
 - In Rakefile check if task spec_standalone exists before trying to
   clear it

@@ -245,7 +245,7 @@ EOM
         # TODO Tell users to save off and then remove the Puppet and secondary
         #  environments that may exist, run 'simp config' again, and then restore
         #  any local customizations?
-        msg = "Unabled to configure: Invalid SIMP omni-environment for '#{@options[:puppet_env]}' exists:\n"
+        msg = "Unable to configure: Invalid SIMP omni-environment for '#{@options[:puppet_env]}' exists:\n"
         msg += details_msg
         raise Simp::Cli::ProcessingError.new(msg)
       end
