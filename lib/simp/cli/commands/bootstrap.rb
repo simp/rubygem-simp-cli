@@ -639,7 +639,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 
   # Track a running process by following its STDOUT output
   # Prints a '#' for each line of output
-  # returns -1 if error occured, otherwise the line count if PTY.spawn succeeded
+  # returns -1 if error occurred, otherwise the line count if PTY.spawn succeeded
   def track_output(command, port = nil)
     ensure_puppetserver_running(port)
     successful = true
