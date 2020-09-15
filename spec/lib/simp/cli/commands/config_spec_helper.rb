@@ -32,9 +32,6 @@ def generate_simp_input_accepting_defaults(ask_if_ready = true)
     "\n"                          << # log servers
     "\n"                          << # securetty list
     "\n"                             # svckill warning mode
-  if ask_if_ready
-    input_io << "\n"                 # empty defaults to yes, we are ready to apply
-  end
   input_io.rewind
   input_io
 end
@@ -64,8 +61,7 @@ def generate_simp_lite_input_setting_values
     "LOCAL\n"                                 << # sssd domain
     "1.2.3.11\n"                              << # log servers
     "1.2.3.12\n"                              << # failover log servers
-    "tty0\n"                                  << # securetty list
-    "yes\n"                                      # we are ready to apply
+    "tty0\n"                                     # securetty list
   input_io.rewind
   input_io
 end
@@ -96,8 +92,7 @@ def generate_poss_input_setting_values
     "no\n"                << # use SSSD
     "1.2.3.11\n"          << # log servers
     "1.2.3.12\n"          << # failover log servers
-    "tty0\n"              << # securetty list
-    "yes\n"                  # we are ready to apply
+    "tty0\n"                 # securetty list
   input_io.rewind
   input_io
 end

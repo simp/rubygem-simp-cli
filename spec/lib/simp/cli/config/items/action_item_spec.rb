@@ -19,7 +19,7 @@ class MyActionItem < Simp::Cli::Config::ActionItem
     when :fail_no_raise
       @applied_status = :failed
     when :fail_raise
-      raise 'MyActionItem error occured'
+      raise 'MyActionItem error occurred'
     end
   end
 
@@ -76,7 +76,7 @@ describe Simp::Cli::Config::ActionItem do
       ci.apply_action = :fail_raise
 
       expect { ci.safe_apply }.to raise_error(Simp::Cli::Config::ApplyError,
-       'MyActionItem error occured')
+       'MyActionItem error occurred')
 
       expect(ci.applied_status).to eq :failed
     end
