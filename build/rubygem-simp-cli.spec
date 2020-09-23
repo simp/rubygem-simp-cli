@@ -130,8 +130,10 @@ EOM
 
 %changelog
 * Thu Sep 10 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.0.2
-- Fix a typo in an error message emitted when 'simp config' cannot
+- Fixed a typo in an error message emitted when 'simp config' cannot
   proceed because the environment to configure already exists.
+- Fixed a bug in `simp environment new` in which the actual failure
+  messages from a failed `setfacl --restore` execution are not logged.
 
 * Tue Sep 01 2020 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.0.1
 - In Rakefile check if task spec_standalone exists before trying to

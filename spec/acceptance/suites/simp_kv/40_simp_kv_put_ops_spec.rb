@@ -18,6 +18,7 @@ describe 'simp kv put operations' do
     [ 'dev',        'custom',  '--backend custom' ]
   ].each do |env, backend, backend_opt|
     hosts.each do |host|
+
       context "modifying keys for #{env} env #{backend} backend on #{host}" do
         let(:created_key_names) { [] }
         let(:created_binary_key_names) { [] }
@@ -31,6 +32,7 @@ describe 'simp kv put operations' do
 
         let(:out_root_path) { "/var/kv_test/#{backend}" }
 
+        include_examples 'workaround beaker ssh session closures', hosts
         include_examples 'kv put modify operation test', host, env, backend_opt
         include_examples 'kv use created/modified keys test', host, env
       end
@@ -74,6 +76,7 @@ describe 'simp kv put operations' do
 
         let(:out_root_path) { "/var/kv_test/#{backend}" }
 
+        include_examples 'workaround beaker ssh session closures', hosts
         include_examples 'kv put create operation test', host, env, backend_opt
         include_examples 'kv use created/modified keys test', host, env
       end

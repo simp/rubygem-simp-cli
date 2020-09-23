@@ -12,6 +12,9 @@ describe 'simp kv get operations' do
       'custom'  => '--backend custom'
     }.each do |backend, backend_opt|
       hosts.each do |host|
+
+        include_examples 'workaround beaker ssh session closures', hosts
+
         context "key get for #{env} env #{backend} on #{host}" do
           let(:keys_root_env) {
             keys_info('/', detailed_kv_list_results("#{backend} #{env}", false))

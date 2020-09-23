@@ -4,9 +4,8 @@ test_name 'simp passgen list operations'
 
 describe 'simp passgen list operations' do
 
-  hosts.each do |host|
-
-    context 'environment list' do
+  context 'environment list' do
+    hosts.each do |host|
       it 'should only list environments containing simp-simplib module' do
         result = on(host, 'simp passgen envs').stdout
         expect(result).to match(/old_simplib/)
@@ -15,21 +14,27 @@ describe 'simp passgen list operations' do
         expect(result).to_not match(/production/)
       end
     end
+  end
 
-    context 'password lists' do
-      let(:names) { [
-        'passgen_test_default',
-        'passgen_test_c0_8',
-        'passgen_test_c1_1024',
-        'passgen_test_c2_20',
-        'passgen_test_c2_only'
-      ] }
 
-      [
-        'old_simplib',
-        'new_simplib_legacy_passgen',
-        'new_simplib_simpkv_passgen'
-      ].each do |env|
+  context 'password lists' do
+    let(:names) { [
+      'passgen_test_default',
+      'passgen_test_c0_8',
+      'passgen_test_c1_1024',
+      'passgen_test_c2_20',
+      'passgen_test_c2_only'
+    ] }
+
+    [
+      'old_simplib',
+      'new_simplib_legacy_passgen',
+      'new_simplib_simpkv_passgen'
+    ].each do |env|
+      hosts.each do |host|
+
+        include_examples 'workaround beaker ssh session closures', hosts
+
         context "name list for #{env} environment" do
           it 'should list top folder names from passgen_test' do
             result = on(host, "simp passgen list -e #{env}").stdout

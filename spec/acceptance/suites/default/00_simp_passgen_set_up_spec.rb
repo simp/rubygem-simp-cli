@@ -4,25 +4,37 @@ test_name 'simp passgen set up'
 
 describe 'simp passgen set up' do
 
-  hosts.each do |host|
-    context 'Puppet master set up' do
+  context 'Puppet master set up' do
+    hosts.each do |host|
       include_examples 'fixtures move', host
+
+      include_examples 'workaround beaker ssh session closures', hosts
       include_examples 'simp asset manual install', host
+
+      include_examples 'workaround beaker ssh session closures', hosts
       include_examples 'passgen test environments set up', host
+
+      include_examples 'workaround beaker ssh session closures', hosts
       include_examples 'puppetserver set up', host
     end
+  end
 
-    context 'initial passgen secret generation' do
-      [
-        'old_simplib',
-        'new_simplib_legacy_passgen',
-        'new_simplib_simpkv_passgen'
-      ].each do |env|
+
+  context 'initial passgen secret generation' do
+    [
+      'old_simplib',
+      'new_simplib_legacy_passgen',
+      'new_simplib_simpkv_passgen'
+    ].each do |env|
+    hosts.each do |host|
         context 'puppet agent prep' do
+          include_examples 'workaround beaker ssh session closures', hosts
           include_examples 'configure puppet env', host, env
         end
 
         context 'puppet agent run' do
+          include_examples 'workaround beaker ssh session closures', hosts
+
           it 'should apply manifest to generate passwords and persist to files' do
             retry_on(host, 'puppet agent -t', :desired_exit_codes => [0],
               :max_retries => 5, :verbose => true.to_s)
