@@ -18,6 +18,8 @@ describe 'simp kv delete operations' do
     [ 'dev',        'custom',  '--backend custom' ]
   ].each do |env, backend, backend_opt|
     hosts.each do |host|
+      include_examples 'workaround beaker ssh session closures', hosts
+
       it "should delete #{env} env keys from #{backend} backend on #{host}" do
         cmd = "umask 0077; simp kv delete #{keys_env.join(',')} -e #{env} "\
               "#{backend_opt} --force"

@@ -14,6 +14,8 @@ describe 'simp kv errors' do
         'custom'  => '--backend custom'
       }.each do |backend, backend_opt|
         hosts.each do |host|
+          include_examples 'workaround beaker ssh session closures', hosts
+
           it "should fail list if folder does not exist in #{backend} "\
              "on #{host}" do
             cmd = "umask 0077; simp kv list #{invalid_folder} -e #{env} "\
@@ -53,6 +55,8 @@ describe 'simp kv errors' do
       let(:infile) { '/root/put.json' }
 
       hosts.each do |host|
+        include_examples 'workaround beaker ssh session closures', hosts
+
         it "should fail delete if backend is invalid in #{env} env "\
            "on #{host}" do
           cmd = "umask 0077; simp kv delete #{key} -e #{env} "\

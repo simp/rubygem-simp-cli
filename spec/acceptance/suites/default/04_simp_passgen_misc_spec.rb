@@ -1,16 +1,18 @@
 require 'spec_helper_acceptance'
 
-test_name 'simp passgen miscelleous'
+test_name 'simp passgen miscellaneous'
 
-describe 'simp passgen miscelleous' do
+describe 'simp passgen miscellaneous' do
 
-  hosts.each do |host|
 
-    [
-      'old_simplib',
-      'new_simplib_legacy_passgen',
-      'new_simplib_simpkv_passgen'
-    ].each do |env|
+  [
+    'old_simplib',
+    'new_simplib_legacy_passgen',
+    'new_simplib_simpkv_passgen'
+  ].each do |env|
+    hosts.each do |host|
+
+      include_examples 'workaround beaker ssh session closures', hosts
 
       if env == 'new_simplib_simpkv_passgen'
         context 'Specifying simpkv backend' do
@@ -92,6 +94,6 @@ describe 'simp passgen miscelleous' do
         end
       end
 
-    end #[...].each do |env|
-  end # hosts.each
+    end # hosts.each
+  end #[...].each do |env|
 end #describe...

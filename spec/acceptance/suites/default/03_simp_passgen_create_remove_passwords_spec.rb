@@ -9,13 +9,16 @@ test_name 'simp passgen create and remove passwords'
 describe 'simp passgen create and remove passwords' do
   let(:new_names) { ['passgen_test_default_new1', 'passgen_test_default_new2'] }
 
-  hosts.each do |host|
-    [
-      'old_simplib',
-      'new_simplib_legacy_passgen',
-      'new_simplib_simpkv_passgen'
-    ].each do |env|
+  [
+    'old_simplib',
+    'new_simplib_legacy_passgen',
+    'new_simplib_simpkv_passgen'
+  ].each do |env|
+    hosts.each do |host|
+
       context 'Password name creation' do
+        include_examples 'workaround beaker ssh session closures', hosts
+
         it "should create new passwords in #{env}" do
           new_names.each do |name|
             cmd = "simp passgen set #{name} -e #{env} --auto-gen"
@@ -33,12 +36,17 @@ describe 'simp passgen create and remove passwords' do
         end
       end
 
+
       context 'Use of externally created password in a manifest' do
+
         context 'puppet agent prep' do
+          include_examples 'workaround beaker ssh session closures', hosts
           include_examples 'configure puppet env', host, env
         end
 
         context 'puppet agent run' do
+          include_examples 'workaround beaker ssh session closures', hosts
+
           it 'should add extra passwords to passgen_test via hieradata' do
             default_yaml_file = File.join( '/etc/puppetlabs/code/environments',
                env, 'data', 'default.yaml')
@@ -70,6 +78,8 @@ describe 'simp passgen create and remove passwords' do
       end
 
       context 'Password name removal' do
+        include_examples 'workaround beaker ssh session closures', hosts
+
         it "should remove passwords in #{env}" do
           new_names.each do |name|
             cmd = "simp passgen remove #{name} -e #{env} --force"
@@ -82,6 +92,6 @@ describe 'simp passgen create and remove passwords' do
           end
         end
       end
-    end #[...].each do |env|
-  end # hosts.each
+    end # hosts.each
+  end #[...].each do |env|
 end #describe...

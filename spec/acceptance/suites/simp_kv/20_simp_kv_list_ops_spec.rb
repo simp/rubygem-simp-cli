@@ -12,6 +12,9 @@ describe 'simp kv list operations' do
       'custom'  => '--backend custom'
     }.each do |backend, backend_opt|
       hosts.each do |host|
+
+        include_examples 'workaround beaker ssh session closures', hosts
+
         context "brief list for #{env} env #{backend} backend on #{host}" do
           # default and custom backend list results only differ in the key
           # metadata, which is not present in the brief listing

@@ -119,7 +119,7 @@ module Simp::Cli::Environment
 
       Dir.chdir(path) do
         info("Applying FACL rules to '#{path}'".cyan)
-        cmd = "setfacl --restore=#{facl_file} 2>/dev/null"
+        cmd = "setfacl --restore=#{facl_file}"
         unless execute(cmd)
           fail(Simp::Cli::ProcessingError, "ERROR:  Failed to apply FACL rules to #{path}")
         end

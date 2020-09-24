@@ -7,6 +7,7 @@ require 'yaml'
 require 'simp/beaker_helpers'
 
 include Simp::BeakerHelpers
+include Acceptance::Helpers::BeakerWorkarounds
 include Acceptance::Helpers::EnvHelper
 include Acceptance::Helpers::KvTestData
 

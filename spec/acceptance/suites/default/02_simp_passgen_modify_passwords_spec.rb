@@ -65,14 +65,16 @@ describe 'simp passgen modify existing passwords' do
   } }
 
 
-  hosts.each do |host|
-    [
-      'old_simplib',
-      'new_simplib_legacy_passgen',
-      'new_simplib_simpkv_passgen'
-    ].each do |env|
+  [
+    'old_simplib',
+    'new_simplib_legacy_passgen',
+    'new_simplib_simpkv_passgen'
+  ].each do |env|
+    hosts.each do |host|
+
       context 'Password auto-regeneration' do
         context 'using defaults' do
+          include_examples 'workaround beaker ssh session closures', hosts
 
           if env == 'new_simplib_simpkv_passgen'
             it "should regen passwords with current length+complexity+complex_only in #{env}" do
@@ -144,6 +146,8 @@ describe 'simp passgen modify existing passwords' do
         end  # context 'using defaults' do
 
         context 'specifying characteristics' do
+          include_examples 'workaround beaker ssh session closures', hosts
+
           it "should regen passwords with specified length+complexity+complex_only in #{env}" do
             names.each do |name, options|
               cmd = "simp passgen set #{name} -e #{env} --auto-gen "\
@@ -161,7 +165,10 @@ describe 'simp passgen modify existing passwords' do
       end # context 'Password auto-regeneration' do
 
       context 'Password input by user' do
+        include_examples 'workaround beaker ssh session closures', hosts
+
         it 'should accept user entered password' do
+          require 'timeout'
           # Just spot check one name for this test:
           #  passgen_test_c0_8 - complexity 0, length 8
           stdin = "password\n"*2
@@ -189,15 +196,21 @@ describe 'simp passgen modify existing passwords' do
       end
 
       context "Applying changes in #{env}" do
+
         context 'puppet agent prep' do
+          include_examples 'workaround beaker ssh session closures', hosts
           include_examples 'configure puppet env', host, env
         end
 
         context 'puppet agent run' do
+          include_examples 'workaround beaker ssh session closures', hosts
+
           it 'should apply manifest to update persisted passwords' do
             retry_on(host, 'puppet agent -t', :desired_exit_codes => [0],
               :max_retries => 5, :verbose => true.to_s)
           end
+
+          include_examples 'workaround beaker ssh session closures', hosts
 
           [
            "/var/passgen_test/#{env}-passgen_test_default",
@@ -234,6 +247,6 @@ describe 'simp passgen modify existing passwords' do
           end
         end
       end # Applying changes in...
-    end #[...].each do |env|
-  end # hosts.each
+    end # hosts.each
+  end #[...].each do |env|
 end #describe...

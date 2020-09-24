@@ -8,14 +8,20 @@ describe 'simp kv set up' do
     context 'environment set up' do
       include_examples 'kv test environments set up', host
     end
+  end
 
-    context 'initial key/value generation' do
-      [ 'production', 'dev' ].each do |env|
+  context 'initial key/value generation' do
+    [ 'production', 'dev' ].each do |env|
+      hosts.each do |host|
+
         context 'puppet agent prep' do
+          include_examples 'workaround beaker ssh session closures', hosts
           include_examples 'configure puppet env', host, env
         end
 
         context 'puppet agent runs' do
+          include_examples 'workaround beaker ssh session closures', hosts
+
           it 'should add test class to store key info in backends' do
            default_yaml_file = File.join( '/etc/puppetlabs/code/environments',
                env, 'data', 'default.yaml')
