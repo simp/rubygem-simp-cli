@@ -40,7 +40,7 @@ module Simp::Cli::Config
       # support for highline.
       # TODO: Override #query using Highline's #gather?
       q.default  = q.default.join( " " ) if q.default.is_a? Array
-      q.question = "#{instructions}\n#{q.question}"
+      q.template = "#{instructions}\n#{q.template}"
       q
     end
 

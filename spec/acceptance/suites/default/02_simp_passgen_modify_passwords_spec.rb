@@ -1,5 +1,4 @@
 require 'spec_helper_acceptance'
-require 'timeout'
 
 # global variable to hold results from an example for comparison in
 # later examples
@@ -165,33 +164,47 @@ describe 'simp passgen modify existing passwords' do
       end # context 'Password auto-regeneration' do
 
       context 'Password input by user' do
+        let(:name) { 'passgen_test_c0_8'  }
+        let(:expect_script) { '/usr/local/bin/change_password_script' }
+        let(:script_content) {
+          <<~EOM
+            #!/usr/bin/expect -f
+            set pname [lindex $argv 0]
+            set penv [lindex $argv 1]
+            set pass  [lindex $argv 2]
+            set timeout 30
+
+            spawn /bin/simp passgen set $pname -e $penv
+
+            # wait for initial password prompt
+            expect "*Enter password"
+            send "$pass\r"
+
+            # wait for password re-prompt
+            expect "Confirm password"
+            send "$pass\r"
+
+            # wait for confirmation password was set
+            expect "new password: $pass"
+
+            catch wait result
+            exit [lindex $result 3]
+          EOM
+        }
+
         include_examples 'workaround beaker ssh session closures', hosts
 
+        it 'should install expect and the expect script for password change' do
+          host.install_package('expect')
+          create_remote_file(host, expect_script, script_content)
+          on(host, "chmod +x #{expect_script}")
+        end
+
+
         it 'should accept user entered password' do
-          require 'timeout'
-          # Just spot check one name for this test:
-          #  passgen_test_c0_8 - complexity 0, length 8
-          stdin = "password\n"*2
-          cmd = "simp passgen set passgen_test_c0_8 -e #{env}"
-          retries = 3
-          begin
-            # sometimes :pty + :stdin doesn't work properly...the text in :stdin
-            # doesn't appear to be sent
-            Timeout::timeout(20) do
-              set_result = on(host, cmd, { :pty => true, :stdin => stdin }).stdout
-              new_password = set_result.match(/.*new password: (.*)/)[1]
-              expect(new_password).to eq('password')
-              saved_latest_passwords['passgen_test_c0_8'] = 'password'
-            end
-          rescue Timeout::TimeoutError => e
-            retries -= 1
-            if retries < 0
-              fail('Failed to set password simulating user input')
-            else
-              puts 'Password set simulating user input failed. Retrying'
-              retry
-            end
-          end
+          new_password = 'password'
+          on(host, "#{expect_script} #{name} #{env} #{new_password}" )
+          saved_latest_passwords[name] = new_password
         end
       end
 

@@ -1,13 +1,14 @@
 # The testing matrix considers ruby/puppet versions supported by SIMP and PE:
 #
-# https://puppet.com/docs/pe/2019.0/component_versions_in_recent_pe_releases.html
+# https://puppet.com/docs/pe/2019.8/component_versions_in_recent_pe_releases.html
 # https://puppet.com/misc/puppet-enterprise-lifecycle
 # https://puppet.com/docs/pe/2018.1/overview/getting_support_for_pe.html
 # ------------------------------------------------------------------------------
 # Release       Puppet   Ruby   EOL
-# SIMP 6.3      5.5.16   2.4.5  TBD***
-# PE 2018.1     5.5.16   2.4.5  2020-05 (LTS)***
-# PE 2019.0     6.0      2.5.1  2019-08-31^^^
+# SIMP 6.4      5.5      2.4.10 TBD***
+# SIMP 6.5      6.18     2.5.8
+# PE 2018.1     5.5      2.4.10 2021-01
+# PE 2019.8.1   6.17     2.5.8  2021-11 (LTS)
 #
 # *** = Modules created for SIMP 6.3+ are not required to support Puppet < 5.5
 ---
@@ -69,10 +70,10 @@ variables:
     BEAKER_PUPPET_COLLECTION: 'puppet5'
     MATRIX_RUBY_VERSION: '2.4'
 
-.pup_5_5_16: &pup_5_5_16
+.pup_5_5_20: &pup_5_5_20
   image: 'ruby:2.4'
   variables:
-    PUPPET_VERSION: '5.5.16'
+    PUPPET_VERSION: '5.5.20'
     BEAKER_PUPPET_COLLECTION: 'puppet5'
     MATRIX_RUBY_VERSION: '2.4'
 
@@ -82,6 +83,14 @@ variables:
     PUPPET_VERSION: '~> 6.0'
     BEAKER_PUPPET_COLLECTION: 'puppet6'
     MATRIX_RUBY_VERSION: '2.5'
+
+.pup_6_18_0: &pup_6_18_0
+  image: 'ruby:2.5'
+  variables:
+    PUPPET_VERSION: '6.18.0'
+    BEAKER_PUPPET_COLLECTION: 'puppet6'
+    MATRIX_RUBY_VERSION: '2.5'
+
 
 # Testing Environments
 #-----------------------------------------------------------------------
@@ -126,33 +135,35 @@ pup5-unit:
   <<: *pup_5
   <<: *unit_tests
 
-pup5.5.16-unit:
-  <<: *pup_5_5_16
+pup5.5.20-unit:
+  <<: *pup_5_5_20
   <<: *unit_tests
 
 pup6-unit:
   <<: *pup_6
   <<: *unit_tests
 
+pup6.18.0-unit:
+  <<: *pup_6_18_0
+  <<: *unit_tests
+
+
 # Acceptance tests
 # ==============================================================================
-pup5.5.16:
-  <<: *pup_5_5_16
+pup5.5.20:
+  <<: *pup_5_5_20
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[default,default]'
 
-# Re-enable after SIMP-8406 and SIMP-7305 are fixed. We don't even
-# want to run with allowed failure, because the attempt to reconnect
-# after reboot during FIPS setup can take more than an hour to timeout!
-#pup5.5.16-fips:
-#  <<: *pup_5_5_16
-#  <<: *acceptance_base
-#  script:
-#    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,default]'
+pup5.5.20-fips:
+  <<: *pup_5_5_20
+  <<: *acceptance_base
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,default]'
 
-pup5.5.16_simp_kv:
-  <<: *pup_5_5_16
+pup5.5.20_simp_kv:
+  <<: *pup_5_5_20
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[simp_kv,default]'
@@ -163,14 +174,11 @@ pup6:
   script:
     - 'bundle exec rake beaker:suites[default,default]'
 
-# Re-enable after SIMP-8406 and SIMP-7305 are fixed. We don't even
-# want to run with allowed failure, because the attempt to reconnect
-# after reboot during FIPS setup can take more than an hour to timeout!
-#pup6-fips:
-#  <<: *pup_6
-#  <<: *acceptance_base
-#  script:
-#    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,default]'
+pup6-fips:
+  <<: *pup_6
+  <<: *acceptance_base
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,default]'
 
 pup6_simp_kv:
   <<: *pup_6

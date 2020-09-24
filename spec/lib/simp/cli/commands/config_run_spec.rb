@@ -1,6 +1,8 @@
 require 'simp/cli/commands/config'
 
 require_relative 'config_spec_helper'
+require 'test_utils/string_io'
+
 require 'fileutils'
 require 'set'
 require 'spec_helper'
@@ -47,10 +49,9 @@ describe 'Simp::Cli::Command::Config#run' do
       allow(Facter).to receive(:value).with(fact_name).and_return(facts[fact_name])
     end
 
-    @input = StringIO.new
-    @output = StringIO.new
-    @prev_terminal = $terminal
-    $terminal = HighLine.new(@input, @output)
+    @input = TestUtils::StringIO.new
+    @output = TestUtils::StringIO.new
+    HighLine.default_instance = HighLine.new(@input, @output)
     @answers_output_file = File.join(@tmp_dir, 'simp_conf.yaml')
     @puppet_system_file = File.join(@tmp_dir, 'simp_config_settings.yaml')
     @log_file = File.join(@tmp_dir, 'simp_config.log')
@@ -61,7 +62,7 @@ describe 'Simp::Cli::Command::Config#run' do
   after :each do
     @input.close
     @output.close
-    $terminal = @prev_terminal
+    HighLine.default_instance = HighLine.new
     FileUtils.remove_entry_secure @tmp_dir, true
     Facter.reset  # make sure this test's facts don't affect other tests
   end

@@ -2,20 +2,225 @@
 
 Below is a complete listing of changes for each revision of HighLine.
 
-### 1.7.8 / 2015-10-09
-* Fix some issues when paginating. (Nick Carboni (@carbonin) and Abinoam P. Marques Jr. (@abinoam), #168, PRs #169 #170)
+### 2.0.3 / 2019-10-11
+* PR #245 - Suppress `Psych.safe_load` arg warn (@koic)
 
-### 1.7.7 / 2015-09-22
-* Make HighLine::Question coerce its question argument into a String. (@97-109-107 and Abinoam P. Marques Jr. (@abinoam), #159, PR #160)
+### 2.0.2 / 2019-04-08
+* PR #243 - Add new capital_letter option to menu index (@Ana06)
+  * This is a really special PR. It has come from "The Biggest
+    Mobprogramming Session Ever" and around 250 people
+    participated in crafting it!
+* PR #241 - CI: Add 2.6 (@olleolleolle)
+* PR #240 - Avoid YARD warning UnknownParam (@olleolleolle)
 
-### 1.7.6 / 2015-09-17
-* Fix a typo in a var name affecting solaris. (Danek Duvall (@dhduvall) and Abinoam P. Marques Jr. (@abinoam), #155, PR #156)
+### 2.0.1 / 2019-01-23
+* PR #238 / I #237 - Rescue Errno::ENOTTY when pipeing
 
-### 1.7.5 / 2015-09-14
-* Support jruby9k for system extensions (Michael (@mmmries), PR #153)
+### 2.0.0 / 2018-06-10
+* Release 2.0.0 (major version release).
 
-### 1.7.4 / 2015-06-16
-* Workaround on #55 for stty
+### 2.0.0-develop.16 / 2018-05-12
+* PR #231 - Deprecate safe_level of ERB.new in Ruby 2.6 (@koic)
+* PR #230 - Fix behavior when shell and gather options are selected together
+
+### 2.0.0-develop.15 / 2017-12-28
+* PR #229 - Update .travis.yml. Add Ruby 2.5 to matrix (@abinoam)
+
+### 2.0.0-develop.14 / 2017-11-21
+* PR #222 / I #221 - Fix inconsistent behaviour when using agree with readline (@abinoam, @ailisp)
+
+### 2.0.0-develop.13 / 2017-11-05
+* PR #219 - Make possible to use a callable as response (@abinoam)
+
+### 2.0.0-develop.12 / 2017-10-19
+* PR #218 - Ease transition from 1.7.x to 2.0.x (@abinoam)
+  * Copy use_color from HighLine.default_instance
+  * Expose IOConsoleCompatible
+* PR #216 - Update .appveyor.yml - Fix Windows CI (@abinoam)
+
+### 2.0.0-develop.11 / 2017-09-25
+* PR #215 - Apply several Rubocop stylistic suggestions (@abinoam)
+  * Update gemspec/Gemfile to newer standards
+  * Update travis configuration fixing 1.9 problem
+  * Adjust .rubocop.yml with things we don't want to change
+
+### 2.0.0-develop.10 / 2017-06-29
+* PR #214 - Remove `$terminal` (global variable) (@abinoam)
+  * Use HighLine.default_instance instead
+  * Reorganize/Group code at lib/highline.rb
+
+### 2.0.0-develop.9 / 2017-06-24
+
+* PR #211 / PR #212 - HighLine#use_color= and use_color? as instance methods (@abinoam, @phiggins)
+* PR #203 / I #191 - Default values are shown in menus by Frederico (@fredrb)
+* PR #201 / I #198 - Confirm in question now accepts Proc (@mmihira)
+* PR #197 - Some HighLine::Menu improvements
+  * Move Menu::MenuItem to Menu::Item with its own file
+  * Some small refactorings
+
+### 2.0.0-develop.8 / 2016-06-03
+
+* PR #195 - Add PRONTO to development group at Gemfile by Abinoam Jr. (@abinoam)
+
+### 2.0.0-develop.7 / 2016-05-31
+
+* PR #194 - Indices coloring on HighLine::Menu by Aregic (@aregic)
+* PR #190 - Add Ruby 2.3.0 to travis matrix by Koichi (@koic/ruby-23)
+* PR #189 - Improve #agree tests by @kevinoid
+
+### 2.0.0-develop.6 / 2016-02-01
+
+* PR #184 - Menu improvements, bug fixes, and more tests by Geoff Lee (@matrinox)
+  * Add third arg to menu that overides the choice displayed to the user
+  * FIX: autocomplete prompt does not include menu choices after the first
+  * Add specs to cover the new features and the bug fix
+* PR #183 - Fix menu example in README.md by Fabien Foerster (@fabienfoerster)
+
+### 2.0.0-develop.5 / 2015-12-27
+
+* Fix #180 with PR #181 - Make it possible to overwrite the menu prompt shown on errors.
+
+### 2.0.0-develop.4 / 2015-12-14
+
+This versions makes the code documentation 100% 'A' grade on inch.
+We have used inch and http://inch-ci.org to guide the priorities
+on documentation production.
+
+The grade 'A' (on inch) number of objects on master branch was 44,22% (153/346).
+After this PR we have a 100% grade 'A' (344 objects).
+
+There's already a inch-ci.org badge on README.md. And now it's all green!
+
+We also bring some improvement on CodeClimate scores.
+
+#### CHANGES SUMMARY
+
+* PR #179 - Make inch happy. Grade "A" for the whole HighLine documentation. By Abinoam Jr. (@abinoam)
+* PR #178 - Improve score on Code Climate by applying some refactoring. By Abinoam Jr. (@abinoam)
+* PR #172 - Initial work on documentation by Abinoam Jr. (@abinoam)
+  * Use yard
+  * Use inch
+  * New Readme file
+* Fix #166 with PR #173 by (@matugm)
+
+
+### 2.0.0-develop.3 / 2015-10-28
+
+This version brings some improvements on documentation (switch to Yardoc).
+This is the first 2.0.0-develop.x version to be release as gem.
+
+### 2.0.0-develop.2 / 2015-09-09
+
+(by Abinoam P. Marques Jr. - @abinoam)
+
+#### NOTES
+
+This version brings greater compatibility with JRuby and Windows.
+But we still have a lot of small issues in both platforms.
+We were able to unify/converge all approaches into using io/console,
+so we could delete old code that relied solely on stty, termios, java api and
+windows apis (DL and Fiddle).
+
+Another improvement is the beginning of what I called "acceptance tests".
+If you type ```rake acceptance``` you'll be guided through some tests
+where you have to input some thing and see if everything work as expected.
+This makes easier to catch bugs that otherwise would be over-sighted.
+
+#### CHANGES SUMMARY
+
+* Fix Simplecov - it was reporting erroneous code coverage
+* Add new tests. Improves code coverage
+* Extract HighLine::BuiltinStyles
+* Try to avoid nil checking
+* Try to avoid class variables (mis)use
+* Fix RDoc include path and some small fixes to the docs
+* Move HighLine::String to its own file
+* Add HighLine::Terminal::IOConsole
+  - Add an IOConsoleCompatibility module with some stubbed
+    methods for using at StringIO, File and Tempfile to help
+    on tests.
+  - Any enviroment that can require 'io/console' will
+    use HighLine::Terminal::IOConsole by default. This kind
+    of unifies most environments where HighLine runs. For
+    example, we can use Terminal::IOConsole on JRuby!!!
+* Add ruby-head and JRuby (19mode and head) to Travis CI matrix. Yes, this
+  our first step to a more peaceful JRuby compatibility.
+* Add AppVeyor Continuous Integration for Windows
+* Add _acceptance_ tests for HighLine
+  - Use ```rake acceptance``` to run them
+  - Basically it interactively asks the user to confirm if
+    some expected HighLine behavior is actually happening.
+    After that it gather some environment debug information,
+    so the use could send to the HighLine contributors in case
+    of failure.
+* Remove old and unused files (as a result of relying on io/console)
+  - JRuby
+  - Windows (DL and Fiddle)
+  - Termios
+* Fix some small (old and new) bugs
+* Make some more tuning for Windows compatibility
+* Make some more tuning for JRuby compatibility
+
+### 2.0.0-develop.1 / 2015-06-11
+
+This is the first development version of the 2.0.0 series. It's the begining of a refactoring phase on HighLine development cycle.
+
+#### SOME HISTORY
+
+In 2014 I emailed James Edward Gray II (@JEG2) about HighLine. One of his ideas was to completely refactor the library so that it could be easier to reuse and improve it. I've began my contributions to HighLine trying to fix some of the open issues at that time so that we could "freeze" a stable version of HighLine that people could rely on. Then I've began to study HighLine source code with James' help and started to refactor some parts of the code. Abinoam P. Marques Jr. (@abinoam)
+
+#### NOTES
+
+* This release differs from current master branch by more than 180 commits.
+* The main changes will be only summarized bellow (as there are many, and a detailed description of each is not productive).
+* You could try `git log -p` to see all of them.
+* During the last commits, all possible efforts were taken to preserve the tests passing status.
+* 100% test passing gives you no guarantee that this new version will work for you. This happens for many reasons. One of them is that we don't currently have 100% test coverage.
+* So, this version is not suitable for use in production.
+* [Metric_fu](https://github.com/metricfu/metric_fu) and [Code Climate](https://codeclimate.com/github/abinoam/highline) were used here not to strictly "guide" what should be changed, but to have some way to objectively measure the progresses made so far.
+
+#### CHANGES SUMMARY
+* Extracted a lot of smaller methods from bigger ones
+* Extracted smaller classes/modules from bigger ones, so they could be self contained with less external dependencies as possible, for example:
+  * HighLine::Statement
+  * HighLine::List
+  * HighLine::ListRenderer
+  * HighLine::TemplateRenderer
+  * HighLine::Question::AnswerConverter
+  * HighLine::Terminal
+  * HighLine::Terminal::UnixStty
+  * HighLine::Paginator
+  * HighLine::Wrapper
+* After extracting each class/module some refactoring were applied to them lowering code complexity
+
+#### METRICS SUMMARY
+Some of the metrics used to track progress are summarized bellow. Some of them have got a lot better as Flay, Flog and Reek, others like Cane haven't (probably because we didn't commented out the new code yet)
+
+__CODECLIMATE__
+
+* GPA: 3.60 -> 3.67 (higher is better)
+
+__CANE__ - reports code quality threshold violations (lower is better)
+
+* Total 92 -> 105
+  * Methods exceeding allowed Abc complexity: 14 -> 10
+  * Lines violating style requirements: 69 -> 72
+  * Class definitions requiring comments: 9 -> 23
+
+__FLAY__ - analyzes ruby code for structural similarities (code duplication - lower is better)
+
+* Total: 490 -> 94
+
+__FLOG__ - measures code complexity (lower is better)
+
+* Top 5% average: 127.9458 -> 40.99812
+* Average: 17.37982 -> 7.663875
+* Total: 2158.5 -> 1969.6
+
+__REEK__ - detects common code smells in ruby code (lower is better)
+
+* DuplicateMethodCall: 144 -> 54
+* TooManyStatements: 26 -> 30
 
 ### 1.7.3 / 2015-06-29
 * Add HighLine::Simulator tests (Bala Paranj (@bparanj) and Abinoam Marques Jr. (@abinoam), #142, PR #143)
@@ -385,7 +590,7 @@ Patch by Jeremy Hinegardner:
   HighLine's own cross-platform terminal input routine.
 * Improved type conversion to handle user defined classes.
 
-### 0.2.0
+### 0.2.0 / 2005-04-29
 
 * Added Unit Tests to cover an already fixed output bug in the future.
 * Added Rakefile and setup test action (default).

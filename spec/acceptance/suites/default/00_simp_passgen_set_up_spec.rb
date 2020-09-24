@@ -6,6 +6,7 @@ describe 'simp passgen set up' do
 
   context 'Puppet master set up' do
     hosts.each do |host|
+      include_examples 'configure sshd', host
       include_examples 'fixtures move', host
 
       include_examples 'workaround beaker ssh session closures', hosts

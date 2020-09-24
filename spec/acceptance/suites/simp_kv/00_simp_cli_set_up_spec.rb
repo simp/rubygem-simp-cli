@@ -6,6 +6,7 @@ describe 'simp cli set up' do
 
   hosts.each do |host|
     context 'Puppet master set up' do
+      include_examples 'configure sshd', host
       include_examples 'fixtures move', host
 
       include_examples 'workaround beaker ssh session closures', hosts
