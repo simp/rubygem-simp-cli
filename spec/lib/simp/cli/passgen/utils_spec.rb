@@ -1,20 +1,20 @@
 require 'simp/cli/passgen/utils'
 require 'spec_helper'
 require 'test_utils/mock_logger'
+require 'test_utils/string_io'
 
 describe Simp::Cli::Passgen::Utils do
   describe '.get_password' do
     before :each do
-      @input = StringIO.new
-      @output = StringIO.new
-      @prev_terminal = $terminal
-      $terminal = HighLine.new(@input, @output)
+      @input = TestUtils::StringIO.new
+      @output = TestUtils::StringIO.new
+      HighLine.default_instance = HighLine.new(@input, @output)
     end
 
     after :each do
       @input.close
       @output.close
-      $terminal = @prev_terminal
+      HighLine.default_instance = HighLine.new
     end
 
     let(:password1) { 'A=V3ry=Go0d=P@ssw0r!' }

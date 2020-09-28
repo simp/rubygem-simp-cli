@@ -49,8 +49,7 @@ describe Simp::Cli::Logging do
 
     @input = StringIO.new("\n")
     @output = StringIO.new
-    @prev_terminal = $terminal
-    $terminal = HighLine.new(@input, @output)
+    HighLine.default_instance = HighLine.new(@input, @output)
   end
 
   after :each do
@@ -58,7 +57,7 @@ describe Simp::Cli::Logging do
 
     @input.close
     @output.close
-    $terminal = @prev_terminal
+    HighLine.default_instance = HighLine.new
   end
 
   describe 'log to console and file allowing error and above log messages' do

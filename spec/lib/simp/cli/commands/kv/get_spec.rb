@@ -9,8 +9,7 @@ describe Simp::Cli::Commands::Kv::Get do
     # expose HighLine input and output for test validation
     @input = StringIO.new
     @output = StringIO.new
-    @prev_terminal = $terminal
-    $terminal = HighLine.new(@input, @output)
+    HighLine.default_instance = HighLine.new(@input, @output)
 
     @kv = Simp::Cli::Commands::Kv::Get.new
   end
@@ -18,7 +17,7 @@ describe Simp::Cli::Commands::Kv::Get do
   after :each do
     @input.close
     @output.close
-    $terminal = @prev_terminal
+    HighLine.default_instance = HighLine.new
   end
 
   describe '#help' do

@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# encoding: utf-8
 
 # asking_for_arrays.rb
 #
@@ -9,8 +10,11 @@ require "rubygems"
 require "highline/import"
 require "pp"
 
-grades = ask( "Enter test scores (or a blank line to quit):",
-              lambda { |ans| ans =~ /^-?\d+$/ ? Integer(ans) : ans} ) do |q|
+puts "Using: #{HighLine.default_instance.class}"
+puts
+
+grades = ask("Enter test scores (or a blank line to quit):",
+             ->(ans) { ans =~ /^-?\d+$/ ? Integer(ans) : ans }) do |q|
   q.gather = ""
 end
 

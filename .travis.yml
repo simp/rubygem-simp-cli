@@ -31,7 +31,7 @@ jobs:
   include:
     - stage: check
       name: 'Syntax, style, and validation checks'
-      rvm: 2.4.5
+      rvm: 2.4.9
       script:
         - bundle exec rake pkg:compare_latest_tag
         - bundle exec rake pkg:create_tag_changelog
@@ -40,7 +40,7 @@ jobs:
     # Test with Ruby versions packaged with standard Puppet All-in-one installs
     - stage: spec
       name: 'Ruby packaged with Puppet 5.x'
-      rvm: 2.4.5
+      rvm: 2.4.9
       env:
         - PUPPET_VERSION="~> 5.5"
         - SIMP_SKIP_NON_SIMPOS_TESTS=1
@@ -49,7 +49,7 @@ jobs:
 
     - stage: spec
       name: 'Ruby packaged with Puppet 6.x'
-      rvm: 2.5.1
+      rvm: 2.5.8
       env:
         - PUPPET_VERSION="~> 6.0"
         - SIMP_SKIP_NON_SIMPOS_TESTS=1
@@ -57,7 +57,7 @@ jobs:
         - bundle exec rake spec
 
     - stage: deploy
-      rvm: 2.4.5
+      rvm: 2.4.9
       script:
         - true
       before_deploy:

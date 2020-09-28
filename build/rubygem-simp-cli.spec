@@ -3,7 +3,7 @@
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
 %global cli_version 6.0.2
-%global highline_version 1.7.8
+%global highline_version 2.0.3
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
 # unless this line is present:
@@ -134,6 +134,7 @@ EOM
   proceed because the environment to configure already exists.
 - Fixed a bug in `simp environment new` in which the actual failure
   messages from a failed `setfacl --restore` execution are not logged.
+- Updated HighLine from version 1.7.8 to 2.0.3.
 
 * Tue Sep 01 2020 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.0.1
 - In Rakefile check if task spec_standalone exists before trying to

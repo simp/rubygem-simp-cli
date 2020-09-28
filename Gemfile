@@ -13,9 +13,7 @@ gem 'puppet', ENV.fetch('PUPPET_VERSION',  '~>5')
 gem 'rake'
 gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', ['>= 5.6', '< 6.0'])
 
-#FIXME SIMP-8406
-#gem 'simp-beaker-helpers', ENV['SIMP_BEAKER_HELPERS_VERSION'] || ['>= 1.18.7', '< 2']
-gem 'simp-beaker-helpers', ENV.fetch('SIMP_BEAKER_HELPERS_VERSION', '~> 1.12')
+gem 'simp-beaker-helpers', ENV['SIMP_BEAKER_HELPERS_VERSION'] || ['>= 1.18.7', '< 2']
 gem 'r10k', ENV.fetch('R10k_VERSION',  '~>3')
 
 # FIXME Use released version when available.  This version has more robust

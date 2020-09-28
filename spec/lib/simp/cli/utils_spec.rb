@@ -163,14 +163,13 @@ describe Simp::Cli::Utils do
     before :each do
       @input = StringIO.new
       @output = StringIO.new
-      @prev_terminal = $terminal
-      $terminal = HighLine.new(@input, @output)
+      HighLine.default_instance = HighLine.new(@input, @output)
     end
 
     after :each do
       @input.close
       @output.close
-      $terminal = @prev_terminal
+      HighLine.default_instance = HighLine.new
     end
 
     it "when default_yes=true, prompts, accepts default of 'yes' and " +

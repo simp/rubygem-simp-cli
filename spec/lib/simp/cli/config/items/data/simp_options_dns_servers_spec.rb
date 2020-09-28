@@ -80,14 +80,13 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
       before do
         @input = StringIO.new("\n")
         @output = StringIO.new
-        @prev_terminal = $terminal
-        $terminal = HighLine.new(@input, @output)
+        HighLine.default_instance = HighLine.new(@input, @output)
       end
 
       after do
         @input.close
         @output.close
-        $terminal = @prev_terminal
+        HighLine.default_instance = HighLine.new
       end
 
       it 'handles a single nameserver' do

@@ -26,8 +26,7 @@ describe Simp::Cli::Commands::Passgen::Remove do
     # expose HighLine input and output for test validation
     @input = StringIO.new
     @output = StringIO.new
-    @prev_terminal = $terminal
-    $terminal = HighLine.new(@input, @output)
+    HighLine.default_instance = HighLine.new(@input, @output)
 
     allow(Simp::Cli::Utils).to receive(:puppet_info).and_return(puppet_info)
     @remover = Simp::Cli::Commands::Passgen::Remove.new
@@ -39,7 +38,7 @@ describe Simp::Cli::Commands::Passgen::Remove do
   after :each do
     @input.close
     @output.close
-    $terminal = @prev_terminal
+    HighLine.default_instance = HighLine.new
     FileUtils.remove_entry_secure @tmp_dir, true
   end
 

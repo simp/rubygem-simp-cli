@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
 
   # gem dependencies
   #   for the published gem
-  s.add_runtime_dependency 'highline', '> 1.6.1', '< 1.8'
+  s.add_runtime_dependency 'highline', '>= 2.0.0', '< 3.0'
 
   #### NOTE: SIMP_RPM_BUILD
   ###
@@ -47,7 +47,7 @@ Gem::Specification.new do |s|
     ENV.fetch( 'SIMP_RPM_BUILD', false ) || \
     ENV.fetch( 'SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION', false ) =~  /yes|true/
   )
-    s.add_runtime_dependency 'puppet',   '>= 4.10', '< 7'
+    s.add_runtime_dependency 'puppet',   '>= 5.5', '< 7'
   end
   #### ------------
 

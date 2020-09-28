@@ -7,9 +7,12 @@ require 'rspec/core/rake_task'
 require 'rubygems'
 require 'simp/rake'
 require 'simp/rake/beaker'
+require 'simp/rake/ci'
 require 'simp/cli/version'
 
+# Create pkg:* and simp:ci_* Rake tasks
 Simp::Rake::Pkg.new(File.dirname(__FILE__))
+Simp::Rake::Ci.new(File.dirname(__FILE__))
 
 @package='simp-cli'
 @rakefile_dir=File.dirname(__FILE__)
@@ -27,7 +30,7 @@ Find.find( @rakefile_dir ) do |path|
   end
 end
 
-# Acceptance Tests
+# Create beaker:* acceptance test Rake tasks
 Simp::Rake::Beaker.new(File.dirname(__FILE__))
 
 desc 'Ensure gemspec-safe permissions on all files'
@@ -53,10 +56,7 @@ SIMP_RPM_BUILD     when set, alters the gem produced by pkg:gem to be RPM-safe.
   }
 end
 
-# This project has unit tests in nonstandard locations, so redefine the
-# underlying Rake task to pick up its tests
-Rake::Task[:spec_standalone].clear if Rake::Task.task_defined?(:spec_standalone)
-RSpec::Core::RakeTask.new(:spec_standalone) do |t|
+RSpec::Core::RakeTask.new(:spec) do |t|
   t.rspec_opts = ['--color']
   t.exclude_pattern = '**/{acceptance,fixtures,files}/**/*_spec.rb'
   t.pattern = 'spec/{lib,bin}/**/*_spec.rb'
@@ -84,18 +84,20 @@ namespace :pkg do
     gem_dirs.each do |gem_dir|
       Dir.chdir gem_dir do
         Dir['*.gemspec'].each do |spec_file|
+          # highline optional (development-related) gems require cmake, so
+          # exclude them in the bundle
+          opts = (File.basename(gem_dir) == 'highline') ? '--without=code_quality' : ''
           cmd = %Q{SIMP_RPM_BUILD=1 bundle exec gem build "#{spec_file}" &> /dev/null}
-
-         if ::Bundler.respond_to?(:with_unbundled_env)
+          if ::Bundler.respond_to?(:with_unbundled_env)
             # Use Bundler 2.x API
             ::Bundler.with_unbundled_env do
-              %x{bundle install}
+              %x{bundle install #{opts}}
               sh cmd
             end
           else
             # Use deprecated Bundler 1.x API
             ::Bundler.with_clean_env do
-              %x{bundle install}
+              %x{bundle install #{opts}}
               sh cmd
             end
           end
