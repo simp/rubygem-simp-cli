@@ -15,20 +15,20 @@ HOSTS:
     platform: el-6-x86_64
     box: centos/6
     hypervisor: <%= hypervisor %>
-    vagrant_memsize: 4608
-    vagrant_cpus: 2
-
   el7:
     roles:
       - client
     platform: el-7-x86_64
     box: centos/7
     hypervisor: <%= hypervisor %>
-    vagrant_memsize: 4608
-    vagrant_cpus: 2
 
 CONFIG:
   log_level: verbose
+  vagrant_memsize: 4608
+  vagrant_cpus: 2
+  ssh:
+    keepalive: true
+    keepalive_interval: 1
   synced_folder : disabled
   type: aio
 

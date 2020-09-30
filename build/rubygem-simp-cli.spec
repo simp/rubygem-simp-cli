@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 6.0.2
+%global cli_version 6.0.3
 %global highline_version 2.0.3
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,6 +129,12 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Sep 30 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.0.3
+- Fixed a bug where 'simp config' recommended the wrong SSSD domain,
+  when the SIMP server was not the LDAP server.  It recommended the
+  'Local' domain, when the appropriate SIMP-created domain with the
+  'local' (EL6) or 'files' (EL7) provider is 'LOCAL'.
+
 * Thu Sep 10 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.0.2
 - Fixed a typo in an error message emitted when 'simp config' cannot
   proceed because the environment to configure already exists.
@@ -177,7 +183,6 @@ EOM
     - '--[no-]complex-only': Whether to only use only complex characters
       when a password is auto-generated. Corresponds to the complex_only
       option of simplib::passgen.
-      key/value store.
     - '--[no-]validate': Enabled validation of new passwords with
       libpwquality/cracklib.
     - '--length': Password length to use when a password is auto-generated.

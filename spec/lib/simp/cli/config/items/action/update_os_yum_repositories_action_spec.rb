@@ -3,7 +3,7 @@ require 'rspec/its'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
-  context "in a SIMP directory structure" do
+  context 'in a SIMP directory structure' do
     before :each do
       @files_dir   = File.expand_path( 'files', File.dirname( __FILE__ ) )
       @tmp_dir     = Dir.mktmpdir( File.basename( __FILE__ ) )
@@ -17,6 +17,14 @@ describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
       @ci.www_yum_dir = @tmp_yum_dir
       @ci.yum_repos_d = @tmp_repos_d
       @ci.silent      =  true  # comment out this line to see log output
+
+      chown_cmd = "chown -R root:apache #{@tmp_yum_dir}/"
+      allow(@ci).to receive(:execute).with(any_args).and_call_original
+      allow(@ci).to receive(:execute).with(chown_cmd).and_return(true)
+    end
+
+    after :each do
+      FileUtils.remove_entry_secure @tmp_dir
     end
 
     describe '#apply' do
@@ -34,7 +42,7 @@ describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
                                      @fake_facts['operatingsystemrelease'],
                                      @fake_facts['architecture']
                                    )
-        FileUtils.remove_entry_secure @yum_dist_dir if File.exists? @yum_dist_dir
+
         FileUtils.mkdir_p @yum_dist_dir
       end
 
@@ -59,12 +67,11 @@ describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
 
       after :each do
         @fake_facts.each{ |k,v| ENV.delete "FACTER_#{k}" }
-        FileUtils.remove_entry_secure @tmp_dir
       end
     end
   end
 
-  context "not in SIMP directory structure" do
+  context 'not in SIMP directory structure' do
     before :each do
       @tmp_dir     = Dir.mktmpdir( File.basename( __FILE__ ) )
       @tmp_yum_dir = File.expand_path( 'yum',   @tmp_dir )
@@ -75,6 +82,10 @@ describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
       @ci.www_yum_dir = @tmp_yum_dir
       @ci.yum_repos_d = @tmp_repos_d
       @ci.silent      =  true  # comment out this line to see log output
+
+      chown_cmd = "chown -R root:apache #{@tmp_yum_dir}/"
+      allow(@ci).to receive(:execute).with(any_args).and_call_original
+      allow(@ci).to receive(:execute).with(chown_cmd).and_return(true)
     end
 
     after :each do
@@ -97,42 +108,34 @@ describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
                                    )
       end
 
-      it "fails when yum OS/REL/ARCH dir does not exist" do
+      it 'fails when yum OS/REL/ARCH dir does not exist' do
         @ci.apply
         expect( @ci.applied_status ).to eq(:failed)
         expect( @ci.apply_summary ).to eq 'Setup of local system (OS) YUM repositories for SIMP failed'
       end
 
-      it "fails when yum OS/REL/ARCH dir cannot be accessed" do
+      it 'fails when yum OS/REL/ARCH dir cannot be accessed' do
         FileUtils.mkdir_p @yum_dist_dir
         FileUtils.chmod 0444, @yum_dist_dir
         @ci.apply
         expect( @ci.applied_status ).to eq(:failed)
       end
 
-      it "fails when yum Updates dir cannot be created due to permissions" do
+      it 'fails when yum Updates dir cannot be created due to permissions' do
         FileUtils.mkdir_p @yum_dist_dir
         FileUtils.chmod 0555, @yum_dist_dir
         @ci.apply
         expect( @ci.applied_status ).to eq(:failed)
       end
 
-      it "fails when yum Updates dir cannot be created because a file named Updates exists" do
+      it 'fails when yum Updates dir cannot be created because a file named Updates exists' do
         FileUtils.mkdir_p @yum_dist_dir
         FileUtils.touch File.join(@yum_dist_dir, 'Updates')
         @ci.apply
         expect( @ci.applied_status ).to eq(:failed)
       end
 
-      it "fails when yum Updates dir cannot be accessed" do
-        updates_dir = File.join(@yum_dist_dir, 'Updates')
-        FileUtils.mkdir_p updates_dir
-        FileUtils.chmod 0000, updates_dir
-        @ci.apply
-        expect( @ci.applied_status ).to eq(:failed)
-      end
-
-      it "fails when yum.repos.d does not exist" do
+      it 'fails when yum.repos.d does not exist' do
         FileUtils.mkdir_p @yum_dist_dir
         FileUtils.rm_rf @tmp_repos_d
         @ci.apply
@@ -140,14 +143,7 @@ describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
         expect( @ci.apply_summary ).to eq 'Setup of local system (OS) YUM repositories for SIMP failed'
       end
 
-      it "fails when yum.repos.d cannot be accessed" do
-        FileUtils.mkdir_p @yum_dist_dir
-        FileUtils.chmod 0000, @tmp_repos_d
-        @ci.apply
-        expect( @ci.applied_status ).to eq(:failed)
-      end
-
-      it "fails when yum.repos.d is not a directory" do
+      it 'fails when yum.repos.d is not a directory' do
         FileUtils.mkdir_p @yum_dist_dir
         FileUtils.rm_rf @tmp_repos_d
         FileUtils.touch File.join(@tmp_dir, 'yum.repos.d')
@@ -174,7 +170,7 @@ describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
     end
   end
 
-  describe "#apply_summary" do
+  describe '#apply_summary' do
     it 'reports unattempted status when #apply not called' do
       ci = Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction.new
       expect( ci.apply_summary ).to eq 'Setup of local system (OS) YUM repositories for SIMP unattempted'

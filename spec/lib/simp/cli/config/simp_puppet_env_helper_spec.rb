@@ -83,27 +83,8 @@ describe Simp::Cli::Config::SimpPuppetEnvHelper do
   describe '#create' do
     # FIXME Need to mock module repos, env skeletons, etc. for OmniEnvController
     #       to do its work, or test this via 'simp config' in an acceptance test
-    pending 'should return new env info after create' do
-      allow(@env_helper).to receive(:get_system_puppet_info).and_return(@system_puppet_info)
-
-      expect( @env_helper.env_status[0] ).to eq :creatable
-
-      env_info = @env_helper.create
-
-      expected = {
-        :puppet_config      => @system_puppet_info[:config],
-        :puppet_group       => 'puppet',
-        :puppet_version     => '5.5.10',
-        :puppet_env         => 'production',
-        :puppet_env_dir     => @puppet_env_dir,
-        :puppet_env_datadir => @puppet_env_datadir, # should be now set instead of nil
-        :secondary_env_dir  => @secondary_env_dir,
-        :writable_env_dir   => @writable_env_dir
-      }
-
-      expect( env_info ).to eq expected
-
-      expect( @env_helper.env_status[0] ).to eq :exists
+    it 'should return new env info after create' do
+      skip('Tested in simp-core acceptance tests')
     end
 
     it 'should backup existing Puppet environment' do
