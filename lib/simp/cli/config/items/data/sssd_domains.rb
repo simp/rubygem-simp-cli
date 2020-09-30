@@ -10,10 +10,13 @@ module Simp::Cli::Config
       @key         = 'sssd::domains'
       @description = %Q{A list of domains for SSSD to use.
 
-* When you are using SIMP-provided LDAP, this field should include `LDAP`,
-  the name of the SSSD domain SIMP creates.
-* Otherwise, this field must be a valid domain ('Local' and/or a custom
-  domain) or the sssd service will fail to start.
+* When you are using SIMP-provided LDAP, this field should include 'LDAP',
+  the name of the SSSD domain SIMP creates with the 'ldap' provider.
+* This field may include 'LOCAL', to use the domain SIMP creates with
+  the 'local' provider for EL6 or the 'files' provider for EL7.
+
+IMPORTANT: For EL < 8, this field *MUST* have a valid domain or the sssd
+service will fail to start.
 }
     end
 
@@ -26,8 +29,11 @@ module Simp::Cli::Config
         # of the domain setup in the `simp` module.
         ['LDAP']
       else
-        # make sure set to something valid, or sssd will not start
-        ['Local']
+        if Facter.value('os')['release']['major'] < "8"
+          ['LOCAL']
+        else
+          []
+        end
       end
     end
 

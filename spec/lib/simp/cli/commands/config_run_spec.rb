@@ -49,6 +49,11 @@ describe 'Simp::Cli::Command::Config#run' do
       allow(Facter).to receive(:value).with(fact_name).and_return(facts[fact_name])
     end
 
+    # Needed to ensure we execute expected decision tree paths
+    iso_repo ='/etc/yum.repos.d/simp_filesystem.repo'
+    allow(File).to receive(:exist?).with(any_args).and_call_original
+    allow(File).to receive(:exist?).with(iso_repo).and_return(false)
+
     @input = TestUtils::StringIO.new
     @output = TestUtils::StringIO.new
     HighLine.default_instance = HighLine.new(@input, @output)

@@ -3,7 +3,6 @@ require 'yaml'
 
 # Create TestUtils::StringIO corresponding to user input for the simp
 # scenario in which the default values are accepted.
-# FIXME:  This input is INCORRECT if /etc/yum.repos.d/simp_filesystem.repo exists.
 def generate_simp_input_accepting_defaults(ask_if_ready = true)
   input_io = TestUtils::StringIO.new
   if ask_if_ready
@@ -40,7 +39,6 @@ end
 # Create TestUtils::StringIO corresponding to user input for the simp_lite
 # scenario in which the most values are set to user-provided values.
 # Exercises LDAP-enabled, but non-LDAP server logic.
-# FIXME:  This input is INCORRECT if /etc/yum.repos.d/simp_filesystem.repo exists.
 def generate_simp_lite_input_setting_values
   input_io = TestUtils::StringIO.new
   input_io                                    <<
@@ -71,7 +69,6 @@ end
 # scenario in which most values are set to user-provided values.
 # Exercises LDAP-disabled and SSSD-disabled logic.
 # via user input.
-# FIXME:  This input is INCORRECT if /etc/yum.repos.d/simp_filesystem.repo exists.
 def generate_poss_input_setting_values
   input_io = TestUtils::StringIO.new
   input_io                <<
