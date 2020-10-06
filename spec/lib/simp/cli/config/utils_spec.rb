@@ -3,6 +3,39 @@ require 'rspec/its'
 require 'spec_helper'
 
 describe Simp::Cli::Config::Utils do
+
+  describe '.validate_domain' do
+    it 'validates good domains' do
+      expect( Simp::Cli::Config::Utils.validate_domain 'test.com').to eq true
+      expect( Simp::Cli::Config::Utils.validate_domain 'test').to eq true
+      expect( Simp::Cli::Config::Utils.validate_domain 't').to eq true
+      expect( Simp::Cli::Config::Utils.validate_domain '0.t-t.0.t').to eq true
+      expect( Simp::Cli::Config::Utils.validate_domain '0-0').to eq true
+      expect( Simp::Cli::Config::Utils.validate_domain '0-0.0-0.0-0').to eq true
+      expect( Simp::Cli::Config::Utils.validate_domain '0f').to eq true
+      expect( Simp::Cli::Config::Utils.validate_domain 'f0').to eq true
+      expect( Simp::Cli::Config::Utils.validate_domain 'test.00f').to eq true
+      expect( Simp::Cli::Config::Utils.validate_domain 't.').to eq true
+      expect( Simp::Cli::Config::Utils.validate_domain 'test.com.').to eq true
+    end
+
+    it "doesn't validate bad domains" do
+      expect( Simp::Cli::Config::Utils.validate_domain '-test').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain 'test-').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain 'test-.test').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain 'test.-test').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain '0').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain '0212').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain 'test.0').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain 't.t.t.t.0').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain 'an-extremely-long-dns-label-that-is-just-over-63-characters-long.test').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain 'test.an-extremely-long-dns-label-that-is-just-over-63-characters-long').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain 'test.an-extremely-long-dns-label-that-is-just-over-63-characters-long.test').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain 'an-extremely-long-dns-label-that-is-just-over-63-characters-long.').to be false
+      expect( Simp::Cli::Config::Utils.validate_domain '.').to be false
+    end
+  end
+
   describe '.validate_fqdn' do
     it 'validates good FQDNs' do
       expect( Simp::Cli::Config::Utils.validate_fqdn 'simp.dev' ).to eq true

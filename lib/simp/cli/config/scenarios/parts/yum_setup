@@ -17,8 +17,7 @@
    false:
     - CliUseInternetSimpYumRepos:
        true:
-        - SimpYumRepoInternetSimpDependenciesClass # NOTE: since global setting, will be used by SIMP server as well
-        - AddSimpYumRepoInternetSimpServerClassToServerAction
+        - SimpYumRepoInternetSimpClass # NOTE: since global setting, will be used by SIMP server as well
        false:
         - CheckServerYumConfigAction # simple YUM OS, SIMP, and SIMP dependency package checks for SIMP server
         - WarnClientYumConfigAction  # can't check YUM for SIMP clients, so warn

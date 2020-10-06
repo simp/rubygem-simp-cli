@@ -387,7 +387,6 @@ describe 'Simp::Cli::Command::Config#run' do
         %r{Creation of #{@puppet_system_file} skipped}m,
         %r{Creation of SIMP server <host>.yaml skipped}m,
         %r{Setting of PuppetDB master server & port in SIMP server <host>.yaml skipped}m,
-        %r{Addition of simp::yum::repo::internet_simp_server to SIMP server <host>.yaml class list skipped}m,
         %r{Addition of simp::server::ldap to SIMP server <host>.yaml class list skipped}m,
         %r{Setting of LDAP Root password hash in SIMP server <host>.yaml skipped}m,
         %r{Disallow of inapplicable, local 'simp' user in SIMP server <host>.yaml skipped}m,
