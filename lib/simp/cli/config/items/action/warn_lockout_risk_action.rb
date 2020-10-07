@@ -174,7 +174,9 @@ Next Steps
          expected.
 
     b) Verify that you can ssh into the server as the new user. If you cannot,
-       do not reboot the server until you resolve the problem.
+       do not reboot the server until you resolve the problem! This step is 
+       imperative to ensure that you can also get through Puppet-managed 
+       authentication.
 DOC
     end
 

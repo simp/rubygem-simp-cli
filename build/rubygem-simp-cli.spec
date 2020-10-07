@@ -140,7 +140,8 @@ EOM
     dependencies for the sample Puppet code.
   - Tell the user to check that they can ssh into the server with the new
     user after bootstrap but before rebooting. This step is imperative to
-    make sure the Puppet user access code works for their situation!
+    ensure that the user can also get through Puppet-managed 
+    authentication!
 - Fixed the following:
   - Bug in which `simp config` did not allow DNS domains that did
     not include at least one '.'.  Domains are now validated
