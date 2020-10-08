@@ -41,8 +41,7 @@ Remember to put these in the appropriate order for your environment!}
     # TODO: def validate should notice if the search string will contain > 6
     # items or 256 chars
     def validate_item item
-      # return false if !fqdn.is_a? String
-      Simp::Cli::Config::Utils.validate_fqdn item
+      Simp::Cli::Config::Utils.validate_domain item
     end
 
     def not_valid_message

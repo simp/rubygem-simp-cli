@@ -48,7 +48,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSSearch do
 
   describe "#validate" do
     it "validates array with domains" do
-      expect( @ci.validate ['simp.dev', 'google.com', '0simp.dev'] ).to eq true
+      expect( @ci.validate ['dev1', 'simp.dev', 'google.com', '0simp.dev'] ).to eq true
     end
 
     it "doesn't validate array with bad domains" do

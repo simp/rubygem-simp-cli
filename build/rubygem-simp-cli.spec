@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 6.0.3
+%global cli_version 6.1.0
 %global highline_version 2.0.3
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,6 +129,30 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Wed Oct 07 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.1.0
+- Updated SIMP internet repositories configured by 'simp config'
+  - Now uses simp-project.com repositories via new
+    ``simp::yum::repo::internet_simp`` class
+  - The packagecloud repositories are no longer being updated.
+- Added instructions to the local user lockout warning message in the
+  bootstrap lock file:
+  - Explain how to create a metadata.json file with the correct module
+    dependencies for the sample Puppet code.
+  - Tell the user to check that they can ssh into the server with the new
+    user after bootstrap but before rebooting. This step is imperative to
+    ensure that the user can also get through Puppet-managed 
+    authentication!
+- Fixed the following:
+  - Bug in which `simp config` did not allow DNS domains that did
+    not include at least one '.'.  Domains are now validated
+    per RFC 3696.
+  - Typo in a simp cli message about applying FACLs.
+  - Incorrect path for the location of the SIMP server hieradata file
+    in the local user lockout warning message in the bootstrap lock file.
+  - Missing instructions in the local user lockout warning message about
+    adding `passwd => false` to `simp::user_specification` for users who
+    log in without a password.
+
 * Tue Sep 30 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.0.3
 - Fixed a bug where 'simp config' recommended the wrong SSSD domain,
   when the SIMP server was not the LDAP server.  It recommended the

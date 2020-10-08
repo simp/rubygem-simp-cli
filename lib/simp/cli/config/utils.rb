@@ -11,6 +11,22 @@ class Simp::Cli::Config::Utils
 
   class << self
 
+    def validate_domain domain
+      # From Simplib::Domain custom type from pupmod-simp-simplib
+      #
+      # Complies with TLD restrictions from Section 2 of RFC 3696:
+      #
+      #  * only ASCII alpha + numbers + hyphens are allowed
+      #  * labels can't begin or end with hyphens
+      #  * TLDs cannot be all-numeric
+      #  * TLDs must be able to end with a period
+      #  * A DNS label may be no more than 63 octets long
+      #
+      regex = %r{^(?i-mx:(?=^.{1,253}\z)((?!-)[a-z0-9-]{1,63}(?<!-)\.)*(?!-|\d+$)([a-z0-9-]{1,63})(?<!-)\.?)\z}
+      ((domain =~ regex) ? true : false )
+    end
+
+
     def validate_fqdn fqdn
       # Variation on Simplib::Hostname custom type from pupmod-simp-simplib
       #

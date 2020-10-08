@@ -53,7 +53,6 @@ in the `production` Puppet environment.  Execute these operations as `root`.
 
  * See https://puppet.com/docs/puppet/latest/modules.html for information on how
    to create a Puppet module.
- * Be sure to create a metadata.json file for your module.
 
 1. Create a local user account, as needed, using `useradd`.  This example
    assumes the local user is `userx`.
@@ -69,7 +68,7 @@ in the `production` Puppet environment.  Execute these operations as `root`.
 
         $ mkdir -p /etc/puppetlabs/code/environments/production/modules/mymodule/manifests
 
-   b) Create /etc/puppetlabs/code/environments/production/modules/mymodule/manifests/local_user.pp
+   b) Create `/etc/puppetlabs/code/environments/production/modules/mymodule/manifests/local_user.pp`
       with the following content:
 
         class mymodule::local_user (
@@ -79,6 +78,7 @@ in the `production` Puppet environment.  Execute these operations as `root`.
           sudo::user_specification { 'default_userx':
             user_list => ['userx'],
             runas     => 'root',
+        #    passwd    => false,   # only needed if user logs in without a password
             cmnd      => ['/bin/su root', '/bin/su - root']
           }
 
@@ -93,15 +93,46 @@ in the `production` Puppet environment.  Execute these operations as `root`.
          }
        }
 
-3. Make sure the permissions are correct on the module:
+   c) Uncomment out the `passwd` line in `sudo::user_specification` if the local
+      user is configured to login with pre-shared keys instead of a password
+     (typical cloud configuration).
+
+3. Create a `metadata.json` file for the module at
+   `/etc/puppetlabs/code/environments/production/modules/mymodule`.
+
+   * See //puppet.com/docs/puppet/latest/modules_metadata.html#metadatajson-example
+     for more information on metadata.json files.
+   * It should look something like the following:
+
+     {
+       "name": "mymodule",
+       "version": "0.0.1",
+       "author": "Your name or group here",
+       "summary": "Configures Local User for sudo access",
+       "license": "Apache-2.0",
+       "source": "Your gitlab url or local",
+       "dependencies": [
+         {
+           "name": "simp/pam"
+         },
+         {
+           "name": "simp/simplib"
+         },
+         {
+           "name": "simp/sudo"
+         }
+       ]
+     }
+
+4. Make sure the permissions are correct on the module:
 
      $ sudo chown -R root:puppet /etc/puppetlabs/code/environments/production/modules/mymodule
      $ sudo chmod -R g+rX /etc/puppetlabs/code/environments/production/modules/mymodule
 
-4. Add the module to the SIMP server's host YAML file class list:
+5. Add the module to the SIMP server's host YAML file class list:
 
    Edit the SIMP server's YAML file,
-   `/etc/puppetlabs/code/environments/production/data/<SIMP server FQDN>.yaml`
+   `/etc/puppetlabs/code/environments/production/data/hosts/<SIMP server FQDN>.yaml`
    and add the `mymodule::local_user` to the `simp::classes` array:
 
      simp::classes:
@@ -127,9 +158,25 @@ in the `production` Puppet environment.  Execute these operations as `root`.
 Next Steps
 ----------
 
-If `root` lockout is the only issue identified in this file, remove the file
-and continue with `simp bootstrap`.  If not, address any remaining issues,
-remove the file, and then run `simp bootstrap`.
+1.  If `root` lockout is the only issue identified in this file, remove the file
+    and continue with `simp bootstrap`.  If not, address any remaining issues,
+    remove the file, and then run `simp bootstrap`.
+
+2.  ***IMPORTANT***.  After `simp bootstrap` but BEFORE you reboot the server,
+    do the following:
+
+    a) Run `puppet agent -t` to verify that there are no warning or error
+       messages related to `mymodule`.
+
+       * You will see a reboot notification which is expected and not an issue.
+       * You may see warning/errors related to other modules that manage
+         services you have not completely set up, such as `named`. These are
+         expected.
+
+    b) Verify that you can ssh into the server as the new user. If you cannot,
+       do not reboot the server until you resolve the problem! This step is 
+       imperative to ensure that you can also get through Puppet-managed 
+       authentication.
 DOC
     end
 

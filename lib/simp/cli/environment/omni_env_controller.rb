@@ -84,7 +84,7 @@ module Simp::Cli::Environment
 
     # Fix consistency of environment
     def fix
-      logger.notice("Re-appling FACLs, SELinux contexts, & permissions to '#{@env}' environment".bold)
+      logger.notice("Re-applying FACLs, SELinux contexts, & permissions to '#{@env}' environment".bold)
       each_environment 'fix' do |env_type, env_obj|
         if @opts[:types][env_type].fetch(:strategy,'') == :link
           logger.trace("TRACE: (action: fix) skipping fix of #{env_type} environment because strategy is :link")

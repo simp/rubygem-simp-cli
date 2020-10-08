@@ -1,4 +1,5 @@
 require 'simp/cli/config/items/action/hieradata_yaml_file_writer'
+require 'simp/cli/config/items'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
@@ -130,7 +131,7 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
     end
 
     it 'writes out a simp::classes array when :global_class Items exist' do
-      item = Simp::Cli::Config::Item::SimpYumRepoInternetSimpDependenciesClass.new(@puppet_env_info)
+      item = Simp::Cli::Config::Item::SimpYumRepoInternetSimpClass.new(@puppet_env_info)
       @ci.config_items[item.key] = item
 
       item = Simp::Cli::Config::Item::SimpYumRepoLocalOsUpdatesClass.new(@puppet_env_info)
