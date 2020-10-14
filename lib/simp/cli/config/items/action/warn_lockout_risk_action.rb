@@ -87,8 +87,8 @@ Puppet environment.
    | $ cd local_system_access                                  |
    +-----------------------------------------------------------+
 
-4. Add the following to a new `manifests/local_user.pp` file to enable `sudo su - root`
-   and allow `ssh` access for the user you created/selected:
+4. Add the following to a new `manifests/local_user.pp` file to enable
+   `sudo su - root` and allow `ssh` access for the user you created/selected:
 
      class local_system_access::local_user (
        Boolean $pam = simplib::lookup('simp_options::pam', { 'default_value' => false }),
