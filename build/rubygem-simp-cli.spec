@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 6.1.0
+%global cli_version 6.1.1
 %global highline_version 2.0.3
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,6 +129,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Oct 15 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.1.1
+- Change the local user lockout warning to have simpler instructions
+
 * Wed Oct 07 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.1.0
 - Updated SIMP internet repositories configured by 'simp config'
   - Now uses simp-project.com repositories via new

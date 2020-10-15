@@ -47,15 +47,12 @@ SCENARIO 2:
 In either of these scenarios, `simp config` will create this lock file which
 prevents `simp bootstrap` from progressing.
 
-This remainder of this document provides instructions on creating a local user
-that has the appropriate level of system access.
+This remainder of this document provides instructions on ensuring that a local
+user has the appropriate level of system access.
 
--------------------------------
-Configure Local User for Access
--------------------------------
-
-This example creates a `local_system_access` Puppet module in the `production`
-Puppet environment.
+--------------------------
+Ensuring Local User Access
+--------------------------
 
 * IF YOU ALREADY HAVE AN UNPRIVILEGED ACCOUNT:
 
@@ -72,100 +69,29 @@ Puppet environment.
 
 1. Run `sudo su - root`
 
-2. Set your `umask`.
+2. Run ``cd /etc/puppetlabs/code/environments/production/data``
 
-   +-------------+
-   | $ umask 022 |
-   +-------------+
+3. Add the following to ``default.yaml``
 
-3. Create a `local_system_access` puppet module directory and change to the
-   directory.
-
-   +-----------------------------------------------------------+
-   | $ cd /etc/puppetlabs/code/environments/production/modules |
-   | $ mkdir -p local_system_access/manifests                  |
-   | $ cd local_system_access                                  |
-   +-----------------------------------------------------------+
-
-4. Add the following to a new `manifests/local_user.pp` file to enable
-   `sudo su - root` and allow `ssh` access for the user you created/selected:
-
-     class local_system_access::local_user (
-       Boolean $pam = simplib::lookup('simp_options::pam', { 'default_value' => false }),
-     ) {
-
-       sudo::user_specification { 'default_userx':
-         user_list => ['userx'],
-         runas     => 'root',
-         # ONLY NEEDED IF YOUR USER DOES NOT USE A PASSWORD
-         passwd    => false,
-         cmnd      => ['/bin/su root', '/bin/su - root']
-       }
-
-       if $pam {
-         include 'pam'
-
-         pam::access::rule { 'allow_userx':
-           users   => ['userx'],
-           origins => ['ALL'],
-           comment => 'Local user for lockout prevention'
-         }
-       }
-     }
-
-5. Add the following to a new `metadata.json` file to enable proper
-   recognition of your module by the puppet server:
-
-     {
-       "name": "local_system_access",
-       "version": "0.0.1",
-       "author": "Your name or group here",
-       "summary": "Configures Local User for sudo access",
-       "license": "Apache-2.0",
-       "source": "Your gitlab url or local",
-       "dependencies": [
-         {
-           "name": "simp/pam"
-         },
-         {
-           "name": "simp/simplib"
-         },
-         {
-           "name": "simp/sudo"
-         }
-       ]
-     }
-
-6. Make sure the permissions are correct on the module:
-
-   +-----------------------------+
-   | $ chown -R root:puppet $PWD |
-   | $ chmod -R g+rX $PWD        |
-   +-----------------------------+
-
-7. Add the module to the SIMP server's host YAML file class list:
-
-   +--------------------------------------------------------------+
-   | $ cd /etc/puppetlabs/code/environments/production/data/hosts |
-   +--------------------------------------------------------------+
-
-   Add `local_system_access::local_user` to the `simp::classes:` array
-   in `<SIMP server FQDN>.yaml`
-
-     simp::classes:
-       - local_system_access::local_user
-       # Do NOT remove other items in this array
-       # Make sure your whitespace lines up (spaces, not tabs)
-
-8. Add the `local_system_access` module to the `Puppetfile` in the `production`
-   environment:
-
-   Edit `/etc/puppetlabs/code/environments/production/Puppetfile`,
-   and add the following line under the section that says
-   "Add your own Puppet modules here"
-
-     mod 'local_system_access', :local => true
-
+# Add sudo user rules
+sudo::user_specifications:
+  # Any unique name
+  userx_su:
+    # The users to which to apply this sudo rule
+    user_list:
+      - userx
+    # The commands that the user is allowed to run
+    cmnd:
+      - ALL
+    # Whether or not the user must use a password
+    passwd: false
+# Add a PAM remote access rule
+pam::access::users:
+  # The user to add
+  userx:
+    # Allow access from everywhere
+    origins:
+      - ALL
 
 -----------------------------------------
 If Your Local User Uses an SSH Public Key
