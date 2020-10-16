@@ -63,15 +63,15 @@ Ensuring Local User Access
 
    * Create a local user account, using `useradd`.
 
-     * This example assumes the local user is named `userx`.
+     * This example uses a local user account named `userx`.
      * Be sure to set the user's password if the user is logging in with a
        password!
 
 1. Run `sudo su - root`
 
-2. Run ``cd /etc/puppetlabs/code/environments/production/data``
+2. Run `cd /etc/puppetlabs/code/environments/production/data/hosts`
 
-3. Add the following to ``default.yaml``
+3. Add the following to your SIMP server's .yaml file:
 
 # Add sudo user rules
 sudo::user_specifications:
