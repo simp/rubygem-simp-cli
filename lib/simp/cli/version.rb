@@ -1,5 +1,5 @@
 module Simp; end
 
 class Simp::Cli
-  VERSION = '6.1.1'
+  VERSION = '6.1.2'
 end

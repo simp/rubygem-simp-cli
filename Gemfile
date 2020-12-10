@@ -10,7 +10,7 @@ gem 'bundler'
 gem 'facter'
 gem 'highline', :path => 'ext/gems/highline'
 gem 'puppet', ENV.fetch('PUPPET_VERSION',  '~>5')
-gem 'rake'
+gem 'rake', '>= 12.3.3'
 gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', ['>= 5.6', '< 6.0'])
 
 gem 'simp-beaker-helpers', ENV['SIMP_BEAKER_HELPERS_VERSION'] || ['>= 1.18.7', '< 2']
