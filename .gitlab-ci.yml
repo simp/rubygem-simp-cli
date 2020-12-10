@@ -13,7 +13,6 @@
 # *** = Modules created for SIMP 6.3+ are not required to support Puppet < 5.5
 ---
 stages:
-  - 'sanity'
   - 'validation'
   - 'acceptance'
   - 'compliance'
@@ -118,10 +117,10 @@ variables:
 # Pipeline / testing matrix
 #=======================================================================
 
-sanity_checks:
+releng_checks:
   <<: *pup_5
   <<: *setup_bundler_env
-  stage: 'sanity'
+  stage: 'validation'
   tags: ['docker']
   script:
     - 'command -v rpm || if command -v apt-get; then apt-get update; apt-get install -y rpm; fi ||:'
