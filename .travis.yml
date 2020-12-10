@@ -29,32 +29,38 @@ before_install:
 
 jobs:
   include:
-    - stage: check
-      name: 'Syntax, style, and validation checks'
-      rvm: 2.4.9
-      script:
-        - bundle exec rake pkg:compare_latest_tag
-        - bundle exec rake pkg:create_tag_changelog
-        - bundle exec rake pkg:gem
+    ###  Testing on Travis CI is indefinitely disabled
+    ###
+    ###  See:
+    ###    * https://blog.travis-ci.com/2020-11-02-travis-ci-new-billing
+    ###    * https://simp-project.atlassian.net/browse/SIMP-8703
+    ###
+    ###  - stage: check
+    ###    name: 'Syntax, style, and validation checks'
+    ###    rvm: 2.4.9
+    ###    script:
+    ###      - bundle exec rake pkg:compare_latest_tag
+    ###      - bundle exec rake pkg:create_tag_changelog
+    ###      - bundle exec rake pkg:gem
 
-    # Test with Ruby versions packaged with standard Puppet All-in-one installs
-    - stage: spec
-      name: 'Ruby packaged with Puppet 5.x'
-      rvm: 2.4.9
-      env:
-        - PUPPET_VERSION="~> 5.5"
-        - SIMP_SKIP_NON_SIMPOS_TESTS=1
-      script:
-        - bundle exec rake spec
+    ###  # Test with Ruby versions packaged with standard Puppet All-in-one installs
+    ###  - stage: spec
+    ###    name: 'Ruby packaged with Puppet 5.x'
+    ###    rvm: 2.4.9
+    ###    env:
+    ###      - PUPPET_VERSION="~> 5.5"
+    ###      - SIMP_SKIP_NON_SIMPOS_TESTS=1
+    ###    script:
+    ###      - bundle exec rake spec
 
-    - stage: spec
-      name: 'Ruby packaged with Puppet 6.x'
-      rvm: 2.5.8
-      env:
-        - PUPPET_VERSION="~> 6.0"
-        - SIMP_SKIP_NON_SIMPOS_TESTS=1
-      script:
-        - bundle exec rake spec
+    ###  - stage: spec
+    ###    name: 'Ruby packaged with Puppet 6.x'
+    ###    rvm: 2.5.8
+    ###    env:
+    ###      - PUPPET_VERSION="~> 6.0"
+    ###      - SIMP_SKIP_NON_SIMPOS_TESTS=1
+    ###    script:
+    ###     - bundle exec rake spec
 
     - stage: deploy
       rvm: 2.4.9

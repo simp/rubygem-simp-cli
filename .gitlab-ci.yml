@@ -31,6 +31,8 @@ variables:
   BUNDLE_BIN:        .vendor/gem_install/bin
   BUNDLE_NO_PRUNE:   'true'
 
+  SIMP_SKIP_NON_SIMPOS_TESTS: 1
+
 
 # bundler dependencies and caching
 #
@@ -122,8 +124,8 @@ sanity_checks:
   stage: 'sanity'
   tags: ['docker']
   script:
-    - 'if `hash apt-get`; then apt-get update; fi'
-    - 'if `hash apt-get`; then apt-get install -y rpm; fi'
+    - 'command -v rpm || if command -v apt-get; then apt-get update; apt-get install -y rpm; fi ||:'
+    - 'command -v rpm || { >&2 echo "FATAL: Cannot find executable: ''rpm''";  exit 1 ;}'
     - 'bundle exec rake pkg:check_version'
     - 'bundle exec rake pkg:compare_latest_tag'
     - 'bundle exec rake pkg:create_tag_changelog'
