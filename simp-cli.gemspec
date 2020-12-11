@@ -52,7 +52,7 @@ Gem::Specification.new do |s|
   #### ------------
 
   # for development
-  s.add_development_dependency 'rake',        '~> 10'
+  s.add_development_dependency 'rake',        '>= 12.3.3'
   s.add_development_dependency 'rspec',       '~> 3'
   s.add_development_dependency 'rspec-its',   '~> 1'
   s.add_development_dependency 'listen',      '~> 3.0.0'

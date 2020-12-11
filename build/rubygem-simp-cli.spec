@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 6.1.1
+%global cli_version 6.1.2
 %global highline_version 2.0.3
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -129,6 +129,9 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Dec 10 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 6.1.2
+- Bumped .gemspec dependencies to mitigate CVE-2020-8130
+
 * Thu Oct 15 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.1.1
 - Change the local user lockout warning to have simpler instructions
 
