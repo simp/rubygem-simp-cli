@@ -8,15 +8,10 @@ describe Simp::Cli::Config::Item::GrubPassword do
   end
 
   describe "#encrypt" do
-    # NOTE: not much we can test except the hashed string length and characteristics of the type of hash
+    # NOTE: not much we can test
     it "encrypts grub_passwords" do
       crypted_pw = @ci.encrypt( 'foo' )
-      if Facter.value('os')['release']['major'] <= '6'
-        expect( crypted_pw ).to match /^\$6\$/
-        expect( 97..98 ).to cover( crypted_pw.length )
-      else
-        skip "TODO: define tests for EL7+ grub passwords"
-      end
+      skip "TODO: define tests for EL7+ grub passwords"
     end
   end
 

@@ -19,50 +19,6 @@ describe Simp::Cli::Config::Item::SetGrubPasswordAction do
       grub_password
     }
 
-    context 'CentOS 6.x' do
-      let(:os_fact)  { { 'release' => { 'major' => '6'} } }
-
-      it 'sets grub password for BIOS boot and sets applied_status to :success' do
-        allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(File).to receive(:exist?).with('/boot/grub/grub.conf').and_return(true)
-        allow(@ci).to receive(:execute).and_return(true)
-
-        @ci.config_items = { grub_password.key => grub_password }
-        @ci.apply
-        expect( @ci.applied_status ).to eq :succeeded
-      end
-
-      it 'sets grub password for EFI boot and sets applied_status to :success' do
-        allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(File).to receive(:exist?).with('/boot/grub/grub.conf').and_return(false)
-        allow(File).to receive(:exist?).with('/boot/efi/EFI/redhat/grub.conf').and_return(true)
-        allow(@ci).to receive(:execute).and_return(true)
-
-        @ci.config_items = { grub_password.key => grub_password }
-        @ci.apply
-        expect( @ci.applied_status ).to eq :succeeded
-      end
-
-      it 'fails when boot file not found' do
-        allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(File).to receive(:exist?).with('/boot/grub/grub.conf').and_return(false)
-        allow(File).to receive(:exist?).with('/boot/efi/EFI/redhat/grub.conf').and_return(false)
-
-        @ci.config_items = { grub_password.key => grub_password }
-        expect{ @ci.apply }.to  raise_error(/Could not find grub.conf/)
-      end
-
-      it "sets applied_status to :failed when 'sed' command fails" do
-        allow(Facter).to receive(:value).with('os').and_return(os_fact)
-        allow(File).to receive(:exist?).with('/boot/grub/grub.conf').and_return(false)
-        allow(File).to receive(:exist?).with('/boot/efi/EFI/redhat/grub.conf').and_return(true)
-        allow(@ci).to receive(:execute).and_return(false)
-
-        @ci.config_items = { grub_password.key => grub_password }
-        @ci.apply
-        expect( @ci.applied_status ).to eq :failed
-      end
-    end
 
     context 'CentOS 7.x' do
       let(:os_fact)  { { 'release' => { 'major' => '7'} } }

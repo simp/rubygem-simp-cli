@@ -11,11 +11,7 @@ shared_examples 'configure puppet env' do |host,env|
     reload_cmd = nil
     if status =~ /running/
       os_major_ver = fact_on(host, 'operatingsystemmajrelease')
-      if os_major_ver.to_s == '6'
-        reload_cmd = 'service puppetserver reload'
-      else
-        reload_cmd = 'systemctl reload puppetserver'
-      end
+      reload_cmd = 'systemctl reload puppetserver'
     else
       reload_cmd = 'puppet resource service puppetserver ensure=running'
     end

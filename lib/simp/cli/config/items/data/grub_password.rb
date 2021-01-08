@@ -4,8 +4,6 @@ module Simp; end
 class Simp::Cli; end
 
 
-# NOTE: EL used GRUB 0.9 up through EL6. EL7 moved to Grub 2.0
-# NOTE: The two versions of GRUB use completely different configurations (files, encryption commands, etc)
 module Simp::Cli::Config
   class Item::GrubPassword < PasswordItem
 
@@ -32,23 +30,13 @@ stored in #{@key}.}
       else
         # the password hash has been pre-assigned
         # TODO need something better
-        (string =~ /^(grub\.pbkdf2.*)/) or # grub2
-        (string =~ /^\$[56]\$/)            # legacy grub
+        (string =~ /^(grub\.pbkdf2.*)/) # grub2
       end
     end
 
 
     def encrypt string
-      result   = nil
-      password = string
-      if Facter.value('os')['release']['major'] > "6"
-        result = `grub2-mkpasswd-pbkdf2 <<EOM\n#{password}\n#{password}\nEOM`.split.last
-      else
-        require 'digest/sha2'
-        salt   = rand(36**8).to_s(36)
-        result = password.crypt("$6$" + salt)
-      end
-      result
+      `grub2-mkpasswd-pbkdf2 <<EOM\n#{string}\n#{string}\nEOM`.split.last
     end
   end
 end

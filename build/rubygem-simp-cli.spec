@@ -12,7 +12,7 @@
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
 Version: %{cli_version}
-Release: 0%{?dist}
+Release: 1%{?dist}
 Group: Development/Languages
 License: Apache-2.0
 URL: https://github.com/simp/rubygem-simp-cli
@@ -26,9 +26,13 @@ Requires: elinks
 Requires: facter >= 3
 Requires: git
 Requires: grep
+Requires: grub2-tools-minimal
+Requires: hostname
 Requires: iproute
+Requires: libpwquality
 Requires: net-tools
 Requires: policycoreutils
+Requires: procps-ng
 Requires: pupmod-herculesteam-augeasproviders_grub >= 3.0.1
 Requires: pupmod-simp-network >= 6.0.3
 Requires: pupmod-simp-resolv >= 0.1.1
@@ -37,18 +41,9 @@ Requires: puppet >= 5
 Requires: rsync
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 Requires: sed
-Requires: simp-adapter >= 0.1.0
+Requires: simp-adapter >= 1.0.1
 Requires: simp-environment-skeleton >= 7.1.1
 Requires: yum-utils
-
-%if 0%{?rhel} > 6
-Requires: libpwquality
-Requires: procps-ng
-Requires: hostname
-Requires: grub2-tools-minimal
-%else
-Requires: procps
-%endif
 
 BuildRequires: ruby(rubygems)
 BuildRequires: ruby
@@ -129,7 +124,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Tue Dec 10 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 6.1.2
+* Mon Jan 11 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.1.2
+- Remove support for EL6
+
+* Thu Dec 10 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 6.1.2
 - Bumped .gemspec dependencies to mitigate CVE-2020-8130
 
 * Thu Oct 15 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.1.1
@@ -159,7 +157,7 @@ EOM
     adding `passwd => false` to `simp::user_specification` for users who
     log in without a password.
 
-* Tue Sep 30 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.0.3
+* Wed Sep 30 2020 Liz Nemsick <lnemsick.simp@gmail.com> - 6.0.3
 - Fixed a bug where 'simp config' recommended the wrong SSSD domain,
   when the SIMP server was not the LDAP server.  It recommended the
   'Local' domain, when the appropriate SIMP-created domain with the
