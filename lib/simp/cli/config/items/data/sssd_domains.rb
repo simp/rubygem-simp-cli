@@ -13,7 +13,7 @@ module Simp::Cli::Config
 * When you are using SIMP-provided LDAP, this field should include 'LDAP',
   the name of the SSSD domain SIMP creates with the 'ldap' provider.
 * This field may include 'LOCAL', to use the domain SIMP creates with
-  the 'local' provider for EL6 or the 'files' provider for EL7.
+  the 'files' provider.
 
 IMPORTANT: For EL < 8, this field *MUST* have a valid domain or the sssd
 service will fail to start.

@@ -4,14 +4,13 @@
 # https://puppet.com/misc/puppet-enterprise-lifecycle
 # https://puppet.com/docs/pe/2018.1/overview/getting_support_for_pe.html
 # ------------------------------------------------------------------------------
-# Release       Puppet   Ruby   EOL
-# SIMP 6.4      5.5      2.4.10 TBD***
+# Release       Puppet   Ruby    EOL
+# SIMP 6.4      5.5      2.4.10  TBD
 # SIMP 6.5      6.18     2.5.8
-# PE 2018.1     5.5      2.4.10 2021-01
-# PE 2019.8.1   6.17     2.5.8  2021-11 (LTS)
-#
-# *** = Modules created for SIMP 6.3+ are not required to support Puppet < 5.5
+# PE 2018.1     5.5      2.4.10  2021-01 (LTS overlap)
+# PE 2019.8     6.18     2.5.7   2022-12 (LTS)
 ---
+
 stages:
   - 'validation'
   - 'acceptance'
@@ -46,6 +45,25 @@ variables:
       - '.vendor'
   before_script:
     - 'ruby -e "puts %(\n\n), %q(=)*80, %(\nSIMP-relevant Environment Variables:\n\n#{e=ENV.keys.grep(/^PUPPET|^SIMP|^BEAKER|MATRIX/); pad=e.map{|x| x.size}.max+1; e.map{|v| %(    * #{%(#{v}:).ljust(pad)} #{39.chr + ENV[v] + 39.chr}\n)}.join}\n),  %q(=)*80, %(\n\n)"'
+    # Diagnostic ruby & gem information
+    - 'which ruby && ruby --version || :'
+    - "[[ $- == *i* ]] && echo 'Interactive shell session' || echo 'Non-interactive shell session'"
+    - "shopt -q login_shell && echo 'Login shell' || echo 'Not a login shell'"
+    - 'rvm ls || :'
+
+    # If RVM is available, make SURE it's using the right Ruby:
+    #   * Source rvm (to run in non-login shells)
+    #   * If any $MATRIX_RUBY_VERSION rubies are available, use the latest
+    #   * Otherwise: install & use ${MATRIX_RUBY_VERSION}-head (e.g., latest)
+    #     * ^^ This could be wonky and introduce variations across runners
+    #     * ^^ maybe it should just fail if there is no $MATRIX_RUBY_VERSION installed?
+    - "command -v rvm && { if declare -p rvm_path &> /dev/null; then source \"${rvm_path}/scripts/rvm\"; else source \"$HOME/.rvm/scripts/rvm\" || source /etc/profile.d/rvm.sh; fi; }"
+    - "command -v rvm && { LATEST_RVM_RUBY_XY=\"$(rvm ls | grep \"$MATRIX_RUBY_VERSION\" | tail -1 | sed -e 's/^.*\\([0-9]\\+\\.[0-9]\\+\\.[0-9]\\+\\).*$/\\1/g')\"; if [ -z \"$LATEST_RVM_RUBY_XY\" ]; then LATEST_RVM_RUBY_XY=\"${MATRIX_RUBY_VERSION}-head\"; rvm install \"$LATEST_RVM_RUBY\" --no-docs; else echo \"Found RVM Ruby: '${LATEST_RVM_RUBY_XY}'\"; fi; rvm use \"$LATEST_RVM_RUBY_XY\" ;  }"
+    - 'ruby --version || :'
+    - 'gem list sync || :'
+
+    # Bundle gems (preferring cached > local > downloaded resources)
+    #   * Try to use cached and local resources before downloading dependencies
     - 'declare GEM_BUNDLER_VER=(-v "~> ${BUNDLER_VERSION:-1.17.1}")'
     - 'declare GEM_INSTALL_CMD=(gem install --no-document)'
     - 'declare BUNDLER_INSTALL_CMD=(bundle install --no-binstubs --jobs $(nproc) "${FLAGS[@]}")'
@@ -53,6 +71,13 @@ variables:
     - 'gem list -ie "${GEM_BUNDLER_VER[@]}" --silent bundler || "${GEM_INSTALL_CMD[@]}" --local "${GEM_BUNDLER_VER[@]}" bundler || "${GEM_INSTALL_CMD[@]}" "${GEM_BUNDLER_VER[@]}" bundler'
     - 'rm -rf pkg/ || :'
     - 'bundle check || rm -f Gemfile.lock && ("${BUNDLER_INSTALL_CMD[@]}" --local || "${BUNDLER_INSTALL_CMD[@]}" || bundle pristine ||  "${BUNDLER_INSTALL_CMD[@]}") || { echo "PIPELINE: Bundler could not install everything (see log output above)" && exit 99 ; }'
+
+    # Diagnostic bundler, ruby, and gem checks:
+    - 'bundle exec rvm ls || :'
+    - 'bundle exec which ruby || :'
+    - 'bundle show sync || :'
+    - 'bundle exec gem list sync || :'
+
 
 # To avoid running a prohibitive number of tests every commit,
 # don't set this env var in your gitlab instance
@@ -64,34 +89,40 @@ variables:
 # Puppet Versions
 #-----------------------------------------------------------------------
 
-.pup_5: &pup_5
+.pup_5_x: &pup_5_x
   image: 'ruby:2.4'
   variables:
     PUPPET_VERSION: '~> 5.0'
     BEAKER_PUPPET_COLLECTION: 'puppet5'
     MATRIX_RUBY_VERSION: '2.4'
 
-.pup_5_5_20: &pup_5_5_20
+.pup_5_pe: &pup_5_pe
   image: 'ruby:2.4'
   variables:
     PUPPET_VERSION: '5.5.20'
     BEAKER_PUPPET_COLLECTION: 'puppet5'
     MATRIX_RUBY_VERSION: '2.4'
 
-.pup_6: &pup_6
+.pup_6_x: &pup_6_x
   image: 'ruby:2.5'
   variables:
     PUPPET_VERSION: '~> 6.0'
     BEAKER_PUPPET_COLLECTION: 'puppet6'
     MATRIX_RUBY_VERSION: '2.5'
 
-.pup_6_18_0: &pup_6_18_0
+.pup_6_pe: &pup_6_pe
   image: 'ruby:2.5'
   variables:
     PUPPET_VERSION: '6.18.0'
     BEAKER_PUPPET_COLLECTION: 'puppet6'
     MATRIX_RUBY_VERSION: '2.5'
 
+.pup_7_x: &pup_7_x
+  image: 'ruby:2.7'
+  variables:
+    PUPPET_VERSION: '~> 7.0'
+    BEAKER_PUPPET_COLLECTION: 'puppet7'
+    MATRIX_RUBY_VERSION: '2.7'
 
 # Testing Environments
 #-----------------------------------------------------------------------
@@ -118,7 +149,7 @@ variables:
 #=======================================================================
 
 releng_checks:
-  <<: *pup_5
+  <<: *pup_5_x
   <<: *setup_bundler_env
   stage: 'validation'
   tags: ['docker']
@@ -132,57 +163,56 @@ releng_checks:
 # Unit Tests
 #-----------------------------------------------------------------------
 
-pup5-unit:
-  <<: *pup_5
+pup5.x-unit:
+  <<: *pup_5_x
   <<: *unit_tests
 
-pup5.5.20-unit:
-  <<: *pup_5_5_20
+pup5.pe-unit:
+  <<: *pup_5_pe
   <<: *unit_tests
 
-pup6-unit:
-  <<: *pup_6
+pup6.x-unit:
+  <<: *pup_6_x
   <<: *unit_tests
 
-pup6.18.0-unit:
-  <<: *pup_6_18_0
+pup6.pe-unit:
+  <<: *pup_6_pe
   <<: *unit_tests
-
 
 # Acceptance tests
 # ==============================================================================
-pup5.5.20:
-  <<: *pup_5_5_20
+pup5.pe:
+  <<: *pup_5_pe
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[default,default]'
 
-pup5.5.20-fips:
-  <<: *pup_5_5_20
-  <<: *acceptance_base
-  script:
-    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,default]'
-
-pup5.5.20_simp_kv:
-  <<: *pup_5_5_20
+pup5.pe_simp_kv:
+  <<: *pup_5_pe
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[simp_kv,default]'
 
-pup6:
-  <<: *pup_6
+pup6.x:
+  <<: *pup_6_x
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[default,default]'
 
-pup6-fips:
-  <<: *pup_6
+pup6.x-fips:
+  <<: *pup_6_x
   <<: *acceptance_base
   script:
     - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,default]'
 
-pup6_simp_kv:
-  <<: *pup_6
+pup6.x_simp_kv:
+  <<: *pup_6_x
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[simp_kv,default]'
+
+pup6.x_simp_kv-fips:
+  <<: *pup_6_x
+  <<: *acceptance_base
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[simp_kv,default]'

@@ -26,11 +26,7 @@ module Simp::Cli::Config
     def apply
       @applied_status = :failed
       grub_hash = get_item('grub::password').value
-      if Facter.value('os')['release']['major'] > "6"
-        result = set_password_grub(grub_hash)
-      else
-        result = set_password_old_grub(grub_hash)
-      end
+      result = set_password_grub(grub_hash)
       @applied_status = :succeeded if result
     end
 
@@ -39,26 +35,11 @@ module Simp::Cli::Config
     end
 
     # This requires augeasproviders_grub 3.0.1 or later.  There were errors in the
-    # provider before this time that did not create the file in /etc/grub.d corectly.
+    # provider before this time that did not create the file in /etc/grub.d correctly.
     def set_password_grub(grub_hash)
       cmd = %Q(#{@puppet_apply_cmd} -e "grub_user { 'root': password => '#{grub_hash}', superuser => true }")
       result = execute(cmd)
     end
 
-    def set_password_old_grub(grub_hash)
-      if File.exist?('/boot/grub/grub.conf')
-        # BIOS boot
-        grub_conf = '/boot/grub/grub.conf'
-      elsif File.exist?('/boot/efi/EFI/redhat/grub.conf')
-        # EFI boot
-        grub_conf = '/boot/efi/EFI/redhat/grub.conf'
-      end
-      if grub_conf
-        result = execute("sed -i '/password/ c\password --encrypted #{grub_hash}' #{grub_conf}")
-      else
-        err_msg = 'Could not find grub.conf:  Expected /boot/grub/grub.conf or /boot/efi/EFI/redhat/grub.conf'
-        raise ApplyError.new(err_msg)
-      end
-    end
   end
 end

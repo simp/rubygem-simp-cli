@@ -7,8 +7,7 @@ module Simp::Cli::Config
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
       @key         = 'simp::runlevel'
-      #TODO allow systemd options ('rescue','multi-user','graphical').  1-5 is
-      # compatible both with # systemv (CentOS6) and systemd (CentOS7).
+      #TODO allow systemd options ('rescue','multi-user','graphical').
       @description = %Q{The default system runlevel (1-5).}
     end
 

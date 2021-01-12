@@ -11,29 +11,13 @@
   "dependencies": [
     {
       "name": "simp/simplib",
-      "version_requirement": ">= 4.0.0 < 5.0.0"
-    }
-  ],
-  "operatingsystem_support": [
-    {
-      "operatingsystem": "CentOS",
-      "operatingsystemrelease": [
-        "6",
-        "7"
-      ]
-    },
-    {
-      "operatingsystem": "RedHat",
-      "operatingsystemrelease": [
-        "6",
-        "7"
-      ]
+      "version_requirement": ">= 4.0.0"
     }
   ],
   "requirements": [
     {
       "name": "puppet",
-      "version_requirement": ">= 5.0.0 < 7.0.0"
+      "version_requirement": ">= 5.5.0"
     }
   ]
 }
