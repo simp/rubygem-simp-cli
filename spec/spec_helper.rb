@@ -15,10 +15,12 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
-require 'simplecov'
-SimpleCov.start do
-  add_filter "/spec/" # don't count coverage of test files!
-  add_filter "/ext/"  # don't count coverage of highline library included in the rpm
+unless ENV['SKIP_COVERAGE']
+  require 'simplecov'
+  SimpleCov.start do
+    add_filter "/spec/" # don't count coverage of test files!
+    add_filter "/ext/"  # don't count coverage of highline library included in the rpm
+  end
 end
 
 RSpec.configure do |config|

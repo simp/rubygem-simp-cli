@@ -79,13 +79,6 @@ variables:
     - 'bundle exec gem list sync || :'
 
 
-# To avoid running a prohibitive number of tests every commit,
-# don't set this env var in your gitlab instance
-.with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3: &with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
-  only:
-    variables:
-      - $SIMP_FULL_MATRIX == "yes"
-
 # Puppet Versions
 #-----------------------------------------------------------------------
 
