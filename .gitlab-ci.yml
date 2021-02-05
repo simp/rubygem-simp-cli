@@ -81,7 +81,7 @@ variables:
 
 # To avoid running a prohibitive number of tests every commit,
 # don't set this env var in your gitlab instance
-.only_with_SIMP_FULL_MATRIX: &only_with_SIMP_FULL_MATRIX
+.with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3: &with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   only:
     variables:
       - $SIMP_FULL_MATRIX == "yes"
