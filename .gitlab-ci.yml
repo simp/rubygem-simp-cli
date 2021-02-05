@@ -159,6 +159,7 @@ releng_checks:
     - 'bundle exec rake pkg:check_version'
     - 'bundle exec rake pkg:compare_latest_tag'
     - 'bundle exec rake pkg:create_tag_changelog'
+    - 'bundle exec rake pkg:gem'
 
 # Unit Tests
 #-----------------------------------------------------------------------
