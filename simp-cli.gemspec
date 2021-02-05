@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.version  = Simp::Cli::VERSION
   s.license  = 'Apache-2.0'
   s.email    = 'simp@simp-project.org'
-  s.homepage = 'https://github.com/NationalSecurityAgency/rubygem-simp-cli'
+  s.homepage = 'https://github.com/simp/rubygem-simp-cli'
   s.authors  = [
                  'Trevor Vaughan',
                  'Chris Tessmer',

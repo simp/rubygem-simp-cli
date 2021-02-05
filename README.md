@@ -1,5 +1,4 @@
 [![License][license-badge]][license-url]
-[![Build Status][travis-badge]][travis-project]
 [![SIMP compatibility][simp-badge]][simp-badge]
 
 # simp-cli
@@ -7,6 +6,7 @@
 A cli interface to configure SIMP and simplify administrative tasks.
 
 <!-- vim-markdown-toc GFM -->
+
 * [Description](#description)
   * [This is a SIMP project](#this-is-a-simp-project)
 * [Usage](#usage)
@@ -14,7 +14,7 @@ A cli interface to configure SIMP and simplify administrative tasks.
     * [Configuration](#configuration)
       * [`bootstrap`](#bootstrap)
       * [`config`](#config)
-    * [Adminstration](#adminstration)
+    * [Administration](#administration)
       * [`doc`](#doc)
       * [`passgen`](#passgen)
       * [`puppetfile`](#puppetfile)
@@ -64,7 +64,7 @@ up and mapped to a 'simp' environment when bootstrap is run.
 ##### `config`
 Creates SIMP configuration files with an interactive questionnaire.
 
-#### Adminstration
+#### Administration
 
 ##### `doc`
 
@@ -148,7 +148,7 @@ variables at work.
 ## License
 See [LICENSE](LICENSE)
 
-[simp]:         https://github.com/NationalSecurityAgency/SIMP
+[simp]:         https://simp-project.com/
 [simp-contrib]: https://simp.readthedocs.io/en/master/contributors_guide/
 [simp-jira]:    https://simp-project.atlassian.net
 [bundler]:      https://bundler.io/
@@ -158,5 +158,3 @@ See [LICENSE](LICENSE)
 [license-badge]:  http://img.shields.io/:license-apache-blue.svg
 [license-url]:    http://www.apache.org/licenses/LICENSE-2.0.html
 [simp-badge]:     https://img.shields.io/badge/SIMP%20compatibility-6.*-orange.svg
-[travis-badge]:   https://api.travis-ci.com/simp/rubygem-simp-cli.svg?branch=master
-[travis-project]: https://travis-ci.com/simp/rubygem-simp-cli
