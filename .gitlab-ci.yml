@@ -79,13 +79,6 @@ variables:
     - 'bundle exec gem list sync || :'
 
 
-# To avoid running a prohibitive number of tests every commit,
-# don't set this env var in your gitlab instance
-.only_with_SIMP_FULL_MATRIX: &only_with_SIMP_FULL_MATRIX
-  only:
-    variables:
-      - $SIMP_FULL_MATRIX == "yes"
-
 # Puppet Versions
 #-----------------------------------------------------------------------
 
@@ -159,6 +152,7 @@ releng_checks:
     - 'bundle exec rake pkg:check_version'
     - 'bundle exec rake pkg:compare_latest_tag'
     - 'bundle exec rake pkg:create_tag_changelog'
+    - 'bundle exec rake pkg:gem'
 
 # Unit Tests
 #-----------------------------------------------------------------------
