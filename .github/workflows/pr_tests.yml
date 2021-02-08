@@ -95,7 +95,7 @@ jobs:
         # rsync in simp environment commands
       - run: |
           sudo apt-get update
-          sudo apt-get install -y rpm cracklib-runtime libicu-dev rsync'
+          sudo apt-get install -y rpm cracklib-runtime libicu-dev rsync
         # simp cli code fetches USER env variable.  In the docker container USER is
         # not available, but the process is running as root.
       - run: 'USER=root SIMP_SKIP_NON_SIMPOS_TESTS=1 bundle exec rake spec'
