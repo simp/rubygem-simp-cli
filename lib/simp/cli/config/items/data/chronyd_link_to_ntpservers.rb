@@ -18,7 +18,7 @@ module Simp::Cli::Config
       true
     end
     def get_recommended_value
-      "%{hiera('simp_options::ntp::servers')}"
+      "%{alias('simp_options::ntp::servers')}"
     end
 
   end
