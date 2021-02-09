@@ -100,7 +100,7 @@ describe Simp::Cli::Config::Item::SimpOptionsNTPServers do
       allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('ntpd').and_return(true)
       expect( @ci.get_os_value('/not/there',@ntp_local_servers)).to eq []
     end
-    it 'returns the ntp servers when no services are running and not chrony file exists' do
+    it 'returns the ntp servers when no services are running and no chrony file exists' do
       allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('chronyd').and_return(false)
       allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('ntpd').and_return(false)
       expected = [
