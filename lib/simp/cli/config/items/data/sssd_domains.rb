@@ -18,6 +18,8 @@ module Simp::Cli::Config
 IMPORTANT: For EL < 8, this field *MUST* have a valid domain or the sssd
 service will fail to start.
 }
+
+      @allow_empty_list = (Facter.value('os')['release']['major'] > '7')
     end
 
     def get_recommended_value
@@ -29,7 +31,7 @@ service will fail to start.
         # of the domain setup in the `simp` module.
         ['LDAP']
       else
-        if Facter.value('os')['release']['major'] < "8"
+        if Facter.value('os')['release']['major'] < '8'
           ['LOCAL']
         else
           []

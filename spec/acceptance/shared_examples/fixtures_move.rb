@@ -18,12 +18,5 @@ shared_examples 'fixtures move' do |master|
       on(master, "mkdir -p #{fixtures_staging_dir}/modules")
       on(master, "mv #{fixtures_orig_dest}/* #{fixtures_staging_dir}/modules")
     end
-
-    it 'should recreate empty dirs removed from rsync skeleton by fixtures copy' do
-      # TODO: Replace simp-rsync-skeleton install with git clone instead?
-#FIXME remove this when EL6 is removed from simp-rsync-skeleton
-      on(master, "mkdir #{fixtures_staging_dir}/assets/rsync_data/rsync/RedHat/6/bind_dns/default/named/var/tmp")
-      on(master, "mkdir #{fixtures_staging_dir}/assets/rsync_data/rsync/RedHat/6/bind_dns/default/named/var/log")
-    end
   end
 end
