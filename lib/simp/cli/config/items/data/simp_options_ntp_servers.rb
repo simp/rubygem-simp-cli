@@ -29,11 +29,6 @@ negatively impact your site security. PKI depends upon sync'd time.]
       "#{@description}#{extra}"
     end
 
-    def get_systemctl_status(name)
-      system("systemctl status #{name} > /dev/null")
-      $?.exitstatus == 0
-    end
-
     def get_os_value( chronydfile = '/etc/chrony.conf', ntpdfile = '/etc/ntp.conf' )
       servers = []
       file = nil
