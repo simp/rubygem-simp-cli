@@ -410,4 +410,9 @@ module Simp::Cli::Utils
     end
     result = (answer.downcase[0] == 'y')
   end
+
+  def systemctl_running?(name)
+    system("systemctl status #{name} > /dev/null")
+    $?.exitstatus == 0
+  end
 end

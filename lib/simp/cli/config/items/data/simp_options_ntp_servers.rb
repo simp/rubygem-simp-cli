@@ -29,9 +29,24 @@ negatively impact your site security. PKI depends upon sync'd time.]
       "#{@description}#{extra}"
     end
 
-    def get_os_value( file='/etc/ntp.conf' )
-      # TODO: make this a custom fact?
+    def get_systemctl_status(name)
+      system("systemctl status #{name} > /dev/null")
+      $?.exitstatus == 0
+    end
+
+    def get_os_value( chronydfile = '/etc/chrony.conf', ntpdfile = '/etc/ntp.conf' )
       servers = []
+      file = nil
+      if Simp::Cli::Utils.systemctl_running?('chronyd')
+        file = chronydfile
+      elsif Simp::Cli::Utils.systemctl_running?('ntpd')
+        file = ntpdfile
+      elsif File.exists?(chronydfile)
+        file = chronydfile
+      else
+        file = ntpdfile
+      end
+
       if File.readable? file
         File.readlines( file ).each do |line|
           match = line.match(/^server ([\w\.\-:]+)/)

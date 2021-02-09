@@ -124,6 +124,14 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Feb 09 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.1.2
+- The chrony module is not owned by simp and does not use simp_options
+  for default values.  `simp config` was updated to add a link from
+  chronyd::servers to simp_options::ntp::servers in hiera data so
+  default ntp servers are set for both ntpd and chronyd.
+- Updated  `simp config` to check for chronyd settings when determining
+  the OS defaults for simp_options::ntp::server
+
 * Mon Jan 11 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.1.2
 - Remove support for EL6
 
@@ -144,7 +152,7 @@ EOM
     dependencies for the sample Puppet code.
   - Tell the user to check that they can ssh into the server with the new
     user after bootstrap but before rebooting. This step is imperative to
-    ensure that the user can also get through Puppet-managed 
+    ensure that the user can also get through Puppet-managed
     authentication!
 - Fixed the following:
   - Bug in which `simp config` did not allow DNS domains that did

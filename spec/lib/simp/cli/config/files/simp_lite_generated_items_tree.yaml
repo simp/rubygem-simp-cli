@@ -39,6 +39,7 @@
     - SimpOptionsDNSSearch
 - SimpOptionsTrustedNets
 - SimpOptionsNTPServers
+- ChronydNTPServersDefault
 
 # ==== General server setup actions and related configuration ====
 - CliSetGrubPassword:
