@@ -1,5 +1,5 @@
 ---
-chronyd::servers: "%{hiera('simp_options::ntp::servers')}"
+chronyd::servers: "%{alias('simp_options::ntp::servers')}"
 cli::is_simp_ldap_server: true
 cli::network::dhcp: static
 cli::network::gateway: "1.2.3.1"
