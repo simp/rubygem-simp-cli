@@ -44,26 +44,70 @@ describe Simp::Cli::Config::Item::SimpOptionsNTPServers do
   end
 
   describe '#get_os_value' do
-    it 'returns empty array when ntp.conf is not accessible' do
-      expect( @ci.get_os_value('/does/not/exist') ).to eq []
+    before :all do
+      @ntp_no_servers = File.join(@files_dir,'ntp.conf_no_servers')
+      @chrony_no_servers = File.join(@files_dir,'chrony.conf_no_servers')
+      @chrony_remote_servers = File.join(@files_dir,'chrony.conf_remote_servers')
+      @ntp_remote_servers = File.join(@files_dir,'ntp.conf_remote_servers')
+      @chrony_local_servers = File.join(@files_dir,'chrony.conf_local_servers')
+      @ntp_local_servers = File.join(@files_dir,'ntp.conf_local_servers')
     end
 
-    it 'returns empty array when ntp.conf has no servers' do
-      expect( @ci.get_os_value(File.join(@files_dir,'ntp.conf_no_servers')) ).to eq []
+    it 'returns empty array when chrony.conf has no servers and chrondy is running' do
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('chronyd').and_return(true)
+      expect( @ci.get_os_value(@chrony_no_servers, @ntp_no_servers)).to eq []
     end
 
-    it 'returns empty array when ntp.conf has only local servers' do
-      expect( @ci.get_os_value(File.join(@files_dir,'ntp.conf_local_servers')) ).to eq []
+    it 'returns empty array when ntp.conf has no servers and ntp is running' do
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('ntpd').and_return(true)
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('chronyd').and_return(false)
+      expect( @ci.get_os_value(@chrony_no_servers, @ntp_no_servers)).to eq []
     end
 
-    it 'returns array of only remote servers when ntp.conf lists remote and local servers' do
+    it 'returns chrony servers when chrony is running' do
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('chronyd').and_return(true)
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('ntpd').and_return(true)
       expected = [
-        '0.north-america.pool.ntp.org',
-        '1.north-america.pool.ntp.org',
-        '2.north-america.pool.ntp.org',
-        '3.north-america.pool.ntp.org'
+        '0.chronyd.centos.pool.ntp.org',
+        '1.chronyd.centos.pool.ntp.org'
       ]
-      expect( @ci.get_os_value(File.join(@files_dir,'ntp.conf_remote_servers')) ).to eq expected
+      expect( @ci.get_os_value(@chrony_remote_servers,@ntp_remote_servers)).to eq expected
+    end
+
+    it 'returns ntpd servers when chrony is not running but ntpd is' do
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('chronyd').and_return(false)
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('ntpd').and_return(true)
+      expected = [
+        '0.ntpd.north-america.pool.ntp.org',
+        '1.ntpd.north-america.pool.ntp.org'
+      ]
+      expect( @ci.get_os_value(@chrony_remote_servers,@ntp_remote_servers)).to eq expected
+    end
+    it 'returns empty array when it can not access the files' do
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('chronyd').and_return(false)
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('ntpd').and_return(false)
+      expect( @ci.get_os_value('/not/there', '/not/there') ).to eq []
+    end
+
+    it 'returns empty array when local servers are in the chrony files' do
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('chronyd').and_return(false)
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('ntpd').and_return(false)
+      expect( @ci.get_os_value(@chrony_local_servers,@ntp_remote_servers)).to eq []
+    end
+
+    it 'returns empty array when local servers are in the ntps files' do
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('chronyd').and_return(false)
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('ntpd').and_return(true)
+      expect( @ci.get_os_value('/not/there',@ntp_local_servers)).to eq []
+    end
+    it 'returns the ntp servers when no services are running and no chrony file exists' do
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('chronyd').and_return(false)
+      allow(Simp::Cli::Utils).to receive(:systemctl_running?).with('ntpd').and_return(false)
+      expected = [
+        '0.ntpd.north-america.pool.ntp.org',
+        '1.ntpd.north-america.pool.ntp.org'
+      ]
+      expect( @ci.get_os_value('/not/there',@ntp_remote_servers)).to eq expected
     end
   end
 

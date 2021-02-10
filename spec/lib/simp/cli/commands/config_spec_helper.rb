@@ -102,7 +102,7 @@ def config_normalize(file, other_keys_to_exclude = [], overrides = {})
      'grub::password',                     # hash value that varies from run-to-run with same password
      'simp_options::ldap::bind_hash',      # hash value that varies from run-to-run with same password
      'simp_options::ldap::sync_hash',      # hash value that varies from run-to-run with same password
-     'simp_options::ntpd::servers',        # depends upon actual system configuration
+     'simp_options::ntp::servers',         # depends upon actual system configuration
      'simp_openldap::server::conf::rootpw' # hash value that varies from run-to-run with same password
   ]
 

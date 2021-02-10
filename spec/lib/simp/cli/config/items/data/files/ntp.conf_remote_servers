@@ -10,10 +10,8 @@ server  127.127.1.0 # local clock
 fudge 127.127.1.0 stratum 10
 
 
-server 0.north-america.pool.ntp.org prefer burst
-server 1.north-america.pool.ntp.org burst
-server 2.north-america.pool.ntp.org
-server 3.north-america.pool.ntp.org
+server 0.ntpd.north-america.pool.ntp.org prefer burst
+server 1.ntpd.north-america.pool.ntp.org burst
 server 127.127.1.0
 driftfile /var/lib/ntp/drift
 broadcastdelay  0.004

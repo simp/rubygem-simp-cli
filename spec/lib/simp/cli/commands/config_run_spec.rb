@@ -754,7 +754,7 @@ describe 'Simp::Cli::Command::Config#run' do
           'simp_options::dns::servers=1.2.3.10',
           'simp_options::dns::search=test.local',
           'simp_options::trusted_nets=1.2.3.0/24',
-          'simp_options::ntpd::servers=time-a.nist.gov',
+          'simp_options::ntp::servers=time-a.nist.gov',
           'cli::set_grub_password=false',
           'puppetdb::master::config::puppetdb_port=0'])
 

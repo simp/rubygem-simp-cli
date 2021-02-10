@@ -8,7 +8,7 @@ module Simp::Cli::Config
   class Item::SimpOptionsNTPServers < ListItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
-      @key              = 'simp_options::ntpd::servers'
+      @key              = 'simp_options::ntp::servers'
       @description      =  %Q{Your network's NTP time servers.
 
 A consistent time source is critical to a functioning public key
@@ -29,9 +29,19 @@ negatively impact your site security. PKI depends upon sync'd time.]
       "#{@description}#{extra}"
     end
 
-    def get_os_value( file='/etc/ntp.conf' )
-      # TODO: make this a custom fact?
+    def get_os_value( chronydfile = '/etc/chrony.conf', ntpdfile = '/etc/ntp.conf' )
       servers = []
+      file = nil
+      if Simp::Cli::Utils.systemctl_running?('chronyd')
+        file = chronydfile
+      elsif Simp::Cli::Utils.systemctl_running?('ntpd')
+        file = ntpdfile
+      elsif File.exists?(chronydfile)
+        file = chronydfile
+      else
+        file = ntpdfile
+      end
+
       if File.readable? file
         File.readlines( file ).each do |line|
           match = line.match(/^server ([\w\.\-:]+)/)

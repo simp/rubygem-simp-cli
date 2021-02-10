@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 6.1.2
+%global cli_version 6.2.0
 %global highline_version 2.0.3
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -124,10 +124,24 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Mon Jan 11 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.1.2
+* Tue Feb 09 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.2.0
+- simp config changes:
+  - Configure simp_options::ntp::servers instead of deprecated
+    simp_options::ntpd::servers.
+  - Set the NTP server defaults for ntpd and chronyd.
+    simp_options::ntp::servers is intended to be the default NTP server
+    settings for a SIMP system, regardless of whether it uses ntpd or
+    chronyd. However, the chrony module does not use simp_options,
+    because it is not a SIMP-maintained module. To work around this,
+    `simp config` was updated to set chrony::servers to an alias of
+    simp_options::ntp::servers in hieradata.
+  - Check for both ntpd and chronyd settings when determining the OS defaults
+    for simp_options::ntp::server, not just ntpd settings.
+
+* Mon Jan 11 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.2.0
 - Remove support for EL6
 
-* Thu Dec 10 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 6.1.2
+* Thu Dec 10 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 6.2.0
 - Bumped .gemspec dependencies to mitigate CVE-2020-8130
 
 * Thu Oct 15 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.1.1
@@ -144,7 +158,7 @@ EOM
     dependencies for the sample Puppet code.
   - Tell the user to check that they can ssh into the server with the new
     user after bootstrap but before rebooting. This step is imperative to
-    ensure that the user can also get through Puppet-managed 
+    ensure that the user can also get through Puppet-managed
     authentication!
 - Fixed the following:
   - Bug in which `simp config` did not allow DNS domains that did

@@ -410,4 +410,11 @@ module Simp::Cli::Utils
     end
     result = (answer.downcase[0] == 'y')
   end
+
+  # @return whether a systemd service is running
+  # @param name Name of the systemd service
+  def systemctl_running?(name)
+    system("/usr/bin/systemctl status #{name} > /dev/null 2>&1")
+    $?.nil? ? false : ($?.exitstatus == 0)
+  end
 end
