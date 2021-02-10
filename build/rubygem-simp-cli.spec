@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 6.1.2
+%global cli_version 6.2.0
 %global highline_version 2.0.3
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
