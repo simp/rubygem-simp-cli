@@ -39,7 +39,7 @@
     - SimpOptionsDNSSearch
 - SimpOptionsTrustedNets
 - SimpOptionsNTPServers
-- ChronydNTPServersDefault
+- ChronyServers              # never queries as default is correct
 
 # ==== General server setup actions and related configuration ====
 - CliSetGrubPassword:

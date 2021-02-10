@@ -30,4 +30,4 @@
     - SimpOptionsDNSSearch
 - SimpOptionsTrustedNets
 - SimpOptionsNTPServers
-- ChronydNTPServersDefault
+- ChronyServers              # never queries as default is correct

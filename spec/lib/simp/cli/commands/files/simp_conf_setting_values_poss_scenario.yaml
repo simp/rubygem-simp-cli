@@ -1,5 +1,5 @@
 ---
-chronyd::servers: "%{alias('simp_options::ntp::servers')}"
+chrony::servers: "%{alias('simp_options::ntp::servers')}"
 cli::is_simp_ldap_server: false
 cli::network::gateway: "1.2.3.1"
 cli::network::hostname: simp.test.local
@@ -20,7 +20,7 @@ simp_options::dns::search:
 simp_options::dns::servers:
   - "1.2.3.10"
 simp_options::fips: true
-simp_options::ntpd::servers:
+simp_options::ntp::servers:
   - time-a.nist.gov
 simp_options::puppet::ca: simp.test.local
 simp_options::puppet::ca_port: 8141

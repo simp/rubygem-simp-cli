@@ -8,7 +8,7 @@ module Simp::Cli::Config
   class Item::SimpOptionsNTPServers < ListItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
-      @key              = 'simp_options::ntpd::servers'
+      @key              = 'simp_options::ntp::servers'
       @description      =  %Q{Your network's NTP time servers.
 
 A consistent time source is critical to a functioning public key

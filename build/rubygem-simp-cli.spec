@@ -124,18 +124,24 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Tue Feb 09 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.1.2
-- The chrony module is not owned by simp and does not use simp_options
-  for default values.  `simp config` was updated to add a link from
-  chronyd::servers to simp_options::ntp::servers in hiera data so
-  default ntp servers are set for both ntpd and chronyd.
-- Updated  `simp config` to check for chronyd settings when determining
-  the OS defaults for simp_options::ntp::server
+* Tue Feb 09 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.2.0
+- simp config changes:
+  - Configure simp_options::ntp::servers instead of deprecated
+    simp_options::ntpd::servers.
+  - Set the NTP server defaults for ntpd and chronyd.
+    simp_options::ntp::servers is intended to be the default NTP server
+    settings for a SIMP system, regardless of whether it uses ntpd or
+    chronyd. However, the chrony module does not use simp_options,
+    because it is not a SIMP-maintained module. To work around this,
+    `simp config` was updated to set chrony::servers to an alias of
+    simp_options::ntp::servers in hieradata.
+  - Check for both ntpd and chronyd settings when determining the OS defaults
+    for simp_options::ntp::server, not just ntpd settings.
 
-* Mon Jan 11 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.1.2
+* Mon Jan 11 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.2.0
 - Remove support for EL6
 
-* Thu Dec 10 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 6.1.2
+* Thu Dec 10 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 6.2.0
 - Bumped .gemspec dependencies to mitigate CVE-2020-8130
 
 * Thu Oct 15 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.1.1
