@@ -13,14 +13,14 @@ module Simp::Cli::Config
       super(puppet_env_info)
       @key            = 'disallow::simp::server'
 
-      # override with a shorter message
-      @description    = "Disallow inapplicable 'simp' user in SIMP server <host>.yaml"
+      # override base description with a more informative message
+      @description    = "Disable inapplicable user config in SIMP server <host>.yaml"
     end
 
-    # override with a better message
+    # override base apply_summary with a more informative message
     def apply_summary
       file = @file ? File.basename(@file) : 'SIMP server <host>.yaml'
-      "Disallow of inapplicable, local 'simp' user in #{file} #{@applied_status}"
+      "Disable of inapplicable user config in #{file} #{@applied_status}"
     end
   end
 end

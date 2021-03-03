@@ -6,5 +6,8 @@ simp::yum::repo::local_os_updates::enable_repo: false
 simp::yum::repo::local_simp::enable_repo: false
 simp::server::allow_simp_user: true
 
-classes :
+simp::classes:
   - 'simp::server'
+
+simp::server::classes:
+  - 'simp::puppetdb'

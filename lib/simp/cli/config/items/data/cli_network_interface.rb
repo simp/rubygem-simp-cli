@@ -27,6 +27,7 @@ module Simp::Cli::Config
     # a NIC that already has an IPv4 addresses
     def get_recommended_value
       recommended = nil
+      return nil if interfaces.nil?
 
       if @primary_interface && interfaces[@primary_interface]
         recommended = @primary_interface
@@ -58,7 +59,13 @@ module Simp::Cli::Config
     end
 
     def validate( x )
-      acceptable_values.include?( x )
+      if acceptable_values.empty?
+        # should only get here if the networking fact is not present, e.g.,
+        # when running `simp config` with Facter 2.x
+        x.nil? ? false : !x.strip.empty?
+      else
+        acceptable_values.include?( x )
+      end
     end
 
     def not_valid_message
@@ -67,7 +74,11 @@ module Simp::Cli::Config
 
     # helper method; provides a list of available NICs
     def acceptable_values
-      interfaces.keys.sort
+      if interfaces
+        interfaces.keys.sort
+      else
+        []
+      end
     end
 
     def get_interface_info

@@ -31,6 +31,10 @@ def generate_simp_input_accepting_defaults(ask_if_ready = true)
     "iTXA8O6yC=DMotMGP!eHd7IGI\n" << # confirm LDAP root password
     "\n"                          << # log servers
     "\n"                          << # securetty list
+    "\n"                          << # ensure a privileged local user
+    "\n"                          << # used 'simpadmin' as local username
+    "P@ssw0rdP@ssw0rd!\n"         << # simpadmin password
+    "P@ssw0rdP@ssw0rd!\n"         << # confirm simpadmin password
     "\n"                             # svckill warning mode
   input_io.rewind
   input_io
@@ -41,26 +45,30 @@ end
 # Exercises LDAP-enabled, but non-LDAP server logic.
 def generate_simp_lite_input_setting_values
   input_io = TestUtils::StringIO.new
-  input_io                                    <<
-    "yes\n"                                   << # we are ready for the questionnaire
-    "simp_lite\n"                             << # 'simp_lite' scenario
-    "enp0s3\n"                                << # use interface from mocked fact
-    "no\n"                                    << # don't activate the interface
-    "simp.test.local\n"                       << # FQDN of this system
-    "1.2.3.4\n"                               << # IP addr of this system
-    "255.255.255.0\n"                         << # netmask of this system
-    "1.2.3.1\n"                               << # gateway
-    "1.2.3.10\n"                              << # DNS servers
-    "test.local\n"                            << # DNS domain search string
-    "1.2.0.0/16\n"                            << # trusted networks
-    "time-a.nist.gov\n"                       << # NTP time servers
-    "no\n"                                    << # don't set the GRUB password
-    "no\n"                                    << # don't use internet SIMP repos
-    "no\n"                                    << # SIMP is not LDAP server
-    "LOCAL\n"                                 << # sssd domain
-    "1.2.3.11\n"                              << # log servers
-    "1.2.3.12\n"                              << # failover log servers
-    "tty0\n"                                     # securetty list
+  input_io                        <<
+    "yes\n"                       << # we are ready for the questionnaire
+    "simp_lite\n"                 << # 'simp_lite' scenario
+    "enp0s3\n"                    << # use interface from mocked fact
+    "no\n"                        << # don't activate the interface
+    "simp.test.local\n"           << # FQDN of this system
+    "1.2.3.4\n"                   << # IP addr of this system
+    "255.255.255.0\n"             << # netmask of this system
+    "1.2.3.1\n"                   << # gateway
+    "1.2.3.10\n"                  << # DNS servers
+    "test.local\n"                << # DNS domain search string
+    "1.2.0.0/16\n"                << # trusted networks
+    "time-a.nist.gov\n"           << # NTP time servers
+    "no\n"                        << # don't set the GRUB password
+    "no\n"                        << # don't use internet SIMP repos
+    "no\n"                        << # SIMP is not LDAP server
+    "LOCAL\n"                     << # sssd domain
+    "1.2.3.11\n"                  << # log servers
+    "1.2.3.12\n"                  << # failover log servers
+    "tty0\n"                      << # securetty list
+    "yes\n"                       << # ensure a privileged local user
+    "local_admin\n"               << # used 'local_admin' as local username
+    "P@ssw0rdP@ssw0rd!\n"         << # local_admin password
+    "P@ssw0rdP@ssw0rd!\n"            # confirm local_admin password
   input_io.rewind
   input_io
 end
@@ -90,7 +98,8 @@ def generate_poss_input_setting_values
     "no\n"                << # use SSSD
     "1.2.3.11\n"          << # log servers
     "1.2.3.12\n"          << # failover log servers
-    "tty0\n"                 # securetty list
+    "tty0\n"              << # securetty list
+    "no\n"                   # do not ensure a privileged local user
   input_io.rewind
   input_io
 end
@@ -99,6 +108,7 @@ def config_normalize(file, other_keys_to_exclude = [], overrides = {})
   # These config items whose values cannot be arbitrarily set
   # and/or vary each time they run.
   min_exclude_set = Set.new [
+     'cli::local_priv_user_password',      # hash value that varies from run-to-run with same password
      'grub::password',                     # hash value that varies from run-to-run with same password
      'simp_options::ldap::bind_hash',      # hash value that varies from run-to-run with same password
      'simp_options::ldap::sync_hash',      # hash value that varies from run-to-run with same password

@@ -124,6 +124,21 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Fri Mar 05 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.2.0
+- simp config changes:
+  - Added option to configure a local user with ssh and sudo privileges
+    to prevent server lockout, when SIMP is not installed from ISO.
+    - Especially important for cloud instances when the user does not have
+      console access.
+    - Specified local user will be created if not already present.
+    - If the specified local user exists and has authorized ssh keys, the keys
+      will be copied to /etc/ssh/local_keys/, the default location of local user
+      ssh authorized key files in SIMP.
+      IMPORTANT: Any future updates to a users's ssh authorized key list must
+      be made to the user's file in /etc/ssh/local_keys/.
+  - Fixed a bug in which running `simp config` multiple times could result in
+    multiple /etc/hosts entries for the puppetserver.
+
 * Tue Feb 09 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.2.0
 - simp config changes:
   - Configure simp_options::ntp::servers instead of deprecated

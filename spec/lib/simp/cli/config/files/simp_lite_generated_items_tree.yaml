@@ -126,9 +126,39 @@
 
 # ==== User actions ====
 - UseraddSecuretty
-- CliHasSimpLocalUser         SKIPQUERY SILENT: # don't ever prompt, just discover current value
+- CliHasSimpLocalUserFromIso          SKIPQUERY SILENT: # don't ever prompt, just discover current value
    false:
-    - SimpServerAllowSimpUser SKIPQUERY SILENT # default is correct
-    - DisallowSimpUserAction  # ISO-provided user does not exist, so don't allow!
-    - WarnLockoutRiskAction
+    - CliEnsurePrivLocalUser:
+       true:
+        - CliLocalPrivUser
+        - CliLocalPrivUserExists      SKIPQUERY SILENT:  # don't ever prompt, just discover current value
+           true:
+            - CliLocalPrivUserHasSshAuthorizedKeys SKIPQUERY SILENT:  # don't ever prompt, just discover current value
+               true:
+                - CopySshAuthorizedKeysAction
+           false:
+            - CliLocalPrivUserPassword
+            - CreateLocalUserAction
+
+        # Always disable the user configuration intended for the 'simp' user created
+        # during the ISO install. Even if the privileged user here is also named 'simp',
+        # the standard 'simp' user configuration can be problematic:
+        # - If the non-ISO 'simp' user only has access to the server via a ssh key
+        #   (e.g., cloud user that doesn't use passwords), the user would not be able
+        #   to sudo because the standard 'simp' user configuration requires a password
+        #   for sudo.
+        # - If any adjustments to the sudo/ssh configuration are required, the standard
+        #   'simp' user configuration does not support customization.
+        - SimpServerAllowSimpUser SKIPQUERY SILENT # default disables
+        - DisallowSimpUserAction  # ISO-provided user does not exist, so don't allow!
+
+        - PamAccessUsers          SKIPQUERY SILENT #default uses CliLocalPrivUser
+        - SelinuxLoginResources   SKIPQUERY SILENT #default uses CliLocalPrivUser
+        - SudoUserSpecifications  SKIPQUERY SILENT #default uses CliLocalPrivUser
+        - AllowLocalPrivUserAction
+        - WarnVerifyUserAccessAfterBootstrapAction
+       false:
+        - SimpServerAllowSimpUser     SKIPQUERY SILENT # default disables
+        - DisallowSimpUserAction      # ISO-provided user does not exist, so don't allow!
+        - WarnLockoutRiskAction
 

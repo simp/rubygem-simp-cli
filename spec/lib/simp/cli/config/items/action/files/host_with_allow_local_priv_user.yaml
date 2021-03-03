@@ -1,0 +1,46 @@
+---
+# some comment
+simp_apache::conf::ssl::trusted_nets: "%{alias('simp_options::trusted_nets')}"
+simp_apache::ssl::sslverifyclient: none
+simp::yum::repo::local_os_updates::enable_repo: false
+simp::yum::repo::local_simp::enable_repo: false
+pupmod::enable_puppet_master: true
+puppetdb::master::config::puppet_service_name: puppetserver
+puppetdb::globals::version: latest
+puppetdb::master::config::restart_puppet: false
+simp::server::allow_simp_user: true
+
+# === pam::access::users ===
+# PAM remote access rules.
+#
+# Users allowed to ssh to the server and their corresponding origin
+# restrictions.
+pam::access::users:
+  local_admin:
+    origins:
+    - ALL
+
+# === selinux::login_resources ===
+# SELinux login mapping configuration.
+selinux::login_resources:
+  local_admin:
+    seuser: staff_u
+    mls_range: s0-s0:c0.c1023
+
+# === sudo::user_specifications ===
+# `sudo` user rules.
+sudo::user_specifications:
+  local_admin_su:
+    user_list:
+    - local_admin
+    cmnd:
+    - ALL
+    passwd: false
+    options:
+      role: unconfined_r
+
+simp::classes:
+- simp::server
+
+simp::server::classes:
+- simp::puppetdb

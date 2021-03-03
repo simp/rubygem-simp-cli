@@ -25,6 +25,11 @@ describe Simp::Cli::Config::Item::CliNetworkInterface do
   end
 
   describe '#get_recommended_value' do
+    it "returns nil when 'networking' fact does not exist" do
+      allow(Facter).to receive(:value).with('networking').and_return(nil)
+      expect( @ci.get_recommended_value ).to be_nil
+    end
+
     it 'returns primary interface when it exists and has an IPv4 addr' do
       allow(Facter).to receive(:value).with('networking').and_return(networking_fact)
       expect( @ci.get_recommended_value ).to eq 'br1'

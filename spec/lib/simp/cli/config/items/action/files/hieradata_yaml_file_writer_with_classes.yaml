@@ -37,6 +37,6 @@ simp_options::puppet::server: puppet.domain.tld
 
 
 simp::classes:
-  - simp::yum::repo::internet_simp
-  - simp::yum::repo::local_os_updates
-  - simp::yum::repo::local_simp
+- simp::yum::repo::internet_simp
+- simp::yum::repo::local_os_updates
+- simp::yum::repo::local_simp

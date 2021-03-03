@@ -1,19 +1,16 @@
-require 'simp/cli/config/items/data/cli_has_simp_local_user'
-require 'fileutils'
-require 'rspec/its'
+require 'simp/cli/config/items/data/cli_has_simp_local_user_from_iso'
+require 'test_utils/etc_pwnam_struct'
 require_relative '../spec_helper'
 
-EtcPwnamStruct = Struct.new(:name, :passwd, :uid, :gid, :gecos, :dir, :shell)
-
-describe Simp::Cli::Config::Item::CliHasSimpLocalUser do
+describe Simp::Cli::Config::Item::CliHasSimpLocalUserFromIso do
   before :each do
-    @ci = Simp::Cli::Config::Item::CliHasSimpLocalUser.new
+    @ci = Simp::Cli::Config::Item::CliHasSimpLocalUserFromIso.new
   end
 
   context '#recommended_value' do
     context 'when simp user exists' do
       let(:simp_pwnam) {
-        pwnam = EtcPwnamStruct.new
+        pwnam = TestUtils::EtcPwnamStruct.new
         pwnam.name   = 'simp'
         pwnam.passwd = 'x'
         pwnam.uid    = 1777

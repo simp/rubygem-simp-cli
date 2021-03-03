@@ -1,7 +1,7 @@
 require 'highline/import'
 require 'puppet'
-require 'yaml'
 require 'simp/cli/config/errors'
+require 'simp/cli/config/yaml_utils'
 require 'simp/cli/defaults'
 require 'simp/cli/exec_utils'
 require 'simp/cli/logging'
@@ -14,6 +14,7 @@ module Simp::Cli::Config
   class Item
 
     include Simp::Cli::Logging
+    include Simp::Cli::Config::YamlUtils
 
     PAUSE_SECONDS = 2 # number of seconds to pause processing to allow
                       # an important logged message to be highlighted
@@ -171,11 +172,10 @@ module Simp::Cli::Config
       end
 
       # comment every line that describes the item:
-      x =  x.each_line.map{ |y| "# #{y}" }.join
+      x =  x.each_line.map{ |y| y.strip.empty? ? "#\n" : "# #{y}" }.join
 
-      # add yaml (but stripped of frontmatter and first indent)
-      # TODO: should we be using SafeYAML?  http://danieltao.com/safe_yaml/
-      x += { @key => @value }.to_yaml.gsub(/^---\s*\n/m, '').gsub(/^  /, '' )
+      # add yaml tag directive for just the <key,value> pair
+      x += pair_to_yaml_tag(@key, @value)
       x += "\n"
 
       if @skip_yaml
@@ -345,7 +345,9 @@ module Simp::Cli::Config
 # output StringIO, even though they appear in the console output, when
 # run manually.
 #      value = ask( "#{query_prompt.white.bold}: ",
-      value = ask( "<%= color('#{query_prompt}', WHITE, BOLD) %>: ",
+#
+      # gsub is to escape any single quotes in the prompt
+      value = ask( "<%= color('#{query_prompt.gsub("'","\\\\'")}', WHITE, BOLD) %>: ",
                   highline_question_type ) do |q|
         q.default = default_value unless default_value.to_s.empty?
 

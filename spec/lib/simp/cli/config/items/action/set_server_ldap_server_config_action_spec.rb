@@ -43,7 +43,7 @@ describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
       @ci.apply
       expect( @ci.applied_status ).to eq :succeeded
       expected = File.join(@files_dir, 'host_with_ldap_server_config_added.yaml')
-      expect( IO.read(expected) ).to eq IO.read(@host_file)
+      expect( IO.read(@host_file) ).to eq IO.read(expected)
     end
 
     it 'replaces LDAP server config <host>.yaml' do
@@ -54,7 +54,7 @@ describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
       @ci.apply
       expect( @ci.applied_status ).to eq :succeeded
       expected = File.join(@files_dir, 'host_with_ldap_server_config_replaced.yaml')
-      expect( IO.read(expected) ).to eq IO.read(@host_file)
+      expect( IO.read(@host_file) ).to eq IO.read(expected)
     end
 
     it 'fails when <host>.yaml does not exist' do

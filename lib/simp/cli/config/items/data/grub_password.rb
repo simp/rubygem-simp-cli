@@ -15,7 +15,6 @@ module Simp::Cli::Config
 The value entered is used to set the GRUB password and to generate a hash
 stored in #{@key}.}
       @password_name  = 'GRUB'
-      @applied_status = :unattempted
     end
 
     def query_prompt

@@ -49,8 +49,7 @@ module Simp::Cli::Config
 
       unless global_classes.empty?
         iostream.puts
-        iostream.puts 'simp::classes:'
-        global_classes.each { |global_class| iostream.puts "  - #{global_class}" }
+        iostream.puts(pair_to_yaml_tag('simp::classes', global_classes))
       end
     end
 

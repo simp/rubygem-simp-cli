@@ -1,4 +1,6 @@
 ---
+chrony::servers: "%{alias('simp_options::ntp::servers')}"
+cli::ensure_priv_local_user: false
 cli::is_simp_ldap_server: true
 cli::network::dhcp: static
 cli::network::gateway: "1.2.3.1"
