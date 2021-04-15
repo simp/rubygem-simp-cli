@@ -7,14 +7,12 @@ module Simp::Cli::Config
   class Item::DisallowSimpUserAction < SetServerHieradataActionItem
 
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      @hiera_to_add = [
-        'simp::server::allow_simp_user'
-      ]
+      @hiera_to_add = [ 'simp::server::allow_simp_user' ]
       super(puppet_env_info)
-      @key            = 'disallow::simp::server'
+      @key          = 'disallow::simp::server'
 
       # override base description with a more informative message
-      @description    = "Disable inapplicable user config in SIMP server <host>.yaml"
+      @description  = "Disable inapplicable user config in SIMP server <host>.yaml"
     end
 
     # override base apply_summary with a more informative message

@@ -9,12 +9,14 @@ module Simp::Cli::Config
 
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
-      @key            = 'grub::password'
-      @description    = %Q{The password to access GRUB.
+      @key           = 'grub::password'
+      @description   = <<~EOM.strip
+        The password to access GRUB.
 
-The value entered is used to set the GRUB password and to generate a hash
-stored in #{@key}.}
-      @password_name  = 'GRUB'
+        The value entered is used to set the GRUB password and to generate a hash
+        stored in #{@key}.
+      EOM
+      @password_name = 'GRUB'
     end
 
     def query_prompt

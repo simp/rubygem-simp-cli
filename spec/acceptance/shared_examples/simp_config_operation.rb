@@ -62,11 +62,12 @@ shared_examples 'simp config operation' do |host,options|
 
     # privileged local user info:
     # - Only applies when :iso_install is false
-    # - When nil, no privileged user will be configured
-    # - `simp config` defaults to configuring and if necessary creating a
-    #   'simpadmin' user
-    # - Used to pre-configure user prior to `simp config`
-    # - Used to set `simp config` configuration
+    # - Used to configure user prior to `simp config`:
+    #   - When :priv_user[:exists] is false, ensures local user does not exist.
+    #     Otherwise, the local user is ASSUMED to already exist.
+    # - Used to set `simp config` configuration:
+    #   - When nil, does not configure a privileged local user
+    #   - When not nil, configures the specified user
     # - Used in validation
     :priv_user               =>  {
       :name     => 'simpadmin',  # name of the local privileged user
@@ -141,9 +142,7 @@ shared_examples 'simp config operation' do |host,options|
       if opts[:priv_user].nil?
         config << 'cli::ensure_priv_local_user=false'
       else
-        if opts[:priv_user][:name] != 'simpadmin'
-          config << "cli::local_priv_user=#{opts[:priv_user][:name]}"
-        end
+        config << "cli::local_priv_user=#{opts[:priv_user][:name]}"
 
         unless opts[:priv_user][:exists]
           config << "'cli::local_priv_user_password=#{priv_user_pwd_hash}'"
@@ -414,7 +413,7 @@ shared_examples 'simp config operation' do |host,options|
       expect( directory_exists_on(host, "/var/local/#{username}") ).to be true
     end
 
-    it "should be able to login via ssh as '#{opts[:priv_user][:name]}' using password" do
+    it "should be able to login via ssh as '#{opts[:priv_user][:name]}' using password before bootstrap" do
       on(host, 'puppet resource package expect ensure=present')
       on(host, 'mkdir -p /root/scripts')
       script = '/root/scripts/ssh_cmd_script'

@@ -52,7 +52,7 @@ shared_examples 'a yes/no validator' do
 end
 
 class TestItem < Simp::Cli::Config::Item
-  attr_accessor :key, :description, :data_type
+  attr_accessor :key, :description, :data_type, :fact, :alt_source
 end
 
 class TestListItem < Simp::Cli::Config::ListItem

@@ -1,5 +1,6 @@
 require_relative '../action_item'
 require_relative '../data/cli_local_priv_user'
+require_relative '../data/cli_network_hostname'
 
 module Simp; end
 class Simp::Cli; end
@@ -15,6 +16,7 @@ module Simp::Cli::Config
 
     def apply
       username = get_item('cli::local_priv_user').value
+      hostname = get_item( 'cli::network::hostname' ).value
       warning_message = <<~DOC
 
         #########################################################################
@@ -27,8 +29,13 @@ module Simp::Cli::Config
 
         Using a NEW SSH SESSION OR TERMINAL (do NOT close your working session)
 
-        * Log in as '#{username}'
-        * `sudo su - root`
+        * Log in as '#{username}':
+
+           ssh #{username}@#{hostname}
+
+        * sudo to root:
+
+           sudo su - root
 
             +-------------------------------------------------------------+
             | If your user cannot ssh into the server and sudo to `root`  |

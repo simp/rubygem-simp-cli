@@ -8,6 +8,10 @@ describe Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction do
     item = Simp::Cli::Config::Item::CliLocalPrivUser.new
     item.value = 'local_admin'
     @ci.config_items[item.key] = item
+
+    item = Simp::Cli::Config::Item::CliNetworkHostname.new
+    item.value = 'simp.test.local'
+    @ci.config_items[item.key] = item
   end
 
   describe '#apply' do
@@ -25,6 +29,12 @@ describe Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction do
       @ci.config_items.delete('cli::local_priv_user')
       expect { @ci.apply }.to raise_error(Simp::Cli::Config::InternalError,
         /Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction could not find cli::local_priv_user/)
+    end
+
+    it 'fails when cli::network:hostname Item does not exist' do
+      @ci.config_items.delete('cli::network::hostname')
+      expect { @ci.apply }.to raise_error(Simp::Cli::Config::InternalError,
+        /Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction could not find cli::network::hostname/)
     end
   end
 

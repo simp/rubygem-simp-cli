@@ -20,6 +20,7 @@ describe 'simp config with defaults for non-ISO install' do
       interfaces = fact_on(host, 'interfaces').split(',').delete_if { |x| x == 'lo' }
       options = {
         :description => 'using defaults',
+        :priv_user   =>  { :exists => false }, # new local user to be created
         :interface   => interfaces.first
       }
       include_examples 'simp config operation', host, options

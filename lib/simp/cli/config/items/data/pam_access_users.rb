@@ -16,13 +16,12 @@ module Simp::Cli::Config
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
       @key         = 'pam::access::users'
-      @description = ( <<~EOM
+      @description = <<~EOM.strip
         PAM remote access rules.
 
         Users allowed to ssh to the server and their corresponding origin
         restrictions.
-        EOM
-      ).strip
+      EOM
 
       # make sure this does not get persisted to the answers file,
       # because we have no mechanism to validate it if the user

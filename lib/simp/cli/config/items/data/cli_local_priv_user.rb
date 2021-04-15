@@ -7,18 +7,12 @@ module Simp::Cli::Config
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
       @key         = 'cli::local_priv_user'
-      @description = ( <<~EOM
-          The local user to configure with `sudo` and `ssh` privileges to prevent server
-          lockout after bootstrap.
-        EOM
-      ).strip
+      @description = <<~EOM.strip
+        The local user to configure with `sudo` and `ssh` privileges to prevent server
+        lockout after bootstrap.
+      EOM
 
       @data_type  = :cli_params
-    end
-
-    def get_recommended_value
-      # intentionally differentiate from the user created by the SIMP ISO
-      'simpadmin'
     end
 
     def validate( x )

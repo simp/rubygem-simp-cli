@@ -189,9 +189,8 @@ module Simp::Cli::Config
     def print_banner
       notice( "\n=== #{@key} ===", [:CYAN, :BOLD])
       notice( description, [:CYAN] )
-      # inspect is a work around for Ruby 1.8.7 Array.to_s garbage
-      notice( "    - os value:          #{os_value.inspect}", [:CYAN] )          if os_value
-      notice( "    - recommended value: #{recommended_value.inspect}", [:CYAN] ) if recommended_value
+      notice( "----> OS value:          #{os_value.inspect}", [:CYAN] )          if os_value
+      notice( "----> Recommended value: #{recommended_value.inspect}", [:CYAN] ) if recommended_value
     end
 
 
@@ -209,16 +208,27 @@ module Simp::Cli::Config
     # methods to set Item#value
     # --------------------------------------------------------------------------
 
-    # Determine the value of the object, querying the user or using the
-    # default, as appropriate
+    # Determine the value of the Item based on the Item's @skip_query setting,
+    # whether @value has been preset to a valid value via an answers file or
+    # commandline argument override, and the allow_queries and force_defaults
+    # parameters.
     #
-    # raises  Simp::Cli::Config::ValidationError upon failure
+    # Item's @value will be set to a valid value upon success.
+    #
+    # @param allow_queries Whether queries are allowed to gather a valid value
+    #
+    # @param force_defaults Whether to preferentially use the default
+    #   value, when it exists
+    #
+    # @raise Simp::Cli::Config::ValidationError or
+    #        Simp::Cli::Config::InternalError upon failure
+    #
     def determine_value(allow_queries, force_defaults)
       # don't do anything with Items that don't carry data
       return unless value_required?
 
       if @skip_query and @value.nil?
-        # value is supposed to be be automatically determined;
+        # value is supposed to be automatically determined;
         # @skip_query is typically used to gather system settings or
         # for internal Items needed by other Items in the item decision
         # tree.
@@ -234,6 +244,14 @@ module Simp::Cli::Config
       print_summary
     end
 
+    # Determine the value of the Item from its default.
+    #
+    # Item's @value will be set to a valid value upon success.
+    #
+    # @raise Simp::Cli::Config::InternalError upon failure, as this
+    #   method should only be called when the default value is expected
+    #   to be set.
+    #
     def determine_value_from_default
       @value = default_value_noninteractive
       # The default value *should* not require validation. However, if it is
@@ -251,6 +269,19 @@ module Simp::Cli::Config
       @alt_source = :noninteractive
     end
 
+    # Determine the value of the Item based on the allow_queries and
+    # force_defaults parameters
+    #
+    # - Does not consider Item's current value.
+    # - Item's @value will be set to a valid value upon success.
+    #
+    # @param allow_queries Whether queries are allowed to gather a valid value
+    #
+    # @param force_defaults Whether to preferentially use the default
+    #   value, when it exists
+    #
+    # @raise Simp::Cli::Config::ValidationError upon failure
+    #
     def determine_value_without_override(allow_queries, force_defaults)
       if !allow_queries and !force_defaults
         err_msg = "FATAL: No answer found for '#{@key}'"
@@ -258,16 +289,14 @@ module Simp::Cli::Config
       else
         if force_defaults
           # try to use the default value, which may or may not exist
-          # NOTE: We intentionally set @value so validation logic
-          # for encrypted passwords is exercised, for PasswordItems
-          # that prompt for unencrypted values and then encrypt. These
-          # Items exercise different validation logic for unencrypted
-          # and encrypted values.
           @value = default_value_noninteractive
-          if validate(@value)
-            @alt_source = :noninteractive
-          else
-            @value.nil?
+          unless @value.nil?
+            # just in case the default isn't actually valid...
+            if validate(@value)
+              @alt_source = :noninteractive
+            else
+              @value = nil
+            end
           end
         end
         if @value.nil?
@@ -282,32 +311,57 @@ module Simp::Cli::Config
       end
     end
 
+    # Determine the value of the Item based on the Item's overriden value
+    # and the allow_queries and force_defaults parameters.
+    #
+    # Item's @value will be set to a valid value upon success.
+    #
+    # @param allow_queries Whether queries are allowed to gather a valid value
+    #
+    # @param force_defaults Whether to preferentially use the default
+    #   value, when it exists
+    #
+    # @raise Simp::Cli::Config::ValidationError or
+    #        Simp::Cli::Config::InternalError upon failure
+    #
     def determine_value_with_override(allow_queries, force_defaults)
       if validate(@value)
         @alt_source = :answered
       else
-        # We don't expect users to override Items for which the user
-        # would not be queried in an interactive run.  However, since some
-        # of these Items end up in an answers file, it is possible for
-        # a user to see the answer and decide to change it.  So, we need
-        # to be sure to log any errors related to normally hidden (silent)
-        # Items.
+        # We can get here because the user preset the Item to an invalid value
+        # or a user preset one Item's value, but did not propagate that to all
+        # the dependent items. Here are a few non-obvious scenarios that
+        # shed some light on the problem:
+        #
+        # - The user presets an encrypted PasswordItem as a raw password, because
+        #   the user would be prompted for the raw password interactively, even
+        #   though the stored password is encrypted.
+        # - The user presets the LDAP BIND password, but doesn't know to fix
+        #   the Item containing the hash of the password, because when run
+        #   interactively, the Item for the hash is autogenerated for them.
+        # - The user sees an autogenerated Item in an answers file and assumes
+        #   they can override it.
+
+        # Validation errors in the autogenerated Items present a unique
+        # challenge for us. We don't expect users to override these Items, but,
+        # as of now, can't stop them from doing so. This means we need to be
+        # sure to log any errors related to normally silent Items.
         prev_silent = @silent
         @silent = false
         if prev_silent
-          # This is the only way to get validation errors that may be
-          # logged.  Currently, PasswordItems are the only Items to log
-          # validation error messages.  Since these messages are very
-          # informative, we do not want to lose them.
           validate(@value)
         end
         if !allow_queries and !force_defaults
           err_msg = "FATAL: '#{@value}' is not a valid answer for '#{@key}'"
           raise Simp::Cli::Config::ValidationError.new(err_msg)
         else
-          # try to fix the problem interactively or with default values, but
-          # don't allow replacement values to be autogenerated, as that hides
-          # the (user-created) problem
+          # Try to fix the problem interactively when queries are allowed or by
+          # using the default, when queries are not. However, when queries are
+          # allowed, don't allow replacement values to be autogenerated (i.e.,
+          # do not skip the query and just accept the recommended value). This
+          # would hide the (user-created) problem. In this case, if the value
+          # can be determined from the autogeneration, it will be displayed to
+          # user as the recommended value.
           warn(
             'WARNING: ', [:YELLOW, :BOLD],
             "The invalid value '#{@value}' for '#{@key}' will be **IGNORED**", [:YELLOW]

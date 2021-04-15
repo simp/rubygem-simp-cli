@@ -8,17 +8,19 @@ module Simp::Cli::Config
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
       @key         = 'cli::has_simp_local_user_from_iso'
-      @description = %Q{Whether the server has the local 'simp' user created by
-an ISO install.
+      @description = <<~EOM.strip
+        Whether the server has the local 'simp' user created by
+        an ISO install.
 
-Per security policy, SIMP, by default, disables login via ssh for all
-users, including 'root', and beginning with SIMP 6.0.0 disables, root
-logins at the console.  So, to prevent lockout in systems for which
-no administrative user account has yet been created or both console
-access is not available and the administrative user's ssh access
-has not yet been enabled, the SIMP ISO installation creates a
-local user, 'simp', for which su and ssh privileges will be enabled
-via the simp::server manifest, when SIMP is bootstrapped.}
+        Per security policy, SIMP, by default, disables login via ssh for all
+        users, including 'root', and beginning with SIMP 6.0.0 disables, root
+        logins at the console.  So, to prevent lockout in systems for which
+        no administrative user account has yet been created or both console
+        access is not available and the administrative user's ssh access
+        has not yet been enabled, the SIMP ISO installation creates a
+        local user, 'simp', for which su and ssh privileges will be enabled
+        via the simp::server manifest, when SIMP is bootstrapped.
+      EOM
       @data_type  = :internal  # don't persist this as it needs to be
                                # evaluated each time simp config is run
       @username = 'simp'

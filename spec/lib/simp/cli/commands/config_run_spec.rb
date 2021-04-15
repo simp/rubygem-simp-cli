@@ -178,6 +178,7 @@ describe 'Simp::Cli::Command::Config#run' do
                 "\n"                         << # accept auto-generated grub password
                 "iTXA8O6yC=DMotMGTeHd7IGI\n" << # LDAP root password
                 "iTXA8O6yC=DMotMGTeHd7IGI\n" << # confirm LDAP root password
+                "simpadmin\n"                << # privileged local user
                 "P@ssw0rdP@ssw0rd!\n"        << # simpadmin password
                 "P@ssw0rdP@ssw0rd!\n"           # confirm simpadmin password
       @input.reopen(input_string)
@@ -204,6 +205,7 @@ describe 'Simp::Cli::Command::Config#run' do
           'cli::network::interface=enp0s3',
           'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
           'grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
+           'cli::local_priv_user=simpadmin',
            'cli::local_priv_user_password=$6$l69r7t36$WZxDVhvdMZeuL0vRvOrSLMKWxxQbuK1j8t0vaEq3BW913hjOJhRNTxqlKzDflPW7ULPwkBa6xdfcca2BlGoq/.'
           ])
         end
@@ -438,6 +440,7 @@ describe 'Simp::Cli::Command::Config#run' do
           '--disable-queries',
           'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
           'grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
+           'cli::local_priv_user=simpadmin',
            'cli::local_priv_user_password=$6$l69r7t36$WZxDVhvdMZeuL0vRvOrSLMKWxxQbuK1j8t0vaEq3BW913hjOJhRNTxqlKzDflPW7ULPwkBa6xdfcca2BlGoq/.',
           '--quiet'])
         end
@@ -534,6 +537,7 @@ describe 'Simp::Cli::Command::Config#run' do
                 "iTXA8O6y{oDMotMGTeHd7\n"    << # attempt 1: bad confirm password
                 "iTXA8O6y{oDMotMGTeHd7IGI\n" << # attempt 2: LDAP root password
                 "iTXA8O6y{oDMotMGTeHd7IGI\n" << # attempt 2: valid confirm LDAP root password
+                "simpadmin\n"                << # privileged local user
                 "P@ssw0rdP@ssw0rd!\n"        << # attempt 1: simpadmin password
                 "P@ssw0rdP@ssw\n"            << # attempt 1: bad confirm password
                 "P@ssw0rdP@ssw0rd!\n"        << # attempt 2: simpadmin password
@@ -586,6 +590,7 @@ describe 'Simp::Cli::Command::Config#run' do
                 "1234567890{\n"              << # attempt 2: fails cracklib check + needs brace escape
                 "iTXA8O6y}.9MotMGTeHd7IGI\n" << # attempt 3: good LDAP root password
                 "iTXA8O6y}.9MotMGTeHd7IGI\n" << # attempt 3: valid confirm LDAP root password
+                "simpadmin\n"                << # privileged local user
                 "P@ssw0rdP@ssw0rd!\n"        << # attempt 1: simpadmin password
                 "P@ssw0rdP@ssw0rd!\n"           # attempt 1: valid confirm simpadmin password
       @input.reopen(input_string)
@@ -614,7 +619,6 @@ describe 'Simp::Cli::Command::Config#run' do
     it 'prompts when --apply-with-questions and input file has an invalid password' do
       bad_password = 'Un=3nCryPte6'  # should be encrypted in answers file
       input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
-      input.gsub!(/oops_force_replacement/, 'enp0s3')
       input.gsub!(/simp_openldap::server::conf::rootpw: .*\n/,
          "simp_openldap::server::conf::rootpw: \"#{bad_password}\"\n")
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
@@ -653,7 +657,6 @@ describe 'Simp::Cli::Command::Config#run' do
       # valid password that does not match its encrypted value
       different_pw = 'Puy.c&48I1A8#PI1JW#&gX*4ugn!whg7'
       input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
-      input.gsub!(/oops_force_replacement/, 'enp0s3')
       input.gsub!(/simp_options::ldap::bind_pw: .*\n/,
          "simp_options::ldap::bind_pw: \"#{different_pw}\"\n")
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
@@ -679,7 +682,7 @@ describe 'Simp::Cli::Command::Config#run' do
       warn_msg = "'simp_options::ldap::bind_hash' will be **IGNORED**"
       expect( @output.string ).to match Regexp.escape(warn_msg)
 
-      match = @output.string.match(/recommended value: "({SSHA}.*)"/)
+      match = @output.string.match(/Recommended value: "({SSHA}.*)"/)
       expect( match ).to_not be_nil
       expect( File.exist?( @answers_output_file ) ).to be true
 

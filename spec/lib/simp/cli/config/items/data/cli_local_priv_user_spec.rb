@@ -7,12 +7,6 @@ describe Simp::Cli::Config::Item::CliLocalPrivUser do
     @ci = Simp::Cli::Config::Item::CliLocalPrivUser.new
   end
 
-  describe '#get_recommended_value' do
-    it 'returns simpadmin' do
-      expect( @ci.get_recommended_value ).to eq('simpadmin')
-    end
-  end
-
   describe '#validate' do
     it 'validates valid usernames' do
       expect( @ci.validate 'admin' ).to eq true

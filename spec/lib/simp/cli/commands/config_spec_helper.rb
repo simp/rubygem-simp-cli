@@ -32,7 +32,7 @@ def generate_simp_input_accepting_defaults(ask_if_ready = true)
     "\n"                          << # log servers
     "\n"                          << # securetty list
     "\n"                          << # ensure a privileged local user
-    "\n"                          << # used 'simpadmin' as local username
+    "simpadmin\n"                 << # privileged local user
     "P@ssw0rdP@ssw0rd!\n"         << # simpadmin password
     "P@ssw0rdP@ssw0rd!\n"         << # confirm simpadmin password
     "\n"                             # svckill warning mode
