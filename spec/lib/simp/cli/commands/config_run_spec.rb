@@ -97,9 +97,9 @@ describe 'Simp::Cli::Command::Config#run' do
       'simp_options::puppet::server',
    ] }
 
-  context 'creates SIMP global hieradata file when input is valid' do
+  context 'creates SIMP global hieradata file when input is valid and user is root' do
     it 'hieradata file contains only hieradata' do
-      skip('This requires an integration test, as file is only written when user is root')
+      skip('Tested in acceptance test')
     end
   end
 
@@ -118,7 +118,7 @@ describe 'Simp::Cli::Command::Config#run' do
         puts @output.string
         raise
       end
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
 
       # normalize out YAML keys that are not deterministic
       expected = config_normalize(
@@ -142,10 +142,12 @@ describe 'Simp::Cli::Command::Config#run' do
         puts @output.string
         raise
       end
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
 
       # normalize out YAML keys that are not deterministic
-      expected = config_normalize(File.join(files_dir, 'simp_conf_setting_values_simp_lite_scenario.yaml'))
+      expected = config_normalize(
+        File.join(files_dir, 'simp_conf_setting_values_simp_lite_scenario.yaml')
+      )
       actual_simp_conf = config_normalize(@answers_output_file)
       expect( actual_simp_conf ).to eq expected
     end
@@ -162,7 +164,7 @@ describe 'Simp::Cli::Command::Config#run' do
         puts @output.string
         raise
       end
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
 
       # normalize out YAML keys that are not deterministic
       expected = config_normalize(File.join(files_dir, 'simp_conf_setting_values_poss_scenario.yaml'))
@@ -175,7 +177,10 @@ describe 'Simp::Cli::Command::Config#run' do
       input_string <<
                 "\n"                         << # accept auto-generated grub password
                 "iTXA8O6yC=DMotMGTeHd7IGI\n" << # LDAP root password
-                "iTXA8O6yC=DMotMGTeHd7IGI\n"    # confirm LDAP root password
+                "iTXA8O6yC=DMotMGTeHd7IGI\n" << # confirm LDAP root password
+                "simpadmin\n"                << # privileged local user
+                "P@ssw0rdP@ssw0rd!\n"        << # simpadmin password
+                "P@ssw0rdP@ssw0rd!\n"           # confirm simpadmin password
       @input.reopen(input_string)
       @input.rewind
 
@@ -189,7 +194,7 @@ describe 'Simp::Cli::Command::Config#run' do
         puts @output.string
         raise
       end
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
     end
 
     it 'creates valid file with no prompts when --force-defaults and KEY=VALUE arguments are complete' do
@@ -199,14 +204,17 @@ describe 'Simp::Cli::Command::Config#run' do
           '-l', @log_file, '--dry-run', '--force-defaults',
           'cli::network::interface=enp0s3',
           'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
-          'grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103' ])
+          'grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
+           'cli::local_priv_user=simpadmin',
+           'cli::local_priv_user_password=$6$l69r7t36$WZxDVhvdMZeuL0vRvOrSLMKWxxQbuK1j8t0vaEq3BW913hjOJhRNTxqlKzDflPW7ULPwkBa6xdfcca2BlGoq/.'
+          ])
         end
       rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
       end
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
     end
 
     it 'creates valid file from valid answers file using --apply-with-questions and no prompts' do
@@ -223,7 +231,7 @@ describe 'Simp::Cli::Command::Config#run' do
         puts @output.string
         raise
       end
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
       # Only change we expect is for hardcoded cli::version to have been updated
       expected = YAML.load(File.read(input_answers_file))
       expected['cli::version'] = Simp::Cli::VERSION
@@ -248,7 +256,7 @@ describe 'Simp::Cli::Command::Config#run' do
         puts @output.string
         raise
       end
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
       # we expect
       # - missing, non-interactive puppetdb::master::config::puppetdb_port and
       #   puppetdb::master::config::puppetdb_server to have been added
@@ -281,7 +289,7 @@ describe 'Simp::Cli::Command::Config#run' do
         puts @output.string
         raise
       end
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
 
       # normalize out lines that are not deterministic
       expected = config_normalize(File.join(files_dir, 'simp_conf_with_overrides.yaml'))
@@ -296,15 +304,14 @@ describe 'Simp::Cli::Command::Config#run' do
           @config.run([
             '-o', @answers_output_file,
             '--apply', input_answers_file,
-            '-l', @log_file, '--dry-run',
-            'cli::network::interface=enp0s3'])
+            '-l', @log_file, '--dry-run'])
         end
       rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
         puts '=========stdout========='
         puts @output.string
         raise
       end
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
       expected = YAML.load(File.read(input_answers_file))
       expected['cli::version'] = Simp::Cli::VERSION
 
@@ -313,7 +320,7 @@ describe 'Simp::Cli::Command::Config#run' do
     end
 
     it 'creates valid file using --apply and KEY=VALUE arguments' do
-      input_answers_file = File.join(files_dir, 'prev_simp_conf.yaml')
+      input_answers_file = File.join(files_dir, 'prev_simp_conf_invalid_interface.yaml')
       begin
         Timeout.timeout(max_config_run_seconds) do
           @config.run([
@@ -327,9 +334,9 @@ describe 'Simp::Cli::Command::Config#run' do
         puts @output.string
         raise
       end
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
 
-      expected = YAML.load(File.read(input_answers_file))
+      expected = YAML.load(File.read((File.join(files_dir, 'prev_simp_conf.yaml'))))
       expected['cli::version'] = Simp::Cli::VERSION
 
       actual_simp_conf = YAML.load(File.read(@answers_output_file))
@@ -342,7 +349,7 @@ describe 'Simp::Cli::Command::Config#run' do
   context 'applies actions appropriately' do
 
     it 'when user is root, applies all actions' do
-      skip('This requires an integration test, as modifies system')
+      skip('Tested in acceptance test')
     end
 
     it 'when user is not root, fails if --dry-run is not selected' do
@@ -379,6 +386,7 @@ describe 'Simp::Cli::Command::Config#run' do
         %r{Setting of hostname skipped}m,
         %r{Configuration of a network interface skipped}m,
         %r{Setting of GRUB password skipped}m,
+        %r{Creation of local user skipped}m,
         %r{Setup of autosign in /etc/puppetlabs/puppet/autosign.conf skipped}m,
         %r{Update to Puppet settings in /etc/puppetlabs/puppet/puppet.conf skipped}m,
         %r{Update to /etc/hosts to ensure puppet server entries exist skipped}m,
@@ -389,8 +397,9 @@ describe 'Simp::Cli::Command::Config#run' do
         %r{Setting of PuppetDB master server & port in SIMP server <host>.yaml skipped}m,
         %r{Addition of simp::server::ldap to SIMP server <host>.yaml class list skipped}m,
         %r{Setting of LDAP Root password hash in SIMP server <host>.yaml skipped}m,
-        %r{Disallow of inapplicable, local 'simp' user in SIMP server <host>.yaml skipped}m,
-        %r{Check for login lockout risk skipped}m,
+        %r{Disable of inapplicable user config in SIMP server <host>.yaml skipped}m,
+        %r{Configuring ssh & sudo for local user 'simpadmin' in SIMP server <host>.yaml skipped}m,
+        %r{'simpadmin' access verification after `simp bootstrap` skipped}m,
         %r{#{@answers_output_file} created}m,
         %r{Detailed log written to #{@log_file}}m
       ]
@@ -431,6 +440,8 @@ describe 'Simp::Cli::Command::Config#run' do
           '--disable-queries',
           'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
           'grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
+           'cli::local_priv_user=simpadmin',
+           'cli::local_priv_user_password=$6$l69r7t36$WZxDVhvdMZeuL0vRvOrSLMKWxxQbuK1j8t0vaEq3BW913hjOJhRNTxqlKzDflPW7ULPwkBa6xdfcca2BlGoq/.',
           '--quiet'])
         end
       rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
@@ -457,7 +468,7 @@ describe 'Simp::Cli::Command::Config#run' do
         raise
       end
 
-      expect( File.exists?( @log_file ) ).to be true
+      expect( File.exist?( @log_file ) ).to be true
 
       #FIXME validate full file content, not just that it contains debug-level messages
        content = IO.read(@log_file)
@@ -478,7 +489,7 @@ describe 'Simp::Cli::Command::Config#run' do
         raise
       end
 
-      expect( File.exists?( @log_file ) ).to be true
+      expect( File.exist?( @log_file ) ).to be true
 
       #FIXME validate full file content, not just that it contains debug-level messages
       content = IO.read(@log_file)
@@ -521,11 +532,16 @@ describe 'Simp::Cli::Command::Config#run' do
     it 'starts over when user enters different inputs for a password' do
       input_string = ''
       input_string <<
-                "\n"                         << # don't auto-generate LDAP root password
+                "\n"                         << # accept auto-generated grub password
                 "iTXA8O6y{oDMotMGTeHd7IGI\n" << # attempt 1: LDAP root password
                 "iTXA8O6y{oDMotMGTeHd7\n"    << # attempt 1: bad confirm password
                 "iTXA8O6y{oDMotMGTeHd7IGI\n" << # attempt 2: LDAP root password
-                "iTXA8O6y{oDMotMGTeHd7IGI\n"    # attempt 2: valid confirm LDAP root password
+                "iTXA8O6y{oDMotMGTeHd7IGI\n" << # attempt 2: valid confirm LDAP root password
+                "simpadmin\n"                << # privileged local user
+                "P@ssw0rdP@ssw0rd!\n"        << # attempt 1: simpadmin password
+                "P@ssw0rdP@ssw\n"            << # attempt 1: bad confirm password
+                "P@ssw0rdP@ssw0rd!\n"        << # attempt 2: simpadmin password
+                "P@ssw0rdP@ssw0rd!\n"           # attempt 2: valid confirm simpadmin password
       @input.reopen(input_string)
       @input.rewind
 
@@ -545,15 +561,15 @@ describe 'Simp::Cli::Command::Config#run' do
         !line.include?('Please enter a password') and
         !line.include?('Please confirm the password')
       end
-      expect( pw_prompt_lines.size ).to eq 4
+      expect( pw_prompt_lines.size ).to eq 8
 
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
     end
 
     it 'fails after 5 failed start-over attempts' do
-      input_string = "\n" # don't auto-generate LDAP root password
+      input_string = "\n"    # accept auto-generated grub password
       (1..5).each do |attempt|
-        input_string << "iTXA8O6y{oDMotMGTeHd7IGI\n"       << # valid LDAP root password
+        input_string << "iTXA8O6y{oDMotMGTeHd7IGI\n"          # valid LDAP root password
         input_string << "Bad confirm password #{attempt}\n"   # non-matching confirm
        end
       @input.reopen(input_string)
@@ -569,11 +585,14 @@ describe 'Simp::Cli::Command::Config#run' do
     it 're-prompts when user enters a password that fails validation' do
       input_string = ''
       input_string <<
-                "\n"                         << # don't auto-generate LDAP root password
+                "\n"                         << # accept auto-generated grub password
                 "}.9rt\n"                    << # attempt 1: too short + needs brace escape
                 "1234567890{\n"              << # attempt 2: fails cracklib check + needs brace escape
                 "iTXA8O6y}.9MotMGTeHd7IGI\n" << # attempt 3: good LDAP root password
-                "iTXA8O6y}.9MotMGTeHd7IGI\n"    # attempt 3: valid confirm LDAP root password
+                "iTXA8O6y}.9MotMGTeHd7IGI\n" << # attempt 3: valid confirm LDAP root password
+                "simpadmin\n"                << # privileged local user
+                "P@ssw0rdP@ssw0rd!\n"        << # attempt 1: simpadmin password
+                "P@ssw0rdP@ssw0rd!\n"           # attempt 1: valid confirm simpadmin password
       @input.reopen(input_string)
       @input.rewind
 
@@ -594,13 +613,12 @@ describe 'Simp::Cli::Command::Config#run' do
       end
 
       expect( error_lines.size ).to eq 2
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
     end
 
     it 'prompts when --apply-with-questions and input file has an invalid password' do
       bad_password = 'Un=3nCryPte6'  # should be encrypted in answers file
       input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
-      input.gsub!(/oops_force_replacement/, 'enp0s3')
       input.gsub!(/simp_openldap::server::conf::rootpw: .*\n/,
          "simp_openldap::server::conf::rootpw: \"#{bad_password}\"\n")
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
@@ -629,7 +647,7 @@ describe 'Simp::Cli::Command::Config#run' do
 
       warn_msg = "invalid value '#{bad_password}' for 'simp_openldap::server::conf::rootpw' will be **IGNORED**"
       expect( @output.string ).to match Regexp.escape(warn_msg)
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
 
       actual_simp_conf = YAML.load(File.read(@answers_output_file))
       expect( actual_simp_conf ).to_not match bad_password
@@ -639,7 +657,6 @@ describe 'Simp::Cli::Command::Config#run' do
       # valid password that does not match its encrypted value
       different_pw = 'Puy.c&48I1A8#PI1JW#&gX*4ugn!whg7'
       input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
-      input.gsub!(/oops_force_replacement/, 'enp0s3')
       input.gsub!(/simp_options::ldap::bind_pw: .*\n/,
          "simp_options::ldap::bind_pw: \"#{different_pw}\"\n")
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
@@ -665,9 +682,9 @@ describe 'Simp::Cli::Command::Config#run' do
       warn_msg = "'simp_options::ldap::bind_hash' will be **IGNORED**"
       expect( @output.string ).to match Regexp.escape(warn_msg)
 
-      match = @output.string.match(/recommended value: "({SSHA}.*)"/)
+      match = @output.string.match(/Recommended value: "({SSHA}.*)"/)
       expect( match ).to_not be_nil
-      expect( File.exists?( @answers_output_file ) ).to be true
+      expect( File.exist?( @answers_output_file ) ).to be true
 
       actual_simp_conf = YAML.load(File.read(@answers_output_file))
       expect( actual_simp_conf['simp_options::ldap::bind_hash'] ).to eq match[1]

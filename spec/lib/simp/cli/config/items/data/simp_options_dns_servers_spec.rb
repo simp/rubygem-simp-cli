@@ -94,7 +94,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
         @ci.determine_value(true, false) # query, don't force
         expect( @ci.value ).to eq ['10.0.0.1']
         list = '\["10.0.0.1"\]'
-        r = /os value:\s+#{list}.* recommended value:\s+#{list}.* simp_options::dns::servers = .*#{list}/m
+        r = /OS value:\s+#{list}.* Recommended value:\s+#{list}.* simp_options::dns::servers = .*#{list}/m
         expect( @output.string ).to match r
       end
 
@@ -103,7 +103,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
         @ci.determine_value(true, false) # query, don't force
         expect( @ci.value ).to eq ['10.0.0.1', '10.0.0.2', '10.0.0.3']
         list = '\["10.0.0.1", "10.0.0.2", "10.0.0.3"\]'
-        r = /os value:\s+#{list}.* recommended value:\s+#{list}.* simp_options::dns::servers = .*#{list}/m
+        r = /OS value:\s+#{list}.* Recommended value:\s+#{list}.* simp_options::dns::servers = .*#{list}/m
         expect( @output.string ).to match r
       end
 

@@ -8,10 +8,15 @@ shared_examples 'fixtures move' do |master|
 
     it 'should move assets from fixtures install dir to staging dir' do
       on(master, "mkdir -p #{fixtures_staging_dir}/assets")
-      on(master, "mv #{fixtures_orig_dest}/environment_skeleton #{fixtures_staging_dir}/assets")
-      on(master, "mv #{fixtures_orig_dest}/rsync_data #{fixtures_staging_dir}/assets")
-      on(master, "mv #{fixtures_orig_dest}/rubygem_simp_cli #{fixtures_staging_dir}/assets")
-      on(master, "mv #{fixtures_orig_dest}/simp_selinux_policy #{fixtures_staging_dir}/assets")
+      [
+        'adapter',
+        'environment_skeleton',
+        'rsync_data',
+        'rubygem_simp_cli',
+        'simp_selinux_policy'
+      ].each do |asset|
+        on(master, "mv #{fixtures_orig_dest}/#{asset} #{fixtures_staging_dir}/assets")
+      end
     end
 
     it 'should move modules from fixtures install dir to staging dir' do

@@ -1,25 +1,29 @@
 ---
 fixtures:
-  # Lazy way to get all the code (puppt modules and otherwise) onto the test
+  # Lazy way to get all the code (puppet modules and otherwise) onto the test
   # hosts.  Within the tests, we'll relocate and fix permissions appropriately.
   repositories:
-    simpkv: https://github.com/simp/pupmod-simp-simpkv
+    simpkv: https://github.com/simp/pupmod-simp-simpkv.git
     # Puppet modules
     # - Older version of simplib will be cloned in the test, as fixtures code
     #   can only handle one version per URL
-    simplib: https://github.com/simp/pupmod-simp-simplib
-    stdlib: https://github.com/simp/puppetlabs-stdlib
+    simplib: https://github.com/simp/pupmod-simp-simplib.git
+    stdlib: https://github.com/simp/puppetlabs-stdlib.git
 
     # To set ClientAlive* settings for sshd_config
-    augeasproviders_core: https://github.com/simp/augeasproviders_core
-    augeasproviders_ssh: https://github.com/simp/augeasproviders_ssh
+    augeasproviders_core: https://github.com/simp/augeasproviders_core.git
+    augeasproviders_ssh: https://github.com/simp/augeasproviders_ssh.git
+
+    # For `simp config`
+    augeasproviders_grub: https://github.com/simp/augeasproviders_grub.git
 
     # Other assets
     # - WARNING: rsync data does not remain intact through the fixtures copy
     #   process...Required empty directories are removed!
-    environment_skeleton: https://github.com/simp/simp-environment-skeleton
-    rsync_data: https://github.com/simp/simp-rsync-skeleton
-    simp_selinux_policy: https://github.com/simp/simp-selinux-policy
+    adapter: https://github.com/simp/simp-adapter.git
+    environment_skeleton: https://github.com/simp/simp-environment-skeleton.git
+    rsync_data: https://github.com/simp/simp-rsync-skeleton.git
+    simp_selinux_policy: https://github.com/simp/simp-selinux-policy.git
 
   symlinks:
     # simp cli

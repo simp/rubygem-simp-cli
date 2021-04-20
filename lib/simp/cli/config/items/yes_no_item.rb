@@ -1,6 +1,5 @@
 require 'highline/import'
 require 'puppet'
-require 'yaml'
 require_relative 'item'
 
 module Simp::Cli::Config

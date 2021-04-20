@@ -13,7 +13,7 @@ describe Simp::Cli::Config::Item::WarnClientYumConfigAction do
       expect( @ci.applied_status ).to eq :deferred
       expected_summary =<<EOM
 Checking YUM configuration for SIMP clients deferred:
-	Your SIMP client YUM configuration requires manual verification 
+    Your SIMP client YUM configuration requires manual verification
 EOM
       expect( @ci.apply_summary ).to eq expected_summary.strip
     end

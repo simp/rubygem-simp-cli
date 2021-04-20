@@ -1,32 +1,40 @@
 # install assets listed in fixtures and copied over into modules dir
 #
-shared_examples 'simp asset manual install' do |master|
+shared_examples 'simp asset manual install' do |server|
 
   context 'asset installation from fixtures staging dir' do
     let(:asset_staging_dir) { '/root/fixtures/assets' }
     let(:skeleton_dir) { '/usr/share/simp/environment-skeleton' }
 
+    it 'should install simp-adapter as done by its RPM' do
+      on(server, "cp #{asset_staging_dir}/adapter/src/sbin/simp_rpm_helper /usr/local/sbin/simp_rpm_helper")
+      on(server, 'chmod 750 /usr/local/sbin/simp_rpm_helper')
+      on(server, 'mkdir -p /etc/simp')
+      on(server, "cp #{asset_staging_dir}/adapter/src/conf/adapter_conf.yaml /etc/simp/adapter_conf.yaml")
+      on(server, 'chmod 640 /etc/simp/adapter_conf.yaml')
+    end
+
     it 'should create skeleton dir' do
-      on(master, "mkdir -p #{skeleton_dir}")
+      on(server, "mkdir -p #{skeleton_dir}")
     end
 
     it 'should install simp-environment-skeleton as done by its RPM' do
-      on(master, "cp -r #{asset_staging_dir}/environment_skeleton/environments/puppet #{skeleton_dir}")
-      on(master, "cp -r #{asset_staging_dir}/environment_skeleton/environments/secondary #{skeleton_dir}")
-      on(master, "mkdir -p #{skeleton_dir}/writable/simp_autofiles")
-      on(master, "mkdir -p #{skeleton_dir}/secondary/site_files/krb5_files/files/keytabs")
-      on(master, "mkdir -p #{skeleton_dir}/secondary/site_files/pki_files/files/keydist/cacerts")
-      on(master, "cp -r #{asset_staging_dir}/environment_skeleton/environments/secondary #{skeleton_dir}")
-      on(master, "chmod -R g+rX,o-rwx #{skeleton_dir}")
+      on(server, "cp -r #{asset_staging_dir}/environment_skeleton/environments/puppet #{skeleton_dir}")
+      on(server, "cp -r #{asset_staging_dir}/environment_skeleton/environments/secondary #{skeleton_dir}")
+      on(server, "mkdir -p #{skeleton_dir}/writable/simp_autofiles")
+      on(server, "mkdir -p #{skeleton_dir}/secondary/site_files/krb5_files/files/keytabs")
+      on(server, "mkdir -p #{skeleton_dir}/secondary/site_files/pki_files/files/keydist/cacerts")
+      on(server, "cp -r #{asset_staging_dir}/environment_skeleton/environments/secondary #{skeleton_dir}")
+      on(server, "chmod -R g+rX,o-rwx #{skeleton_dir}")
     end
 
     it 'should install simp-rsync-skeleton as done by its RPM' do
-      on(master, "cp -r #{asset_staging_dir}/rsync_data/rsync #{skeleton_dir}")
-      on(master, "chmod -R g+rX,o-rwx #{skeleton_dir}/rsync")
+      on(server, "cp -r #{asset_staging_dir}/rsync_data/rsync #{skeleton_dir}")
+      on(server, "chmod -R g+rX,o-rwx #{skeleton_dir}/rsync")
     end
 
     it "should build SIMP's selinux contexts as done by simp-selinux-policy RPM" do
-      master.install_package('yum-utils')
+      server.install_package('yum-utils')
       # NOTE:
       # - For this test, we don't need to revert to the original versions
       #   of the selinux build dependencies for the major OS version. We
@@ -42,13 +50,13 @@ shared_examples 'simp asset manual install' do |master|
         "#{asset_staging_dir}/simp_selinux_policy/build/simp-selinux-policy.spec",
         "--disablerepo=#{ENV.fetch('BEAKER_PUPPET_COLLECTION', 'puppet5')}"
       ].join(' ')
-      on(master, yum_cmd)
+      on(server, yum_cmd)
 
       build_command = [
         "cd #{asset_staging_dir}/simp_selinux_policy/build/selinux",
         'make -f /usr/share/selinux/devel/Makefile'
       ].join('; ')
-      on(master, build_command)
+      on(server, build_command)
     end
 
     it "should install SIMP's selinux contexts as done by simp-selinux-policy RPM" do
@@ -57,13 +65,13 @@ shared_examples 'simp asset manual install' do |master|
         "#{asset_staging_dir}/simp_selinux_policy/build/selinux/simp.pp",
         '/usr/share/selinux/packages/simp.pp'
       ].join(' ')
-      on(master, file_install_cmd)
-      on(master, "#{asset_staging_dir}/simp_selinux_policy/sbin/set_simp_selinux_policy install")
+      on(server, file_install_cmd)
+      on(server, "#{asset_staging_dir}/simp_selinux_policy/sbin/set_simp_selinux_policy install")
     end
 
     it 'should install simp-cli and highline gems in /usr/share/simp/ruby' do
       gemdir = '/usr/share/simp/ruby'
-      on(master, "mkdir -p #{gemdir}")
+      on(server, "mkdir -p #{gemdir}")
       cmd_prefix = [
         '/opt/puppetlabs/puppet/bin/gem',
         'install',
@@ -75,11 +83,11 @@ shared_examples 'simp asset manual install' do |master|
       # install only the latest simp-cli and highline gems available, not all,
       # or the /bin/simp script will fail!
       cmd = "ls #{asset_staging_dir}/rubygem_simp_cli/dist/simp-cli*gem | tail -n 1"
-      simp_cli_gem = on(master, cmd).stdout.strip
-      on(master, "#{cmd_prefix} #{simp_cli_gem}")
+      simp_cli_gem = on(server, cmd).stdout.strip
+      on(server, "#{cmd_prefix} #{simp_cli_gem}")
       cmd = "ls #{asset_staging_dir}/rubygem_simp_cli/dist/highline*gem | tail -n 1"
-      highline_gem = on(master, cmd).stdout.strip
-      on(master, "#{cmd_prefix} #{highline_gem}")
+      highline_gem = on(server, cmd).stdout.strip
+      on(server, "#{cmd_prefix} #{highline_gem}")
     end
 
     it "should install 'simp' script similar to that done by the rubygem-simp-cli RPM" do
@@ -91,8 +99,8 @@ shared_examples 'simp asset manual install' do |master|
         /usr/share/simp/ruby/gems/simp-cli-*/bin/simp $@
 
       EOM
-      create_remote_file(master, '/bin/simp', simp_script)
-      on(master, 'chmod +x /bin/simp')
+      create_remote_file(server, '/bin/simp', simp_script)
+      on(server, 'chmod +x /bin/simp')
     end
   end
 end

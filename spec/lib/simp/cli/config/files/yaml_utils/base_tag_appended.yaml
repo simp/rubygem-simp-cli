@@ -1,0 +1,30 @@
+# YAML example to exercise Simp::Cli::Config::YamlUtils
+---
+# simp_apache::conf::ssl::trusted_nets description
+simp_apache::conf::ssl::trusted_nets: "%{alias('simp_options::trusted_nets')}"
+
+# uncomment out to enable
+#simp_apache::ssl::sslverifyclient: 'none'
+
+# unnecessary quotes around the key
+simp::yum::repo::local_os_updates::enable_repo: false
+simp::yum::repo::local_simp::enable_repo: false
+
+# complex hash with unnecessary quotes around one of the values
+pam::access::users:
+  local_admin1:
+    origins:
+    - ALL
+  local_admin2:
+    origins:
+    - ALL
+
+# array with unnecessary quotes around one of the values
+simp::classes:
+- simp::server
+- simp::server::ldap
+
+simp::server::classes:
+- simp::puppetdb
+
+new: tag

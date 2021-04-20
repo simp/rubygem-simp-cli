@@ -81,8 +81,16 @@ describe Simp::Cli::Config::Item::DisallowSimpUserAction do
         'Internal error: Simp::Cli::Config::Item::DisallowSimpUserAction' +
         ' could not find simp::server::allow_simp_user' )
     end
-
-    it_behaves_like "an Item that doesn't output YAML"
-    it_behaves_like 'a child of Simp::Cli::Config::Item'
   end
+
+  describe '#apply_summary' do
+    it 'reports unattempted status when #apply not called' do
+      expect( @ci.apply_summary ).to eq(
+        "Disable of inapplicable user config in SIMP server <host>.yaml unattempted")
+    end
+
+  end
+
+  it_behaves_like "an Item that doesn't output YAML"
+  it_behaves_like 'a child of Simp::Cli::Config::Item'
 end

@@ -42,7 +42,7 @@ describe Simp::Cli::Config::Item::AddLdapServerClassToServerAction do
         expect( @ci.applied_status ).to eq :succeeded
         expected = File.join(@files_dir, 'host_with_simp_server_ldap.yaml')
 
-        expect( FileUtils.compare_file(expected, @host_file) ).to be true
+        expect( IO.read(@host_file )).to eq IO.read(expected)
       end
 
       it 'ensures only one simp::server::ldap class exists in <host>.yaml' do
@@ -51,7 +51,7 @@ describe Simp::Cli::Config::Item::AddLdapServerClassToServerAction do
 
         @ci.apply
         expect( @ci.applied_status ).to eq :succeeded
-        expect( FileUtils.compare_file(file, @host_file) ).to be true
+        expect( IO.read(@host_file) ).to eq IO.read(file)
       end
 
       it 'fails when <host>.yaml does not exist' do

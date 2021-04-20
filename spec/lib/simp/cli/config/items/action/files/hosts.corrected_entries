@@ -1,0 +1,4 @@
+127.0.0.1 localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1 localhost localhost.localdomain localhost6 localhost6.localdomain6
+1.2.3.5 puppet.domain.tld puppet
+10.255.217.223  el7.test.local el7

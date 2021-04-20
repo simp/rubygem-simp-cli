@@ -74,6 +74,14 @@ class Simp::Cli::Config::Utils
       x.to_s.strip =~ %r@\%\{.+\}@ ? true : false
     end
 
+    def encrypt_password_sha512(password, salt=rand(36**8).to_s(36))
+      require 'digest/sha2'
+      password.crypt("$6$#{salt}")
+    end
+
+    def validate_password_sha512(x)
+      (x.match(%r{^\$6\$(rounds=[1-9][0-9]+\$)?[./0-9A-Za-z]{1,16}\$[./0-9A-Za-z]{86}$}) != nil)
+    end
 
     # pure-ruby openldap hash generator
     def encrypt_openldap_hash( string, salt=nil )

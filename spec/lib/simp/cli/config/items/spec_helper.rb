@@ -1,4 +1,5 @@
 require 'simp/cli/config/items/action_item'
+require 'simp/cli/config/items/class_item'
 require 'simp/cli/config/items/list_item'
 require 'simp/cli/config/items/yes_no_item'
 
@@ -51,7 +52,7 @@ shared_examples 'a yes/no validator' do
 end
 
 class TestItem < Simp::Cli::Config::Item
-  attr_accessor :key, :description, :data_type
+  attr_accessor :key, :description, :data_type, :fact, :alt_source
 end
 
 class TestListItem < Simp::Cli::Config::ListItem
@@ -63,6 +64,10 @@ class TestYesNoItem < Simp::Cli::Config::YesNoItem
 end
 
 class TestActionItem < Simp::Cli::Config::ActionItem
+  attr_accessor :key, :description, :data_type
+end
+
+class TestClassItem < Simp::Cli::Config::ClassItem
   attr_accessor :key, :description, :data_type
 end
 

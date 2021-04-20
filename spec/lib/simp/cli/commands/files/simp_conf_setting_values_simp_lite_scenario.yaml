@@ -1,6 +1,9 @@
 ---
 chrony::servers: "%{alias('simp_options::ntp::servers')}"
+cli::ensure_priv_local_user: true
 cli::is_simp_ldap_server: false
+cli::local_priv_user: local_admin
+cli::local_priv_user_password: "$6$nyucn7db$vRBWk/uk5ZRTInHpvFooPuJvr.GGoChp1eydmjzuf9zK7q5utewolBErsaP7U.wMg9Ir6TBXaU5AJ55UE3gxz0"
 cli::network::gateway: "1.2.3.1"
 cli::network::hostname: simp.test.local
 cli::network::interface: enp0s3

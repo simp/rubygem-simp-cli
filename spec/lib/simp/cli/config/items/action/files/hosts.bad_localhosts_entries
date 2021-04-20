@@ -1,0 +1,9 @@
+# this is what the /etc/hosts file looks like in an acceptance test
+127.0.0.1       el7     el7
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+127.0.0.1       localhost localhost.localdomain
+10.255.217.223  el7.test.local el7
+
+127.0.0.1       updates.puppetlabs.com
+

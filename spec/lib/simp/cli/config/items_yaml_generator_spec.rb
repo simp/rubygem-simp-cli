@@ -5,15 +5,19 @@ require 'spec_helper'
 describe Simp::Cli::Config::ItemsYamlGenerator do
   let (:files_dir) { File.join(__dir__, 'files') }
   describe "#generate_yaml" do
-    it 'constructs YAML from parts and substitutes variables' do
+    it "constructs YAML from parts and substitutes variables for 'simp' scenario" do
       expected = IO.read(File.join(files_dir, 'simp_generated_items_tree.yaml'))
       expect( Simp::Cli::Config::ItemsYamlGenerator.new('simp').generate_yaml ).to eq expected
       YAML.load(expected)   # make sure YAML is valid...will raise if parsing fails
+    end
 
+    it "constructs YAML from parts and substitutes variables for 'simp_lite' scenario" do
       expected = IO.read(File.join(files_dir, 'simp_lite_generated_items_tree.yaml'))
       expect( Simp::Cli::Config::ItemsYamlGenerator.new('simp_lite').generate_yaml ).to eq expected
       YAML.load(expected)   # make sure YAML is valid...will raise if parsing fails
+    end
 
+    it "constructs YAML from parts and substitutes variables for 'poss' scenario" do
       expected = IO.read(File.join(files_dir, 'poss_generated_items_tree.yaml'))
       expect( Simp::Cli::Config::ItemsYamlGenerator.new('poss').generate_yaml ).to eq expected
       YAML.load(expected)   # make sure YAML is valid...will raise if parsing fails

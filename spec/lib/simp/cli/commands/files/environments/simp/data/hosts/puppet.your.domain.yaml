@@ -29,13 +29,12 @@ puppetdb::master::config::restart_puppet: false
 
 ### Secure SIMP Options ###
 simp_options::auditd: true
-simp_options::clamav: true
 simp_options::firewall: true
+iptables::use_firewalld: true
 simp_options::haveged: true
 simp_options::logrotate: true
 simp_options::pam: true
 simp_options::pki: simp
-simp_options::selinux: true
 simp_options::stunnel: true
 simp_options::syslog: true
 simp_options::tcpwrappers: true
@@ -59,6 +58,8 @@ rsyslog::udp_listen_address: '127.0.0.1'
 # puppetserver messages regarding node compile times, etc...
 # pupmod::master::log_level: INFO
 
-simp::server::classes:
+simp::classes:
   - 'simp::server'
+
+simp::server::classes:
   - 'simp::puppetdb'

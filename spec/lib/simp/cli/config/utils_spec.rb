@@ -124,6 +124,29 @@ describe Simp::Cli::Config::Utils do
   end
 
 
+  describe '.encrypt_password_sha512' do
+    it 'encrypts a known password and salt to the correct SHA-512 password hash' do
+      expect( Simp::Cli::Config::Utils.encrypt_password_sha512('foo', 'somesalt')
+      ).to eq '$6$somesalt$xK8qDo8XIAgPi.kqwyaXRXvyb6kUTZGisSL7HFiC4pQ7OEvk70x9v9P8dKjWsUni6qJT44R7rbx3YDQBT6ho50'
+    end
+  end
+
+  describe '.validate_password_sha512' do
+    it 'validates a correct SHA-512 password hash' do
+      expect( Simp::Cli::Config::Utils.validate_password_sha512  \
+        '$6$somesalt$xK8qDo8XIAgPi.kqwyaXRXvyb6kUTZGisSL7HFiC4pQ7OEvk70x9v9P8dKjWsUni6qJT44R7rbx3YDQBT6ho50'
+      ).to eq true
+    end
+
+    it 'fails to validate a MD5 password hash' do
+      expect( Simp::Cli::Config::Utils.validate_password_sha512  \
+        "$1$somesalt$AvTfS5Nt2nHGq9KNvsZIW/"
+      ).to eq false
+    end
+
+  end
+
+
   describe '.encrypt_openldap_hash' do
     it 'encrypts a known password and salt to the correct SHA-1 password hash' do
       expect( Simp::Cli::Config::Utils.encrypt_openldap_hash \
