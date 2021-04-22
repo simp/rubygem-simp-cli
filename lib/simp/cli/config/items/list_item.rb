@@ -14,10 +14,11 @@ module Simp::Cli::Config
     end
 
     def default_value_noninteractive
-      if @value.nil? and @allow_empty_list
+      value = default_value
+      if value.nil? && @allow_empty_list
         return []
       else
-        return default_value
+        return value
       end
     end
 
@@ -30,8 +31,7 @@ module Simp::Cli::Config
       extra = "hit enter to accept default value" if default_value
       # Code actually allows comma and space delimited lists, but
       # a simpler instruction to the end user is best
-      instructions = "Enter a space-delimited list (#{extra})"
-      ::HighLine.color( instructions, ::HighLine.const_get('YELLOW') )
+      "Enter a space-delimited list (#{extra})".yellow
     end
 
     def query_extras( q )
@@ -54,9 +54,11 @@ module Simp::Cli::Config
 
     # validate the list and each item in the list
     def validate( list )
-      # reuse the highline lambda to sanitize input
       return true  if (@allow_empty_list && list.nil?)
+
+      # reuse the highline lambda to sanitize input
       list = highline_question_type.call( list ) if !list.is_a? Array
+
       return false if !list.is_a?(Array)
       return false if (!@allow_empty_list && list.empty? )
       list.each{ |item|
@@ -68,18 +70,6 @@ module Simp::Cli::Config
     # validate a single list item
     def validate_item( x )
       raise InternalError.new( "#{self.class}.validate_item() not implemented!" )
-    end
-
-    # print a pretty summary of the ListItem's key+value, printed to stdout
-    def print_summary
-      raise InternalError.new( "@key is empty for #{self.class}" ) if "#{@key}".empty?
-
-      if @value.nil?
-        final_value = []
-      else
-        final_value = @value
-      end
-      super
     end
   end
 end

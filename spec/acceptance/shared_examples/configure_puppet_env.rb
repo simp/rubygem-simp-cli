@@ -23,13 +23,11 @@ shared_examples 'configure puppet env' do |host,env|
     # wait for it to come up
     master_fqdn = fact_on(host, 'fqdn')
     puppetserver_status_cmd = [
-      'curl -sk',
+      'curl -sSk',
       "--cert /etc/puppetlabs/puppet/ssl/certs/#{master_fqdn}.pem",
       "--key /etc/puppetlabs/puppet/ssl/private_keys/#{master_fqdn}.pem",
-      "https://#{master_fqdn}:8140/status/v1/services",
-      '| python -m json.tool',
-      '| grep state',
-      '| grep running'
+      "https://localhost:8140/production/certificate_revocation_list/ca",
+      '| grep CRL'
     ].join(' ')
     retry_on(host, puppetserver_status_cmd, :retry_interval => 10)
   end

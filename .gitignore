@@ -6,6 +6,7 @@
 /.bundle
 /vendor
 Gemfile.lock
+spec/acceptance/suites/*/nodesets
 spec/lib/simp/cli/config/item/tmp/
 spec/fixtures
 .vagrant
