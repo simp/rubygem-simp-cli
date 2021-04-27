@@ -623,8 +623,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       info("Checking if puppetserver is accepting connections on port #{port}", 'cyan')
     end
     curl_cmd = "curl -sS --cert #{Simp::Cli::Utils.puppet_info[:config]['hostcert']}" +
-        " --key #{Simp::Cli::Utils.puppet_info[:config]['hostprivkey']} -k -H" +
-        " \"Accept: s\" https://localhost:#{port}/production/certificate_revocation_list/ca"
+        " --key #{Simp::Cli::Utils.puppet_info[:config]['hostprivkey']} -k" +
+        " https://localhost:#{port}/production/certificate_revocation_list/ca"
     debug(curl_cmd) unless quiet
     running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
     running
