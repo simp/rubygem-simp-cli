@@ -41,13 +41,6 @@
 - SimpOptionsNTPServers
 - ChronyServers              # never queries as default is correct
 
-# ==== General server setup actions and related configuration ====
-- CliSetGrubPassword:
-   true:
-    - GrubPassword
-    - SetGrubPasswordAction
-- SimpRunLevel                   SKIPQUERY SILENT # default is correct; needed for compliance mapping
-
 # ==== General Puppet configuration actions and corresponding data  ====
 - SimpOptionsPuppetServer        SKIPQUERY SILENT # default is correct
 - CliPuppetServerIP              SKIPQUERY SILENT # don't ever prompt, just discover current value
@@ -69,6 +62,15 @@
 - PuppetDBMasterConfigPuppetDBServer SKIPQUERY SILENT # default is correct
 - PuppetDBMasterConfigPuppetDBPort   SKIPQUERY SILENT # default is correct
 - SetServerPuppetDBMasterConfigAction
+
+# ==== General server setup actions and related configuration ====
+- CliSetGrubPassword:
+   true:
+    - SimpGrubPassword
+    - SimpGrubAdmin              SKIPQUERY SILENT # default is correct
+    - SetServerGrubConfigAction
+    - AddSimpGrubClassToServerAction
+- SimpRunLevel                   SKIPQUERY SILENT # default is correct; needed for compliance mapping
 
 # ==== YUM actions and related configuration ====
 - CliHasSimpFilesystemYumRepo             SKIPQUERY SILENT: # don't ever prompt, just discover current value

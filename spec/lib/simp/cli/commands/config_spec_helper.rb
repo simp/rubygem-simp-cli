@@ -109,7 +109,7 @@ def config_normalize(file, other_keys_to_exclude = [], overrides = {})
   # and/or vary each time they run.
   min_exclude_set = Set.new [
      'cli::local_priv_user_password',      # hash value that varies from run-to-run with same password
-     'grub::password',                     # hash value that varies from run-to-run with same password
+     'simp_grub::password',                # hash value that varies from run-to-run with same password
      'simp_options::ldap::bind_hash',      # hash value that varies from run-to-run with same password
      'simp_options::ldap::sync_hash',      # hash value that varies from run-to-run with same password
      'simp_options::ntp::servers',         # depends upon actual system configuration

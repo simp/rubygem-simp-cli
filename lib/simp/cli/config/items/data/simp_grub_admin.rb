@@ -4,16 +4,16 @@ require_relative '../../utils'
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
-  class Item::CliLocalPrivUser < Item
+  class Item::SimpGrubAdmin < Item
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
-      @key         = 'cli::local_priv_user'
-      @description = <<~EOM.strip
-        The local user to configure with `sudo` and `ssh` privileges to prevent server
-        lockout after bootstrap.
-      EOM
+      @key         = 'simp_grub::admin'
+      @description = 'The GRUB 2 administrative username'
+      @data_type   = :server_hiera
+    end
 
-      @data_type  = :cli_params
+    def get_recommended_value
+      'root'
     end
 
     def validate( x )

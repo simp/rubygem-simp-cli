@@ -11,11 +11,13 @@ description: |
     for the SIMP clients are disabled.  The SIMP server will
     be running with all security features enabled.
 includes:
+# In this ordering, be sure to include any ActionItems that modify
+# the SIMP server YAML file after the file is created.
 - initial_actions
 - network_setup
-- general_server_setup
 - puppet_global_setup
 - puppet_env_setup
+- general_server_setup
 - yum_setup
 - ldap_setup:
   # When we are enabling SIMP LDAP, we are also enabling SSSD and setting
