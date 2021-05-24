@@ -19,6 +19,7 @@ grub::password: "grub.pbkdf2.sha512.10000.D0CCB6553D29D3C25284D4FB8967ABF87E69AB
 #puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 3
 simp::server::allow_simp_user: false
+simp::sssd::client::ldap_server_type: 389ds
 simp_openldap::server::conf::rootpw: "{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL"
 simp_options::dns::search:
   - test.local

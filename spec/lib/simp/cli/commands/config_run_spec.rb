@@ -36,7 +36,7 @@ describe 'Simp::Cli::Command::Config#run' do
     },
     'os'               => {
       'release' => {
-        'major' => '7'
+        'major' => '8'
       }
      }
   } }

@@ -37,7 +37,7 @@ Requires: pupmod-herculesteam-augeasproviders_grub >= 3.0.1
 Requires: pupmod-simp-network >= 6.0.3
 Requires: pupmod-simp-resolv >= 0.1.1
 Requires: pupmod-simp-simplib >= 3.11.1
-Requires: puppet >= 5
+Requires: puppet >= 6
 Requires: rsync
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 Requires: sed
@@ -124,8 +124,12 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Fri Mar 05 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.2.0
+* Mon May 24 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.2.0
+- simp CLI changes:
+  - Dropped support for Puppet 5.
 - simp config changes:
+  - Updated LDAP client configuration to support connection to a 389ds LDAP
+    server.
   - Added option to configure a local user with ssh and sudo privileges
     to prevent server lockout, when SIMP is not installed from ISO.
     - Especially important for cloud instances when the user does not have
