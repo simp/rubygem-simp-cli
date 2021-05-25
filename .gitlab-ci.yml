@@ -1,14 +1,12 @@
 # The testing matrix considers ruby/puppet versions supported by SIMP and PE:
 #
-# https://puppet.com/docs/pe/2019.8/component_versions_in_recent_pe_releases.html
+# https://puppet.com/docs/pe/2021.1/component_versions_in_recent_pe_releases.html
 # https://puppet.com/misc/puppet-enterprise-lifecycle
 # https://puppet.com/docs/pe/2018.1/overview/getting_support_for_pe.html
 # ------------------------------------------------------------------------------
-# Release       Puppet   Ruby    EOL
-# SIMP 6.4      5.5      2.4.10  TBD
-# SIMP 6.5      6.18     2.5.8
-# PE 2018.1     5.5      2.4.10  2021-01 (LTS overlap)
-# PE 2019.8     6.18     2.5.7   2022-12 (LTS)
+# Release         Puppet   Ruby    EOL
+# SIMP 6.5        6.18     2.5.8
+# PE 2019.8.6     6.22.1   2.5.9   2022-12 (LTS)
 ---
 
 stages:
@@ -82,20 +80,6 @@ variables:
 # Puppet Versions
 #-----------------------------------------------------------------------
 
-.pup_5_x: &pup_5_x
-  image: 'ruby:2.4'
-  variables:
-    PUPPET_VERSION: '~> 5.0'
-    BEAKER_PUPPET_COLLECTION: 'puppet5'
-    MATRIX_RUBY_VERSION: '2.4'
-
-.pup_5_pe: &pup_5_pe
-  image: 'ruby:2.4'
-  variables:
-    PUPPET_VERSION: '5.5.20'
-    BEAKER_PUPPET_COLLECTION: 'puppet5'
-    MATRIX_RUBY_VERSION: '2.4'
-
 .pup_6_x: &pup_6_x
   image: 'ruby:2.5'
   variables:
@@ -106,7 +90,7 @@ variables:
 .pup_6_pe: &pup_6_pe
   image: 'ruby:2.5'
   variables:
-    PUPPET_VERSION: '6.18.0'
+    PUPPET_VERSION: '6.22.1'
     BEAKER_PUPPET_COLLECTION: 'puppet6'
     MATRIX_RUBY_VERSION: '2.5'
 
@@ -142,7 +126,7 @@ variables:
 #=======================================================================
 
 releng_checks:
-  <<: *pup_5_x
+  <<: *pup_6_x
   <<: *setup_bundler_env
   stage: 'validation'
   tags: ['docker']
@@ -156,15 +140,6 @@ releng_checks:
 
 # Unit Tests
 #-----------------------------------------------------------------------
-
-pup5.x-unit:
-  <<: *pup_5_x
-  <<: *unit_tests
-
-pup5.pe-unit:
-  <<: *pup_5_pe
-  <<: *unit_tests
-
 pup6.x-unit:
   <<: *pup_6_x
   <<: *unit_tests
@@ -172,6 +147,11 @@ pup6.x-unit:
 pup6.pe-unit:
   <<: *pup_6_pe
   <<: *unit_tests
+
+pup7.x-unit:
+  <<: *pup_7_x
+  <<: *unit_tests
+
 
 # Test control variables
 #=======================================================================
@@ -187,22 +167,22 @@ pup6.pe-unit:
 
 # Acceptance tests
 # ==============================================================================
-pup5.pe:
-  <<: *pup_5_pe
+pup6.pe:
+  <<: *pup_6_pe
   <<: *only_with_SIMP_FULL_MATRIX
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[default,default]'
 
-pup5.pe_config:
-  <<: *pup_5_pe
+pup6.pe_config:
+  <<: *pup_6_pe
   <<: *only_with_SIMP_FULL_MATRIX
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[config,default]'
 
-pup5.pe_simp_kv:
-  <<: *pup_5_pe
+pup6.pe_simp_kv:
+  <<: *pup_6_pe
   <<: *only_with_SIMP_FULL_MATRIX
   <<: *acceptance_base
   script:

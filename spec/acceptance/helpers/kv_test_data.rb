@@ -211,7 +211,7 @@ module Acceptance::Helpers::KvTestData
               file.write(Base64.strict_decode64(info['value']))
             end
 
-            rsync_to(host, tempfile.path, expected_binary_file)
+            copy_to(host, tempfile.path, expected_binary_file)
           end
           on(host, "diff #{expected_binary_file} #{actual_binary_file}")
         end

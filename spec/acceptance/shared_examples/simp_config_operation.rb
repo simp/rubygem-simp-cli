@@ -269,6 +269,12 @@ shared_examples 'simp config operation' do |host,options|
       expected['simp_options::ldap::bind_pw']   = 'SKIP'
       expected['simp_options::ldap::sync_hash'] = 'SKIP'
       expected['simp_options::ldap::sync_pw']   = 'SKIP'
+      if os_release > '7'
+        expected['simp::sssd::client::ldap_server_type'] = '389ds'
+      else
+        expected['simp::sssd::client::ldap_server_type'] = 'plain'
+      end
+
       expected['sssd::domains']                 = [ 'LDAP' ]
       expected['simp_options::sssd'] = true if (opts[:scenario] == 'poss')
     else

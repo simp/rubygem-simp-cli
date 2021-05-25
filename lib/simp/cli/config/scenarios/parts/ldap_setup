@@ -7,6 +7,7 @@
     - SimpOptionsLdapBindHash    SILENT                 # never queries
     - SimpOptionsLdapSyncPw      GENERATENOQUERY SILENT # automatically generate
     - SimpOptionsLdapSyncHash    SILENT                 # never queries
+    - SimpSssdClientLdapServerType SKIPQUERY SILENT     # default is correct
     - SimpOpenldapServerConfRootpw
     - AddLdapServerClassToServerAction
     - SetServerLdapServerConfigAction

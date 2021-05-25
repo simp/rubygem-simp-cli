@@ -18,6 +18,7 @@ puppetdb::master::config::puppetdb_port: 8139
 puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 4
 simp::server::allow_simp_user: false
+simp::sssd::client::ldap_server_type: 389ds
 simp_openldap::server::conf::rootpw: "{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL"
 simp_options::dns::search:
   - test.local
