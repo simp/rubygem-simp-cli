@@ -1,10 +1,16 @@
-require 'simp/cli/config/items/data/cli_local_priv_user'
+require 'simp/cli/config/items/data/simp_grub_admin'
 require 'rspec/its'
 require_relative '../spec_helper'
 
-describe Simp::Cli::Config::Item::CliLocalPrivUser do
+describe Simp::Cli::Config::Item::SimpGrubAdmin do
   before :each do
-    @ci = Simp::Cli::Config::Item::CliLocalPrivUser.new
+    @ci = Simp::Cli::Config::Item::SimpGrubAdmin.new
+  end
+
+  describe '#recommended_value' do
+    it "returns 'root'" do
+      expect( @ci.get_recommended_value ).to eq 'root'
+    end
   end
 
   describe '#validate' do

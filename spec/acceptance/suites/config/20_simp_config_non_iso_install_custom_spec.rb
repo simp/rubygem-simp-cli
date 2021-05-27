@@ -23,6 +23,8 @@ end
 describe 'simp config with customization for non-ISO install' do
   context "without setting grub password on #{host} and --force-config" do
     hosts.each do |host|
+      include_examples 'remove SIMP omni environment', host, 'production'
+
       options = {
         :description        => 'without setting grub password and --force-config',
         :set_grub_password  => false,

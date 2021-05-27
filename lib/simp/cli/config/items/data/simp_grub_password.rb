@@ -5,11 +5,11 @@ class Simp::Cli; end
 
 
 module Simp::Cli::Config
-  class Item::GrubPassword < PasswordItem
+  class Item::SimpGrubPassword < PasswordItem
 
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
-      @key           = 'grub::password'
+      @key           = 'simp_grub::password'
       @description   = <<~EOM.strip
         The password to access GRUB.
 
@@ -17,6 +17,7 @@ module Simp::Cli::Config
         stored in #{@key}.
       EOM
       @password_name = 'GRUB'
+      @data_type     = :server_hiera
     end
 
     def query_prompt
@@ -29,15 +30,19 @@ module Simp::Cli::Config
         # we should be dealing with an unencrypted password
         !string.to_s.strip.empty? && super
       else
-        # the password hash has been pre-assigned
-        # TODO need something better
-        (string =~ /^(grub\.pbkdf2.*)/) # grub2
+        # The grub2 password hash has been pre-assigned.
+        (string =~ /^(grub\.pbkdf2.*)/) ? true : false
       end
     end
 
-
     def encrypt string
-      `grub2-mkpasswd-pbkdf2 <<EOM\n#{string}\n#{string}\nEOM`.split.last
+      encrypt_exe = '/usr/bin/grub2-mkpasswd-pbkdf2'
+      if File.exist?(encrypt_exe)
+        `#{encrypt_exe} <<EOM\n#{string}\n#{string}\nEOM`.split.last
+      else
+        msg = "Failed to encrypt GRUB password: #{encrypt_exe} does not exist"
+        raise Simp::Cli::ProcessingError, msg
+      end
     end
   end
 end

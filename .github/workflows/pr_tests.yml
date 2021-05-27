@@ -16,6 +16,11 @@
 
 name: PR Tests
 on:
+  push:
+    branches:
+      # A test branch for seeing if your tests will pass in your personal fork
+      - test_me_github
+
   pull_request:
     types: [opened, reopened, synchronize]
 
@@ -90,6 +95,11 @@ jobs:
       - run: |
           sudo apt-get update
           sudo apt-get install -y rpm cracklib-runtime libicu-dev rsync
+        # simp config uses grub2-mkpasswd-pbkdf2 when encrypting a GRUB password,
+        # but the command has a different name on Ubuntu
+      - run: |
+          sudo ln -s /usr/bin/grub-mkpasswd-pbkdf2 /usr/bin/grub2-mkpasswd-pbkdf2
+          ls -l /usr/bin | grep grub
         # simp cli code fetches USER env variable.  In the docker container USER is
         # not available, but the process is running as root.
       - run: 'USER=root SIMP_SKIP_NON_SIMPOS_TESTS=1 bundle exec rake spec'

@@ -115,5 +115,10 @@ class Simp::Cli::Config::Utils
       salt = decoded[20..-1]
       encrypt_openldap_hash(password, salt) == ssha
     end
+
+    def validate_username(username)
+      # https://unix.stackexchange.com/questions/157426/what-is-the-regex-to-validate-linux-users
+      username.match(/^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$/) != nil
+    end
   end
 end

@@ -1,6 +1,8 @@
 # ==== General server setup actions and related configuration ====
 - CliSetGrubPassword:
    true:
-    - GrubPassword
-    - SetGrubPasswordAction
+    - SimpGrubPassword
+    - SimpGrubAdmin              SKIPQUERY SILENT # default is correct
+    - SetServerGrubConfigAction
+    - AddSimpGrubClassToServerAction
 - SimpRunLevel                   SKIPQUERY SILENT # default is correct; needed for compliance mapping

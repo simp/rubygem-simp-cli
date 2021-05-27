@@ -113,6 +113,10 @@ variables:
     # rsync in simp environment commands
     - 'if `hash apt-get`; then apt-get update; fi'
     - 'if `hash apt-get`; then apt-get install -y rpm cracklib-runtime openssl libicu-dev rsync; fi'
+    # simp config uses grub2-mkpasswd-pbkdf2 when encrypting a GRUB password,
+    # but the command has a different name on Ubuntu
+    - 'if `hash apt-get`; then apt-get install -y grub-common; fi'
+    - 'if `hash apt-get`; then ln -s /usr/bin/grub-mkpasswd-pbkdf2 /usr/bin/grub2-mkpasswd-pbkdf2 ; fi'
     # simp cli code fetches USER env variable.  In the docker container USER is
     # not available, but the process is running as root.
     - 'USER=root SIMP_SKIP_NON_SIMPOS_TESTS=1 bundle exec rake spec'

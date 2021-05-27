@@ -133,7 +133,7 @@ shared_examples 'simp config operation' do |host,options|
     #   interpretation.
     config << "cli::simp::scenario=#{opts[:scenario]}" if opts[:scenario] != 'simp'
     if opts[:set_grub_password]
-      config << "'grub::password=#{grub_pwd_hash}'"
+      config << "'simp_grub::password=#{grub_pwd_hash}'"
     else
       config << 'cli::set_grub_password=false'
     end
@@ -258,10 +258,6 @@ shared_examples 'simp config operation' do |host,options|
       'useradd::securetty'                => []
     }
 
-    # FIXME The grub password shouldn't be stored in global hieradata,
-    # as it is not used by Puppet, yet. See SIMP-6527 and SIMP-9411.
-    expected['grub::password'] = grub_pwd_hash if opts[:set_grub_password]
-
     if opts[:ldap_server]
       expected['simp_options::ldap']            = true
       expected['simp_options::ldap::base_dn']   = domain.split('.').map { |x| "dc=#{x}" }.join(',')
@@ -339,6 +335,12 @@ shared_examples 'simp config operation' do |host,options|
       'puppetdb::master::config::puppetdb_port'   => 8139,
       'simp::server::classes'                     => [ 'simp::puppetdb' ]
     }
+
+    if opts[:set_grub_password]
+      adjustments['simp_grub::password'] = grub_pwd_hash
+      adjustments['simp_grub::admin'] = 'root'
+      adjustments['simp::server::classes'] << 'simp_grub'
+    end
 
     if opts[:ldap_server]
       adjustments['simp_openldap::server::conf::rootpw'] = ldap_rootpw_hash
@@ -444,11 +446,5 @@ shared_examples 'simp config operation' do |host,options|
       ::1 localhost localhost.localdomain localhost6 localhost6.localdomain6
       #{ip} #{fqdn} #{fqdn.split('.').first}
     EOM
-  end
-
-  if opts[:set_grub_password]
-    # This will be replaced with using the simp_grub Puppet module, so may not
-    # be worth expending effort to test now
-    it 'should set grub password'
   end
 end

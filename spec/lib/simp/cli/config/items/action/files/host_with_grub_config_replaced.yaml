@@ -1,0 +1,28 @@
+---
+# some comment
+simp_apache::conf::ssl::trusted_nets: "%{alias('simp_options::trusted_nets')}"
+simp_apache::ssl::sslverifyclient: none
+simp::yum::repo::local_os_updates::enable_repo: false
+simp::yum::repo::local_simp::enable_repo: false
+pupmod::enable_puppet_master: true
+puppetdb::master::config::puppet_service_name: puppetserver
+puppetdb::globals::version: latest
+puppetdb::master::config::restart_puppet: false
+simp::server::allow_simp_user: true
+
+# === simp_grub::password ===
+# The password to access GRUB.
+#
+# The value entered is used to set the GRUB password and to generate a hash
+# stored in simp_grub::password.
+simp_grub::password: grub.pbkdf2.sha512.10000.DEADBEEF0009D3C25284D4FB8967ABF87E69ABD415F3E71668B7ADAD81FCBF47471C3CC45E48203754AD79A76BDBA07392124EAA53FE837CEE99CFE45E7881B0.939C311509D96842FD8E1CA2EE8F24E91084619730A7A1EDC7E76D00955DEA3B3BB78CD8B7A54FEAAE37FE5C79A108AF2BF6FCD1A5EEABDED3ABABBA3FC0398A
+
+# === simp_grub::admin ===
+# The GRUB 2 administrative username
+simp_grub::admin: admin
+
+simp::classes:
+- simp::server
+
+simp::server::classes:
+- simp::puppetdb

@@ -140,7 +140,7 @@ describe Simp::Cli::Config::Utils do
 
     it 'fails to validate a MD5 password hash' do
       expect( Simp::Cli::Config::Utils.validate_password_sha512  \
-        "$1$somesalt$AvTfS5Nt2nHGq9KNvsZIW/"
+        '$1$somesalt$AvTfS5Nt2nHGq9KNvsZIW/'
       ).to eq false
     end
 
@@ -182,6 +182,21 @@ describe Simp::Cli::Config::Utils do
       expect( Simp::Cli::Config::Utils.check_openldap_password('bar',
         '{SSHA}zxOLQEdncCJTMObl5s+y1N/Ydh3vsi6s')
       ).to be false
+    end
+  end
+
+  describe '#validate_username' do
+    it 'validates valid usernames' do
+      expect( Simp::Cli::Config::Utils.validate_username 'admin' ).to eq true
+      expect( Simp::Cli::Config::Utils.validate_username 'user_admin1' ).to eq true
+      expect( Simp::Cli::Config::Utils.validate_username 'user3-special' ).to eq true
+      expect( Simp::Cli::Config::Utils.validate_username '_admin$' ).to eq true
+    end
+
+    it "doesn't validate invalid usernames" do
+      expect( Simp::Cli::Config::Utils.validate_username '1admin' ).to eq false
+      expect( Simp::Cli::Config::Utils.validate_username 'Admin' ).to eq false
+      expect( Simp::Cli::Config::Utils.validate_username 'this_is_longer_than_32_characters' ).to eq false
     end
   end
 end

@@ -2,7 +2,7 @@
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 6.2.0
+%global cli_version 7.0.0
 %global highline_version 2.0.3
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -124,7 +124,7 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Mon May 24 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.2.0
+* Tue May 25 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 7.0.0
 - simp CLI changes:
   - Dropped support for Puppet 5.
 - simp config changes:
@@ -140,10 +140,13 @@ EOM
       ssh authorized key files in SIMP.
       IMPORTANT: Any future updates to a users's ssh authorized key list must
       be made to the user's file in /etc/ssh/local_keys/.
+  - Moved the mechanism to set the SIMP server's grub password to Puppet.
+    - The password is now set via simp_grub::password instead of
+      grub::password.
   - Fixed a bug in which running `simp config` multiple times could result in
     multiple /etc/hosts entries for the puppetserver.
 
-* Tue Feb 09 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 6.2.0
+* Tue Feb 09 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 7.0.0
 - simp config changes:
   - Configure simp_options::ntp::servers instead of deprecated
     simp_options::ntpd::servers.
@@ -157,10 +160,10 @@ EOM
   - Check for both ntpd and chronyd settings when determining the OS defaults
     for simp_options::ntp::server, not just ntpd settings.
 
-* Mon Jan 11 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 6.2.0
+* Mon Jan 11 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 7.0.0
 - Remove support for EL6
 
-* Thu Dec 10 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 6.2.0
+* Thu Dec 10 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 7.0.0
 - Bumped .gemspec dependencies to mitigate CVE-2020-8130
 
 * Thu Oct 15 2020 Trevor Vaughan <tvaughan@onyxpoint.com> - 6.1.1

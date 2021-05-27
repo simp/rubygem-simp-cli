@@ -204,7 +204,7 @@ describe 'Simp::Cli::Command::Config#run' do
           '-l', @log_file, '--dry-run', '--force-defaults',
           'cli::network::interface=enp0s3',
           'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
-          'grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
+          'simp_grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
            'cli::local_priv_user=simpadmin',
            'cli::local_priv_user_password=$6$l69r7t36$WZxDVhvdMZeuL0vRvOrSLMKWxxQbuK1j8t0vaEq3BW913hjOJhRNTxqlKzDflPW7ULPwkBa6xdfcca2BlGoq/.'
           ])
@@ -385,7 +385,6 @@ describe 'Simp::Cli::Command::Config#run' do
       expected_lines = [
         %r{Setting of hostname skipped}m,
         %r{Configuration of a network interface skipped}m,
-        %r{Setting of GRUB password skipped}m,
         %r{Creation of local user skipped}m,
         %r{Setup of autosign in /etc/puppetlabs/puppet/autosign.conf skipped}m,
         %r{Update to Puppet settings in /etc/puppetlabs/puppet/puppet.conf skipped}m,
@@ -395,6 +394,8 @@ describe 'Simp::Cli::Command::Config#run' do
         %r{Creation of #{@puppet_system_file} skipped}m,
         %r{Creation of SIMP server <host>.yaml skipped}m,
         %r{Setting of PuppetDB master server & port in SIMP server <host>.yaml skipped}m,
+        %r{Setting of GRUB password hash in SIMP server <host>.yaml skipped}m,
+        %r{Addition of simp_grub to SIMP server <host>.yaml class list skipped}m,
         %r{Addition of simp::server::ldap to SIMP server <host>.yaml class list skipped}m,
         %r{Setting of LDAP Root password hash in SIMP server <host>.yaml skipped}m,
         %r{Disable of inapplicable user config in SIMP server <host>.yaml skipped}m,
@@ -439,7 +440,7 @@ describe 'Simp::Cli::Command::Config#run' do
           '--force-defaults', '-l', @log_file, '--dry-run',
           '--disable-queries',
           'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
-          'grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
+          'simp_grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
            'cli::local_priv_user=simpadmin',
            'cli::local_priv_user_password=$6$l69r7t36$WZxDVhvdMZeuL0vRvOrSLMKWxxQbuK1j8t0vaEq3BW913hjOJhRNTxqlKzDflPW7ULPwkBa6xdfcca2BlGoq/.',
           '--quiet'])
@@ -744,16 +745,16 @@ describe 'Simp::Cli::Command::Config#run' do
           '--force-defaults', '-l', @log_file, '--dry-run',
           '--disable-queries'])
       }.to raise_error( Simp::Cli::ProcessingError,
-       "FATAL: No valid answer found for 'grub::password'")
+       "FATAL: No valid answer found for 'simp_grub::password'")
     end
 
     it 'raises an exception when --disable-queries and input KEY=VALUE has an invalid value' do
       expect {
         @config.run(['-o', @answers_output_file,
           '--force-defaults', '-l', @log_file, '--dry-run',
-          '--disable-queries', 'grub::password=not_encrypted'])
+          '--disable-queries', 'simp_grub::password=not_encrypted'])
       }.to raise_error( Simp::Cli::ProcessingError,
-       "FATAL: No valid answer found for 'grub::password'")
+       "FATAL: No valid answer found for 'simp_grub::password'")
     end
 
     it 'raises an exception when --disable-queries and input KEY=VALUE has an invalid noninteractive value' do
