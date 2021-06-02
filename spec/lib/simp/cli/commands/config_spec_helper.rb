@@ -3,7 +3,7 @@ require 'yaml'
 
 # Create TestUtils::StringIO corresponding to user input for the simp
 # scenario in which the default values are accepted.
-def generate_simp_input_accepting_defaults(ask_if_ready = true)
+def generate_simp_input_accepting_defaults(ask_if_ready = true, os_major = '8')
   input_io = TestUtils::StringIO.new
   if ask_if_ready
     input_io << "\n"                 # empty defaults to yes, we are ready for the questionnaire
@@ -25,10 +25,16 @@ def generate_simp_input_accepting_defaults(ask_if_ready = true)
     "\n"                          << # auto-generate GRUB password
     "\n"                          << # Press enter to continue
     "\n"                          << # use internet SIMP repos
-    "\n"                          << # SIMP is LDAP server
-    "\n"                          << # don't auto-generate a password
-    "iTXA8O6yC=DMotMGP!eHd7IGI\n" << # LDAP root password
-    "iTXA8O6yC=DMotMGP!eHd7IGI\n" << # confirm LDAP root password
+    "\n"                             # SIMP is LDAP server
+
+  if (os_major == '7') # Only prompts for LDAP root password on EL7
+    input_io                        <<
+      "\n"                          << # don't auto-generate a password
+      "iTXA8O6yC=DMotMGP!eHd7IGI\n" << # LDAP root password
+      "iTXA8O6yC=DMotMGP!eHd7IGI\n"    # confirm LDAP root password
+  end
+
+  input_io                        <<
     "\n"                          << # log servers
     "\n"                          << # securetty list
     "\n"                          << # ensure a privileged local user

@@ -151,7 +151,9 @@ shared_examples 'simp config operation' do |host,options|
     end
 
     if opts[:ldap_server]
-      config << "'simp_openldap::server::conf::rootpw=#{ldap_rootpw_hash}'"
+      if os_release == '7'
+        config << "'simp_openldap::server::conf::rootpw=#{ldap_rootpw_hash}'"
+      end
     else
       config << 'cli::is_simp_ldap_server=false'
     end
@@ -343,8 +345,12 @@ shared_examples 'simp config operation' do |host,options|
     end
 
     if opts[:ldap_server]
-      adjustments['simp_openldap::server::conf::rootpw'] = ldap_rootpw_hash
-      adjustments['simp::server::classes'] << 'simp::server::ldap'
+      if os_release == '7'
+        adjustments['simp_openldap::server::conf::rootpw'] = ldap_rootpw_hash
+        adjustments['simp::server::classes'] << 'simp::server::ldap'
+      else
+        adjustments['simp::server::classes'] << 'simp_ds389::instances::accounts'
+      end
     end
 
     if opts[:iso_install]

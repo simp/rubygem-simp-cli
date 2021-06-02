@@ -17,7 +17,6 @@ require 'yaml'
 #       calls are wrapped in a Timeout block.
 
 describe 'Simp::Cli::Command::Config#run' do
-  let(:files_dir) { File.join(__dir__, 'files') }
   let(:max_config_run_seconds) { 60 }
 
   let(:facts) { {
@@ -105,244 +104,257 @@ describe 'Simp::Cli::Command::Config#run' do
 
   context 'creates answers YAML file when input is valid' do
 
-    it "creates valid file for 'simp' scenario, interactively accepting all defaults" do
+    ['8', '7'].each do |os_major|
+      context "on EL#{os_major}" do
+        let(:files_dir) { File.join(__dir__, 'files', "el#{os_major}") }
+        let(:facts) { super().merge(
+          { 'os' => { 'release' => { 'major' => os_major } } }
+        ) }
 
-      @input.reopen(generate_simp_input_accepting_defaults)
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run(['-o', @answers_output_file,
-            '-l', @log_file, '--dry-run'])
+        it "creates valid file for 'simp' scenario, interactively accepting all defaults" do
+          @input.reopen( generate_simp_input_accepting_defaults(true, facts['os']['release']['major']) )
+          begin
+            Timeout.timeout(max_config_run_seconds) do
+              @config.run(['-o', @answers_output_file,
+                '-l', @log_file, '--dry-run'])
+            end
+          rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+            puts '=========stdout========='
+            puts @output.string
+            raise
+          end
+          expect( File.exist?( @answers_output_file ) ).to be true
+
+          # normalize out YAML keys that are not deterministic
+          expected = config_normalize(
+            File.join(files_dir, 'simp_conf_accepting_defaults_simp_scenario.yaml'),
+            extra_keys_to_exclude,
+            keys_from_mocked_facts
+          )
+          actual_simp_conf = config_normalize(@answers_output_file, extra_keys_to_exclude)
+          expect( actual_simp_conf ).to eq expected
         end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
-      expect( File.exist?( @answers_output_file ) ).to be true
 
-      # normalize out YAML keys that are not deterministic
-      expected = config_normalize(
-        File.join(files_dir, 'simp_conf_accepting_defaults_simp_scenario.yaml'),
-        extra_keys_to_exclude,
-        keys_from_mocked_facts
-      )
-      actual_simp_conf = config_normalize(@answers_output_file, extra_keys_to_exclude)
-      expect( actual_simp_conf ).to eq expected
-    end
+        it "creates valid file for 'simp_lite' scenario, interactively setting values" do
+          @input.reopen(generate_simp_lite_input_setting_values)
+          begin
+            Timeout.timeout(max_config_run_seconds) do
+              @config.run(['-o', @answers_output_file,
+                '-l', @log_file, '--dry-run'])
+            end
+          rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+            puts '=========stdout========='
+            puts @output.string
+            raise
+          end
+          expect( File.exist?( @answers_output_file ) ).to be true
 
-    it "creates valid file for 'simp_lite' scenario, interactively setting values" do
-      @input.reopen(generate_simp_lite_input_setting_values)
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run(['-o', @answers_output_file,
-            '-l', @log_file, '--dry-run'])
+          # normalize out YAML keys that are not deterministic
+          expected = config_normalize(
+            File.join(files_dir, 'simp_conf_setting_values_simp_lite_scenario.yaml')
+          )
+          actual_simp_conf = config_normalize(@answers_output_file)
+          expect( actual_simp_conf ).to eq expected
         end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
-      expect( File.exist?( @answers_output_file ) ).to be true
 
-      # normalize out YAML keys that are not deterministic
-      expected = config_normalize(
-        File.join(files_dir, 'simp_conf_setting_values_simp_lite_scenario.yaml')
-      )
-      actual_simp_conf = config_normalize(@answers_output_file)
-      expect( actual_simp_conf ).to eq expected
-    end
+        it "creates valid file for 'poss' scenario, interactively setting values " do
+          @input.reopen(generate_poss_input_setting_values)
+          begin
+            Timeout.timeout(max_config_run_seconds) do
+              @config.run(['-o', @answers_output_file,
+                '-l', @log_file, '--dry-run'])
+            end
+          rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+            puts '=========stdout========='
+            puts @output.string
+            raise
+          end
+          expect( File.exist?( @answers_output_file ) ).to be true
 
-    it "creates valid file for 'poss' scenario, interactively setting values " do
-      @input.reopen(generate_poss_input_setting_values)
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run(['-o', @answers_output_file,
-            '-l', @log_file, '--dry-run'])
+          # normalize out YAML keys that are not deterministic
+          expected = config_normalize(File.join(files_dir, 'simp_conf_setting_values_poss_scenario.yaml'))
+          actual_simp_conf = config_normalize(@answers_output_file)
+          expect( actual_simp_conf ).to eq expected
         end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
-      expect( File.exist?( @answers_output_file ) ).to be true
 
-      # normalize out YAML keys that are not deterministic
-      expected = config_normalize(File.join(files_dir, 'simp_conf_setting_values_poss_scenario.yaml'))
-      actual_simp_conf = config_normalize(@answers_output_file)
-      expect( actual_simp_conf ).to eq expected
-    end
+        it 'creates valid file with minimal prompts when --force-defaults' do
+          input_string = "\n"                       # accept auto-generated grub password
 
-    it 'creates valid file with minimal prompts when --force-defaults' do
-      input_string = ''
-      input_string <<
-                "\n"                         << # accept auto-generated grub password
-                "iTXA8O6yC=DMotMGTeHd7IGI\n" << # LDAP root password
-                "iTXA8O6yC=DMotMGTeHd7IGI\n" << # confirm LDAP root password
-                "simpadmin\n"                << # privileged local user
-                "P@ssw0rdP@ssw0rd!\n"        << # simpadmin password
-                "P@ssw0rdP@ssw0rd!\n"           # confirm simpadmin password
-      @input.reopen(input_string)
-      @input.rewind
+          if (os_major == '7') # Only prompts for LDAP root password on EL7
+            input_string <<
+                    "iTXA8O6yC=DMotMGTeHd7IGI\n" << # LDAP root password
+                    "iTXA8O6yC=DMotMGTeHd7IGI\n"    # confirm LDAP root password
+          end
+          input_string <<
+                    "simpadmin\n"                << # privileged local user
+                    "P@ssw0rdP@ssw0rd!\n"        << # simpadmin password
+                    "P@ssw0rdP@ssw0rd!\n"           # confirm simpadmin password
+          @input.reopen(input_string)
+          @input.rewind
 
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run(['-o', @answers_output_file,
-            '-l', @log_file, '--dry-run', '--force-defaults'])
+          begin
+            Timeout.timeout(max_config_run_seconds) do
+              @config.run(['-o', @answers_output_file,
+                '-l', @log_file, '--dry-run', '--force-defaults'])
+            end
+          rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+            puts '=========stdout========='
+            puts @output.string
+            raise
+          end
+          expect( File.exist?( @answers_output_file ) ).to be true
         end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
-      expect( File.exist?( @answers_output_file ) ).to be true
-    end
 
-    it 'creates valid file with no prompts when --force-defaults and KEY=VALUE arguments are complete' do
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run(['-o', @answers_output_file,
-          '-l', @log_file, '--dry-run', '--force-defaults',
-          'cli::network::interface=enp0s3',
-          'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
-          'simp_grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
-           'cli::local_priv_user=simpadmin',
-           'cli::local_priv_user_password=$6$l69r7t36$WZxDVhvdMZeuL0vRvOrSLMKWxxQbuK1j8t0vaEq3BW913hjOJhRNTxqlKzDflPW7ULPwkBa6xdfcca2BlGoq/.'
-          ])
+        it 'creates valid file with no prompts when --force-defaults and KEY=VALUE arguments are complete' do
+          begin
+            Timeout.timeout(max_config_run_seconds) do
+              @config.run(['-o', @answers_output_file,
+              '-l', @log_file, '--dry-run', '--force-defaults',
+              'cli::network::interface=enp0s3',
+              # simp_openldap::server::conf::rootpw is only applicable on EL7
+              # and will be ignored otherwise
+              'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
+              'simp_grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
+               'cli::local_priv_user=simpadmin',
+               'cli::local_priv_user_password=$6$l69r7t36$WZxDVhvdMZeuL0vRvOrSLMKWxxQbuK1j8t0vaEq3BW913hjOJhRNTxqlKzDflPW7ULPwkBa6xdfcca2BlGoq/.'
+              ])
+            end
+          rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+            puts '=========stdout========='
+            puts @output.string
+            raise
+          end
+          expect( File.exist?( @answers_output_file ) ).to be true
         end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
-      expect( File.exist?( @answers_output_file ) ).to be true
-    end
 
-    it 'creates valid file from valid answers file using --apply-with-questions and no prompts' do
-      input_answers_file = File.join(files_dir, 'prev_simp_conf.yaml')
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run([
-            '-o', @answers_output_file,
-            '--apply-with-questions', input_answers_file,
-            '-l', @log_file, '--dry-run'])
+        it 'creates valid file from valid answers file using --apply-with-questions and no prompts' do
+          input_answers_file = File.join(files_dir, 'prev_simp_conf.yaml')
+          begin
+            Timeout.timeout(max_config_run_seconds) do
+              @config.run([
+                '-o', @answers_output_file,
+                '--apply-with-questions', input_answers_file,
+                '-l', @log_file, '--dry-run'])
+            end
+          rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+            puts '=========stdout========='
+            puts @output.string
+            raise
+          end
+          expect( File.exist?( @answers_output_file ) ).to be true
+          # Only change we expect is for hardcoded cli::version to have been updated
+          expected = YAML.load(File.read(input_answers_file))
+          expected['cli::version'] = Simp::Cli::VERSION
+
+          actual_simp_conf = YAML.load(File.read(@answers_output_file))
+          expect( actual_simp_conf ).to eq expected
         end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
-      expect( File.exist?( @answers_output_file ) ).to be true
-      # Only change we expect is for hardcoded cli::version to have been updated
-      expected = YAML.load(File.read(input_answers_file))
-      expected['cli::version'] = Simp::Cli::VERSION
 
-      actual_simp_conf = YAML.load(File.read(@answers_output_file))
-      expect( actual_simp_conf ).to eq expected
-    end
+        it 'creates valid file from incomplete answers file using --apply-with-questions and prompts for only iteractive items' do
+          input_string = "enp0s3\n" # interface, only interactive value that is incorrect
+          @input.reopen(input_string)
+          @input.rewind
+          begin
+            Timeout.timeout(max_config_run_seconds) do
+              @config.run([
+                '-o', @answers_output_file,
+                '--apply-with-questions', File.join(files_dir, 'incomplete_prev_simp_conf.yaml'),
+                '-l', @log_file, '--dry-run'])
+            end
+          rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+            puts '=========stdout========='
+            puts @output.string
+            raise
+          end
+          expect( File.exist?( @answers_output_file ) ).to be true
+          # we expect
+          # - missing, non-interactive puppetdb::master::config::puppetdb_port and
+          #   puppetdb::master::config::puppetdb_server to have been added
+          # - interactive cli::network::interface to have been replaced with input value
+          # - hardcoded cli::version to have been updated
+          expected = YAML.load(File.read(File.join(files_dir, 'prev_simp_conf.yaml')))
+          expected['cli::version'] = Simp::Cli::VERSION
 
-    it 'creates valid file from incomplete answers file using --apply-with-questions and prompts for only iteractive items' do
-      input_string = "enp0s3\n" # interface, only interactive value that is incorrect
-      @input.reopen(input_string)
-      @input.rewind
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run([
-            '-o', @answers_output_file,
-            '--apply-with-questions', File.join(files_dir, 'incomplete_prev_simp_conf.yaml'),
-            '-l', @log_file, '--dry-run'])
+          actual_simp_conf = YAML.load(File.read(@answers_output_file))
+          actual_simp_conf = {} if !actual_simp_conf.is_a?(Hash) # empty YAML file returns false
+
+          expect( actual_simp_conf ).to eq expected
         end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
-      expect( File.exist?( @answers_output_file ) ).to be true
-      # we expect
-      # - missing, non-interactive puppetdb::master::config::puppetdb_port and
-      #   puppetdb::master::config::puppetdb_server to have been added
-      # - interactive cli::network::interface to have been replaced with input value
-      # - hardcoded cli::version to have been updated
-      expected = YAML.load(File.read(File.join(files_dir, 'prev_simp_conf.yaml')))
-      expected['cli::version'] = Simp::Cli::VERSION
 
-      actual_simp_conf = YAML.load(File.read(@answers_output_file))
-      actual_simp_conf = {} if !actual_simp_conf.is_a?(Hash) # empty YAML file returns false
+        it 'creates valid file answers file using --apply-with-questions, KEY=VALUE and prompts for invalid items' do
+          input_string = "enp0s3\n"
+          @input.reopen(input_string)
+          @input.rewind
+          begin
+            Timeout.timeout(max_config_run_seconds) do
+              @config.run([
+                '-o', @answers_output_file,
+                '--apply-with-questions', File.join(files_dir, 'prev_simp_conf_invalid_interface.yaml'),
+                '-l', @log_file, '--dry-run',
+                'simp::runlevel=4',
+                'simp_options::dns::servers=1.2.3.10,,1.2.3.11,,1.2.3.12'])
+            end
+          rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+            puts '=========stdout========='
+            puts @output.string
+            raise
+          end
+          expect( File.exist?( @answers_output_file ) ).to be true
 
-      expect( actual_simp_conf ).to eq expected
-    end
-
-    it 'creates valid file answers file using --apply-with-questions, KEY=VALUE and prompts for invalid items' do
-      input_string = "enp0s3\n"
-      @input.reopen(input_string)
-      @input.rewind
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run([
-            '-o', @answers_output_file,
-            '--apply-with-questions', File.join(files_dir, 'prev_simp_conf_invalid_interface.yaml'),
-            '-l', @log_file, '--dry-run',
-            'simp::runlevel=4',
-            'simp_options::dns::servers=1.2.3.10,,1.2.3.11,,1.2.3.12'])
+          # normalize out lines that are not deterministic
+          expected = config_normalize(File.join(files_dir, 'simp_conf_with_overrides.yaml'))
+          actual_simp_conf = config_normalize(@answers_output_file)
+          expect( actual_simp_conf ).to eq expected
         end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
-      expect( File.exist?( @answers_output_file ) ).to be true
 
-      # normalize out lines that are not deterministic
-      expected = config_normalize(File.join(files_dir, 'simp_conf_with_overrides.yaml'))
-      actual_simp_conf = config_normalize(@answers_output_file)
-      expect( actual_simp_conf ).to eq expected
-    end
+        it 'creates valid file from valid answers file using --apply' do
+          input_answers_file = File.join(files_dir, 'prev_simp_conf.yaml')
+          begin
+            Timeout.timeout(max_config_run_seconds) do
+              @config.run([
+                '-o', @answers_output_file,
+                '--apply', input_answers_file,
+                '-l', @log_file, '--dry-run'])
+            end
+          rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+            puts '=========stdout========='
+            puts @output.string
+            raise
+          end
+          expect( File.exist?( @answers_output_file ) ).to be true
+          expected = YAML.load(File.read(input_answers_file))
+          expected['cli::version'] = Simp::Cli::VERSION
 
-    it 'creates valid file from valid answers file using --apply' do
-      input_answers_file = File.join(files_dir, 'prev_simp_conf.yaml')
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run([
-            '-o', @answers_output_file,
-            '--apply', input_answers_file,
-            '-l', @log_file, '--dry-run'])
+          actual_simp_conf = YAML.load(File.read(@answers_output_file))
+          expect( actual_simp_conf ).to eq expected
         end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
-      end
-      expect( File.exist?( @answers_output_file ) ).to be true
-      expected = YAML.load(File.read(input_answers_file))
-      expected['cli::version'] = Simp::Cli::VERSION
 
-      actual_simp_conf = YAML.load(File.read(@answers_output_file))
-      expect( actual_simp_conf ).to eq expected
-    end
+        it 'creates valid file using --apply and KEY=VALUE arguments' do
+          input_answers_file = File.join(files_dir, 'prev_simp_conf_invalid_interface.yaml')
+          begin
+            Timeout.timeout(max_config_run_seconds) do
+              @config.run([
+                '-o', @answers_output_file,
+                '--apply', input_answers_file,
+                '-l', @log_file, '--dry-run',
+                'cli::network::interface=enp0s3'])
+            end
+          rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
+            puts '=========stdout========='
+            puts @output.string
+            raise
+          end
+          expect( File.exist?( @answers_output_file ) ).to be true
 
-    it 'creates valid file using --apply and KEY=VALUE arguments' do
-      input_answers_file = File.join(files_dir, 'prev_simp_conf_invalid_interface.yaml')
-      begin
-        Timeout.timeout(max_config_run_seconds) do
-          @config.run([
-            '-o', @answers_output_file,
-            '--apply', input_answers_file,
-            '-l', @log_file, '--dry-run',
-            'cli::network::interface=enp0s3'])
+          expected = YAML.load(File.read((File.join(files_dir, 'prev_simp_conf.yaml'))))
+          expected['cli::version'] = Simp::Cli::VERSION
+
+          actual_simp_conf = YAML.load(File.read(@answers_output_file))
+          actual_simp_conf = {} if !actual_simp_conf.is_a?(Hash) # empty YAML file returns false
+
+          expect( actual_simp_conf ).to eq expected
         end
-      rescue Exception => e # generic to capture Timeout and misc HighLine exceptions
-        puts '=========stdout========='
-        puts @output.string
-        raise
       end
-      expect( File.exist?( @answers_output_file ) ).to be true
-
-      expected = YAML.load(File.read((File.join(files_dir, 'prev_simp_conf.yaml'))))
-      expected['cli::version'] = Simp::Cli::VERSION
-
-      actual_simp_conf = YAML.load(File.read(@answers_output_file))
-      actual_simp_conf = {} if !actual_simp_conf.is_a?(Hash) # empty YAML file returns false
-
-      expect( actual_simp_conf ).to eq expected
     end
   end
 
@@ -364,6 +376,7 @@ describe 'Simp::Cli::Command::Config#run' do
   end
 
   context 'reports results to the console' do
+    let(:files_dir) { File.join(__dir__, 'files', 'el8') }
 
     it 'prints a summary of actions' do
       @input.reopen(generate_simp_input_accepting_defaults)
@@ -396,8 +409,7 @@ describe 'Simp::Cli::Command::Config#run' do
         %r{Setting of PuppetDB master server & port in SIMP server <host>.yaml skipped}m,
         %r{Setting of GRUB password hash in SIMP server <host>.yaml skipped}m,
         %r{Addition of simp_grub to SIMP server <host>.yaml class list skipped}m,
-        %r{Addition of simp::server::ldap to SIMP server <host>.yaml class list skipped}m,
-        %r{Setting of LDAP Root password hash in SIMP server <host>.yaml skipped}m,
+        %r{Addition of simp_ds389::instances::accounts to SIMP server <host>.yaml class list skipped}m,
         %r{Disable of inapplicable user config in SIMP server <host>.yaml skipped}m,
         %r{Configuring ssh & sudo for local user 'simpadmin' in SIMP server <host>.yaml skipped}m,
         %r{'simpadmin' access verification after `simp bootstrap` skipped}m,
@@ -439,7 +451,6 @@ describe 'Simp::Cli::Command::Config#run' do
           @config.run(['-o', @answers_output_file,
           '--force-defaults', '-l', @log_file, '--dry-run',
           '--disable-queries',
-          'simp_openldap::server::conf::rootpw={SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL',
           'simp_grub::password=grub.pbkdf2.sha512.10000.512AEFAA6DBAB5E70A9C8368B4D7AFAD95CEC1E2203880B738750B8168E0C0BD37C20E6C4186B81B988176DD4A92F292B633893CB0A77C6CBD9799B290325C86.7414615C530889529098000561BC6B2B67415F97F4D387194631324065562F2BD3E2BFE80B29FF9AC2A32AC4BD86036FCBB1CAA0E8B5454DA9DCD2B17124A103',
            'cli::local_priv_user=simpadmin',
            'cli::local_priv_user_password=$6$l69r7t36$WZxDVhvdMZeuL0vRvOrSLMKWxxQbuK1j8t0vaEq3BW913hjOJhRNTxqlKzDflPW7ULPwkBa6xdfcca2BlGoq/.',
@@ -456,6 +467,7 @@ describe 'Simp::Cli::Command::Config#run' do
   end
 
   context 'creates detailed log file' do
+    let(:files_dir) { File.join(__dir__, 'files', 'el8') }
     it 'logs detailed messages when normal verbosity specified' do
       begin
         Timeout.timeout(max_config_run_seconds) do
@@ -499,6 +511,7 @@ describe 'Simp::Cli::Command::Config#run' do
   end
 
   context 'when -dry-run option selected' do
+    let(:files_dir) { File.join(__dir__, 'files', 'el8') }
 
     # only dry run capability not verified by other tests is the skip reason
     it "reports 'dry run' skip reason" do
@@ -530,6 +543,14 @@ describe 'Simp::Cli::Command::Config#run' do
   end
 
   context 'when invalid passwords are input' do
+    # Tests exercises much of the bad password logic using LDAP root password
+    # on EL7.
+    # TODO: Rework when drom support for EL7
+    let(:facts) { super().merge(
+      { 'os' => { 'release' => { 'major' => '7' } } }
+    ) }
+    let(:files_dir) { File.join(__dir__, 'files', 'el7') }
+
     it 'starts over when user enters different inputs for a password' do
       input_string = ''
       input_string <<
@@ -693,6 +714,7 @@ describe 'Simp::Cli::Command::Config#run' do
   end
 
   context 'when valid input cannot be gathered' do
+    let(:files_dir) { File.join(__dir__, 'files', 'el8') }
 
     it 'raises an exception when --apply and input YAML is missing cli::simp::scenario' do
       # this exercises an error path in config.rb, not item.rb

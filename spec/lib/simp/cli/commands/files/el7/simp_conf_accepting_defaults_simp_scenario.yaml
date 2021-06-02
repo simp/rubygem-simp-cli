@@ -1,24 +1,25 @@
 ---
 chrony::servers: "%{alias('simp_options::ntp::servers')}"
-cli::ensure_priv_local_user: false
+cli::ensure_priv_local_user: true
 cli::is_simp_ldap_server: true
+cli::local_priv_user: simpadmin
+cli::local_priv_user_password: "$6$nyucn7db$vRBWk/uk5ZRTInHpvFooPuJvr.GGoChp1eydmjzuf9zK7q5utewolBErsaP7U.wMg9Ir6TBXaU5AJ55UE3gxz0"
 cli::network::dhcp: static
 cli::network::gateway: "1.2.3.1"
 cli::network::hostname: puppet.test.local
-#cli::network::interface: PROMPT OR OVERRIDE REQUIRED
+cli::network::interface: enp0s3
 cli::network::ipaddress: "1.2.3.4"
 cli::network::netmask: "255.255.255.0"
 cli::network::set_up_nic: true
 cli::set_grub_password: true
-cli::simp::scenario: simp_lite
+cli::simp::scenario: simp
 cli::use_internet_simp_yum_repos: true
 cli::version: "0.0.0"
-# NONINTERACTIVE ITEMS TO BE AUTOMATICALLY SET
-#puppetdb::master::config::puppetdb_port: 8139
-#puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
+puppetdb::master::config::puppetdb_port: 8139
+puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 3
 simp::server::allow_simp_user: false
-simp::sssd::client::ldap_server_type: 389ds
+simp::sssd::client::ldap_server_type: plain
 simp_grub::admin: root
 simp_grub::password: "grub.pbkdf2.sha512.10000.D0CCB6553D29D3C25284D4FB8967ABF87E69ABD415F3E71668B7ADAD81FCBF47471C3CC45E48203754AD79A76BDBA07392124EAA53FE837CEE99CFE45E7881B0.939C311509D96842FD8E1CA2EE8F24E91084619730A7A1EDC7E76D00955DEA3B3BB78CD8B7A54FEAAE37FE5C79A108AF2BF6FCD1A5EEABDED3ABABBA3FC0398A"
 simp_openldap::server::conf::rootpw: "{SSHA}UJEQJzeoFmKAJX57NBNuqerTXndGx/lL"
@@ -42,4 +43,5 @@ simp_options::trusted_nets:
   - "1.2.3.0/24"
 sssd::domains:
   - LDAP
+svckill::mode: warning
 useradd::securetty: []

@@ -128,8 +128,10 @@ EOM
 - simp CLI changes:
   - Dropped support for Puppet 5.
 - simp config changes:
-  - Updated LDAP client configuration to support connection to a 389ds LDAP
-    server.
+  - Updated LDAP configuration to use 389ds, when the SIMP server is the LDAP
+    is on EL>7.
+    - Configures the LDAP server to be the SIMP 389ds accounts instance
+    - Configures the LDAP client to communicate with the 389ds server.
   - Added option to configure a local user with ssh and sudo privileges
     to prevent server lockout, when SIMP is not installed from ISO.
     - Especially important for cloud instances when the user does not have

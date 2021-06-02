@@ -1,0 +1,44 @@
+---
+chrony::servers: "%{alias('simp_options::ntp::servers')}"
+cli::ensure_priv_local_user: false
+cli::is_simp_ldap_server: true
+cli::network::dhcp: static
+cli::network::gateway: "1.2.3.1"
+cli::network::hostname: puppet.test.local
+#cli::network::interface: PROMPT OR OVERRIDE REQUIRED
+cli::network::ipaddress: "1.2.3.4"
+cli::network::netmask: "255.255.255.0"
+cli::network::set_up_nic: true
+cli::set_grub_password: true
+cli::simp::scenario: simp_lite
+cli::use_internet_simp_yum_repos: true
+cli::version: "0.0.0"
+# NONINTERACTIVE ITEMS TO BE AUTOMATICALLY SET
+#puppetdb::master::config::puppetdb_port: 8139
+#puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
+simp::runlevel: 3
+simp::server::allow_simp_user: false
+simp::sssd::client::ldap_server_type: 389ds
+simp_grub::admin: root
+simp_grub::password: "grub.pbkdf2.sha512.10000.D0CCB6553D29D3C25284D4FB8967ABF87E69ABD415F3E71668B7ADAD81FCBF47471C3CC45E48203754AD79A76BDBA07392124EAA53FE837CEE99CFE45E7881B0.939C311509D96842FD8E1CA2EE8F24E91084619730A7A1EDC7E76D00955DEA3B3BB78CD8B7A54FEAAE37FE5C79A108AF2BF6FCD1A5EEABDED3ABABBA3FC0398A"
+simp_options::dns::search:
+  - test.local
+simp_options::dns::servers:
+  - "1.2.3.10"
+simp_options::fips: true
+simp_options::ldap: true
+simp_options::ldap::base_dn: "dc=test,dc=local"
+simp_options::ldap::bind_hash: "{SSHA}tx9ennniDQnmx83gPjCqhy6pknR89QsD"
+simp_options::ldap::bind_pw: "vsB2myX+l8-p-FOmbjG%%Exr0R3z8Mkm"
+simp_options::ldap::sync_hash: "{SSHA}hdk9CtgE0+OMJ1xMVLJQrVTVzbsSwdku"
+simp_options::ldap::sync_pw: "6Pe4*3oW0Rw.VXx2Bbdv!nU2bv9x*%CB"
+simp_options::ntp::servers: []
+simp_options::puppet::ca: puppet.test.local
+simp_options::puppet::ca_port: 8141
+simp_options::puppet::server: puppet.test.local
+simp_options::syslog::log_servers: []
+simp_options::trusted_nets:
+  - "1.2.3.0/24"
+sssd::domains:
+  - LDAP
+useradd::securetty: []

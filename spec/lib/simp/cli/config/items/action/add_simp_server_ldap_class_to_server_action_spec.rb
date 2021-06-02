@@ -1,7 +1,7 @@
-require 'simp/cli/config/items/action/add_ldap_server_class_to_server_action'
+require 'simp/cli/config/items/action/add_simp_server_ldap_class_to_server_action'
 require_relative '../spec_helper'
 
-describe Simp::Cli::Config::Item::AddLdapServerClassToServerAction do
+describe Simp::Cli::Config::Item::AddSimpServerLdapClassToServerAction do
   before :each do
     @files_dir = File.expand_path( 'files', File.dirname( __FILE__ ) )
 
@@ -17,7 +17,7 @@ describe Simp::Cli::Config::Item::AddLdapServerClassToServerAction do
       :puppet_env_datadir => @tmp_dir
     }
 
-    @ci        = Simp::Cli::Config::Item::AddLdapServerClassToServerAction.new(@puppet_env_info)
+    @ci        = Simp::Cli::Config::Item::AddSimpServerLdapClassToServerAction.new(@puppet_env_info)
     @ci.silent = true
   end
 
