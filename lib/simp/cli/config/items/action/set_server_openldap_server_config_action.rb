@@ -5,11 +5,11 @@ module Simp; end
 class Simp::Cli; end
 
 module Simp::Cli::Config
-  class Item::SetServerLdapServerConfigAction < SetServerHieradataActionItem
+  class Item::SetServerOpenldapServerConfigAction < SetServerHieradataActionItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       @hiera_to_add = [ 'simp_openldap::server::conf::rootpw' ]
       super(puppet_env_info)
-      @key = 'puppet::set_server_ldap_server_config'
+      @key = 'puppet::set_server_openldap_server_config'
 
       # override with a shorter message
       @description = 'Set LDAP Root password hash in SIMP server <host>.yaml'

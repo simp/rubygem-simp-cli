@@ -7,10 +7,13 @@
     - SimpOptionsLdapBindHash    SILENT                 # never queries
     - SimpOptionsLdapSyncPw      GENERATENOQUERY SILENT # automatically generate
     - SimpOptionsLdapSyncHash    SILENT                 # never queries
-    - SimpSssdClientLdapServerType SKIPQUERY SILENT     # default is correct
-    - SimpOpenldapServerConfRootpw
-    - AddLdapServerClassToServerAction
-    - SetServerLdapServerConfigAction
+    - SimpSssdClientLdapServerType SKIPQUERY SILENT:    # default is correct
+       '389ds':
+        - AddSimpDs389InstancesAccountsClassToServerAction
+       'plain':
+        - SimpOpenldapServerConfRootpw
+        - SetServerOpenldapServerConfigAction
+        - AddSimpServerLdapClassToServerAction
     - SimpOptionsSSSD            %ldap_true_sssd_query_options%: # %ldap_true_sssd_query_comment%
        true:
         - SssdDomains            SKIPQUERY SILENT       # default is correct

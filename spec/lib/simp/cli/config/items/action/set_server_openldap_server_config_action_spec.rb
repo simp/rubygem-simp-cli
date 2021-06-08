@@ -1,7 +1,7 @@
-require 'simp/cli/config/items/action/set_server_ldap_server_config_action'
+require 'simp/cli/config/items/action/set_server_openldap_server_config_action'
 require_relative '../spec_helper'
 
-describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
+describe Simp::Cli::Config::Item::SetServerOpenldapServerConfigAction do
   before :each do
     @files_dir = File.expand_path( 'files', File.dirname( __FILE__ ) )
 
@@ -17,7 +17,7 @@ describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
       :puppet_env_datadir => @tmp_dir
     }
 
-    @ci        = Simp::Cli::Config::Item::SetServerLdapServerConfigAction.new(@puppet_env_info)
+    @ci        = Simp::Cli::Config::Item::SetServerOpenldapServerConfigAction.new(@puppet_env_info)
     @ci.silent = true
   end
 
@@ -65,7 +65,7 @@ describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
     it 'fails when cli::network::hostname item does not exist' do
       @ci.config_items.delete('cli::network::hostname')
       expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::SetServerLdapServerConfigAction' +
+        'Internal error: Simp::Cli::Config::Item::SetServerOpenldapServerConfigAction' +
         ' could not find cli::network::hostname' )
     end
 
@@ -74,7 +74,7 @@ describe Simp::Cli::Config::Item::SetServerLdapServerConfigAction do
       file = File.join(@files_dir, 'puppet.your.domain.yaml')
       FileUtils.copy_file file, @host_file
       expect{ @ci.apply }.to raise_error( Simp::Cli::Config::MissingItemError,
-        'Internal error: Simp::Cli::Config::Item::SetServerLdapServerConfigAction' +
+        'Internal error: Simp::Cli::Config::Item::SetServerOpenldapServerConfigAction' +
         ' could not find simp_openldap::server::conf::rootpw' )
     end
   end

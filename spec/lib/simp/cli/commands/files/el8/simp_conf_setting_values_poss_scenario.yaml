@@ -1,0 +1,37 @@
+---
+chrony::servers: "%{alias('simp_options::ntp::servers')}"
+cli::ensure_priv_local_user: false
+cli::is_simp_ldap_server: false
+cli::network::gateway: "1.2.3.1"
+cli::network::hostname: simp.test.local
+cli::network::interface: enp0s3
+cli::network::ipaddress: "1.2.3.4"
+cli::network::netmask: "255.255.255.0"
+cli::network::set_up_nic: false
+cli::set_grub_password: false
+cli::simp::scenario: poss
+cli::use_internet_simp_yum_repos: false
+cli::version: "0.0.0"
+puppetdb::master::config::puppetdb_port: 8139
+puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
+simp::runlevel: 3
+simp::server::allow_simp_user: false
+simp_options::dns::search:
+  - test.local
+simp_options::dns::servers:
+  - "1.2.3.10"
+simp_options::fips: true
+simp_options::ntp::servers:
+  - time-a.nist.gov
+simp_options::puppet::ca: simp.test.local
+simp_options::puppet::ca_port: 8141
+simp_options::puppet::server: simp.test.local
+simp_options::sssd: false
+simp_options::syslog::failover_log_servers:
+  - "1.2.3.12"
+simp_options::syslog::log_servers:
+  - "1.2.3.11"
+simp_options::trusted_nets:
+  - "1.2.0.0/16"
+useradd::securetty:
+  - tty0
