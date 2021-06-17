@@ -117,9 +117,7 @@
         - SssdDomains            SKIPQUERY SILENT       # default is correct
    false:
     - SimpOptionsLdap            SKIPQUERY SILENT VALUE=no NOYAML  # override default to match scenario setting
-    - SimpOptionsSSSD            SKIPQUERY SILENT NOYAML: # default enables and matches scenario setting
-       true:
-        - SssdDomains
+    - SimpOptionsSSSD            SKIPQUERY SILENT NOYAML  # default enables and matches scenario setting
 
 # ==== Miscellaneous actions and configuration ====
 # These Items are needed for the SIMP server, even if the scenario settings

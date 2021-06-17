@@ -150,8 +150,9 @@ describe 'Simp::Cli::Command::Config#run' do
           expect( File.exist?( @answers_output_file ) ).to be true
 
           # normalize out YAML keys that are not deterministic
+          # Output for simp_lite is same for el7 and el8
           expected = config_normalize(
-            File.join(files_dir, 'simp_conf_setting_values_simp_lite_scenario.yaml')
+            File.join(files_dir, '../simp_conf_setting_values_simp_lite_scenario.yaml')
           )
           actual_simp_conf = config_normalize(@answers_output_file)
           expect( actual_simp_conf ).to eq expected

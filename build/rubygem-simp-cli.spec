@@ -124,6 +124,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Jun 17 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 7.0.0
+- simp config changes:
+  - The LOCAL sssd domain is no longer needed for sssd to start. The
+  sssd::domains value is only set if ldap and sssd are both true.
 * Tue May 25 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 7.0.0
 - simp CLI changes:
   - Dropped support for Puppet 5.
