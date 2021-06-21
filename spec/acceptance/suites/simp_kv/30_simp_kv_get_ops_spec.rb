@@ -15,6 +15,11 @@ describe 'simp kv get operations' do
 
         include_examples 'workaround beaker ssh session closures', hosts
 
+         # The subfolders in keys_sub_env and keys_sub_global are based on
+         # initial keys persisted
+         # TODO Select the subfolders to use based on initial_key_info() and
+         #      initial_binary_key_info(), which contain the list of initial
+         #      keys persisted
         context "key get for #{env} env #{backend} on #{host}" do
           let(:keys_root_env) {
             keys_info('/', detailed_kv_list_results("#{backend} #{env}", false))

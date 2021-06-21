@@ -5,6 +5,8 @@ function kv_test::retrieve_and_persist_binary_key(
 ) {
 
   if simpkv::exists($key, $simpkv_opts) {
+    kv_test::ensure_dir_tree(dirname($outfile))
+
     $_result = simpkv::get($key, $simpkv_opts)
     $_value_binary = Binary.new($_result['value'], '%r')
 

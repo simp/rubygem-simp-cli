@@ -1,33 +1,33 @@
-# This class sets key/value parameters used in kv_test manifests.
+# This class sets key/value and backend parameters used in the kv_test::store
+# and kv_test::retrieve classes.
+#
+# @param key_info
+#   Hash of key information for keys that do not have Binary values
+#
+#   * Primary key is the name of the simpkv backend.
+#     - All backend names except 'default' must exist in simpkv::options in hiera.
+#   * Value of each primary key is a Hash with 'keys' and/or 'global_keys' attributes
+#   * The 'keys' attribute is a Hash with key/value pairs for the node's Puppet
+#     environment.
+#   * The 'global_keys' attribute is a Hash with global key/value pairs.
+#
+# @param binary_key_info
+#   Hash of key information for keys that have Binary values
+#
+#   * Primary key is the name of the simpkv backend.
+#     - All backend names except 'default' must exist in simpkv::options in hiera.
+#   * Value of each primary key is a Hash with 'keys' and/or 'global_keys' attributes
+#   * The 'keys' attribute is a Hash with key/binary-file-ref pairs for the node's
+#     Puppet environment.
+#   * The 'global_keys' attribute is a Hash with global key/binary-file-ref pairs.
+#   * Each 'binary-file-ref' is either a reference to a file within a module
+#     (e.g., 'kv_test/test_krb5.keytab') or a fully qualified path to a binary
+#     file on the Puppet server.
+#
 class kv_test::params (
-  String         $test_bool_key           = "boolean",
-  String         $test_integer_key        = "integer",
-  String         $test_float_key          = "float",
-  String         $test_string_key         = "string",
-  String         $test_array_strings_key  = "complex/array_strings",
-  String         $test_array_integers_key = "complex/array_integers",
-  String         $test_hash_key           = "complex/hash",
+  String[1] $backend1 = 'default',
+  String[1] $backend2 = 'custom',
 
-  Boolean        $test_bool               = true,
-  Integer        $test_integer            = 123,
-  Float          $test_float              = 4.567,
-  String         $test_string             = 'string1',
-  Array          $test_array_strings      = ['string2', 'string3' ],
-  Array[Integer] $test_array_integers     = [ 8, 9, 10],
-  Hash           $test_hash               = { 'key1' => 'string4', 'key2' => 11,
-    'key3' => false, 'key4' => { 'nkey1' => 'string5', 'nkey2' => true, 'nkey3' => 12 } },
-
-  Hash           $key_value_pairs         = { $test_bool_key           => $test_bool,
-                                              $test_integer_key        => $test_integer,
-                                              $test_float_key          => $test_float,
-                                              $test_string_key         => $test_string,
-                                              $test_array_strings_key  => $test_array_strings,
-                                              $test_array_integers_key => $test_array_integers,
-                                              $test_hash_key           => $test_hash },
-
-  # binary key/value pair handled separately because special logic required for retrieve
-  String         $test_binary_key         = "complex/binary",
-  Binary         $test_binary             = binary_file('kv_test/test_krb5.keytab'),
-
-  String         $custom_backend          = 'custom'
+  Hash[String[1],Kv_test::KeyInfo]  $key_info,
+  Hash[String[1],Kv_test::KeyInfo]  $binary_key_info
 ) { }
