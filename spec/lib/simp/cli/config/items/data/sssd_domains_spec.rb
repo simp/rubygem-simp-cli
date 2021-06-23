@@ -19,61 +19,22 @@ describe Simp::Cli::Config::Item::SssdDomains do
     end
 
     context "when 'simp_options::ldap' is 'false'" do
-      context 'OS major version < 8' do
-        before :each do
-          os_fact = { 'release' => { 'major' => '7' } }
-          allow(Facter).to receive(:value).with('os').and_return(os_fact)
-
-          item = Simp::Cli::Config::Item::SimpOptionsLdap.new
-          item.value = false
-          @ci.config_items[item.key] = item
-        end
-
-        it "should return ['LOCAL']" do
-          expect( @ci.recommended_value ).to eq ['LOCAL']
-        end
-      end
-
-      context 'OS major version >= 8' do
-        before :each do
-          os_fact = { 'release' => { 'major' => '8' } }
-          allow(Facter).to receive(:value).with('os').and_return(os_fact)
-
-          item = Simp::Cli::Config::Item::SimpOptionsLdap.new
-          item.value = false
-          @ci.config_items[item.key] = item
-        end
-
-        it 'should return []' do
-          expect( @ci.recommended_value ).to eq []
-        end
-      end
-    end
-  end
-
-  describe '#validate' do
-    context 'OS major version < 8' do
       before :each do
-        os_fact = { 'release' => { 'major' => '7' } }
-        allow(Facter).to receive(:value).with('os').and_return(os_fact)
-
-        @ci = Simp::Cli::Config::Item::SssdDomains.new
-        @ci.silent = true
         item = Simp::Cli::Config::Item::SimpOptionsLdap.new
         item.value = false
         @ci.config_items[item.key] = item
       end
 
-      it 'should reject an empty domain list' do
-        expect( @ci.validate([]) ).to eq false
+      it "should return []" do
+        expect( @ci.recommended_value ).to eq []
       end
     end
 
-    context 'OS major version >= 8' do
-      before :each do
-        os_fact = { 'release' => { 'major' => '8' } }
-        allow(Facter).to receive(:value).with('os').and_return(os_fact)
+  end
 
+  describe '#validate' do
+    context 'It should accept emtpy lists' do
+      before :each do
         @ci = Simp::Cli::Config::Item::SssdDomains.new
         @ci.silent = true
         item = Simp::Cli::Config::Item::SimpOptionsLdap.new

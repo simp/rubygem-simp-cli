@@ -12,14 +12,10 @@ module Simp::Cli::Config
 
 * When you are using SIMP-provided LDAP, this field should include 'LDAP',
   the name of the SSSD domain SIMP creates with the 'ldap' provider.
-* This field may include 'LOCAL', to use the domain SIMP creates with
-  the 'files' provider.
 
-IMPORTANT: For EL < 8, this field *MUST* have a valid domain or the sssd
-service will fail to start.
 }
 
-      @allow_empty_list = (Facter.value('os')['release']['major'] > '7')
+      @allow_empty_list = true
     end
 
     def get_recommended_value
@@ -31,11 +27,7 @@ service will fail to start.
         # of the domain setup in the `simp` module.
         ['LDAP']
       else
-        if Facter.value('os')['release']['major'] < '8'
-          ['LOCAL']
-        else
-          []
-        end
+        []
       end
     end
 

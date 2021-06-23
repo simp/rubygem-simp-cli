@@ -282,18 +282,9 @@ shared_examples 'simp config operation' do |host,options|
           expected['simp_options::sssd'] = true
         else
           expected['simp_options::sssd'] = false
-          include_sssd_domains = false
         end
       end
 
-      if include_sssd_domains
-        if os_release < '8'
-          # can't be empty for EL7
-          expected['sssd::domains'] = [ 'LOCAL' ]
-        else
-          expected['sssd::domains'] = []
-        end
-      end
     end
 
     if opts[:iso_install]

@@ -67,7 +67,6 @@ def generate_simp_lite_input_setting_values
     "no\n"                        << # don't set the GRUB password
     "no\n"                        << # don't use internet SIMP repos
     "no\n"                        << # SIMP is not LDAP server
-    "LOCAL\n"                     << # sssd domain
     "1.2.3.11\n"                  << # log servers
     "1.2.3.12\n"                  << # failover log servers
     "tty0\n"                      << # securetty list
