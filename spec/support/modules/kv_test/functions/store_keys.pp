@@ -1,21 +1,27 @@
+# Stores keys in a backend (key/value store)
+# @param key_info
+#   Hash containing information about global and Puppet environment keys to
+#    be stored
 function kv_test::store_keys(
-  Hash   $key_value_pairs,
-  String $backend
+  Kv_test::KeyInfo $key_info,
+  String[1]        $backend
 ) {
 
-  $_env_opts = {
-    'environment' => $::environment,
-    'backend'     => $backend
+  if 'keys' in $key_info {
+    $_env_simpkv_opts = { 'backend' => $backend }
+    $key_info['keys'].each |$key, $value| {
+      simpkv::put($key, $value, { 'id' => "${backend} ${::environment} ${key}" }, $_env_simpkv_opts)
+    }
   }
 
-  $_global_opts = {
-    'environment' => '',
-    'backend'     => $backend
-  }
+  if 'global_keys' in $key_info {
+    $_global_simpkv_opts = {
+      'global'  => true,
+      'backend' => $backend
+    }
 
-  $key_value_pairs.each |$key, $value| {
-    simpkv::put($key, $value, { 'id' => "${backend} ${::environment} ${key}" }, $_env_opts)
-    simpkv::put("global_${key}", $value, { 'id' => "${backend} global global_${key}" }, $_global_opts)
+    $key_info['global_keys'].each |$key, $value| {
+      simpkv::put($key, $value, { 'id' => "${backend} global ${key}" }, $_global_simpkv_opts)
+    }
   }
 }
-

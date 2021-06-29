@@ -6,6 +6,10 @@ test_name 'simp kv exists operations'
 describe 'simp kv exists operations' do
   let(:outfile) { '/root/exists.json' }
 
+  # The keys in exists_env and exists_global are based on initial keys persisted
+  # TODO Generate these expected results based on initial_key_info() and
+  #      initial_binary_key_info(), which contain the list of initial
+  #      keys persisted
   let(:exists_env) { {
     # existing environment keys
     'boolean'           => 'present',
@@ -28,16 +32,13 @@ describe 'simp kv exists operations' do
     'global_integer'                => 'present',
 
     # top level folders
-    'dev'                           => 'present',
     'global_complex'                => 'present',
 
     # existing sub-folder keys'
-    'dev/integer'                   => 'present',
     'global_complex/array_integers' => 'present',
-    'production/complex/binary'     => 'present',
 
     # non-existent keys
-    'missing_env/missing_key'       => 'absent'
+    'missing4/missing5'       => 'absent'
   } }
 
 

@@ -22,12 +22,14 @@ describe 'simp kv set up' do
         context 'puppet agent runs' do
           include_examples 'workaround beaker ssh session closures', hosts
 
-          it 'should add test class to store key info in backends' do
+          it 'should add and configure a test class to store key info in backends' do
            default_yaml_file = File.join( '/etc/puppetlabs/code/environments',
                env, 'data', 'default.yaml')
 
             hieradata = YAML.load( on(host, "cat #{default_yaml_file}").stdout )
             hieradata['classes'] = [ 'kv_test::store' ]
+            hieradata['kv_test::params::key_info'] = initial_key_info
+            hieradata['kv_test::params::binary_key_info'] = initial_binary_key_info
             create_remote_file(host, default_yaml_file, hieradata.to_yaml)
             on(host, "cat #{default_yaml_file}")
           end

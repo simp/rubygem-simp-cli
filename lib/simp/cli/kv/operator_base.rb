@@ -51,7 +51,7 @@ class Simp::Cli::Kv::OperatorBase
   # @param global Whether folder/key is global
   #
   def full_store_path(entity, global)
-    path = global ? "/#{entity}" : "/#{@env}/#{entity}"
+    path = global ? "/globals/#{entity}" : "/environments/#{@env}/#{entity}"
     Pathname.new(path).cleanpath.to_s
   end
 
@@ -61,8 +61,8 @@ class Simp::Cli::Kv::OperatorBase
   #
   def simpkv_options(global)
     {
-      'backend'     => @backend,
-      'environment' => (global ? '' : @env)
+      'backend' => @backend,
+      'global'  => global
     }
   end
 

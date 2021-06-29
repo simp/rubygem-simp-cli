@@ -5,6 +5,11 @@ test_name 'simp kv delete operations'
 
 describe 'simp kv delete operations' do
   let(:outfile) { '/root/exists.json' }
+
+  # The keys in keys_env and keys_global are based on initial keys persisted
+  # TODO Generate these existing key lists based on initial_key_info() and
+  #      initial_binary_key_info(), which contain the list of initial
+  #      keys persisted
   let(:keys_env) { [ 'boolean', 'string', 'complex/hash'] }
   let(:keys_global) { ['global_float', 'global_complex/array_integers'] }
 

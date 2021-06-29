@@ -9,10 +9,10 @@ require 'spec_helper'
 # tested.  Full testing will be done in a detailed acceptance test!
 
 describe Simp::Cli::Kv::OperatorBase do
-  let(:key) { 'keyX' }
-  let(:value) { 'value for keyX' }
+  let(:key) { 'key_x' }
+  let(:value) { 'value for key_x' }
   let(:metadata) { { 'history' => [] } }
-  let(:folder) { 'folderA' }
+  let(:folder) { 'folder_a' }
 
   before :each do
     @user  = Etc.getpwuid(Process.uid).name
@@ -66,26 +66,26 @@ describe Simp::Cli::Kv::OperatorBase do
 
   describe '#full_store_path' do
     it 'should return path within environment when not global' do
-      expect( @base.full_store_path('keyA', false) ).to eq("/#{@env}/keyA")
+      expect( @base.full_store_path('key_a', false) ).to eq("/environments/#{@env}/key_a")
     end
 
     it 'should return global path when global' do
-      expect( @base.full_store_path('keyA', true) ).to eq('/keyA')
+      expect( @base.full_store_path('key_a', true) ).to eq('/globals/key_a')
     end
 
     it 'should return remove extraneous slashes' do
-      expect( @base.full_store_path('/folderX/', true) ).to eq('/folderX')
+      expect( @base.full_store_path('/folder_x/', true) ).to eq('/globals/folder_x')
     end
   end
 
   describe '#simpkv_options' do
-    it 'returns hash with environment set when not global' do
-      expected = { 'backend' => @backend, 'environment' => @env }
+    it "returns hash with 'global'=false set when not global" do
+      expected = { 'backend' => @backend, 'global' => false}
       expect( @base.simpkv_options(false) ).to eq(expected)
     end
 
-    it 'returns hash with environment empty when global' do
-      expected = { 'backend' => @backend, 'environment' => '' }
+    it "returns hash with 'global'=true set when not global" do
+      expected = { 'backend' => @backend, 'global' => true }
       expect( @base.simpkv_options(true) ).to eq(expected)
     end
   end
@@ -117,23 +117,23 @@ describe Simp::Cli::Kv::OperatorBase do
       binary_string2 = 'some other string'.force_encoding('ASCII-8BIT')
       list_info = {
         'keys' => {
-          'keyA' => { 'value' => binary_string1, 'metadata' => {}},
-          'keyB' => { 'value' => 'foo', 'metadata' => { 'bar' => 'baz' } },
-          'keyC' => { 'value' => binary_string2, 'metadata' => { 'bar' => 'baz' } }
+          'key_a' => { 'value' => binary_string1, 'metadata' => {}},
+          'key_b' => { 'value' => 'foo', 'metadata' => { 'bar' => 'baz' } },
+          'key_c' => { 'value' => binary_string2, 'metadata' => { 'bar' => 'baz' } }
          },
         'folders' => [ 'folder1', 'folder2' ]
       }
 
       expected = {
         'keys' => {
-          'keyA' => {
+          'key_a' => {
             'value' => Base64.strict_encode64(binary_string1),
             'encoding' => 'base64',
             'original_encoding' => 'ASCII-8BIT',
             'metadata' => {}
           },
-          'keyB' => { 'value' => 'foo', 'metadata' => { 'bar' => 'baz' } },
-          'keyC' => {
+          'key_b' => { 'value' => 'foo', 'metadata' => { 'bar' => 'baz' } },
+          'key_c' => {
             'value' => Base64.strict_encode64(binary_string2),
             'encoding' => 'base64',
             'original_encoding' => 'ASCII-8BIT',

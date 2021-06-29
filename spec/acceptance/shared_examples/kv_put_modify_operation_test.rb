@@ -13,6 +13,9 @@
 #   infile                   = JSON input file for 'simp kv put' operation
 #   outfile                  = JSON output file for 'simp kv list' operation
 shared_examples 'kv put modify operation test' do |host, env, backend_opt|
+
+  # TODO Pass in new keys/subfolders to process or automatically determine
+  #      based on existing input, instead of hard-coding
   let(:updated_keys_root_env) { keys_info('/', updated_list_env) }
   let(:updated_keys_sub_env) { keys_info('complex', updated_list_env) }
   let(:updated_keys_root_global) { keys_info('/', updated_list_global) }

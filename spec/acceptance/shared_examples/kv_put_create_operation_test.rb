@@ -15,6 +15,7 @@
 #                         to backend_opt
 #   infile              = JSON input file for 'simp kv put' operation
 #   outfile             = JSON output file for 'simp kv list' operation
+#
 shared_examples 'kv put create operation test' do |host, env, backend_opt|
   it "should store key info for new #{env} env keys" do
     create_remote_file(host, infile, created_keys_env.to_json)
@@ -23,6 +24,8 @@ shared_examples 'kv put create operation test' do |host, env, backend_opt|
                 "#{backend_opt}"
     on(host, store_cmd)
 
+    # TODO: Determine the folders to list based on input data instead of
+    #       being hard-coded
     list_cmd = "umask 0077; simp kv list /,complex --no-brief -e #{env} "\
                "-o #{outfile} #{backend_opt}"
     result = run_and_load_json(host, list_cmd, outfile)
@@ -36,6 +39,8 @@ shared_examples 'kv put create operation test' do |host, env, backend_opt|
                 " --global #{backend_opt}"
     on(host, store_cmd)
 
+    # TODO: Determine the folders to list based on input data instead of
+    #       being hard-coded
     list_cmd = "umask 0077; simp kv list /,global_complex --no-brief "\
                "-o #{outfile} --global #{backend_opt}"
     result = run_and_load_json(host, list_cmd, outfile)

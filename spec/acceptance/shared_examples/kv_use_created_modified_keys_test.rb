@@ -1,23 +1,33 @@
 # Test environment and global keys created/modified by 'kv put' operation can be
 # used by a manifest in a 'puppet agent' run.
 #
-# The kv_test::retrieve manifest retrieves the keys and then stores them
-# in files in out_root_path.
+# - The kv_test::retrieve manifest retrieves all the keys (original and new) and
+#   then persists them in files in out_root_path.
+# - We verify out_root_path files exist and contain valid key information.
 #
 # @param host Host object on which to execute test
 # @param env Puppet environment
+# @param backend simpkv backend name
 #
 # Assumes the following are in scope:
 #   updated_list_env    = New list result (Hash) for / and complex/ folders
 #                         for env in backend under test
 #   updated_list_global = New list result (Hash) for global / and global_complex/
 #                         for env in backend under test
-#   created_key_names   = Hash of key info for non-binary created keys
-#   created_binary_key_names = Hash of key info for created binary keys
+#   created_key_names   = Hash of key info for non-binary created keys that,
+#                         when not empty, has a 'keys' attribute containing
+#                         an Array of Puppet environment key names and a
+#                         'global_keys' attribute containing an Array of global
+#                         key names
+#   created_binary_key_names = Hash of key info for created binary keys that,
+#                         when not empty, has a 'keys' attribute containing
+#                         an Array of Puppet environment key names and a
+#                         'global_keys' attribute containing an Array of global
+#                         key names
 #   out_root_path       = Root path to files persisted by kv_test::retrieve
 #                         containing key info for the backend under test
 require 'json'
-shared_examples 'kv use created/modified keys test' do |host, env|
+shared_examples 'kv use created/modified keys test' do |host, env, backend|
   include_examples 'configure puppet env', host, env
 
   it 'should ensure class list only has test class to retrieve key info' do
@@ -32,18 +42,20 @@ shared_examples 'kv use created/modified keys test' do |host, env|
 
   it 'should add any created keys to list of keys to retrieve' do
     if created_key_names.empty? && created_binary_key_names.empty?
-      puts '>>> No created keys <<<'
+      puts '>>> Skipping: no new keys created <<<'
     else
       default_yaml_file = File.join( '/etc/puppetlabs/code/environments', env,
         'data', 'default.yaml')
 
       hieradata = YAML.load( on(host, "cat #{default_yaml_file}").stdout )
       unless created_key_names.empty?
-        hieradata['kv_test::retrieve::extra_keys'] = created_key_names
+        hieradata['kv_test::retrieve::extra_key_list'] =
+          { backend => created_key_names }
       end
 
       unless created_binary_key_names.empty?
-        hieradata['kv_test::retrieve::extra_binary_keys'] = created_binary_key_names
+        hieradata['kv_test::retrieve::extra_binary_key_list'] =
+         { backend => created_binary_key_names }
       end
 
       create_remote_file(host, default_yaml_file, hieradata.to_yaml)
@@ -56,16 +68,22 @@ shared_examples 'kv use created/modified keys test' do |host, env|
       :max_retries => 5, :verbose => true.to_s)
   end
 
+  # The complex and global_complex folders used in the next two examples are
+  # based on previous test actions.
+  # TODO Should pass this information into this shared_example or automatically
+  #      determine the folders from input, instead of hard-coding them.
+
   it 'should have retrieved correct values for environment keys' do
     keys = keys_info('/', updated_list_env)
     keys.merge!( keys_info('complex', updated_list_env) )
-    root_path = File.join(out_root_path, env)
+    root_path = File.join(out_root_path, 'environments', env)
     verify_files(host, keys, root_path)
   end
 
   it 'should have retrieved correct values for global keys' do
     keys = keys_info('/', updated_list_global)
     keys.merge!( keys_info('global_complex', updated_list_global) )
-    verify_files(host, keys, out_root_path)
+    root_path = File.join(out_root_path, 'globals')
+    verify_files(host, keys, root_path)
   end
 end

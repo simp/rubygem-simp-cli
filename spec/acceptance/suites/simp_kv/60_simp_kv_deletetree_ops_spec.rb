@@ -5,6 +5,12 @@ test_name 'simp kv deletetree operations'
 
 describe 'simp kv deletetree operations' do
   let(:outfile) { '/root/exists.json' }
+
+  # The folders in folders_env and folders_global are based on initial keys
+  # persisted
+  # TODO Generate these existing folders lists based on initial_key_info() and
+  #      initial_binary_key_info(), which contain the list of initial
+  #      keys persisted
   let(:folders_env) { [ 'complex' ] }
   let(:folders_global) { [ 'global_complex' ] }
 

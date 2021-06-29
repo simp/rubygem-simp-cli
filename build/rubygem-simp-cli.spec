@@ -124,10 +124,19 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Thu Jun 24 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 7.0.0
+- simp kv breaking changes:
+  - Updated the `simp kv` command suite to work with simp-simpkv
+    Puppet module version >= 0.8.0.
+    - simp-simpkv 0.8.0 changed how global keys are accessed.
+    - Only impacts sites that explicitly enabled the experimental
+      simpkv capability.
+
 * Thu Jun 17 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 7.0.0
 - simp config changes:
   - The LOCAL sssd domain is no longer needed for sssd to start. The
     sssd::domains value is now only set if the SIMP server is the LDAP server.
+
 * Tue May 25 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 7.0.0
 - simp CLI changes:
   - Dropped support for Puppet 5.

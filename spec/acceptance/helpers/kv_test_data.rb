@@ -8,6 +8,136 @@ module Acceptance::Helpers; end
 
 module Acceptance::Helpers::KvTestData
 
+  # @return Hash of initial keys to be pre-seeded in the 'default' and 'custom'
+  #   backends via the kv_test module
+  #
+  # - Keys cannot have Binary values.  Those are handled separately
+  #   (see initial_binary_key_info()).
+  # - Hash will be used to set kv_test::params::key_info in hiera
+  # - Primary key is the name of the simpkv backend.
+  #   - simpkv backends are configured in hiera via simpkv::options
+  # - kv_test module will automatically generate metadata with an 'id' string
+  #   attribute that includes the backend name, either 'global' or the Puppet
+  #   environment and the key. For example,
+  #      'default production boolean'
+  #      'dev global global_complex/hash'
+  #
+  def initial_key_info
+    {
+      'default' => {
+        'keys'        => {
+          'boolean'                => true,
+          'integer'                => 123,
+          'float'                  => 4.567,
+          'string'                 => 'string1',
+          'complex/array_strings'  => [ 'string2', 'string3' ],
+          'complex/array_integers' => [ 8, 9, 10 ],
+          'complex/hash'           => {
+            'key1' => 'string4',
+            'key2' => 11,
+            'key3' => false,
+            'key4' => {
+              'nkey1' => 'string5',
+              'nkey2' => true,
+              'nkey3' => 12
+            }
+          }
+        },
+        'global_keys' => {
+          'global_boolean'                => true,
+          'global_integer'                => 123,
+          'global_float'                  => 4.567,
+          'global_string'                 => 'string1',
+          'global_complex/array_strings'  => [ 'string2', 'string3' ],
+          'global_complex/array_integers' => [ 8, 9, 10 ],
+          'global_complex/hash'           => {
+            'key1' => 'string4',
+            'key2' => 11,
+            'key3' => false,
+            'key4' => {
+              'nkey1' => 'string5',
+              'nkey2' => true,
+              'nkey3' => 12
+            }
+          }
+        }
+      },
+      'custom' => {
+        'keys'        => {
+          'boolean'                => true,
+          'integer'                => 123,
+          'float'                  => 4.567,
+          'string'                 => 'string1',
+          'complex/array_strings'  => [ 'string2', 'string3' ],
+          'complex/array_integers' => [ 8, 9, 10 ],
+          'complex/hash'           => {
+            'key1' => 'string4',
+            'key2' => 11,
+            'key3' => false,
+            'key4' => {
+              'nkey1' => 'string5',
+              'nkey2' => true,
+              'nkey3' => 12
+            }
+          }
+        },
+        'global_keys' => {
+          'global_boolean'                => true,
+          'global_integer'                => 123,
+          'global_float'                  => 4.567,
+          'global_string'                 => 'string1',
+          'global_complex/array_strings'  => [ 'string2', 'string3' ],
+          'global_complex/array_integers' => [ 8, 9, 10 ],
+          'global_complex/hash'           => {
+            'key1' => 'string4',
+            'key2' => 11,
+            'key3' => false,
+            'key4' => {
+              'nkey1' => 'string5',
+              'nkey2' => true,
+              'nkey3' => 12
+            }
+          }
+        }
+      }
+    }
+  end
+
+  # @return Hash of initial keys with Binary values to be pre-seeded in the
+  #   'default' and 'custom' backends via the kv_test module
+  #
+  # - Hash will be used to set kv_test::params::binary_key_info in hiera
+  # - Primary key is the name of the simpkv backend.
+  #   - simpkv backends are configured in hiera via simpkv::options
+  # - The value of each key is either a file reference for a file in the
+  #   a Puppet module or a fully qualified path to a file on the Puppet server.
+  # - kv_test module will automatically generate metadata with an 'id' string
+  #   attribute that includes the backend name, either 'global' or the Puppet
+  #   environment and the key. For example,
+  #      'default production boolean'
+  #      'dev global global_complex/hash'
+  #
+  def initial_binary_key_info
+    {
+      'default' => {
+        'keys'        => {
+          'complex/binary' => 'kv_test/test_krb5.keytab'
+        },
+        'global_keys'        => {
+          'global_complex/binary' => 'kv_test/test_krb5.keytab'
+        }
+      },
+      'custom' => {
+        'keys'        => {
+          'complex/binary' => 'kv_test/test_krb5.keytab'
+        },
+        'global_keys'        => {
+          'global_complex/binary' => 'kv_test/test_krb5.keytab'
+        }
+      }
+    }
+  end
+
   # @return the Base64-encoded value of the binary data provided by the
   # kv_test module
   def binary_base64
@@ -26,7 +156,7 @@ module Acceptance::Helpers::KvTestData
             "#{prefix}integer",
             "#{prefix}string",
         ],
-        'folders' => root_kv_folders(global)
+        'folders' => [ "#{prefix}complex" ]
       },
       "#{prefix}complex" => {
         'keys'           => [
@@ -62,7 +192,7 @@ module Acceptance::Helpers::KvTestData
             'metadata' => { 'id' => "#{id_prefix} #{prefix}string" }
           }
         },
-        'folders' => root_kv_folders(global)
+        'folders' => [ "#{prefix}complex" ]
       },
       "#{prefix}complex" => {
         'keys'    => {
@@ -136,10 +266,9 @@ module Acceptance::Helpers::KvTestData
   def create_key_info(regular_keys, binary_keys, env, backend )
     keys = {}
     list = { }
-    key_prefix = env.nil? ? 'global_' : ''
-    location = env.nil? ? 'global' : env
+    location = env.nil? ? 'globals' : File.join('environments', env)
     regular_keys.each do |key|
-      key_path = "#{key_prefix}#{key}"
+      key_path = key
       key_dir = File.dirname(key_path)
       key_dir = '/' if key_dir == '.'
       unless list.key?(key_dir)
@@ -157,7 +286,7 @@ module Acceptance::Helpers::KvTestData
 
     sub_list = { 'keys' => {}, 'folders' => [] }
     binary_keys.each do |key|
-      key_path = "#{key_prefix}#{key}"
+      key_path = key
       key_dir = File.dirname(key_path)
       key_dir = '/' if key_dir == '.'
       unless list.key?(key_dir)
@@ -180,40 +309,24 @@ module Acceptance::Helpers::KvTestData
     [ keys, list ]
   end
 
-  def root_kv_folders(global)
-    if global
-      return [ 'dev', 'global_complex', 'production' ]
-    else
-      return [ 'complex' ]
-    end
-  end
-
   def run_and_load_json(host, cmd, json_file)
     on(host, cmd)
     JSON.load( on(host, "cat #{json_file}").stdout )
   end
 
   def verify_files(host, keys, root_path)
-    puppet_version = on(host, 'puppet --version').stdout
-
     keys.each do |key,info|
       file = File.join(root_path, key)
       if info.key?('encoding')
-        if puppet_version[0] == '5'
-          puts "Skipping '#{key}' value check: Puppet 5 'puppet apply' does "\
-               'not handle Binary type'
-        else
-          puts "Verifying '#{key}' value"
-          actual_binary_file = "#{file}.bin"
-          expected_binary_file = "/root/#{File.basename(key)}.bin"
-          Tempfile.open 'kv_test_data' do |tempfile|
-            File.open(tempfile.path, 'w') do |file|
-              file.write(Base64.strict_decode64(info['value']))
-            end
-
-            copy_to(host, tempfile.path, expected_binary_file)
+        puts "Verifying '#{key}' value"
+        actual_binary_file = "#{file}.bin"
+        expected_binary_file = "/root/#{File.basename(key)}.bin"
+        Tempfile.open 'kv_test_data' do |tempfile|
+          File.open(tempfile.path, 'w') do |file|
+            file.write(Base64.strict_decode64(info['value']))
           end
-          on(host, "diff #{expected_binary_file} #{actual_binary_file}")
+
+          copy_to(host, tempfile.path, expected_binary_file)
         end
 
        puts "Verifying '#{key}' metadata"
