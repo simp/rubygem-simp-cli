@@ -3,7 +3,7 @@
 # * new_simplib_legacy_passgen:  simpkv-enabled simplib::passgen in legacy mode
 # * new_simplib_simpkv_passgen:   simpkv-enabled simplib::passgen in simpkv mode
 
-shared_examples 'passgen test environments set up' do |master|
+shared_examples 'passgen test environments set up' do |server|
 
   context 'module installation from fixtures staging dir' do
     let(:module_staging_dir) { '/root/fixtures/modules' }
@@ -37,13 +37,12 @@ shared_examples 'passgen test environments set up' do |master|
 
     it 'should clone old simplib into fixtures staging dir' do
       # install last simplib version that contains legacy simplib::passgen
-      master.install_package('git')
       cmd = "cd #{module_staging_dir}; " +
         'git clone https://github.com/simp/pupmod-simp-simplib simplib-3.15.3'
-      on(master, cmd)
+      on(server, cmd)
 
       cmd = "cd #{module_staging_dir}/simplib-3.15.3; git checkout tags/3.15.3"
-      on(master, cmd)
+      on(server, cmd)
     end
 
     it 'should create old_simplib environment' do
@@ -57,7 +56,7 @@ shared_examples 'passgen test environments set up' do |master|
 
       opts[:hieradata] = base_hiera.dup
 
-      create_env_and_install_modules(master, opts)
+      create_env_and_install_modules(server, opts)
 
       # Fix name of simplib module
       modules_dir = File.join(opts[:envs_dir], opts[:env], 'modules')
@@ -65,7 +64,7 @@ shared_examples 'passgen test environments set up' do |master|
         File.join(modules_dir, 'simplib-3.15.3'),
         File.join(modules_dir, 'simplib')
       ].join(' ')
-      on(master, cmd)
+      on(server, cmd)
     end
 
     it 'should create new_simplib_legacy_passgen environment' do
@@ -83,7 +82,7 @@ shared_examples 'passgen test environments set up' do |master|
       default_hiera.merge!(simpkv_hiera)
       opts[:hieradata] = default_hiera
 
-      create_env_and_install_modules(master, opts)
+      create_env_and_install_modules(server, opts)
     end
 
     it 'should create new_simplib_simpkv_passgen environment' do
@@ -101,7 +100,7 @@ shared_examples 'passgen test environments set up' do |master|
       default_hiera.merge!(simpkv_hiera)
       opts[:hieradata] = default_hiera
 
-      create_env_and_install_modules(master, opts)
+      create_env_and_install_modules(server, opts)
     end
 
     it 'should create simpkv directory fully accessible by Puppet for file plugin' do
@@ -109,9 +108,9 @@ shared_examples 'passgen test environments set up' do |master|
       # functions run during compilation and will fail before the manifest
       # apply can create the directory!  In other words, the simpkv functions need
       # the directory to be available at compile time.
-      on(master, 'mkdir -p /var/simp/simpkv')
-      on(master, 'chown root:puppet /var/simp/simpkv')
-      on(master, 'chmod 0770 /var/simp/simpkv')
+      on(server, 'mkdir -p /var/simp/simpkv')
+      on(server, 'chown root:puppet /var/simp/simpkv')
+      on(server, 'chmod 0770 /var/simp/simpkv')
     end
   end
 end

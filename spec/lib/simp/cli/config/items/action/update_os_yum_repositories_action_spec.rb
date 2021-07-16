@@ -47,13 +47,12 @@ describe Simp::Cli::Config::Item::UpdateOsYumRepositoriesAction do
       end
 
       it 'creates the yum Updates directory and generates the yum Updates repo metadata' do
+        @ci.silent = false
         @ci.apply
         expect( File.directory?( File.join( @yum_dist_dir, 'Updates') ) ).to eq( true )
 
-        file =  File.join( @yum_dist_dir, 'Updates', 'repodata', 'repomd.xml' )
-        if (value = ENV['SIMP_SKIP_NON_SIMPOS_TESTS'])
-          skip "skipping because env var SIMP_SKIP_NON_SIMPOS_TESTS is set to #{value}"
-        else
+        if Facter::Core::Execution.which('createrepo')
+          file =  File.join( @yum_dist_dir, 'Updates', 'repodata', 'repomd.xml' )
           expect( File.exists?( file )).to eq( true )
           expect( File.size?( file ) ).to  be_truthy
         end
