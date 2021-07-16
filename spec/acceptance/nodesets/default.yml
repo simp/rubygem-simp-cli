@@ -20,6 +20,7 @@ CONFIG:
   ssh:
     keepalive: true
     keepalive_interval: 1
+    keepalive_maxcount: 60
   synced_folder : disabled
   type: aio
 

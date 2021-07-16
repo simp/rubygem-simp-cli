@@ -6,6 +6,15 @@ shared_examples 'simp asset manual install' do |server|
     let(:asset_staging_dir) { '/root/fixtures/assets' }
     let(:skeleton_dir) { '/usr/share/simp/environment-skeleton' }
 
+    it 'should ensure packages required by assets are installed' do
+      [
+        'git',
+        'rsync'
+      ].each do |package|
+        install_package_unless_present_on(server, package)
+      end
+    end
+
     it 'should install simp-adapter as done by its RPM' do
       on(server, "cp #{asset_staging_dir}/adapter/src/sbin/simp_rpm_helper /usr/local/sbin/simp_rpm_helper")
       on(server, 'chmod 750 /usr/local/sbin/simp_rpm_helper')

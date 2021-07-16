@@ -4,7 +4,7 @@ test_name 'simp passgen set up'
 
 describe 'simp passgen set up' do
 
-  context 'Puppet master set up' do
+  context 'Puppet server set up' do
     hosts.each do |host|
       include_examples 'configure sshd', host
       include_examples 'fixtures move', host

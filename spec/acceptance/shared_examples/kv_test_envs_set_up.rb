@@ -1,6 +1,6 @@
 # creates simpkv-enabled production and dev SIMP Omni environments, each
 # with two simpkv file backends
-shared_examples 'kv test environments set up' do |master|
+shared_examples 'kv test environments set up' do |server|
 
   context 'module installation from fixtures staging dir' do
     let(:module_staging_dir) { '/root/fixtures/modules' }
@@ -42,17 +42,17 @@ shared_examples 'kv test environments set up' do |master|
 
     it "should create 'production' environment" do
       # remove anything in production Puppet env so we start clean
-      on(master, "rm -rf #{envs_dir}/production")
+      on(server, "rm -rf #{envs_dir}/production")
 
       opts = create_options_base.dup
       opts[:env] = 'production'
-      create_env_and_install_modules(master, opts)
+      create_env_and_install_modules(server, opts)
     end
 
     it "should create 'dev' environment" do
       opts = create_options_base.dup
       opts[:env] = 'dev'
-      create_env_and_install_modules(master, opts)
+      create_env_and_install_modules(server, opts)
     end
 
     it 'should create simpkv directory fully accessible by Puppet for file plugin' do
@@ -60,9 +60,9 @@ shared_examples 'kv test environments set up' do |master|
       # during compilation and will fail before the manifest
       # apply can create the directory!  In other words, the simpkv functions need
       # the directory to be available at compile time.
-      on(master, 'mkdir -p /var/simp/simpkv')
-      on(master, 'chown root:puppet /var/simp/simpkv')
-      on(master, 'chmod 0770 /var/simp/simpkv')
+      on(server, 'mkdir -p /var/simp/simpkv')
+      on(server, 'chown root:puppet /var/simp/simpkv')
+      on(server, 'chmod 0770 /var/simp/simpkv')
     end
   end
 end

@@ -5,7 +5,7 @@ test_name 'simp cli set up'
 describe 'simp cli set up' do
 
   hosts.each do |host|
-    context 'Puppet master set up' do
+    context 'Puppet server set up' do
       include_examples 'configure sshd', host
       include_examples 'fixtures move', host
 
