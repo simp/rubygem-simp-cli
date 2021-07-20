@@ -9,8 +9,7 @@ shared_examples 'simp module git repos manual install' do |server|
 
     # simp cli will need r10k to access modules in local git repos created
     # by simp_rpm_helper in step below
-    it "should install git RPM and r10k gem into Puppet's Ruby" do
-      server.install_package('git')
+    it "should install r10k gem into Puppet's Ruby" do
       on(server, 'puppet resource package r10k ensure=present provider=puppet_gem')
     end
 
