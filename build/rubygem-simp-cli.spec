@@ -54,7 +54,7 @@ end
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
 Version: %{cli_version}
-Release: %{lua: print(package_release)}%{?dist}
+Release: %{lua: print(package_release)}
 Group: Development/Languages
 License: Apache-2.0
 URL: https://github.com/simp/rubygem-simp-cli
