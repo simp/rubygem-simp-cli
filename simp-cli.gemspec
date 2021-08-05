@@ -62,7 +62,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'pry',         '~> 0'
   s.add_development_dependency 'pry-doc',     '~> 0'
   s.add_development_dependency 'dotenv',      '~> 1'
-  s.add_development_dependency 'rubocop',     '~> 0.29'
+  s.add_development_dependency 'rubocop',     '~> 0.49'
 
   # simple text description of external requirements (for humans to read)
   s.requirements << 'SIMP OS installation'
