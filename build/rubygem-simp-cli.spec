@@ -1,6 +1,6 @@
 %{lua:
 --
--- When buildng the RPM, declare macro 'pup_module_info_dir' with the path to
+-- When building the RPM, declare macro 'pup_module_info_dir' with the path to
 -- the top-level project directory.  This directory should contain the
 -- following items:
 --   * 'build' directory
