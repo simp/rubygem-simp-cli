@@ -1,3 +1,45 @@
+%{lua:
+--
+-- When building the RPM, declare macro 'pup_module_info_dir' with the path to
+-- the top-level project directory.  This directory should contain the
+-- following items:
+--   * 'build' directory
+--   * 'README.md' file
+--
+package_release = '1'
+local potential_src_dirs = {
+  rpm.expand('%{pup_module_info_dir}'),
+  rpm.expand('%{_sourcedir}'),
+  posix.getcwd(),
+}
+local src_dir = "\0"
+
+for _k,dir in pairs(potential_src_dirs) do
+  if (posix.stat(dir .. '/build', 'type') == 'directory') and (posix.stat(dir .. '/README.md', 'type') == 'regular') then
+    src_dir = dir
+    break
+  end
+end
+
+if src_dir == "\0" then
+  error(
+    "FATAL: Cannot determine RPM project's src_dir!\n" ..
+    "\t* Paths tried: '" .. table.concat(potential_src_dirs, "', '") .."\n" ..
+    "\t* PROTIP: Declare macro %pup_module_info_dir\n"
+  )
+end
+
+rel_file = (io.open(src_dir .. "/build/rpm_metadata/release", "r") or io.open(src_dir .. "/release", "r"))
+if rel_file then
+  for line in rel_file:lines() do
+    if not (line:match("^%s*#") or line:match("^%s*$")) then
+      package_release = line
+      break
+    end
+  end
+end
+}
+
 %global gemname simp-cli
 
 %global gemdir /usr/share/simp/ruby
@@ -12,7 +54,7 @@
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
 Version: %{cli_version}
-Release: 1%{?dist}
+Release: %{lua: print(package_release)}
 Group: Development/Languages
 License: Apache-2.0
 URL: https://github.com/simp/rubygem-simp-cli
@@ -65,7 +107,7 @@ Documentation for %{name}
 %package highline
 Summary: A highline Gem for use with the SIMP CLI
 Version: %{highline_version}
-Release: 0
+Release: %{lua: print(package_release)}
 License: GPL-2.0
 URL: https://github.com/JEG2/highline
 Source11: highline-%{highline_version}.gem
