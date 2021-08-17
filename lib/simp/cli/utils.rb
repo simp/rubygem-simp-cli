@@ -66,8 +66,8 @@ module Simp::Cli::Utils
       }
     end
 
-    def get_config(environment='production', section='master')
-      # Get the master section by default in case things are overridden from
+    def get_config(environment='production', section='server')
+      # Get the server section by default in case things are overridden from
       # main or don't match the agent settings
 
       return %x{puppet config print --environment=#{environment} --section=#{section}}.lines
