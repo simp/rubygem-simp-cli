@@ -244,6 +244,8 @@ variables:
     # rsync in simp environment commands
     - 'if `hash apt-get`; then apt-get update; fi'
     - 'if `hash apt-get`; then apt-get install -y rpm cracklib-runtime openssl libicu-dev rsync; fi'
+    # simp cli needs to be able to get the default route using the 'ip' command
+    - 'if `hash apt-get`; then apt-get install -y iproute2; fi'
     # simp config uses grub2-mkpasswd-pbkdf2 when encrypting a GRUB password,
     # but the command has a different name on Ubuntu
     - 'if `hash apt-get`; then apt-get install -y grub-common; fi'
