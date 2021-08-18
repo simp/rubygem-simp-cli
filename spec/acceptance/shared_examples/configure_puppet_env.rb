@@ -28,7 +28,7 @@ shared_examples 'configure puppet env' do |host,env|
       "--key /etc/puppetlabs/puppet/ssl/private_keys/#{fqdn}.pem",
       '-o /dev/null',
       '-w "%{http_code}\n"',
-      'https://localhost/status/v1/services',
+      'https://localhost:8140/status/v1/services',
       '| grep -qe 200'
     ].join(' ')
     retry_on(host, puppetserver_status_cmd, :retry_interval => 10)
