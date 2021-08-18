@@ -49,7 +49,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 
     # - First set of runs are tagged and run against the bootstrap puppetserver
     #   port.  These initial runs will configure puppetserver and puppetdb; all
-    #   subsequent runs will run against the configured masterport.
+    #   subsequent runs will run against the configured serverport.
     # - Create a unique lockfile, we want to preserve the lock on cron and manual
     #   puppet runs during bootstrap.
     agent_lockfile = "#{File.dirname(Simp::Cli::Utils.puppet_info[:config]['agent_disabled_lockfile'])}/bootstrap.lock"
@@ -57,7 +57,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     pupcmd = "puppet agent --onetime --no-daemonize --no-show_diff --verbose" +
       " --no-splay --agent_disabled_lockfile=#{agent_lockfile}" +
       " --environment=#{Simp::Cli::BOOTSTRAP_PUPPET_ENV}" +
-      " --masterport=#{@initial_puppetserver_port} --ca_port=#{@initial_puppetserver_port}"
+      " --serverport=#{@initial_puppetserver_port} --ca_port=#{@initial_puppetserver_port}"
 
     num_tagged_runs = 3
     info("Running puppet agent with --tags pupmod,simp up to #{num_tagged_runs} times...", 'cyan')
@@ -112,6 +112,38 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   #####################################################
   # Custom methods
   #####################################################
+
+  # Checks if the puppetserver is running on the specified port
+  # This method is public so that other code might use it
+  def puppetserver_running?(port, quiet = false)
+    unless quiet
+      info("Checking if puppetserver is accepting connections on port #{port}", 'cyan')
+    end
+
+    status = false
+    begin
+      require 'net/http'
+      server_conn = Net::HTTP.new('localhost', port)
+      server_conn.use_ssl = true
+      server_conn.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      server_conn.cert = OpenSSL::X509::Certificate.new(
+        File.read(
+          Simp::Cli::Utils.puppet_info[:config]['hostcert']
+        )
+      )
+      server_conn.key = OpenSSL::PKey::RSA.new(
+        File.read(
+          Simp::Cli::Utils.puppet_info[:config]['hostprivkey']
+        )
+      )
+
+      status = (server_conn.request(Net::HTTP::Get.new('/status/v1/services')).code == '200')
+    rescue => e
+      debug("Unable to connect to puppetserver: #{e}") unless quiet
+    end
+
+    return status
+  end
 
   private
 
@@ -262,7 +294,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     begin
       pserver_proc = %x{netstat -tlpn}.split("\n").select{|x| x =~ /\d:8150/}
       unless pserver_proc.empty?
-        pserver_port = %x{puppet config print --section=master masterport}.strip
+        pserver_port = %x{puppet config print --section=server serverport}.strip
         # By this point, bootstrap has applied config settings to puppetserver.
         # Don't kill puppetserver if it's configured it to listen on 8150.
         unless (pserver_port == '8150')
@@ -342,7 +374,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     else
       debug("Did not find #{routes_yaml}, not removing")
     end
-    execute('puppet config set --section master storeconfigs false')
+    execute('puppet config set --section server storeconfigs false')
     execute('puppet config set --section main storeconfigs false')
     debug("Successfully set storeconfigs=false in #{confdir}/puppet.conf", 'green')
 
@@ -366,7 +398,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 
     # This changes over time so we need to snag it fresh instead of getting it
     # from the originally pulled values.
-    port ||= %x{puppet config print --section=master masterport}.strip
+    port ||= %x{puppet config print --section=server serverport}.strip
 
     begin
       running = puppetserver_running?(port)
@@ -615,19 +647,6 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     system('clear')
     info('=== Starting SIMP Bootstrap ===', 'yellow.bold', '')
     info("The log can be found at '#{@logfile.path}'\n")
-  end
-
-  # Checks if the puppetserver is running on the specified port
-  def puppetserver_running?(port, quiet = false)
-    unless quiet
-      info("Checking if puppetserver is accepting connections on port #{port}", 'cyan')
-    end
-    curl_cmd = "curl -sS --cert #{Simp::Cli::Utils.puppet_info[:config]['hostcert']}" +
-        " --key #{Simp::Cli::Utils.puppet_info[:config]['hostprivkey']} -k" +
-        " https://localhost:#{port}/production/certificate_revocation_list/ca"
-    debug(curl_cmd) unless quiet
-    running = (%x{#{curl_cmd} 2>&1} =~ /CRL/)
-    running
   end
 
   def set_up_logger

@@ -166,20 +166,20 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Aug 17 2021 Trevor Vaughan <tvaughan@onyxpoint.com> - 7.0.0
+- Changed set/get from `master` to `server` in updates to the puppet
+  configuration
+- Changed the check for puppetserver running from a fragile CRL query to the
+  actual `status` endpoint and moved from `curl` to native `net/http`
+
 * Thu Jun 24 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 7.0.0
+- Removed support for EL6
 - simp kv breaking changes:
   - Updated the `simp kv` command suite to work with simp-simpkv
     Puppet module version >= 0.8.0.
     - simp-simpkv 0.8.0 changed how global keys are accessed.
     - Only impacts sites that explicitly enabled the experimental
       simpkv capability.
-
-* Thu Jun 17 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 7.0.0
-- simp config changes:
-  - The LOCAL sssd domain is no longer needed for sssd to start. The
-    sssd::domains value is now only set if the SIMP server is the LDAP server.
-
-* Tue May 25 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 7.0.0
 - simp CLI changes:
   - Dropped support for Puppet 5.
 - simp config changes:
@@ -203,8 +203,10 @@ EOM
   - Fixed a bug in which running `simp config` multiple times could result in
     multiple /etc/hosts entries for the puppetserver.
 
-* Tue Feb 09 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 7.0.0
+* Thu Jun 17 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 7.0.0
 - simp config changes:
+  - The LOCAL sssd domain is no longer needed for sssd to start. The
+    sssd::domains value is now only set if the SIMP server is the LDAP server.
   - Configure simp_options::ntp::servers instead of deprecated
     simp_options::ntpd::servers.
   - Set the NTP server defaults for ntpd and chronyd.
@@ -216,9 +218,6 @@ EOM
     simp_options::ntp::servers in hieradata.
   - Check for both ntpd and chronyd settings when determining the OS defaults
     for simp_options::ntp::server, not just ntpd settings.
-
-* Mon Jan 11 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 7.0.0
-- Remove support for EL6
 
 * Thu Dec 10 2020 Chris Tessmer <chris.tessmer@onyxpoint.com> - 7.0.0
 - Bumped .gemspec dependencies to mitigate CVE-2020-8130

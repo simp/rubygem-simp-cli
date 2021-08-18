@@ -50,7 +50,7 @@ class Simp::Cli::Commands::Passgen::Envs < Simp::Cli::Commands::Command
   #   for any Puppet environment
   #
   def find_valid_environments
-    # grab the environments path from the production env puppet master config
+    # grab the environments path from the production env puppet server config
     environments_dir = Simp::Cli::Utils.puppet_info[:config]['environmentpath']
     environments = Dir.glob(File.join(environments_dir, '*'))
     environments.map! { |env| File.basename(env) }
