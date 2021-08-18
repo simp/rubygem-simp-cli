@@ -389,12 +389,11 @@ pup6.x_simp_kv_centos8:
   script:
     - 'bundle exec rake beaker:suites[simp_kv,centos8]'
 
-# SIMP-10025 URL to check if puppetserver is up does not exist in Puppet 7
-#pup7.x_centos8:
-#  <<: *pup_7_x
-#  <<: *acceptance_base
-#  script:
-#    - 'bundle exec rake beaker:suites[default,centos8]'
+pup7.x_centos8:
+  <<: *pup_7_x
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[default,centos8]'
 
 pup7.x_config_centos8:
   <<: *pup_7_x
@@ -402,10 +401,9 @@ pup7.x_config_centos8:
   script:
     - 'bundle exec rake beaker:suites[config,centos8]'
 
-# SIMP-10025 URL to check if puppetserver is up does not exist in Puppet 7
-#pup7.x_simp_kv_centos8:
-#  <<: *pup_7_x
-#  <<: *acceptance_base
-#  script:
-#    - 'bundle exec rake beaker:suites[simp_kv,centos8]'
+pup7.x_simp_kv_centos8:
+  <<: *pup_7_x
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[simp_kv,centos8]'
 
