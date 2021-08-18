@@ -26,8 +26,10 @@ shared_examples 'configure puppet env' do |host,env|
       'curl -sSk',
       "--cert /etc/puppetlabs/puppet/ssl/certs/#{fqdn}.pem",
       "--key /etc/puppetlabs/puppet/ssl/private_keys/#{fqdn}.pem",
-      "https://localhost:8140/production/certificate_revocation_list/ca",
-      '| grep CRL'
+      '-o /dev/null',
+      '-w "%{http_code}\n"',
+      'https://localhost/status/v1/services',
+      '| grep -qe 200'
     ].join(' ')
     retry_on(host, puppetserver_status_cmd, :retry_interval => 10)
   end
