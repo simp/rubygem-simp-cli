@@ -323,7 +323,11 @@ shared_examples 'simp config operation' do |host,options|
     # `simp config` should make
     template = '/usr/share/simp/environment-skeleton/puppet/data/hosts/puppet.your.domain.yaml'
     expected = YAML.load( file_contents_on(host, template) )
-    adjustments = {}
+    adjustments = {
+      'puppetdb::master::config::puppetdb_server' => "%{hiera('simp_options::puppet::server')}",
+      'puppetdb::master::config::puppetdb_port'   => 8139,
+      'simp::server::classes'                     => [ 'simp::puppetdb' ]
+    }
 
     if opts[:set_grub_password]
       adjustments['simp_grub::password'] = grub_pwd_hash
