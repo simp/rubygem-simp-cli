@@ -17,16 +17,6 @@ simp_apache::ssl::sslverifyclient: 'none'
 # Make this server a puppetserver
 pupmod::enable_puppet_master: true
 
-# The service name of the Puppet Server service for use with PuppetDB
-#
-# TODO: This should probably be a Fact
-puppetdb::master::config::puppet_service_name: 'puppetserver'
-
-puppetdb::globals::version: 'latest'
-
-# Let pupmod::master::base handle this.
-puppetdb::master::config::restart_puppet: false
-
 ### Secure SIMP Options ###
 simp_options::auditd: true
 simp_options::firewall: true
@@ -60,6 +50,3 @@ rsyslog::udp_listen_address: '127.0.0.1'
 
 simp::classes:
   - 'simp::server'
-
-simp::server::classes:
-  - 'simp::puppetdb'

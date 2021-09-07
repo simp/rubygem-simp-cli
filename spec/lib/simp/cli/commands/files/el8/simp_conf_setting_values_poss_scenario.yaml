@@ -12,8 +12,6 @@ cli::set_grub_password: false
 cli::simp::scenario: poss
 cli::use_internet_simp_yum_repos: false
 cli::version: "0.0.0"
-puppetdb::master::config::puppetdb_port: 8139
-puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 3
 simp::server::allow_simp_user: false
 simp_options::dns::search:
