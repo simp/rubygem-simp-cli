@@ -5,9 +5,6 @@ simp_apache::ssl::sslverifyclient: none
 simp::yum::repo::local_os_updates::enable_repo: false
 simp::yum::repo::local_simp::enable_repo: false
 pupmod::enable_puppet_master: true
-puppetdb::master::config::puppet_service_name: puppetserver
-puppetdb::globals::version: latest
-puppetdb::master::config::restart_puppet: false
 
 # === simp::server::allow_simp_user ===
 # Whether to allow local 'simp' user su and ssh privileges.
@@ -19,6 +16,3 @@ simp::server::allow_simp_user: false
 
 simp::classes:
 - simp::server
-
-simp::server::classes:
-- simp::puppetdb

@@ -324,21 +324,21 @@ shared_examples 'simp config operation' do |host,options|
     template = '/usr/share/simp/environment-skeleton/puppet/data/hosts/puppet.your.domain.yaml'
     expected = YAML.load( file_contents_on(host, template) )
     adjustments = {
-      'simp::server::classes' => ['simp::puppetdb']
+      'simp::classes' => ( expected.key?('simp::classes') ? expected['simp::classes'] : [] )
     }
 
     if opts[:set_grub_password]
       adjustments['simp_grub::password'] = grub_pwd_hash
       adjustments['simp_grub::admin'] = 'root'
-      adjustments['simp::server::classes'] << 'simp_grub'
+      adjustments['simp::classes'] << 'simp_grub'
     end
 
     if opts[:ldap_server]
       if os_release == '7'
         adjustments['simp_openldap::server::conf::rootpw'] = ldap_rootpw_hash
-        adjustments['simp::server::classes'] << 'simp::server::ldap'
+        adjustments['simp::classes'] << 'simp::server::ldap'
       else
-        adjustments['simp::server::classes'] << 'simp_ds389::instances::accounts'
+        adjustments['simp::classes'] << 'simp_ds389::instances::accounts'
       end
     end
 
@@ -346,7 +346,7 @@ shared_examples 'simp config operation' do |host,options|
       adjustments['simp::server::allow_simp_user'] = true
       adjustments['simp::yum::repo::local_os_updates::enable_repo'] = false
       adjustments['simp::yum::repo::local_simp::enable_repo'] = false
-      adjustments['simp::server::classes'] << 'simp::server::yum'
+      adjustments['simp::classes'] << 'simp::server::yum'
     else
       adjustments['simp::server::allow_simp_user'] = false
       if opts[:priv_user]
@@ -370,8 +370,8 @@ shared_examples 'simp config operation' do |host,options|
     end
 
     expected.merge!(adjustments)
-    expected['simp::server::classes'].sort!
-    actual['simp::server::classes'].sort! if actual.key?('simp::server::classes')
+    expected['simp::classes'].sort!
+    actual['simp::classes'].sort! if actual.key?('simp::classes')
     expect( actual ).to eq(expected)
   end
 

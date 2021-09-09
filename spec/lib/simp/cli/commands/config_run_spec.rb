@@ -269,6 +269,7 @@ describe 'Simp::Cli::Command::Config#run' do
           end
           expect( File.exist?( @answers_output_file ) ).to be true
           # we expect
+          # - missing simp::runlevel to be added
           # - interactive cli::network::interface to have been replaced with input value
           # - hardcoded cli::version to have been updated
           expected = YAML.load(File.read(File.join(files_dir, 'prev_simp_conf.yaml')))
