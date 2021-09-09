@@ -166,11 +166,13 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
-* Tue Aug 17 2021 Trevor Vaughan <tvaughan@onyxpoint.com> - 7.0.0
+* Tue Sep 07 2021 Trevor Vaughan <tvaughan@onyxpoint.com> - 7.0.0
 - Changed set/get from `master` to `server` in updates to the puppet
   configuration
 - Changed the check for puppetserver running from a fragile CRL query to the
   actual `status` endpoint and moved from `curl` to native `net/http`
+- Removed management of puppetdb components since it is no longer enabled by
+  default.
 
 * Thu Jun 24 2021 Liz Nemsick <lnemsick.simp@gmail.com> - 7.0.0
 - Removed support for EL6

@@ -13,8 +13,6 @@ cli::set_grub_password: true
 cli::simp::scenario: simp_lite
 cli::use_internet_simp_yum_repos: true
 cli::version: "0.0.0"
-puppetdb::master::config::puppetdb_port: 8139
-puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
 simp::runlevel: 4
 simp::server::allow_simp_user: false
 simp::sssd::client::ldap_server_type: plain

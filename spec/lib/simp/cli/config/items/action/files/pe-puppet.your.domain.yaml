@@ -8,6 +8,3 @@ simp::server::allow_simp_user: true
 
 simp::classes:
   - 'simp::server'
-
-simp::server::classes:
-  - 'simp::puppetdb'

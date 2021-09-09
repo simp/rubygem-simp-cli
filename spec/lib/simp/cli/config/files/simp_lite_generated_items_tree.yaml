@@ -59,9 +59,6 @@
 # <simp environment datadir>/hosts/<host>.yaml file (as appropriate) before
 # dealing with any features that modify that file
 - CreateSimpServerFqdnYamlAction
-- PuppetDBMasterConfigPuppetDBServer SKIPQUERY SILENT # default is correct
-- PuppetDBMasterConfigPuppetDBPort   SKIPQUERY SILENT # default is correct
-- SetServerPuppetDBMasterConfigAction
 
 # ==== General server setup actions and related configuration ====
 - CliSetGrubPassword:

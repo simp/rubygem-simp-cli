@@ -13,10 +13,14 @@ cli::set_grub_password: true
 cli::simp::scenario: simp_lite
 cli::use_internet_simp_yum_repos: true
 cli::version: "0.0.0"
-# NONINTERACTIVE ITEMS TO BE AUTOMATICALLY SET
-#puppetdb::master::config::puppetdb_port: 8139
-#puppetdb::master::config::puppetdb_server: "%{hiera('simp_options::puppet::server')}"
-simp::runlevel: 3
+
+# This item is intentionally omitted in order to verify that noninteractive
+# items are automatically inserted,, when an incomplete answers file is input
+# to simp config.
+# (See config_run_spec.rb example 'creates valid file from incomplete answers
+#  file using --apply-with-questions and prompts for only iteractive items' )
+#simp::runlevel: 3
+
 simp::server::allow_simp_user: false
 simp::sssd::client::ldap_server_type: 389ds
 simp_grub::admin: root

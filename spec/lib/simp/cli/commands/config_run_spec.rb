@@ -269,8 +269,7 @@ describe 'Simp::Cli::Command::Config#run' do
           end
           expect( File.exist?( @answers_output_file ) ).to be true
           # we expect
-          # - missing, non-interactive puppetdb::master::config::puppetdb_port and
-          #   puppetdb::master::config::puppetdb_server to have been added
+          # - missing simp::runlevel to be added
           # - interactive cli::network::interface to have been replaced with input value
           # - hardcoded cli::version to have been updated
           expected = YAML.load(File.read(File.join(files_dir, 'prev_simp_conf.yaml')))
@@ -407,7 +406,6 @@ describe 'Simp::Cli::Command::Config#run' do
         %r{Interim certificate generation for SIMP server skipped}m,
         %r{Creation of #{@puppet_system_file} skipped}m,
         %r{Creation of SIMP server <host>.yaml skipped}m,
-        %r{Setting of PuppetDB master server & port in SIMP server <host>.yaml skipped}m,
         %r{Setting of GRUB password hash in SIMP server <host>.yaml skipped}m,
         %r{Addition of simp_grub to SIMP server <host>.yaml class list skipped}m,
         %r{Addition of simp_ds389::instances::accounts to SIMP server <host>.yaml class list skipped}m,
@@ -749,15 +747,15 @@ describe 'Simp::Cli::Command::Config#run' do
 
     it 'raises an exception when --apply and input YAML has an invalid noninteractive value' do
       input = File.read(File.join(files_dir, 'prev_simp_conf.yaml'))
-      input.gsub!('puppetdb::master::config::puppetdb_port: 8139',
-        'puppetdb::master::config::puppetdb_port: 0')
+      input.gsub!(/simp_options::puppet::ca_port: \d+/,
+        'simp_options::puppet::ca_port: 0')
       input_answers_file = File.join(@tmp_dir, 'prev_simp_conf.yaml')
       File.open(input_answers_file,'w') { |file| file.puts(input) }
       expect {
         @config.run(['-o', @answers_output_file,
           '--apply', input_answers_file, '-l', @log_file, '--dry-run'])
       }.to raise_error( Simp::Cli::ProcessingError,
-          "FATAL: '0' is not a valid answer for 'puppetdb::master::config::puppetdb_port'")
+          "FATAL: '0' is not a valid answer for 'simp_options::puppet::ca_port'")
     end
 
 
@@ -796,11 +794,11 @@ describe 'Simp::Cli::Command::Config#run' do
           'simp_options::dns::search=test.local',
           'simp_options::trusted_nets=1.2.3.0/24',
           'simp_options::ntp::servers=time-a.nist.gov',
-          'cli::set_grub_password=false',
-          'puppetdb::master::config::puppetdb_port=0'])
+          'simp_options::puppet::ca_port=0',
+          'cli::set_grub_password=false'])
 
       }.to raise_error( Simp::Cli::ProcessingError,
-          "FATAL: '0' is not a valid answer for 'puppetdb::master::config::puppetdb_port'")
+          "FATAL: '0' is not a valid answer for 'simp_options::puppet::ca_port'")
     end
   end
 end
