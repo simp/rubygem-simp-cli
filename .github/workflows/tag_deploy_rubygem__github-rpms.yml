@@ -1,11 +1,23 @@
-# Build & Deploy release when a SemVer tag is pushed
+# Build & Deploy GitHub release & RubyGem RPM when a SemVer tag is pushed
 # ------------------------------------------------------------------------------
+#
+#             NOTICE: **This file is maintained with puppetsync**
+#
+# This file is updated automatically as part of a standardized asset baseline.
+#
+# The next baseline sync will overwrite any local changes to this file!
+#
+# ==============================================================================
 #
 # This pipeline uses the following GitHub Action Secrets:
 #
-#   GitHub Secret variable    Type      Notes
-#   ------------------------  --------  ----------------------------------------
-#   RUBYGEMS_API_KEY          Required
+#   GitHub Secret variable               Notes
+#   -------------------------------      ---------------------------------------
+#   SIMP_CORE_REF_FOR_BUILDING_RPMS      simp-core ref (tag) to use to build
+#                                        RPMs with `rake pkg:single`
+#   SIMP_DEV_GPG_SIGNING_KEY             GPG signing key's secret key
+#   SIMP_DEV_GPG_SIGNING_KEY_ID          User ID (name) of signing key
+#   SIMP_DEV_GPG_SIGNING_KEY_PASSPHRASE  Passphrase to use GPG signing key
 #
 # ------------------------------------------------------------------------------
 #
@@ -14,7 +26,7 @@
 # * The CHANGLOG text is altered to remove RPM-style date headers, which don't
 #   render well as markdown on the GitHub release pages
 ---
-name: 'Tag: Release to GitHub & rubygems.org'
+name: 'Tag: Release to GitHub +ibuild /attach RPMs'
 
 on:
   push:
@@ -28,6 +40,7 @@ env:
 jobs:
   releng-checks:
     name: "RELENG checks"
+    if: github.repository_owner == 'simp'
     runs-on: ubuntu-18.04
     outputs:
       build_command: ${{ steps.commands.outputs.build_command }}
@@ -42,17 +55,12 @@ jobs:
       - name: Determing build and release commands
         id: commands
         run: |
-          # By default, these are the standard tasks from "bundler/gem_tasks"
-          # To override them in the LOCAL_WORKFLOW_CONFIG_FILE
+          # By default, this is the standard task from "bundler/gem_tasks"
+          # To override it, add the new command to LOCAL_WORKFLOW_CONFIG_FILE
           GEM_BUILD_COMMAND='bundle exec rake build'
-          GEM_RELEASE_COMMAND='gem push pkg/*.gem'
           if jq -r '. | keys' "$LOCAL_WORKFLOW_CONFIG_FILE" 2>/dev/null | \
               grep -w '"gem_build_command"' &> /dev/null; then
             GEM_BUILD_COMMAND="$(jq .gem_build_command "$LOCAL_WORKFLOW_CONFIG_FILE" )"
-          fi
-          if jq -r '. | keys' "$LOCAL_WORKFLOW_CONFIG_FILE" 2>/dev/null | \
-              grep -w '"gem_release_command"' &> /dev/null; then
-            GEM_RELEASE_COMMAND="$(jq .gem_release_command "$LOCAL_WORKFLOW_CONFIG_FILE" )"
           fi
           echo "::set-output name=build_command::${GEM_BUILD_COMMAND}"
           echo "::set-output name=release_command::${GEM_RELEASE_COMMAND}"
@@ -62,10 +70,15 @@ jobs:
           bundler-cache: true
       - name: Test build the package
         run: "${{ steps.commands.outputs.build_command }}"
+      - name: "Assert '${{ github.ref }}' matches the package version"
+        run: |
+          tag="${GITHUB_REF/refs\/tags\//}"
+          [ -f pkg/*-${tag}.gem ] || { echo "::error ::tag '${tag}' does not match package $(ls -1 pkg/*.gem)"; exit 1 ; }
 
   create-github-release:
     name: Deploy GitHub Release
     needs: [ releng-checks ]
+    if: github.repository_owner == 'simp'
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout code
@@ -105,3 +118,35 @@ jobs:
           body_path: /tmp/annotation.body
           draft: false
           prerelease: false
+
+  build-and-attach-rpms:
+    name: Trigger RPM release
+    needs: [ create-github-release ]
+    if: github.repository_owner == 'simp'
+    runs-on: ubuntu-18.04
+    env:
+      TARGET_REPO: ${{ github.repository }}
+    steps:
+      - name: Get tag & annotation info (${{github.ref}})
+        id: tag-check
+        run: echo "::set-output name=tag::${GITHUB_REF/refs\/tags\//}"
+      - name: Trigger RPM release workflow
+        uses: actions/github-script@v4
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          TARGET_TAG: ${{ steps.tag-check.outputs.tag }}
+        with:
+          github-token: ${{ secrets.SIMP_AUTO_GITHUB_TOKEN__REPO_SCOPE }}
+          script: |
+            const [owner, repo] = process.env.TARGET_REPO.split('/')
+            await github.request('POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches', {
+              owner: owner,
+              repo: repo,
+              workflow_id: 'release_rpms.yml',
+              ref: process.env.DEFAULT_BRANCH,
+              inputs: {
+                release_tag: process.env.TARGET_TAG
+              }
+            }).then( (result) => {
+              console.log( `== Submitted workflow dispatch: status ${result.status}` )
+            })
