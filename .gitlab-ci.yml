@@ -406,4 +406,3 @@ pup7.x_simp_kv_centos8:
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[simp_kv,centos8]'
-
