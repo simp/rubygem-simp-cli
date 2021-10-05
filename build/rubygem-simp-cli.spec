@@ -54,7 +54,7 @@ end
 Summary: a cli interface to configure/manage SIMP
 Name: rubygem-%{gemname}
 Version: %{cli_version}
-Release: %{lua: print(package_release)}
+Release: %{lua: print(package_release)}%{?dist}
 Group: Development/Languages
 License: Apache-2.0
 URL: https://github.com/simp/rubygem-simp-cli
@@ -137,7 +137,7 @@ Documentation for %{name}
 %package highline
 Summary: A highline Gem for use with the SIMP CLI
 Version: %{highline_version}
-Release: %{lua: print(package_release)}
+Release: %{lua: print(package_release)}%{?dist}
 License: GPL-2.0
 URL: https://github.com/JEG2/highline
 Source11: highline-%{highline_version}.gem
