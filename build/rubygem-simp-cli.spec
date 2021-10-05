@@ -60,6 +60,7 @@ License: Apache-2.0
 URL: https://github.com/simp/rubygem-simp-cli
 Source0: %{name}-%{cli_version}-%{release}.tar.gz
 Source1: %{gemname}-%{cli_version}.gem
+%if 0%{?rhel} > 7
 Requires: cracklib
 Requires: createrepo
 Requires: curl
@@ -76,6 +77,7 @@ Requires: net-tools
 Requires: policycoreutils
 Requires: procps-ng
 Requires: pupmod-herculesteam-augeasproviders_grub >= 3.0.1
+Requires: pupmod-simp-simp_grub >= 0.2.1
 Requires: pupmod-simp-network >= 6.0.3
 Requires: pupmod-simp-resolv >= 0.1.1
 Requires: pupmod-simp-simplib >= 3.11.1
@@ -86,7 +88,35 @@ Requires: sed
 Requires: simp-adapter >= 1.0.1
 Requires: simp-environment-skeleton >= 7.1.1
 Requires: yum-utils
-
+%else
+Recommends: cracklib
+Recommends: createrepo
+Recommends: curl
+Recommends: diffutils
+Recommends: elinks
+Recommends: facter >= 3
+Recommends: git
+Recommends: grep
+Recommends: grub2-tools-minimal
+Recommends: hostname
+Recommends: iproute
+Recommends: libpwquality
+Recommends: net-tools
+Recommends: policycoreutils
+Recommends: procps-ng
+Recommends: pupmod-herculesteam-augeasproviders_grub >= 3.0.1
+Recommends: pupmod-simp-simp_grub >= 0.2.1
+Recommends: pupmod-simp-network >= 6.0.3
+Recommends: pupmod-simp-resolv >= 0.1.1
+Recommends: pupmod-simp-simplib >= 3.11.1
+Recommends: puppet >= 6
+Recommends: rsync
+Recommends: rubygem(%{gemname}-highline) >= %{highline_version}
+Recommends: sed
+Recommends: simp-adapter >= 1.0.1
+Recommends: simp-environment-skeleton >= 7.1.1
+Recommends: yum-utils
+%endif
 BuildRequires: ruby(rubygems)
 BuildRequires: ruby
 BuildArch: noarch
