@@ -61,34 +61,6 @@ URL: https://github.com/simp/rubygem-simp-cli
 Source0: %{name}-%{cli_version}-%{release}.tar.gz
 Source1: %{gemname}-%{cli_version}.gem
 %if 0%{?rhel} > 7
-Requires: cracklib
-Requires: createrepo
-Requires: curl
-Requires: diffutils
-Requires: elinks
-Requires: facter >= 3
-Requires: git
-Requires: grep
-Requires: grub2-tools-minimal
-Requires: hostname
-Requires: iproute
-Requires: libpwquality
-Requires: net-tools
-Requires: policycoreutils
-Requires: procps-ng
-Requires: pupmod-herculesteam-augeasproviders_grub >= 3.0.1
-Requires: pupmod-simp-simp_grub >= 0.2.1
-Requires: pupmod-simp-network >= 6.0.3
-Requires: pupmod-simp-resolv >= 0.1.1
-Requires: pupmod-simp-simplib >= 3.11.1
-Requires: puppet >= 6
-Requires: rsync
-Requires: rubygem(%{gemname}-highline) >= %{highline_version}
-Requires: sed
-Requires: simp-adapter >= 1.0.1
-Requires: simp-environment-skeleton >= 7.1.1
-Requires: yum-utils
-%else
 Recommends: cracklib
 Recommends: createrepo
 Recommends: curl
@@ -116,6 +88,34 @@ Recommends: sed
 Recommends: simp-adapter >= 1.0.1
 Recommends: simp-environment-skeleton >= 7.1.1
 Recommends: yum-utils
+%else
+Requires: cracklib
+Requires: createrepo
+Requires: curl
+Requires: diffutils
+Requires: elinks
+Requires: facter >= 3
+Requires: git
+Requires: grep
+Requires: grub2-tools-minimal
+Requires: hostname
+Requires: iproute
+Requires: libpwquality
+Requires: net-tools
+Requires: policycoreutils
+Requires: procps-ng
+Requires: pupmod-herculesteam-augeasproviders_grub >= 3.0.1
+Requires: pupmod-simp-simp_grub >= 0.2.1
+Requires: pupmod-simp-network >= 6.0.3
+Requires: pupmod-simp-resolv >= 0.1.1
+Requires: pupmod-simp-simplib >= 3.11.1
+Requires: puppet >= 6
+Requires: rsync
+Requires: rubygem(%{gemname}-highline) >= %{highline_version}
+Requires: sed
+Requires: simp-adapter >= 1.0.1
+Requires: simp-environment-skeleton >= 7.1.1
+Requires: yum-utils
 %endif
 BuildRequires: ruby(rubygems)
 BuildRequires: ruby
