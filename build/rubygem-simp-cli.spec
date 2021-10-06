@@ -65,7 +65,6 @@ Recommends: cracklib
 Recommends: curl
 Recommends: diffutils
 Recommends: elinks
-Recommends: facter >= 3
 Recommends: git
 Recommends: grep
 Recommends: grub2-tools-minimal
@@ -80,7 +79,7 @@ Recommends: pupmod-simp-simp_grub >= 0.2.1
 Recommends: pupmod-simp-network >= 6.0.3
 Recommends: pupmod-simp-resolv >= 0.1.1
 Recommends: pupmod-simp-simplib >= 3.11.1
-Recommends: puppet >= 6
+Recommends: puppet-agent >= 6
 Recommends: rsync
 Recommends: rubygem(%{gemname}-highline) >= %{highline_version}
 Recommends: sed
@@ -92,7 +91,6 @@ Requires: cracklib
 Requires: curl
 Requires: diffutils
 Requires: elinks
-Requires: facter >= 3
 Requires: git
 Requires: grep
 Requires: grub2-tools-minimal
@@ -107,7 +105,7 @@ Requires: pupmod-simp-simp_grub >= 0.2.1
 Requires: pupmod-simp-network >= 6.0.3
 Requires: pupmod-simp-resolv >= 0.1.1
 Requires: pupmod-simp-simplib >= 3.11.1
-Requires: puppet >= 6
+Requires: puppet-agent >= 6
 Requires: rsync
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 Requires: sed
