@@ -27,11 +27,13 @@ then set SIMP server configuration appropriately.  This must be done
 prior to 'simp bootstrap', or the boostrap will fail.
 
 Once you have successfully configured YUM and verified that
-  1. 'repoquery -i kernel' returns the correct OS repository
-  2. 'repoquery -i simp' returns the correct SIMP repository
-  3. 'repoquery -i puppet-agent' returns the correct SIMP
-     dependencies repository
-  4. Any other issues identified in this file are addressed,
+  1. 'repoquery -i kernel*' returns the correct OS repository
+  2. 'repoquery -i httpd' returns the correct repository
+     (typically updates for EL7 and appstream for EL8)
+  3. 'repoquery -i simp' returns the correct SIMP repository
+  4. 'repoquery -i puppet-agent' returns the correct puppetlabs
+     repository
+  5. Any other issues identified in this file are addressed,
 you can remove this file and continue with 'simp bootstrap'.
 DOC
    end
@@ -39,13 +41,13 @@ DOC
     def apply
       @applied_status = :failed
 
-      # If repoquery returns nothing, a repo is definitely not set up.
-      # If it returns something, we are going to ASSUME the repo is set
-      # up, but we have no way to verify that the listed repository
-      # is the intended repository.
+      # If repoquery returns nothing to stdout, a repo is definitely not set up.
+      # If it returns something, we are going to ASSUME the repo is set up, but
+      # we have no way to verify that the listed repository is the intended
+      # repository.
       result = Simp::Cli::Utils::show_wait_spinner {
         query_result = true
-        ['kernel', 'simp', 'puppet-agent'].each do |pkg|
+        ['kernel*', 'httpd', 'simp', 'puppet-agent'].each do |pkg|
           query = run_command("repoquery -i #{pkg}")[:stdout].strip
           query_result = false if not query =~ /^Repository/
         end
