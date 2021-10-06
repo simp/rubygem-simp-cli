@@ -19,7 +19,8 @@ describe Simp::Cli::Config::Item::CheckServerYumConfigAction do
     end
 
     it "succeeds when all repos are found by repoquery" do
-      allow(@ci).to receive(:run_command).with('repoquery -i kernel').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel*').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i httpd').and_return({:stdout => 'Repository:'})
       allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => 'Repository:'})
       allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => 'Repository:'})
       @ci.apply
@@ -27,7 +28,8 @@ describe Simp::Cli::Config::Item::CheckServerYumConfigAction do
     end
 
     it "writes warning file when OS repo is not found by repoquery" do
-      allow(@ci).to receive(:run_command).with('repoquery -i kernel').and_return({:stdout => ''})
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel*').and_return({:stdout => ''})
+      allow(@ci).to receive(:run_command).with('repoquery -i httpd').and_return({:stdout => 'Repository:'})
       allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => 'Repository:'})
       allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => 'Repository:'})
       @ci.apply
@@ -42,8 +44,19 @@ describe Simp::Cli::Config::Item::CheckServerYumConfigAction do
       expect( @ci.apply_summary ).to eq expected_summary
     end
 
+    it "writes warning file when updates/appstream repo is not found by repoquery" do
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel*').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i httpd').and_return({:stdout => ''})
+      allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => 'Repository:'})
+      @ci.apply
+      expect( @ci.applied_status ).to eq :failed
+      expect( File.exist?(@warning_file) ).to eq true
+    end
+
     it "writes warning file when SIMP repo is not found by repoquery" do
-      allow(@ci).to receive(:run_command).with('repoquery -i kernel').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel*').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i httpd').and_return({:stdout => 'Repository:'})
       allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => ''})
       allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => 'Repository:'})
       @ci.apply
@@ -51,8 +64,9 @@ describe Simp::Cli::Config::Item::CheckServerYumConfigAction do
       expect( File.exist?(@warning_file) ).to eq true
     end
 
-    it "writes warning file when SIMP dependencies repo is not found by repoquery" do
-      allow(@ci).to receive(:run_command).with('repoquery -i kernel').and_return({:stdout => 'Repository:'})
+    it "writes warning file when puppetlabs repo is not found by repoquery" do
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel*').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i httpd').and_return({:stdout => 'Repository:'})
       allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => 'Repository:'})
       allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => ''})
       @ci.apply
@@ -61,7 +75,8 @@ describe Simp::Cli::Config::Item::CheckServerYumConfigAction do
     end
 
     it 'appends to warning file' do
-      allow(@ci).to receive(:run_command).with('repoquery -i kernel').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i kernel*').and_return({:stdout => 'Repository:'})
+      allow(@ci).to receive(:run_command).with('repoquery -i httpd').and_return({:stdout => 'Repository:'})
       allow(@ci).to receive(:run_command).with('repoquery -i simp').and_return({:stdout => ''})
       allow(@ci).to receive(:run_command).with('repoquery -i puppet-agent').and_return({:stdout => ''})
       FileUtils.mkdir_p(File.dirname(@warning_file))

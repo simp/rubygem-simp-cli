@@ -62,7 +62,6 @@ Source0: %{name}-%{cli_version}-%{release}.tar.gz
 Source1: %{gemname}-%{cli_version}.gem
 %if 0%{?rhel} > 7
 Recommends: cracklib
-Recommends: createrepo
 Recommends: curl
 Recommends: diffutils
 Recommends: elinks
@@ -89,7 +88,6 @@ Recommends: simp-environment-skeleton >= 7.1.1
 Recommends: yum-utils
 %else
 Requires: cracklib
-Requires: createrepo
 Requires: curl
 Requires: diffutils
 Requires: elinks
@@ -232,6 +230,10 @@ EOM
       grub::password.
   - Fixed a bug in which running `simp config` multiple times could result in
     multiple /etc/hosts entries for the puppetserver.
+  - Removed the OBE action that created an updates repo in /var/www/yum and
+    disabled CentOS repos, when SIMP was installed via ISO.
+  - Updated the list of packages to verify when SIMP is not installed
+    via ISO.
 
 * Thu Jun 17 2021 Jeanne Greulich <jeanne.greulich@onyxpoint.com> - 7.0.0
 - simp config changes:

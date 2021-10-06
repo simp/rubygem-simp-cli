@@ -13,7 +13,6 @@
     - SimpYumRepoLocalSimpEnableRepo      SKIPQUERY SILENT  # default disables
     - DisableServerLocalOsAndSimpYumReposAction
     - AddYumServerClassToServerAction
-    - UpdateOsYumRepositoriesAction
    false:
     - CliUseInternetSimpYumRepos:
        true:
