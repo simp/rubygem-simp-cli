@@ -43,6 +43,14 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSSearch do
         expect( @ci.recommended_value.first ).to match( /CHANGE THIS/ )
       end
     end
+
+    context 'when /etc/resolv.conf does not exist' do
+      it 'recommends a must-change value (when ipaddress is not available)' do
+        @ci.file = '/does/not/exist/resolv.conf'
+        expect( @ci.recommended_value.size  ).to eq 1
+        expect( @ci.recommended_value.first ).to match( /CHANGE THIS/ )
+      end
+    end
   end
 
 
