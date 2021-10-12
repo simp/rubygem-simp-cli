@@ -229,6 +229,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       java_args = [
         '-Xms2g',
         '-Xmx2g',
+        # Do not use the native FIPS libraries
+        '-Dcom.redhat.fips=false',
         # Java 8 dropped -XX:MaxPermSize
         %{-Djava.io.tmpdir=#{server_conf_tmp}}
       ]
@@ -447,6 +449,18 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     %x(hostname -f).strip
   end
 
+  def fix_puppetserver_ca
+    info('Checking the puppetserver CA', 'cyan')
+    cadir = Simp::Cli::Utils.puppet_info[:config]['cadir']
+    cakey = Simp::Cli::Utils.puppet_info[:config]['cakey']
+
+    if File.directory?(cadir) && !File.exist?(cakey)
+      FileUtils.rm_rf cadir
+    end
+
+    system(%{puppetserver ca setup}) unless File.exist?(cakey)
+  end
+
   # Remove or retain existing puppet certs per user direction
   def handle_existing_puppet_certs
     info('Checking for existing puppetserver certificates', 'cyan')
@@ -615,6 +629,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       # These items are all handled by the PE installer so need to be done for
       # the FOSS version independently.
       ensure_puppet_processes_stopped
+      fix_puppetserver_ca
       handle_existing_puppet_certs
       validate_site_puppet_code
 
