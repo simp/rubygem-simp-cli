@@ -15,36 +15,66 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
     @ci.logger.levels(:info, :fatal)
   end
 
+  describe '#get_os_value' do
+    it 'returns [] when nmcli is not found' do
+      allow(Facter::Core::Execution).to receive(:which).with('nmcli').and_return(nil)
+
+      expect(@ci.get_os_value).to eq []
+    end
+
+    # remaining cases are tested via recommended_value tests
+  end
+
   describe '#recommended_value' do
-    context 'when /etc/resolv.conf is populated' do
+    before :each do
+      allow(Facter::Core::Execution).to receive(:which).with('nmcli').and_return('/usr/bin/nmcli')
+    end
+
+    let(:nmcli_cmd) { '/usr/bin/nmcli -g IP4.DNS dev show' }
+
+    context 'when nmcli returns DNS servers' do
       it 'handles a single nameserver' do
-        @ci.file = File.join(@files_dir,'resolv.conf__single')
-        expect( @ci.recommended_value.size).to eq 1
-        expect( @ci.recommended_value).to eq ['10.0.0.1']
+        expect(@ci).to receive(:run_command).with(nmcli_cmd, true)
+          .and_return({ :stdout => "10.0.0.1\n\n" })
+
+        expect(@ci.recommended_value.size).to eq 1
+        expect(@ci.recommended_value).to eq ['10.0.0.1']
       end
 
       it 'handles multiple nameservers' do
-        @ci.file = File.join(@files_dir,'resolv.conf__multiple')
-        expect( @ci.recommended_value.size).to eq 3
-        expect( @ci.recommended_value).to eq ['10.0.0.1', '10.0.0.2', '10.0.0.3']
+        expect(@ci).to receive(:run_command).with(nmcli_cmd, true)
+          .and_return({ :stdout => "10.0.0.1\n10.0.0.2\n10.0.0.3\n\n" })
+
+        expect(@ci.recommended_value.size).to eq 3
+        expect(@ci.recommended_value).to eq ['10.0.0.1', '10.0.0.2', '10.0.0.3']
+      end
+
+      it 'handles extraneous blank lines in output' do
+        expect(@ci).to receive(:run_command).with(nmcli_cmd, true)
+          .and_return({ :stdout => "10.0.0.1\n\n10.0.0.2\n\n10.0.0.3\n\n\n" })
+
+        expect(@ci.recommended_value.size).to eq 3
+        expect(@ci.recommended_value).to eq ['10.0.0.1', '10.0.0.2', '10.0.0.3']
       end
     end
 
-    context 'when /etc/resolv.conf is empty' do
-      before :each do
-        @ci.file = '/dev/null'
-      end
-
+    context 'when nmcli does not return any DNS servers' do
       it 'recommends ipaddress (when available)' do
         ip = Simp::Cli::Config::Item::CliNetworkIPAddress.new
         ip.value = '1.2.3.4'
         @ci.config_items[ ip.key ] = ip
 
-        expect( @ci.recommended_value      ).to eq ['1.2.3.4']
+        expect(@ci).to receive(:run_command).with(nmcli_cmd, true)
+          .and_return({ :stdout =>"\n\n" })
+
+        expect(@ci.recommended_value).to eq ['1.2.3.4']
       end
 
       it 'recommends a must-change value (when ipaddress is not available)' do
-        expect( @ci.recommended_value.first ).to match( /CHANGE THIS/ )
+        expect(@ci).to receive(:run_command).with(nmcli_cmd, true)
+          .and_return({ :stdout => "\n\n" })
+
+        expect(@ci.recommended_value.first).to match( /CHANGE THIS/ )
       end
     end
   end
@@ -90,7 +120,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
       end
 
       it 'handles a single nameserver' do
-        @ci.file = File.join(@files_dir,'resolv.conf__single')
+        expect(@ci).to receive(:get_os_value).and_return ['10.0.0.1']
         @ci.determine_value(true, false) # query, don't force
         expect( @ci.value ).to eq ['10.0.0.1']
         list = '\["10.0.0.1"\]'
@@ -99,7 +129,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
       end
 
       it 'handles multiple nameservers' do
-        @ci.file = File.join(@files_dir,'resolv.conf__multiple')
+        expect(@ci).to receive(:get_os_value).and_return ['10.0.0.1', '10.0.0.2', '10.0.0.3']
         @ci.determine_value(true, false) # query, don't force
         expect( @ci.value ).to eq ['10.0.0.1', '10.0.0.2', '10.0.0.3']
         list = '\["10.0.0.1", "10.0.0.2", "10.0.0.3"\]'

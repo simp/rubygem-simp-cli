@@ -6,7 +6,6 @@ module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpOptionsDNSServers < ListItem
-    attr_accessor :file
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
       super(puppet_env_info)
       @key         = 'simp_options::dns::servers'
@@ -24,12 +23,20 @@ different DNS server for primary DNS resolution, then you MUST set
 This will get around the convenience logic that was put in place to handle
 the caching entries and will not attempt to convert your system to a
 caching DNS server.}
-      @file = '/etc/resolv.conf'
     end
 
     def get_os_value
-      # TODO: make this a custom fact?
-      File.readlines( @file ).select{ |x| x =~ /^nameserver\s+/ }.map{ |x| x.gsub( /nameserver\s+(.*)\s*/, '\\1' ) }
+      nameservers = []
+      nmcli = Facter::Core::Execution.which('nmcli')
+      if nmcli
+        result = run_command("#{nmcli} -g IP4.DNS dev show", true)
+        nameservers = result[:stdout].strip.split("\n")
+        # have seen some extraneous blank lines in output, so make sure any
+        # blank lines between entries are discarded
+        nameservers.delete_if {|server| server.strip.empty? }
+      end
+
+      nameservers
     end
 
     # recommend:
