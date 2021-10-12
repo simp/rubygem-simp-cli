@@ -215,6 +215,8 @@ EOM
     is on EL>7.
     - Configures the LDAP server to be the SIMP 389ds accounts instance
     - Configures the LDAP client to communicate with the 389ds server.
+  - Updated the logic that extracts existing DNS configuration to
+    handle scenarios in which /etc/resolv.conf is not available.
   - Added option to configure a local user with ssh and sudo privileges
     to prevent server lockout, when SIMP is not installed from ISO.
     - Especially important for cloud instances when the user does not have

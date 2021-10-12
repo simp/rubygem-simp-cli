@@ -16,9 +16,14 @@ Remember to put these in the appropriate order for your environment!}
     end
 
     def get_os_value
-      # TODO: make this a custom fact?
-      # NOTE: the resolver only uses the last of multiple search declarations
-      File.readlines( @file ).select{ |x| x =~ /^search\s+/ }.last.to_s.gsub( /\bsearch\s+/, '').split( /\s+/ )
+      # TODO: Figure out how to get this info from nmcli
+
+      if File.exist?( @file )
+        # NOTE: the resolver only uses the last of multiple search declarations
+        File.readlines( @file ).select{ |x| x =~ /^search\s+/ }.last.to_s.gsub( /\bsearch\s+/, '').split( /\s+/ )
+      else
+        []
+      end
     end
 
     # recommend:
