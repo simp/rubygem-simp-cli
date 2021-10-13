@@ -455,10 +455,20 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     cakey = Simp::Cli::Utils.puppet_info[:config]['cakey']
 
     if File.directory?(cadir) && !File.exist?(cakey)
+      # Have some problems with puppsetserver ca defaults when dealing with
+      # a fresh puppetserver install on an EL > 7 server in FIPS mode. Have to
+      # regenerate the configuration to get the correct defaults. This process
+      # does no harm on EL7.
       FileUtils.rm_rf cadir
-    end
+      success = execute(%{puppetserver ca setup})
 
-    system(%{puppetserver ca setup}) unless File.exist?(cakey)
+      if success
+        # Clear out puppetserver host certs created by this process, so they are
+        # not confused with actual existing certs.
+        ssldir = Simp::Cli::Utils.puppet_info[:config]['ssldir']
+        FileUtils.rm_f(Dir.glob(File.join(ssldir, '**', "#{get_hostname}.pem")))
+      end
+    end
   end
 
   # Remove or retain existing puppet certs per user direction
