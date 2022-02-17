@@ -1,4 +1,4 @@
-# Build & Deploy GitHub release & RubyGem RPM when a SemVer tag is pushed
+# Build & Deploy GitHub release w/RPMs when a SemVer tag is pushed
 # ------------------------------------------------------------------------------
 #
 #             NOTICE: **This file is maintained with puppetsync**
@@ -23,15 +23,30 @@
 #
 # NOTES:
 #
-# * The CHANGLOG text is altered to remove RPM-style date headers, which don't
+# * The CHANGELOG text is altered to remove RPM-style date headers, which don't
 #   render well as markdown on the GitHub release pages
+#
+# * By default, the gem is built and released using the standard rake tasks
+#   from "bundler/gem_tasks".  To override these, create a JSON file at
+#   `.github/workflows.local.json`, using the following format:
+#
+#         {
+#           "gem_build_command": "bundle exec rake build",
+#           "gem_pkg_dir": "pkg"
+#         }
+#
+#   All keys are optional.
+#
 ---
-name: 'Tag: Release to GitHub +ibuild /attach RPMs'
+name: 'Tag: Release to GitHub w/RPMs'
 
 on:
   push:
     tags:
+      # NOTE: These filter patterns aren't actually regexes:
+      #   https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#filter-pattern-cheat-sheet
       - '[0-9]+\.[0-9]+\.[0-9]+'
+      - '[0-9]+\.[0-9]+\.[0-9]+\-[a-z]+[0-9]+'
 
 env:
   PUPPET_VERSION: '~> 6'
@@ -41,10 +56,7 @@ jobs:
   releng-checks:
     name: "RELENG checks"
     if: github.repository_owner == 'simp'
-    runs-on: ubuntu-18.04
-    outputs:
-      build_command: ${{ steps.commands.outputs.build_command }}
-      release_command: ${{ steps.commands.outputs.release_command }}
+    runs-on: ubuntu-latest
     steps:
       - name: "Assert '${{ github.ref }}' is a tag"
         run: '[[ "$GITHUB_REF" =~ ^refs/tags/ ]] || { echo "::error ::GITHUB_REF is not a tag: ${GITHUB_REF}"; exit 1 ; }'
@@ -52,17 +64,28 @@ jobs:
         with:
           ref: ${{ github.ref }}
           clean: true
-      - name: Determing build and release commands
+      - name: Determine build and release commands
         id: commands
         run: |
-          # By default, this is the standard task from "bundler/gem_tasks"
-          # To override it, add the new command to LOCAL_WORKFLOW_CONFIG_FILE
+          # By default, these are the standard tasks from "bundler/gem_tasks"
+          # To override them in the LOCAL_WORKFLOW_CONFIG_FILE
           GEM_BUILD_COMMAND='bundle exec rake build'
+          GEM_RELEASE_COMMAND='bundle exec rake build release:rubygem_push'
+          GEM_PKG_DIR='pkg'
+          if jq -r '. | keys' "$LOCAL_WORKFLOW_CONFIG_FILE" 2>/dev/null | \
+              grep -w '"gem_pkg_dir"' &> /dev/null; then
+            GEM_PKG_DIR="$(jq -r .gem_pkg_dir "$LOCAL_WORKFLOW_CONFIG_FILE" )"
+          fi
           if jq -r '. | keys' "$LOCAL_WORKFLOW_CONFIG_FILE" 2>/dev/null | \
               grep -w '"gem_build_command"' &> /dev/null; then
-            GEM_BUILD_COMMAND="$(jq .gem_build_command "$LOCAL_WORKFLOW_CONFIG_FILE" )"
+            GEM_BUILD_COMMAND="$(jq -r .gem_build_command "$LOCAL_WORKFLOW_CONFIG_FILE" )"
+          fi
+          if jq -r '. | keys' "$LOCAL_WORKFLOW_CONFIG_FILE" 2>/dev/null | \
+              grep -w '"gem_release_command"' &> /dev/null; then
+            GEM_RELEASE_COMMAND="$(jq -r .gem_release_command "$LOCAL_WORKFLOW_CONFIG_FILE" )"
           fi
           echo "::set-output name=build_command::${GEM_BUILD_COMMAND}"
+          echo "::set-output name=pkg_dir::${GEM_PKG_DIR}"
           echo "::set-output name=release_command::${GEM_RELEASE_COMMAND}"
       - uses: ruby/setup-ruby@v1
         with:
@@ -75,11 +98,14 @@ jobs:
           tag="${GITHUB_REF/refs\/tags\//}"
           [ -f pkg/*-${tag}.gem ] || { echo "::error ::tag '${tag}' does not match package $(ls -1 pkg/*.gem)"; exit 1 ; }
 
+
   create-github-release:
     name: Deploy GitHub Release
     needs: [ releng-checks ]
     if: github.repository_owner == 'simp'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
+    outputs:
+      prerelease: ${{ steps.tag-check.outputs.prerelease }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -87,6 +113,7 @@ jobs:
           ref: ${{ github.ref }}
           clean: true
           fetch-depth: 0
+
       - name: Get tag & annotation info (${{github.ref}})
         id: tag-check
         run: |
@@ -94,7 +121,19 @@ jobs:
           annotation="$(git for-each-ref "$GITHUB_REF" --format='%(contents)' --count=1)"
           annotation_title="$(echo "$annotation" | head -1)"
 
+
+          if [[ "$tag" =~ ^(simp-|v)?[0-9]+\.[0-9]+\.[0-9]+(-(rc|alpha|beta|pre|post)?([0-9]+)?)?$ ]]; then
+            if [ -n "${BASH_REMATCH[2]}" ]; then
+              prerelease=yes
+              annotation_title="Pre-release of ${tag}"
+            fi
+          else
+            printf '::error ::Release Tag format is not SemVer, X.Y.Z-R, X.Y.Z-<prerelease>: "%s"\n' "$RELEASE_TAG"
+            exit 88
+          fi
+
           echo "::set-output name=tag::${tag}"
+          echo "::set-output name=prerelease::${prerelease}"
           echo "::set-output name=annotation_title::${annotation_title}"
 
           # Prepare annotation body as a file for the next step
@@ -116,21 +155,26 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: ${{ steps.tag-check.outputs.annotation_title }}
           body_path: /tmp/annotation.body
+          prerelease: ${{ steps.tag-check.outputs.prerelease  == 'yes'}}
           draft: false
-          prerelease: false
 
   build-and-attach-rpms:
     name: Trigger RPM release
     needs: [ create-github-release ]
     if: github.repository_owner == 'simp'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     env:
       TARGET_REPO: ${{ github.repository }}
+    strategy:
+      matrix:
+        os:
+          - centos7
+          - centos8
     steps:
       - name: Get tag & annotation info (${{github.ref}})
         id: tag-check
         run: echo "::set-output name=tag::${GITHUB_REF/refs\/tags\//}"
-      - name: Trigger RPM release workflow
+      - name: Trigger RPM release workflow (${{ matrix.os }})
         uses: actions/github-script@v4
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
@@ -145,8 +189,11 @@ jobs:
               workflow_id: 'release_rpms.yml',
               ref: process.env.DEFAULT_BRANCH,
               inputs: {
-                release_tag: process.env.TARGET_TAG
+                release_tag: process.env.TARGET_TAG,
+                clean: 'no',
+                clobber: 'yes',
+                build_container_os: '${{ matrix.os }}'
               }
-            }).then( (result) => {
-              console.log( `== Submitted workflow dispatch: status ${result.status}` )
+            }).then((result) => {
+              console.log( `== Submitted workflow dispatch to build RPMs from ${{ matrix.os }}: status ${result.status}` )
             })
