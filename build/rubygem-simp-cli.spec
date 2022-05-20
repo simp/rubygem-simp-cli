@@ -192,6 +192,10 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Fri May 20 2022 Trevor Vaughan <tvaughan@onyxpoint.com> - 7.0.1
+- Always set the hostname to the one specified during `simp config` in the apply
+  phase.
+
 * Tue Sep 07 2021 Trevor Vaughan <tvaughan@onyxpoint.com> - 7.0.0
 - Changed set/get from `master` to `server` in updates to the puppet
   configuration
