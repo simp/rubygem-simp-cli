@@ -9,7 +9,7 @@ describe Simp::Cli::Config::Item::SetHostnameAction do
 
   # TODO:  test with acceptance tests
   describe '#apply' do
-    it 'will do set hostname ' do
+    it 'will do set hostname' do
       cli_network_hostname = Simp::Cli::Config::Item::CliNetworkHostname.new
       cli_network_hostname.value = 'foo.bar.baz'
       cli_network_dhcp = Simp::Cli::Config::Item::CliNetworkDHCP.new
@@ -19,6 +19,9 @@ describe Simp::Cli::Config::Item::SetHostnameAction do
         cli_network_dhcp.key => cli_network_dhcp
       }
 
+      expect(Facter::Core::Execution).to receive(:which).with('hostnamectl').and_return('/usr/sbin/hostnamectl')
+
+      expect(@ci).to receive(:execute).with("hostnamectl set-hostname #{cli_network_hostname.value}").and_return(true)
       expect(@ci).to receive(:execute).with("hostname #{cli_network_hostname.value}").and_return(true)
       expect(@ci).to receive(:execute).with("sed -i '/HOSTNAME/d' /etc/sysconfig/network").and_return(true)
       expect(@ci).to receive(:execute).with("echo HOSTNAME=#{cli_network_hostname.value} >> /etc/sysconfig/network").and_return(true)

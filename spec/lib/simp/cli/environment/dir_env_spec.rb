@@ -97,9 +97,12 @@ describe Simp::Cli::Environment::DirEnv do
 
       before(:each) do
         # as user root
+        expect(Facter::Core::Execution).to receive(:which).with('rsync').and_return('/usr/bin/rsync')
+
         allow(ENV).to receive(:fetch).with(any_args).and_call_original
         allow(ENV).to receive(:fetch).with('USER').and_return('root')
         allow(described_object).to receive(:execute).with(rsync_cmd).and_return(true)
+
       end
 
       example do
