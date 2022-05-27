@@ -24,25 +24,16 @@ module Simp::Cli::ExecUtils
       # with pipes, particularly a pipe to 'xargs'. Rejecting pipes
       # for now, but we may need to re-evaluate in the future.
       raise Simp::Cli::InvalidSpawnError.new(command) if command.include? '|'
-      out_pipe_r, out_pipe_w = IO.pipe
-      err_pipe_r, err_pipe_w = IO.pipe
-      pid = spawn(command, :out => out_pipe_w, :err => err_pipe_w)
-      out_pipe_w.close
-      err_pipe_w.close
 
-      Process.wait(pid)
-      exitstatus = $?.nil? ? nil : $?.exitstatus
-      stdout = out_pipe_r.read
-      out_pipe_r.close
-      stderr = err_pipe_r.read
-      err_pipe_r.close
+      require 'open3'
+      stdout, stderr, ps = Open3.capture3(command)
 
       return {:status => true, :stdout => stdout, :stderr => stderr} if ignore_failure
 
-      if exitstatus == 0
+      if ps.success?
         return {:status => true, :stdout => stdout, :stderr => stderr}
       else
-        logger.error( "\n[#{command}] failed with exit status #{exitstatus}:".red ) if logger
+        logger.error( "\n[#{command}] failed with exit status #{ps.exitstatus}:".red ) if logger
         stderr.split("\n").each do |line|
           logger.error( (' '*2 + line).red ) if logger
         end

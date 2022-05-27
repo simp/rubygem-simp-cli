@@ -40,7 +40,17 @@ module Simp::Cli::Config
         end
       end
 
-      if success && ( get_item( 'cli::network::dhcp' ).value == 'dhcp' )
+      if success && Facter::Core::Execution.which('hostnamectl')
+        success = success && execute("hostnamectl set-hostname #{@fqdn}")
+      end
+
+      begin
+        dhcp_item = get_item('cli::network::dhcp')
+      rescue Simp::Cli::Config::MissingItemError
+        # NOOP
+      end
+
+      if success && dhcp_item && ( dhcp_item.value == 'dhcp' )
         # restart the interface to pick up any domain changes associated
         # with the new hostname, if the interface is configured via DHCP
         interface = get_item( 'cli::network::interface' ).value

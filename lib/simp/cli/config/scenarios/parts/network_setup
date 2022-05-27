@@ -23,6 +23,7 @@
        - SimpOptionsDNSSearch    SKIPQUERY SILENT
    false:                    # don't configure network (but ask for info)
     - CliNetworkHostname
+    - SetHostnameAction       IMMEDIATE # apply this before DNS Items
     - CliNetworkIPAddress
     - CliNetworkNetmask
     - CliNetworkGateway
