@@ -4,7 +4,7 @@
 # The testing matrix considers ruby/puppet versions supported by SIMP and PE:
 # ------------------------------------------------------------------------------
 # Release       Puppet   Ruby    EOL
-# PE 2019.8     6.22.1   2.5     2022-12 (LTS)
+# PE 2021.Y     7.x      2.7     Quarterly updates
 #
 # https://puppet.com/docs/pe/2018.1/component_versions_in_recent_pe_releases.html
 # https://puppet.com/misc/puppet-enterprise-lifecycle
@@ -24,17 +24,14 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
-env:
-  PUPPET_VERSION: '~> 6'
-
 jobs:
   ruby-style:
     if: false # TODO Modules will need: rubocop in Gemfile, .rubocop.yml
     name: 'Ruby Style (experimental)'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: "Install Ruby ${{matrix.puppet.ruby_version}}"
         uses: ruby/setup-ruby@v1
         with:
@@ -46,9 +43,9 @@ jobs:
 
   releng-checks:
     name: 'RELENG checks'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: 'Install Ruby ${{matrix.puppet.ruby_version}}'
         uses: ruby/setup-ruby@v1
         with:
@@ -70,21 +67,18 @@ jobs:
 
   spec-tests:
     name: 'RSpec'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         puppet:
-          - label: 'Puppet 6.22 [PE 2019.8]'
-            puppet_version: '~> 6.22.1'
-            ruby_version: '2.5'
           - label: 'Puppet 7.x'
             puppet_version: '~> 7.0'
             ruby_version: '2.7'
     env:
       PUPPET_VERSION: '${{matrix.puppet.puppet_version}}'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: 'Install Ruby ${{matrix.puppet.ruby_version}}'
         uses: ruby/setup-ruby@v1
         with:
