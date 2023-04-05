@@ -6,7 +6,8 @@
 # https://puppet.com/docs/pe/2018.1/overview/getting_support_for_pe.html
 # ------------------------------------------------------------------------------
 # Release       Puppet   Ruby    EOL
-# PE 2019.8     6.22     2.5.7   2022-12 (LTS)
+# PE 2019.8     6.28     2.5.7   2023-07 (LTS)
+# PE 2021.7     7.20     2.7.6   TBD (LTS)
 ---
 
 stages:
@@ -34,17 +35,14 @@ variables:
   BUNDLE_BIN:        .vendor/gem_install/bin
   BUNDLE_NO_PRUNE:   'true'
 
-# bundler dependencies and caching
-#
-# - Cache bundler gems between pipelines foreach Ruby version
-# - Try to use cached and local resources before downloading dependencies
-# --------------------------------------
-.setup_bundler_env: &setup_bundler_env
-  cache:
-    key: "${CI_PROJECT_NAMESPACE}_ruby-${MATRIX_RUBY_VERSION}_bundler"
-    paths:
-      - '.vendor'
-  before_script:
+.snippets:
+  before_beaker_google:
+    # Logic for beaker-google environments
+    - echo -e "\e[0Ksection_start:`date +%s`:before_script05[collapsed=true]\r\e[0KGCP environment checks"
+    - "if [ \"$BEAKER_HYPERVISOR\" ==  google ]; then mkdir -p ~/.ssh; chmod 700 ~/.ssh; test -f ~/.ssh/google_compute_engine || ssh-keygen -f ~/.ssh/google_compute_engine < /dev/null; echo 'gem \"beaker-google\"' >> Gemfile.local ; fi"
+    - echo -e "\e[0Ksection_end:`date +%s`:before_script05\r\e[0K"
+
+  before:
     # Print important environment variables that may affect this job
     - 'ruby -e "puts %(\n\n), %q(=)*80, %(\nSIMP-relevant Environment Variables:\n\n#{e=ENV.keys.grep(/^PUPPET|^SIMP|^BEAKER|MATRIX/); pad=((e.map{|x| x.size}.max||0)+1); e.map{|v| %(    * #{%(#{v}:).ljust(pad)} #{39.chr + ENV[v] + 39.chr}\n)}.join}\n),  %q(=)*80, %(\n\n)" || :'
 
@@ -86,6 +84,19 @@ variables:
     - 'bundle show sync || :'
     - 'bundle exec gem list sync || :'
     - echo -e "\e[0Ksection_end:`date +%s`:before_script40\r\e[0K"
+
+# bundler dependencies and caching
+#
+# - Cache bundler gems between pipelines foreach Ruby version
+# - Try to use cached and local resources before downloading dependencies
+# --------------------------------------
+.setup_bundler_env: &setup_bundler_env
+  cache:
+    key: "${CI_PROJECT_NAMESPACE}_ruby-${MATRIX_RUBY_VERSION}_bundler"
+    paths:
+      - '.vendor'
+  before_script:
+    !reference [.snippets, before]
 
 
 # Assign a matrix level when your test will run.  Heavier jobs get higher numbers
