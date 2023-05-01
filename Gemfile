@@ -9,11 +9,11 @@ gemspec
 gem 'bundler'
 gem 'facter'
 gem 'highline', :path => 'ext/gems/highline'
-gem 'puppet', ENV.fetch('PUPPET_VERSION',  '~>6')
+gem 'puppet', ENV.fetch('PUPPET_VERSION',  '~>7')
 gem 'rake', '>= 12.3.3'
-gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', ['>= 5.6', '< 6.0'])
+gem 'simp-rake-helpers', ENV['SIMP_RAKE_HELPERS_VERSION'] || ['>= 5.12.1', '< 6']
 
-gem 'simp-beaker-helpers', ENV['SIMP_BEAKER_HELPERS_VERSION'] || ['>= 1.22.1', '< 2']
+gem 'simp-beaker-helpers', ENV['SIMP_BEAKER_HELPERS_VERSION'] || ['>= 1.28.0', '< 2']
 gem 'r10k', ENV.fetch('R10k_VERSION',  '~>3')
 
 group :testing do
@@ -41,4 +41,17 @@ group :development do
   gem 'rubocop'
   gem 'rubocop-performance'
   gem 'rubocop-rspec'
+end
+
+# Evaluate extra gemfiles if they exist
+extra_gemfiles = [
+  ENV['EXTRA_GEMFILE'] || '',
+  "#{__FILE__}.project",
+  "#{__FILE__}.local",
+  File.join(Dir.home, '.gemfile'),
+]
+extra_gemfiles.each do |gemfile|
+  if File.file?(gemfile) && File.readable?(gemfile)
+    eval(File.read(gemfile), binding)
+  end
 end
