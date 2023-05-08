@@ -221,26 +221,28 @@ variables:
 # Puppet Versions
 #-----------------------------------------------------------------------
 
-.pup_6_x: &pup_6_x
-  image: 'ruby:2.5'
-  variables:
-    PUPPET_VERSION: '~> 6.0'
-    BEAKER_PUPPET_COLLECTION: 'puppet6'
-    MATRIX_RUBY_VERSION: '2.5'
-
-.pup_6_pe: &pup_6_pe
-  image: 'ruby:2.5'
-  variables:
-    PUPPET_VERSION: '6.22.1'
-    BEAKER_PUPPET_COLLECTION: 'puppet6'
-    MATRIX_RUBY_VERSION: '2.5'
-
 .pup_7_x: &pup_7_x
   image: 'ruby:2.7'
   variables:
     PUPPET_VERSION: '~> 7.0'
     BEAKER_PUPPET_COLLECTION: 'puppet7'
     MATRIX_RUBY_VERSION: '2.7'
+
+.pup_7_pe: &pup_7_pe
+  image: 'ruby:2.7'
+  variables:
+    PUPPET_VERSION: '7.21.0'
+    BEAKER_PUPPET_COLLECTION: 'puppet7'
+    MATRIX_RUBY_VERSION: '2.7'
+
+.pup_8_x: &pup_8_x
+  image: 'ruby:3.2'
+  variables:
+    PUPPET_VERSION: '~> 8.0'
+    BEAKER_PUPPET_COLLECTION: 'puppet8'
+    MATRIX_RUBY_VERSION: '3.2'
+
+
 
 # Testing Environments
 #-----------------------------------------------------------------------
@@ -275,7 +277,7 @@ variables:
 #=======================================================================
 
 releng_checks:
-  <<: *pup_6_x
+  <<: *pup_7_x
   <<: *setup_bundler_env
   stage: 'validation'
   tags: ['docker']
@@ -291,114 +293,55 @@ releng_checks:
 # Unit Tests
 #-----------------------------------------------------------------------
 
-pup6.x-unit:
-  <<: *pup_6_x
+pup7.x-unit:
+  <<: *pup_7_x
   <<: *unit_tests
   <<: *with_SIMP_SPEC_MATRIX_LEVEL_2
 
-pup6.pe-unit:
-  <<: *pup_6_pe
+pup7.pe-unit:
+  <<: *pup_7_pe
   <<: *unit_tests
 
-pup7.x-unit:
-  <<: *pup_7_x
+pup8.x-unit:
+  <<: *pup_8_x
   <<: *unit_tests
 
 
 # Acceptance tests
 # ==============================================================================
-pup6.pe:
-  <<: *pup_6_pe
+pup7.pe:
+  <<: *pup_7_pe
   <<: *acceptance_base
   <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   script:
     - 'bundle exec rake beaker:suites[default,default]'
 
-pup6.pe_config:
-  <<: *pup_6_pe
+pup7.pe_config:
+  <<: *pup_7_pe
   <<: *acceptance_base
   <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   script:
     - 'bundle exec rake beaker:suites[config,default]'
 
-pup6.pe_simp_kv:
-  <<: *pup_6_pe
+pup7.pe_simp_kv:
+  <<: *pup_7_pe
   <<: *acceptance_base
   <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   script:
     - 'bundle exec rake beaker:suites[simp_kv,default]'
 
-pup6.x:
-  <<: *pup_6_x
+pup7.x:
+  <<: *pup_7_x
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[default,default]'
 
-pup6.x-fips:
-  <<: *pup_6_x
+pup7.x-fips:
+  <<: *pup_7_x
   <<: *acceptance_base
   <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
   script:
     - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,default]'
-
-pup6.x_centos8:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  script:
-    - 'bundle exec rake beaker:suites[default,centos8]'
-
-# puppetserver RPMs do not yet install on EL8 because the RPM digest
-# algorithm used is MD5
-pup6.x_centos8-fips:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  allow_failure: true
-  script:
-    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,centos8]'
-
-
-pup6.x_config:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
-  script:
-    - 'bundle exec rake beaker:suites[config,default]'
-
-pup6.x_config_centos8:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  script:
-    - 'bundle exec rake beaker:suites[config,centos8]'
-
-# puppetserver RPMs do not yet install on EL8 because the RPM digest
-# algorithm used is MD5
-pup6.x_config_centos8-fips:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
-  allow_failure: true
-  script:
-    - 'BEAKER_fips=yes bundle exec rake beaker:suites[config,centos8]'
-
-pup6.x_simp_kv:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
-  script:
-    - 'bundle exec rake beaker:suites[simp_kv,default]'
-
-pup6.x_simp_kv-fips:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
-  script:
-    - 'BEAKER_fips=yes bundle exec rake beaker:suites[simp_kv,default]'
-
-pup6.x_simp_kv_centos8:
-  <<: *pup_6_x
-  <<: *acceptance_base
-  script:
-    - 'bundle exec rake beaker:suites[simp_kv,centos8]'
 
 pup7.x_centos8:
   <<: *pup_7_x
@@ -406,14 +349,73 @@ pup7.x_centos8:
   script:
     - 'bundle exec rake beaker:suites[default,centos8]'
 
+# puppetserver RPMs do not yet install on EL8 because the RPM digest
+# algorithm used is MD5
+pup7.x_centos8-fips:
+  <<: *pup_7_x
+  <<: *acceptance_base
+  allow_failure: true
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[default,centos8]'
+
+
+pup7.x_config:
+  <<: *pup_7_x
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'bundle exec rake beaker:suites[config,default]'
+
 pup7.x_config_centos8:
   <<: *pup_7_x
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[config,centos8]'
 
+# puppetserver RPMs do not yet install on EL8 because the RPM digest
+# algorithm used is MD5
+pup7.x_config_centos8-fips:
+  <<: *pup_7_x
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  allow_failure: true
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[config,centos8]'
+
+pup7.x_simp_kv:
+  <<: *pup_7_x
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'bundle exec rake beaker:suites[simp_kv,default]'
+
+pup7.x_simp_kv-fips:
+  <<: *pup_7_x
+  <<: *acceptance_base
+  <<: *with_SIMP_ACCEPTANCE_MATRIX_LEVEL_3
+  script:
+    - 'BEAKER_fips=yes bundle exec rake beaker:suites[simp_kv,default]'
+
 pup7.x_simp_kv_centos8:
   <<: *pup_7_x
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[simp_kv,centos8]'
+
+pup8.x_centos8:
+  <<: *pup_8_x
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[default,centos8]'
+
+pup8.x_config_centos8:
+  <<: *pup_8_x
+  <<: *acceptance_base
+  script:
+    - 'bundle exec rake beaker:suites[config,centos8]'
+
+pup8.x_simp_kv_centos8:
+  <<: *pup_8_x
   <<: *acceptance_base
   script:
     - 'bundle exec rake beaker:suites[simp_kv,centos8]'
