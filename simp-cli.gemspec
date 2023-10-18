@@ -43,11 +43,8 @@ Gem::Specification.new do |s|
   ### When the environment variable $SIMP_RPM_BUILD is set, the following
   ### dependencies will not be included in the .gemspec dependencies:
   #### ------------
-  unless (
-    ENV.fetch( 'SIMP_RPM_BUILD', false ) || \
-    ENV.fetch( 'SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION', false ) =~  /yes|true/
-  )
-    s.add_runtime_dependency 'puppet',   '>= 6.22', '< 8'
+  unless ['yes', 'true'].include?(ENV['SIMP_RPM_BUILD']) || ['yes', 'true'].include?(ENV['SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION'])
+    s.add_runtime_dependency 'puppet',   '>= 7', '< 9'
   end
   #### ------------
 
@@ -60,9 +57,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'guard-shell', '~> 0'
   s.add_development_dependency 'guard-rspec', '~> 4'
   s.add_development_dependency 'pry',         '~> 0'
-  s.add_development_dependency 'pry-doc',     '~> 0'
-  s.add_development_dependency 'dotenv',      '~> 1'
-  s.add_development_dependency 'rubocop',     '~> 0.49'
+  s.add_development_dependency 'pry-doc',     '~> 1'
+  s.add_development_dependency 'dotenv',      '~> 2'
+  s.add_development_dependency 'rubocop',     '~> 1'
 
   # simple text description of external requirements (for humans to read)
   s.requirements << 'SIMP OS installation'

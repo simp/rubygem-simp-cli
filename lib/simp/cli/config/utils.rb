@@ -40,6 +40,7 @@ class Simp::Cli::Config::Utils
 
 
     def validate_ip ip
+      return false unless ip.respond_to?(:=~)
       # using the native 'resolv' class in order to minimize non-EL rubygems
       # snarfed from:
       # http://stackoverflow.com/questions/3634998/how-do-i-check-whether-a-value-in-a-string-is-an-ip-address
@@ -49,6 +50,7 @@ class Simp::Cli::Config::Utils
 
 
     def validate_hostname hostname
+      return false unless hostname.respond_to?(:=~)
       # based on:
       #   http://stackoverflow.com/questions/2532053/validate-a-hostname-string
       #
@@ -62,6 +64,7 @@ class Simp::Cli::Config::Utils
 
 
     def validate_netmask( x )
+      return false unless x.respond_to?(:=~)
       # a brute-force regexp that validates all possible valid netmasks
       nums = '(128|192|224|240|248|252|254)'
       znums = '(0|128|192|224|240|248|252|254)'

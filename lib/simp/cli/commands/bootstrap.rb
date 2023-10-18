@@ -201,7 +201,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       ]
 
       conf_files.each do |file|
-        if File.exists?(file)
+        if File.exist?(file)
           backup_dir = File.join(@bootstrap_backup, File.dirname(file))
           FileUtils.mkdir_p(backup_dir)
           FileUtils.cp(file, backup_dir)
@@ -212,7 +212,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       # /etc/puppetlabs/puppet/auth.conf is installed by some versions of puppet-agent.
       # SIMP manages auth.conf in /etc/puppetlabs/puppetserver/conf.d.  Back up and
       # remove existing /etc/puppetlabs/puppet/auth.conf file.
-      if File.exists?('/etc/puppetlabs/puppet/auth.conf')
+      if File.exist?('/etc/puppetlabs/puppet/auth.conf')
         FileUtils.rm('/etc/puppetlabs/puppet/auth.conf')
         info("Removed /etc/puppetlabs/puppet/auth.conf", 'green')
       end
@@ -325,7 +325,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
       FileUtils.rm_f(agent_run_lockfile)
       info("Successfully removed agent lock file #{agent_run_lockfile}", 'green')
     else
-      run_locked = File.exists?(agent_run_lockfile)
+      run_locked = File.exist?(agent_run_lockfile)
       # TODO: make the following spinner a function; it's used in ensure_puppetserver_running as well.
       if run_locked
         info("Detected puppet agent run lockfile #{agent_run_lockfile}", 'magenta')
@@ -335,7 +335,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
         stages = ["\\",'|','/','-']
         rest = 0.1
         while run_locked do
-          run_locked = File.exists?(agent_run_lockfile)
+          run_locked = File.exist?(agent_run_lockfile)
           stages.each{ |x|
             $stdout.flush
             print "> #{x}\r"
@@ -365,7 +365,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
 
     confdir = Simp::Cli::Utils.puppet_info[:config]['confdir']
     routes_yaml = File.join(confdir, 'routes.yaml')
-    if File.exists?(routes_yaml)
+    if File.exist?(routes_yaml)
       backup_dir = File.join(@bootstrap_backup, confdir)
       FileUtils.mkdir_p(backup_dir)
       backup_routes_yaml = File.join(backup_dir, 'routes.yaml')
@@ -677,7 +677,7 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   def set_up_logger
     # Open log file
     logfilepath = File.dirname(File.expand_path(@bootstrap_log))
-    FileUtils.mkpath(logfilepath) unless File.exists?(logfilepath)
+    FileUtils.mkpath(logfilepath) unless File.exist?(logfilepath)
     @logfile = File.open(@bootstrap_log, 'w')
   end
 

@@ -26,8 +26,9 @@ module Simp::Cli::Config
     # REJECTED: Override #query_ask using Highline's #agree? *** no, can't bool
     def highline_question_type
       lambda do |str|
-        return true  if ( str =~ /^(y(es)?|true)$/i ? true : false || str.class == TrueClass  )
-        return false if ( str =~ /^(n(o)?|false)$/i ? true : false || str.class == FalseClass )
+        return str if str.class == TrueClass || str.class == FalseClass
+        return true  if str.to_s =~ /^(y(es)?|true)$/i
+        return false if str.to_s =~ /^(n(o)?|false)$/i
         nil
       end
     end

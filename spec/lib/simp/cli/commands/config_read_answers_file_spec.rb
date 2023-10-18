@@ -14,7 +14,7 @@ describe 'Simp::Cli::Commands::Config#read_answers_file' do
   end
 
   after :each do
-    FileUtils.chmod 0777, @yaml_file if File.exists?(@yaml_file)
+    FileUtils.chmod 0777, @yaml_file if File.exist?(@yaml_file)
     FileUtils.remove_entry_secure @tmp_dir
   end
 
