@@ -89,7 +89,7 @@ describe Simp::Cli::Config::Item::AnswersYAMLFileWriter do
 
     it 'writes a file' do
       @ci.apply
-      expect( File.exists?( @tmp_file ) ).to be true
+      expect( File.exist?( @tmp_file ) ).to be true
       expect( @ci.applied_status ).to eq :succeeded
     end
 

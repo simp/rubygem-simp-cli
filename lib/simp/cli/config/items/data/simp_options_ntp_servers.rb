@@ -36,7 +36,7 @@ negatively impact your site security. PKI depends upon sync'd time.]
         file = chronydfile
       elsif Simp::Cli::Utils.systemctl_running?('ntpd')
         file = ntpdfile
-      elsif File.exists?(chronydfile)
+      elsif File.exist?(chronydfile)
         file = chronydfile
       else
         file = ntpdfile

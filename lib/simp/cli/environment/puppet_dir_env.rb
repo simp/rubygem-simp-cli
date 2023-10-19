@@ -159,7 +159,7 @@ module Simp::Cli::Environment
         f.puts puppetfile_modules.to_puppetfile
       end
 
-      if File.exists? @puppetfile_path
+      if File.exist? @puppetfile_path
         info "Skipping generation of Puppetfile (to include Puppetfile.simp) in '#{File.dirname(@puppetfile_path)}'".cyan
         info '>> File already exists'.cyan
       else

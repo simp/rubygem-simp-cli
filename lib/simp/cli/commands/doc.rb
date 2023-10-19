@@ -28,7 +28,7 @@ class Simp::Cli::Commands::Doc < Simp::Cli::Commands::Command
 
     main_page = %x{rpm -ql simp-doc | grep html/index.html$ | head -1}.strip.chomp
 
-    unless File.exists?(main_page)
+    unless File.exist?(main_page)
       err_msg = "Could not find the SIMP documentation. Please ensure that you can access '#{main_page}'."
       raise Simp::Cli::ProcessingError.new(err_msg)
     end

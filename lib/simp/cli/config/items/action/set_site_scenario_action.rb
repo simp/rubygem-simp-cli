@@ -19,7 +19,7 @@ module Simp::Cli::Config
 
       simp_scenario = get_item('cli::simp::scenario').value
       site_pp = File.join(@puppet_env_info[:puppet_env_dir], 'manifests', 'site.pp')
-      if File.exists?(site_pp)
+      if File.exist?(site_pp)
         backup_file = "#{site_pp}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
         info( "Backing up #{site_pp} to #{backup_file}" )
         FileUtils.cp(site_pp, backup_file)

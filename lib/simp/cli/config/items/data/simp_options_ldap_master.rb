@@ -25,6 +25,8 @@ module Simp::Cli::Config
     end
 
     def validate item
+      return false unless item.class == String
+
       result = false
       if ( ( item =~ %r{^ldap[s]*://.+} ) ? true : false )
         i = item.sub( %r{^ldap[s]*://}, '' )

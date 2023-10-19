@@ -17,8 +17,8 @@ def execute(command, input_file = nil)
   # in case we have screwed up our test
   Timeout::timeout(30) { Process.wait(pid) }
   exitstatus = $?.nil? ? nil : $?.exitstatus
-  stdout = IO.read(stdout_file) if File.exists?(stdout_file)
-  stderr = IO.read(stderr_file) if File.exists?(stderr_file)
+  stdout = IO.read(stdout_file) if File.exist?(stdout_file)
+  stderr = IO.read(stderr_file) if File.exist?(stderr_file)
   { :exitstatus => exitstatus, :stdout => stdout, :stderr => stderr }
 ensure
   FileUtils.remove_entry_secure(log_tmp_dir) if log_tmp_dir
@@ -43,8 +43,8 @@ def execute_and_signal(command, signal_type)
   Process.kill(signal_type, pid)
   Timeout::timeout(10) { Process.wait(pid) }
   exitstatus = $?.nil? ? nil : $?.exitstatus
-  stdout = IO.read(stdout_file) if File.exists?(stdout_file)
-  stderr = IO.read(stderr_file) if File.exists?(stderr_file)
+  stdout = IO.read(stdout_file) if File.exist?(stdout_file)
+  stderr = IO.read(stderr_file) if File.exist?(stderr_file)
   pipe_w.close
   { :exitstatus => exitstatus, :stdout => stdout, :stderr => stderr }
 ensure

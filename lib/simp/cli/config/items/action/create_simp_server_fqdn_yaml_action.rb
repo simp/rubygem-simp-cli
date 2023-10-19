@@ -40,7 +40,7 @@ module Simp::Cli::Config
       @host_yaml = File.join( File.dirname( @template_file ), "#{fqdn}.yaml" )
       @applied_status = :failed
 
-      if !File.exists?(@template_file) && !File.exists?(@host_yaml) && File.exists?(@alt_file)
+      if !File.exist?(@template_file) && !File.exist?(@host_yaml) && File.exist?(@alt_file)
         # Can get here if
         # (1) RPM/ISO install (so /usr/share/simp exists)
         # (2) Operator runs simp config more than once but with different hostnames
@@ -55,8 +55,8 @@ module Simp::Cli::Config
       end
       info( "Creating #{File.basename(@host_yaml)} from #{File.basename(@template_file)} template" )
 
-      if File.exists?(@template_file)
-        if File.exists?( @host_yaml )
+      if File.exist?(@template_file)
+        if File.exist?( @host_yaml )
           diff   = `diff #{@host_yaml} #{@template_file}`
           if diff.empty?
             @applied_status = :succeeded
@@ -91,7 +91,7 @@ Review and consider updating:
           end
         end
       else
-        if File.exists?(@host_yaml)
+        if File.exist?(@host_yaml)
           @applied_status = :unnecessary
           @applied_status_detail = "Template already moved to #{File.basename(@host_yaml)}"
           message = "#{File.basename(@host_yaml)} creation not required:\n" +

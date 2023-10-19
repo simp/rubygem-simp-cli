@@ -47,7 +47,7 @@ describe Simp::Cli::Config::Item::GenerateCertificatesAction do
           @ci.apply
           expect( @ci.applied_status ).to eq :succeeded
           dir = File.join( @tmp_dirs[:keydist], @fqdn )
-          expect( File.exists? dir ).to be true
+          expect( File.exist? dir ).to be true
         end
 
         it 'reports :failed status on failure' do
@@ -61,7 +61,7 @@ describe Simp::Cli::Config::Item::GenerateCertificatesAction do
         it 'reports :unnecessary status' do
           @ci.generate_certificates(@fqdn)
           dir = File.join( @tmp_dirs[:keydist], @fqdn )
-          expect( File.exists? dir ).to be true
+          expect( File.exist? dir ).to be true
           @ci.apply
           expect( @ci.applied_status ).to eq :unnecessary
           expect(@ci.apply_summary).to match /Interim certificate generation for 'puppet.testing.fqdn' unnecessary:\n    Certificates already exist/m
@@ -108,7 +108,7 @@ describe Simp::Cli::Config::Item::GenerateCertificatesAction do
         end
 
         dir = File.join( @tmp_dirs[:keydist], @fqdn )
-        expect( File.exists? dir ).to be true
+        expect( File.exist? dir ).to be true
       end
     end
   end

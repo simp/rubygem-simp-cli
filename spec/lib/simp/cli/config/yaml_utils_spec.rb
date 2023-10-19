@@ -66,7 +66,7 @@ describe 'Simp::Cli::Config::YamlUtils API' do
 
   describe '#pair_to_yaml_tag' do
     {
-      'nil'            => { :value => nil, :exp => "key: \n" },
+      'nil'            => { :value => nil, :exp => %r{\Akey:[[:blank:]]?\n\z} }, # Newer libyaml does not add a space when the value is nil
       'boolean'        => { :value => true, :exp => "key: true\n" },
       'integer'        => { :value => 1, :exp => "key: 1\n" },
       'float'          => { :value => 1.5, :exp => "key: 1.5\n" },
@@ -89,7 +89,11 @@ describe 'Simp::Cli::Config::YamlUtils API' do
       }
     }.each do |type, attr|
       it "returns a valid YAML tag for a #{type} value" do
-        expect( @tester.pair_to_yaml_tag('key', attr[:value]) ).to eq(attr[:exp])
+        if attr[:exp].is_a?(Regexp)
+          expect( @tester.pair_to_yaml_tag('key', attr[:value]) ).to match(attr[:exp])
+        else
+          expect( @tester.pair_to_yaml_tag('key', attr[:value]) ).to eq(attr[:exp])
+        end
       end
     end
   end
@@ -326,7 +330,8 @@ describe 'Simp::Cli::Config::YamlUtils API' do
         result = @tester.merge_or_replace_yaml_tag('pam::access::users', nil, file_info)
         expect( result ).to eq :replace
         expected = File.join(@files_dir, 'base_nil_replace.yaml')
-        expect( IO.read(@test_file) ).to eq IO.read(expected)
+        expect( IO.read(@test_file) ).to eq(IO.read(expected))
+          .or eq(IO.read(expected).gsub(%r{:[[:blank:]]+$}, ':')) # Newer libyaml does not add a space when the value is nil
         YAML.load(IO.read(@test_file)) # verifies modified file is still valid YAML
       end
 
