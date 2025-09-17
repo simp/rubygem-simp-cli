@@ -63,8 +63,7 @@ describe Simp::Cli::Commands::Kv::Get do
           {
             "key1": {
               "value": 1,
-              "metadata": {
-              }
+              "metadata": {}
             },
             "key2": {
               "value": true,
@@ -77,8 +76,7 @@ describe Simp::Cli::Commands::Kv::Get do
                 "hello",
                 "world"
               ],
-              "metadata": {
-              }
+              "metadata": {}
             },
             "key4": {
               "value": {
@@ -123,8 +121,7 @@ describe Simp::Cli::Commands::Kv::Get do
           {
             "key1": {
               "value": 1,
-              "metadata": {
-              }
+              "metadata": {}
             },
             "key4": {
               "value": {
@@ -158,8 +155,7 @@ describe Simp::Cli::Commands::Kv::Get do
           {
             "key1": {
               "value": 1,
-              "metadata": {
-              }
+              "metadata": {}
             }
           }
         EOM
