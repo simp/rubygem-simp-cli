@@ -96,9 +96,7 @@ describe Simp::Cli::Commands::Kv::List do
               ]
             },
             "folder2": {
-              "keys": [
-
-              ],
+              "keys": [],
               "folders": [
                 "sub2_1",
                 "sub2_2"
@@ -109,17 +107,11 @@ describe Simp::Cli::Commands::Kv::List do
                 "key3_1",
                 "key3_2"
               ],
-              "folders": [
-
-              ]
+              "folders": []
             },
             "folder4": {
-              "keys": [
-
-              ],
-              "folders": [
-
-              ]
+              "keys": [],
+              "folders": []
             }
           }
         EOM
@@ -164,12 +156,8 @@ describe Simp::Cli::Commands::Kv::List do
               ]
             },
             "folder4": {
-              "keys": [
-
-              ],
-              "folders": [
-
-              ]
+              "keys": [],
+              "folders": []
             }
           }
         EOM
@@ -231,8 +219,7 @@ describe Simp::Cli::Commands::Kv::List do
               "keys": {
                 "key1_1": {
                   "value": 1,
-                  "metadata": {
-                  }
+                  "metadata": {}
                 },
                 "key1_2": {
                   "value": true,
