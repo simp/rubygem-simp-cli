@@ -11,11 +11,15 @@ gemspec
 gem 'bundler'
 gem 'facter'
 gem 'highline', :path => 'ext/gems/highline'
+# renovate: datasource=rubygems versioning=ruby
 gem 'puppet', ENV.fetch('PUPPET_VERSION', ['>= 7', '< 9'])
-gem 'simp-rake-helpers', ENV['SIMP_RAKE_HELPERS_VERSION'] || ['>= 5.12.1', '< 6']
+# renovate: datasource=rubygems versioning=ruby
+gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', '~> 5.24.0')
 
+# renovate: datasource=rubygems versioning=ruby
 gem 'r10k', ENV.fetch('R10k_VERSION', '~> 4')
-gem 'simp-beaker-helpers', ENV['SIMP_BEAKER_HELPERS_VERSION'] || ['>= 1.28.0', '< 2']
+# renovate: datasource=rubygems versioning=ruby
+gem 'simp-beaker-helpers', ENV.fetch('SIMP_BEAKER_HELPERS_VERSION', '~> 2.0.0')
 
 group :testing do
   # to parse YUM repo files in `simp config` test
