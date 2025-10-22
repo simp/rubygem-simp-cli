@@ -12,7 +12,7 @@ gem 'bundler'
 gem 'facter'
 gem 'highline', :path => 'ext/gems/highline'
 # renovate: datasource=rubygems versioning=ruby
-gem 'puppet', ENV.fetch('PUPPET_VERSION', ['>= 7', '< 9'])
+gem 'openvox', ENV.fetch('OPENVOX_VERSION', ENV.fetch('PUPPET_VERSION', ['>= 7', '< 9']))
 # renovate: datasource=rubygems versioning=ruby
 gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', '~> 5.24.0')
 
