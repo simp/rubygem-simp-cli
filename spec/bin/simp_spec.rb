@@ -95,14 +95,28 @@ describe 'simp executable' do
       warn("=== stdout: #{results[:stdout]}") unless (results[:stdout]).empty?
       expect(results[:exitstatus]).to eq 0
       expect(results[:stdout]).to match(/SIMP Command Line Interface/)
-      expect(results[:stderr]).to be_empty
+      # expect(results[:stderr]).to be_empty
+      binstubs_error = <<~END_BINSTUBS_ERROR
+        The `puppet` executable in the `openvox` gem is being loaded, but it's also present in other gems (puppet).
+        If you meant to run the executable for another gem, make sure you use a project specific binstub (`bundle binstub <gem_name>`).
+        If you plan to use multiple conflicting executables, generate binstubs for them and disambiguate their names.
+      END_BINSTUBS_ERROR
+      stderr_without_binstubs_error = results[:stderr].gsub(binstubs_error, '')
+      expect(stderr_without_binstubs_error.strip).to be_empty
     end
 
     it 'handles command line arguments' do
       results = execute("#{simp_exe} config -h")
       expect(results[:exitstatus]).to eq 0
       expect(results[:stdout]).to match(/=== The SIMP Configuration Tool ===/)
-      expect(results[:stderr]).to be_empty
+      # expect(results[:stderr]).to be_empty
+      binstubs_error = <<~END_BINSTUBS_ERROR
+        The `puppet` executable in the `openvox` gem is being loaded, but it's also present in other gems (puppet).
+        If you meant to run the executable for another gem, make sure you use a project specific binstub (`bundle binstub <gem_name>`).
+        If you plan to use multiple conflicting executables, generate binstubs for them and disambiguate their names.
+      END_BINSTUBS_ERROR
+      stderr_without_binstubs_error = results[:stderr].gsub(binstubs_error, '')
+      expect(stderr_without_binstubs_error.strip).to be_empty
     end
 
 =begin
