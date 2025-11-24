@@ -89,6 +89,14 @@ describe 'simp executable' do
   end
 
   context 'when run' do
+    let(:binstubs_error) do
+      Regexp.new(<<~'END_BINSTUBS_ERROR')
+        The \`puppet\` executable in the \`(?:openvox|puppet)\` gem is being loaded, but it's also present in other gems \((?:openvox|puppet)\)\.
+        If you meant to run the executable for another gem, make sure you use a project specific binstub \(\`bundle binstub <gem_name>\`\)\.
+        If you plan to use multiple conflicting executables, generate binstubs for them and disambiguate their names\.
+      END_BINSTUBS_ERROR
+    end
+
     it 'handles lack of command line arguments' do
       results = execute(simp_exe)
       warn("=== stderr: #{results[:stderr]}") unless (results[:stderr]).empty?
@@ -96,11 +104,6 @@ describe 'simp executable' do
       expect(results[:exitstatus]).to eq 0
       expect(results[:stdout]).to match(/SIMP Command Line Interface/)
       # expect(results[:stderr]).to be_empty
-      binstubs_error = <<~END_BINSTUBS_ERROR
-        The `puppet` executable in the `openvox` gem is being loaded, but it's also present in other gems (puppet).
-        If you meant to run the executable for another gem, make sure you use a project specific binstub (`bundle binstub <gem_name>`).
-        If you plan to use multiple conflicting executables, generate binstubs for them and disambiguate their names.
-      END_BINSTUBS_ERROR
       stderr_without_binstubs_error = results[:stderr].gsub(binstubs_error, '')
       expect(stderr_without_binstubs_error.strip).to be_empty
     end
@@ -110,11 +113,6 @@ describe 'simp executable' do
       expect(results[:exitstatus]).to eq 0
       expect(results[:stdout]).to match(/=== The SIMP Configuration Tool ===/)
       # expect(results[:stderr]).to be_empty
-      binstubs_error = <<~END_BINSTUBS_ERROR
-        The `puppet` executable in the `openvox` gem is being loaded, but it's also present in other gems (puppet).
-        If you meant to run the executable for another gem, make sure you use a project specific binstub (`bundle binstub <gem_name>`).
-        If you plan to use multiple conflicting executables, generate binstubs for them and disambiguate their names.
-      END_BINSTUBS_ERROR
       stderr_without_binstubs_error = results[:stderr].gsub(binstubs_error, '')
       expect(stderr_without_binstubs_error.strip).to be_empty
     end
