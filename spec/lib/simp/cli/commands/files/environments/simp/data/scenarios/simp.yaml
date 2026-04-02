@@ -35,7 +35,6 @@ simp_options::pki: simp
 simp_options::sssd: true
 simp_options::stunnel: true
 simp_options::syslog: true
-simp_options::tcpwrappers: true
 
 # This setting is turned off by default because use of LDAP is not
 # required

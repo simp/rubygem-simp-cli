@@ -31,7 +31,6 @@ simp_options::pki: simp
 simp_options::sssd: true
 simp_options::stunnel: true
 simp_options::syslog: true
-simp_options::tcpwrappers: true
 
 # Options that are not suggested to be turned on by default:
 simp_options::ipsec: false
