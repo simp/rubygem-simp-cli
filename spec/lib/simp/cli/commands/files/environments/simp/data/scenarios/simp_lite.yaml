@@ -41,7 +41,6 @@ simp_options::ldap: false
 
 # These settings explicitly turned off
 simp_options::firewall: false
-simp_options::tcpwrappers: false
 
 # Options that are not suggested to be turned on by default:
 simp_options::ipsec: false

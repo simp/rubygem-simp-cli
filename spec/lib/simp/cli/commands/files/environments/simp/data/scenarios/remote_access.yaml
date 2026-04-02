@@ -34,6 +34,5 @@ simp_options::pki: simp
 simp_options::sssd: true
 simp_options::stunnel: false
 simp_options::syslog: false
-simp_options::tcpwrappers: false
 simp_options::ipsec: false
 simp_options::kerberos: false
