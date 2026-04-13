@@ -36,7 +36,7 @@ jobs:
       - name: "Install Ruby ${{matrix.puppet.ruby_version}}"
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7.8
+          ruby-version: 4.0.2
           bundler-cache: true
       - run: |
           bundle show
@@ -50,7 +50,7 @@ jobs:
       - name: 'Install Ruby ${{matrix.puppet.ruby_version}}'
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7.8
+          ruby-version: 4.0.2
           bundler-cache: true
       - name: 'Ensure executables are installed'
         run: |
