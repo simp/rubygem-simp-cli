@@ -30,7 +30,8 @@ caching DNS server.}
       nmcli = Facter::Core::Execution.which('nmcli')
       if nmcli
         result = run_command("#{nmcli} -g IP4.DNS dev show", true)
-        nameservers = result[:stdout].strip.split("\n")
+        # nmcli joins multiple values of a property with ' | ' in -g output
+        nameservers = result[:stdout].strip.split("\n").flat_map { |line| line.split(%r{\s*\|\s*}) }
         # have seen some extraneous blank lines in output, so make sure any
         # blank lines between entries are discarded
         nameservers.delete_if {|server| server.strip.empty? }

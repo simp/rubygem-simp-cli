@@ -56,6 +56,14 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
         expect(@ci.recommended_value.size).to eq 3
         expect(@ci.recommended_value).to eq ['10.0.0.1', '10.0.0.2', '10.0.0.3']
       end
+
+      it 'handles multiple nameservers joined with | on a single line' do
+        expect(@ci).to receive(:run_command).with(nmcli_cmd, true)
+          .and_return({ :stdout => "10.0.0.1 | 10.0.0.2\n10.0.0.3\n\n" })
+
+        expect(@ci.recommended_value.size).to eq 3
+        expect(@ci.recommended_value).to eq ['10.0.0.1', '10.0.0.2', '10.0.0.3']
+      end
     end
 
     context 'when nmcli does not return any DNS servers' do
