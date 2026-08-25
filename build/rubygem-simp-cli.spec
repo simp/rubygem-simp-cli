@@ -44,7 +44,7 @@ end
 
 %global gemdir /usr/share/simp/ruby
 %global geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%global cli_version 7.0.1
+%global cli_version 8.0.0
 %global highline_version 2.0.3
 
 # gem2ruby's method of installing gems into mocked build roots will blow up
@@ -79,7 +79,7 @@ Recommends: pupmod-simp-simp_grub >= 0.2.1
 Recommends: pupmod-simp-network >= 6.0.3
 Recommends: pupmod-simp-resolv >= 0.1.1
 Recommends: pupmod-simp-simplib >= 3.11.1
-Recommends: puppet-agent >= 6
+Recommends: (openvox-agent >= 8 or puppet-agent >= 7.20.0)
 Recommends: rsync
 Recommends: rubygem(%{gemname}-highline) >= %{highline_version}
 Recommends: sed
@@ -105,7 +105,7 @@ Requires: pupmod-simp-simp_grub >= 0.2.1
 Requires: pupmod-simp-network >= 6.0.3
 Requires: pupmod-simp-resolv >= 0.1.1
 Requires: pupmod-simp-simplib >= 3.11.1
-Requires: puppet-agent >= 6
+Requires: (openvox-agent >= 8 or puppet-agent >= 7.20.0)
 Requires: rsync
 Requires: rubygem(%{gemname}-highline) >= %{highline_version}
 Requires: sed
@@ -192,6 +192,18 @@ EOM
 %doc %{gemdir}/doc
 
 %changelog
+* Tue Aug 25 2026 Steven Pritchard <steve@sicura.us> - 8.0.0
+- Replace the legacy `puppet` gem runtime dependency with `openvox` >= 8
+- Accept openvox-agent as an alternative to puppet-agent in the RPM
+  dependencies, using RPM rich dependencies (EL >= 8)
+- Support Ruby 3.2 through 4.0 in the test tooling (simp-rake-helpers 6,
+  simp-beaker-helpers 3, r10k 5, the openvox gem)
+- Fix DNS server detection when nmcli reports multiple servers on a
+  single line
+- Fix the EL version comparison in the simp::sssd::client::ldap_server_type
+  recommendation so EL10+ recommends 389ds
+- Update GitHub Actions workflows to build and release EL8/EL9/EL10 RPMs
+
 * Fri May 20 2022 Trevor Vaughan <tvaughan@onyxpoint.com> - 7.0.1
 - Always set the hostname to the one specified during `simp config` in the apply
   phase.
