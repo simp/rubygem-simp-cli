@@ -25,7 +25,7 @@ describe 'simp config with defaults for non-ISO install' do
         :priv_user => { :exists => false }, # new local user to be created
         :interface => interfaces.first
       }
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 end

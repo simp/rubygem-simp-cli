@@ -34,7 +34,6 @@ negatively impact your site security. PKI depends upon sync'd time.)
 
     def get_os_value(chronydfile = '/etc/chrony.conf', ntpdfile = '/etc/ntp.conf')
       servers = []
-      nil
       file = if Simp::Cli::Utils.systemctl_running?('chronyd')
                chronydfile
              elsif Simp::Cli::Utils.systemctl_running?('ntpd')

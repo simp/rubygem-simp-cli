@@ -14,7 +14,7 @@ describe 'simp kv list operations' do
       'custom' => '--backend custom'
     }.each do |backend, backend_opt|
       hosts.each do |host|
-        it_behaves_like 'workaround beaker ssh session closures', hosts
+        include_examples 'workaround beaker ssh session closures', hosts
 
         context "brief list for #{env} env #{backend} backend on #{host}" do
           # default and custom backend list results only differ in the key
@@ -22,7 +22,7 @@ describe 'simp kv list operations' do
           let(:list_env) { brief_kv_list_results(false) }
           let(:list_global) { brief_kv_list_results(true) }
 
-          it_behaves_like 'kv list operation test', host, env, backend_opt, ''
+          include_examples 'kv list operation test', host, env, backend_opt, ''
         end
 
         context "detailed folder list for #{env} env #{backend} backend on " \
@@ -35,8 +35,8 @@ describe 'simp kv list operations' do
             detailed_kv_list_results("#{backend} global", true)
           end
 
-          it_behaves_like 'kv list operation test', host, env, backend_opt,
-                          '--no-brief'
+          include_examples 'kv list operation test', host, env, backend_opt,
+                           '--no-brief'
         end
       end
     end

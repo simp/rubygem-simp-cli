@@ -40,7 +40,6 @@ module Simp::Cli::Passgen::Utils
     password = ask(question1) do |q|
       q.echo = '*'
       q.validate = ->(answer) {
-        nil
         valid = if validate
                   validate_password(answer)
                 else

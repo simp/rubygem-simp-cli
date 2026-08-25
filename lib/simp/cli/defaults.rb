@@ -8,7 +8,10 @@ class Simp::Cli
   # the install path defaults, when on a server that strictly uses
   # Git to access SIMP asset files, such as those for the
   # simp-environment-skeleton.
-  SIMP_CLI_HOME                  = "#{Dir.home}/.simp"
+  # ENV['HOME'] rather than Dir.home: Dir.home raises at require time when
+  # neither HOME nor a passwd entry for the uid exists (e.g. containers
+  # running as an arbitrary uid)
+  SIMP_CLI_HOME                  = "#{ENV.fetch('HOME', nil)}/.simp" # rubocop:disable Style/EnvHome
   BOOTSTRAP_PUPPET_ENV           = ENV.fetch('SIMP_ENVIRONMENT', 'production')
   BOOTSTRAP_START_LOCK_FILE      = File.join(SIMP_CLI_HOME, 'simp_bootstrap_start_lock')
   CONFIG_ANSWERS_OUTFILE         = File.join(SIMP_CLI_HOME, 'simp_conf.yaml')

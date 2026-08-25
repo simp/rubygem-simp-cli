@@ -34,7 +34,7 @@ describe 'simp passgen list operations' do
       'new_simplib_simpkv_passgen',
     ].each do |env|
       hosts.each do |host|
-        it_behaves_like 'workaround beaker ssh session closures', hosts
+        include_examples 'workaround beaker ssh session closures', hosts
 
         context "name list for #{env} environment" do
           it 'lists top folder names from passgen_test' do

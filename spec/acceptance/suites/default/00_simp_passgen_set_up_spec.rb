@@ -7,17 +7,17 @@ test_name 'simp passgen set up'
 describe 'simp passgen set up' do
   context 'Puppet server set up' do
     hosts.each do |host|
-      it_behaves_like 'configure sshd', host
-      it_behaves_like 'fixtures move', host
+      include_examples 'configure sshd', host
+      include_examples 'fixtures move', host
 
-      it_behaves_like 'workaround beaker ssh session closures', hosts
-      it_behaves_like 'simp asset manual install', host
+      include_examples 'workaround beaker ssh session closures', hosts
+      include_examples 'simp asset manual install', host
 
-      it_behaves_like 'workaround beaker ssh session closures', hosts
-      it_behaves_like 'passgen test environments set up', host
+      include_examples 'workaround beaker ssh session closures', hosts
+      include_examples 'passgen test environments set up', host
 
-      it_behaves_like 'workaround beaker ssh session closures', hosts
-      it_behaves_like 'puppetserver set up', host
+      include_examples 'workaround beaker ssh session closures', hosts
+      include_examples 'puppetserver set up', host
     end
   end
 
@@ -29,12 +29,12 @@ describe 'simp passgen set up' do
     ].each do |env|
       hosts.each do |host|
         context 'puppet agent prep' do
-          it_behaves_like 'workaround beaker ssh session closures', hosts
-          it_behaves_like 'configure puppet env', host, env
+          include_examples 'workaround beaker ssh session closures', hosts
+          include_examples 'configure puppet env', host, env
         end
 
         context 'puppet agent run' do
-          it_behaves_like 'workaround beaker ssh session closures', hosts
+          include_examples 'workaround beaker ssh session closures', hosts
 
           it 'applies manifest to generate passwords and persist to files' do
             retry_on(host, 'puppet agent -t', :desired_exit_codes => [0],

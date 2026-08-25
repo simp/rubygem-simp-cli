@@ -18,7 +18,7 @@ describe 'simp passgen create and remove passwords' do
   ].each do |env|
     hosts.each do |host|
       context 'Password name creation' do
-        it_behaves_like 'workaround beaker ssh session closures', hosts
+        include_examples 'workaround beaker ssh session closures', hosts
 
         it "creates new passwords in #{env}" do
           new_names.each do |name|
@@ -39,12 +39,12 @@ describe 'simp passgen create and remove passwords' do
 
       context 'Use of externally created password in a manifest' do
         context 'puppet agent prep' do
-          it_behaves_like 'workaround beaker ssh session closures', hosts
-          it_behaves_like 'configure puppet env', host, env
+          include_examples 'workaround beaker ssh session closures', hosts
+          include_examples 'configure puppet env', host, env
         end
 
         context 'puppet agent run' do
-          it_behaves_like 'workaround beaker ssh session closures', hosts
+          include_examples 'workaround beaker ssh session closures', hosts
 
           it 'adds extra passwords to passgen_test via hieradata' do
             default_yaml_file = File.join('/etc/puppetlabs/code/environments',
@@ -77,7 +77,7 @@ describe 'simp passgen create and remove passwords' do
       end
 
       context 'Password name removal' do
-        it_behaves_like 'workaround beaker ssh session closures', hosts
+        include_examples 'workaround beaker ssh session closures', hosts
 
         it "removes passwords in #{env}" do
           new_names.each do |name|

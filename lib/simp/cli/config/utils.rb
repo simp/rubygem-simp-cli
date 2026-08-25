@@ -68,7 +68,9 @@ class Simp::Cli::Config::Utils
       nums = '(128|192|224|240|248|252|254)'
       znums = '(0|128|192|224|240|248|252|254)'
       regex = %r{^((#{nums}\.0\.0\.0)|(255\.#{znums}\.0\.0)|(255\.255\.#{znums}\.0)|(255\.255\.255\.#{znums})|(255\.255\.255\.255))$}i
-      x&.match?(regex) || false
+      # to_s: x may be a non-String read from YAML (the old `x =~ regex`
+      # simply answered false for those)
+      x.to_s.match?(regex)
     end
 
     def validate_hiera_lookup(x)

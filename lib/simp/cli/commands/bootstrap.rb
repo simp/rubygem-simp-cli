@@ -667,7 +667,10 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
   def set_up_logger
     # Open log file
     logfilepath = File.dirname(File.expand_path(@bootstrap_log))
-    FileUtils.mkpath(logfilepath)
+    # keep the existence check: if the path exists as a regular file, fall
+    # through to the more helpful File.open failure below instead of raising
+    # Errno::EEXIST here
+    FileUtils.mkpath(logfilepath) unless File.exist?(logfilepath) # rubocop:disable Lint/NonAtomicFileOperation
     @logfile = File.open(@bootstrap_log, 'w')
   end
 

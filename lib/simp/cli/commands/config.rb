@@ -541,7 +541,12 @@ EOM
   # returns answers hash
   def load_pre_set_answers(args, options)
     # Retrieve set of answers set at command line via tag=value pairs
-    cli_answers = args.to_h { |x| x.split '=' }
+    # split with limit 2 so '=' may appear in values; a bare KEY (no '=')
+    # maps to nil and is rejected by name downstream, as it always has been
+    cli_answers = args.to_h do |x|
+      key, value = x.split('=', 2)
+      [key, value]
+    end
     unless cli_answers.empty?
       @options[:clean_session] = false
       @options[:user_overrides] = true

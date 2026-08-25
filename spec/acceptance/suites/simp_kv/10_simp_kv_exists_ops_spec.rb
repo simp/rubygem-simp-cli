@@ -53,7 +53,7 @@ describe 'simp kv exists operations' do
       'custom' => '--backend custom'
     }.each do |backend, backend_opt|
       hosts.each do |host|
-        it_behaves_like 'workaround beaker ssh session closures', hosts
+        include_examples 'workaround beaker ssh session closures', hosts
 
         it "reports existence of #{env} env folders & keys in " \
            "#{backend} backend on #{host}" do

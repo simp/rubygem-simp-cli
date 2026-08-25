@@ -238,7 +238,7 @@ module Simp::Cli::Config
     #
     def merge_yaml_tag(key, new_value, file_info)
       unless file_info[:content].key?(key)
-        err_msg = "Unable to merge values for key:\n" \
+        err_msg = "Unable to merge values for #{key}:\n" \
                   "#{key} does not exist in #{file_info[:filename]}"
         raise err_msg
       end
@@ -251,7 +251,6 @@ module Simp::Cli::Config
         raise err_msg
       end
 
-      nil
       merged_value = if new_value.is_a?(Array)
                        (new_value + old_value).uniq
                      else

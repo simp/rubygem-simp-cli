@@ -285,7 +285,7 @@ describe Simp::Cli::Commands::Environment::New do
               hash_including(default_writable_hash_opts.merge(changes))
             end
 
-            it_behaves_like 'a `simp environment new` command', expected_hash[:description]
+            include_examples 'a `simp environment new` command', expected_hash[:description]
           end
         end
       end

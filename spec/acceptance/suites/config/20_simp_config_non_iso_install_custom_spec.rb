@@ -24,7 +24,7 @@ end
 describe 'simp config with customization for non-ISO install' do
   context "without setting grub password on #{host} and --force-config" do
     hosts.each do |host|
-      it_behaves_like 'remove SIMP omni environment', host, 'production'
+      include_examples 'remove SIMP omni environment', host, 'production'
 
       options = {
         :description => 'without setting grub password and --force-config',
@@ -34,13 +34,13 @@ describe 'simp config with customization for non-ISO install' do
         :interface => host_interfaces[host].first
       }
 
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 
   context "without use of SIMP internet repos on #{host}" do
     hosts.each do |host|
-      it_behaves_like 'remove SIMP omni environment', host, 'production'
+      include_examples 'remove SIMP omni environment', host, 'production'
 
       options = {
         :description => 'without use of SIMP internet repos',
@@ -48,13 +48,13 @@ describe 'simp config with customization for non-ISO install' do
         :priv_user => { :exists => false },
         :interface => host_interfaces[host].first
       }
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 
   context "when not LDAP server on #{host}" do
     hosts.each do |host|
-      it_behaves_like 'remove SIMP omni environment', host, 'production'
+      include_examples 'remove SIMP omni environment', host, 'production'
 
       options = {
         :description => 'when not LDAP server',
@@ -62,13 +62,13 @@ describe 'simp config with customization for non-ISO install' do
         :priv_user => { :exists => false },
         :interface => host_interfaces[host].first
       }
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 
   context "with logservers but without failover logservers on #{host}" do
     hosts.each do |host|
-      it_behaves_like 'remove SIMP omni environment', host, 'production'
+      include_examples 'remove SIMP omni environment', host, 'production'
 
       options = {
         :description => 'with logservers but without failover logservers',
@@ -76,13 +76,13 @@ describe 'simp config with customization for non-ISO install' do
         :priv_user => { :exists => false },
         :interface => host_interfaces[host].first
       }
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 
   context "with logservers and failover logservers on #{host}" do
     hosts.each do |host|
-      it_behaves_like 'remove SIMP omni environment', host, 'production'
+      include_examples 'remove SIMP omni environment', host, 'production'
 
       options = {
         :description => 'with logservers and failover logservers',
@@ -91,13 +91,13 @@ describe 'simp config with customization for non-ISO install' do
         :priv_user => { :exists => false },
         :interface => host_interfaces[host].first
       }
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 
   context 'when local priv user exists without ssh authorized keys' do
     hosts.each do |host|
-      it_behaves_like 'remove SIMP omni environment', host, 'production'
+      include_examples 'remove SIMP omni environment', host, 'production'
 
       options = {
         :description => 'when local priv user exists without ssh authorized keys',
@@ -108,13 +108,13 @@ describe 'simp config with customization for non-ISO install' do
         },
         :interface => host_interfaces[host].first
       }
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 
   context 'when local priv user exists with authorized keys' do
     hosts.each do |host|
-      it_behaves_like 'remove SIMP omni environment', host, 'production'
+      include_examples 'remove SIMP omni environment', host, 'production'
 
       options = {
         :description => 'when local priv user exists with ssh authorized keys',
@@ -125,20 +125,20 @@ describe 'simp config with customization for non-ISO install' do
         },
         :interface => host_interfaces[host].first
       }
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 
   context "when do not want to ensure local priv user on #{host}" do
     hosts.each do |host|
-      it_behaves_like 'remove SIMP omni environment', host, 'production'
+      include_examples 'remove SIMP omni environment', host, 'production'
 
       options = {
         :description => 'when do not want to ensure local priv user',
         :priv_user => nil,
         :interface => host_interfaces[host].first
       }
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 
@@ -146,7 +146,7 @@ describe 'simp config with customization for non-ISO install' do
   # to test with defaults
   context "when simp_lite scenario using defaults on #{host}" do
     hosts.each do |host|
-      it_behaves_like 'remove SIMP omni environment', host, 'production'
+      include_examples 'remove SIMP omni environment', host, 'production'
 
       options = {
         :description => 'when simp_lite_scenario using defaults',
@@ -158,14 +158,14 @@ describe 'simp config with customization for non-ISO install' do
         },
         :interface => host_interfaces[host].first
       }
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 
   context 'when poss scenario' do
     context 'using defaults' do
       hosts.each do |host|
-        it_behaves_like 'remove SIMP omni environment', host, 'production'
+        include_examples 'remove SIMP omni environment', host, 'production'
 
         options = {
           :description => 'when poss scenario using defaults',
@@ -177,13 +177,13 @@ describe 'simp config with customization for non-ISO install' do
           },
           :interface => host_interfaces[host].first
         }
-        it_behaves_like 'simp config operation', host, options
+        include_examples 'simp config operation', host, options
       end
     end
 
     context 'without LDAP but with SSSD' do
       hosts.each do |host|
-        it_behaves_like 'remove SIMP omni environment', host, 'production'
+        include_examples 'remove SIMP omni environment', host, 'production'
 
         options = {
           :description => 'with poss scenario without LDAP but with SSSD',
@@ -196,13 +196,13 @@ describe 'simp config with customization for non-ISO install' do
           },
           :interface => host_interfaces[host].first
         }
-        it_behaves_like 'simp config operation', host, options
+        include_examples 'simp config operation', host, options
       end
     end
 
     context 'without either LDAP or SSSD' do
       hosts.each do |host|
-        it_behaves_like 'remove SIMP omni environment', host, 'production'
+        include_examples 'remove SIMP omni environment', host, 'production'
 
         options = {
           :description => 'with poss scenario without either LDAP or SSSD',
@@ -216,7 +216,7 @@ describe 'simp config with customization for non-ISO install' do
           },
           :interface => host_interfaces[host].first
         }
-        it_behaves_like 'simp config operation', host, options
+        include_examples 'simp config operation', host, options
       end
     end
   end
@@ -234,7 +234,7 @@ describe 'simp config with customization for non-ISO install' do
         },
         :interface => host_interfaces[host].first
       }
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 end

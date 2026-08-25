@@ -11,7 +11,7 @@ describe 'simp passgen miscellaneous' do
     'new_simplib_simpkv_passgen',
   ].each do |env|
     hosts.each do |host|
-      it_behaves_like 'workaround beaker ssh session closures', hosts
+      include_examples 'workaround beaker ssh session closures', hosts
 
       if env == 'new_simplib_simpkv_passgen'
         context 'Specifying simpkv backend' do

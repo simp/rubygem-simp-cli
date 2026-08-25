@@ -25,7 +25,7 @@ describe 'simp kv deletetree operations' do
   [['production', 'default', ''],
    ['dev', 'custom', '--backend custom']].each do |env, backend, backend_opt|
     hosts.each do |host|
-      it_behaves_like 'workaround beaker ssh session closures', hosts
+      include_examples 'workaround beaker ssh session closures', hosts
 
       it "should delete #{env} env folders from #{backend} backend " \
          "on #{host}" do

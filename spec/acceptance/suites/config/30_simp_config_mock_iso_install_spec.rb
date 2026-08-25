@@ -41,7 +41,7 @@ describe 'simp config defaults for (mock) ISO install' do
 
   context "with defaults on #{host}" do
     hosts.each do |host|
-      it_behaves_like 'remove SIMP omni environment', host, 'production'
+      include_examples 'remove SIMP omni environment', host, 'production'
 
       options = {
         :description => 'with defaults',
@@ -49,7 +49,7 @@ describe 'simp config defaults for (mock) ISO install' do
         :interface => host_interfaces[host].first
       }
 
-      it_behaves_like 'simp config operation', host, options
+      include_examples 'simp config operation', host, options
     end
   end
 end

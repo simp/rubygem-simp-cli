@@ -13,7 +13,6 @@ module Simp::Cli::Kv::Reporting
   # @param entity Key/folder name
   # @param opts KV command options Hash
   def entity_description(entity, opts)
-    nil
     if opts[:global]
       "global '#{entity}'"
     else

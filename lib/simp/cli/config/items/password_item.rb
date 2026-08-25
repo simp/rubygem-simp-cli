@@ -122,8 +122,6 @@ module Simp::Cli::Config
 
     # ask for the password twice (and verify that both match)
     def query_ask
-      nil
-
       # auto-generate the password, if appropriate
       password = auto_generate_password
 

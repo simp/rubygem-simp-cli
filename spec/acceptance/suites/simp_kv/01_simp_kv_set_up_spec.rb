@@ -7,7 +7,7 @@ test_name 'simp kv set up'
 describe 'simp kv set up' do
   hosts.each do |host|
     context 'environment set up' do
-      it_behaves_like 'kv test environments set up', host
+      include_examples 'kv test environments set up', host
     end
   end
 
@@ -15,12 +15,12 @@ describe 'simp kv set up' do
     ['production', 'dev'].each do |env|
       hosts.each do |host|
         context 'puppet agent prep' do
-          it_behaves_like 'workaround beaker ssh session closures', hosts
-          it_behaves_like 'configure puppet env', host, env
+          include_examples 'workaround beaker ssh session closures', hosts
+          include_examples 'configure puppet env', host, env
         end
 
         context 'puppet agent runs' do
-          it_behaves_like 'workaround beaker ssh session closures', hosts
+          include_examples 'workaround beaker ssh session closures', hosts
 
           it 'adds and configure a test class to store key info in backends' do
             default_yaml_file = File.join('/etc/puppetlabs/code/environments',

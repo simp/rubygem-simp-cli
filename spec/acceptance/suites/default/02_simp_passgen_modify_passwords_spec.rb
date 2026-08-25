@@ -74,7 +74,7 @@ describe 'simp passgen modify existing passwords' do
     hosts.each do |host|
       context 'Password auto-regeneration' do
         context 'using defaults' do
-          it_behaves_like 'workaround beaker ssh session closures', hosts
+          include_examples 'workaround beaker ssh session closures', hosts
 
           if env == 'new_simplib_simpkv_passgen'
             it "regens passwords with current length+complexity+complex_only in #{env}" do
@@ -146,7 +146,7 @@ describe 'simp passgen modify existing passwords' do
         end
 
         context 'specifying characteristics' do
-          it_behaves_like 'workaround beaker ssh session closures', hosts
+          include_examples 'workaround beaker ssh session closures', hosts
 
           it "regens passwords with specified length+complexity+complex_only in #{env}" do
             names.each do |name, options|
@@ -193,7 +193,7 @@ describe 'simp passgen modify existing passwords' do
           EOM
         end
 
-        it_behaves_like 'workaround beaker ssh session closures', hosts
+        include_examples 'workaround beaker ssh session closures', hosts
 
         it 'installs expect and the expect script for password change' do
           host.install_package('expect')
@@ -210,19 +210,19 @@ describe 'simp passgen modify existing passwords' do
 
       context "Applying changes in #{env}" do
         context 'puppet agent prep' do
-          it_behaves_like 'workaround beaker ssh session closures', hosts
-          it_behaves_like 'configure puppet env', host, env
+          include_examples 'workaround beaker ssh session closures', hosts
+          include_examples 'configure puppet env', host, env
         end
 
         context 'puppet agent run' do
-          it_behaves_like 'workaround beaker ssh session closures', hosts
+          include_examples 'workaround beaker ssh session closures', hosts
 
           it 'applies manifest to update persisted passwords' do
             retry_on(host, 'puppet agent -t', :desired_exit_codes => [0],
                                               :max_retries => 5, :verbose => true.to_s)
           end
 
-          it_behaves_like 'workaround beaker ssh session closures', hosts
+          include_examples 'workaround beaker ssh session closures', hosts
 
           [
             "/var/passgen_test/#{env}-passgen_test_default",

@@ -30,7 +30,7 @@
 #                         containing key info for the backend under test
 require 'json'
 shared_examples 'kv use created/modified keys test' do |host, env, backend|
-  it_behaves_like 'configure puppet env', host, env
+  include_examples 'configure puppet env', host, env
 
   it 'ensures class list only has test class to retrieve key info' do
     default_yaml_file = File.join('/etc/puppetlabs/code/environments', env,

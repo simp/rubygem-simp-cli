@@ -26,7 +26,6 @@ module Simp::Cli::Config
 
     def apply
       @applied_status = :failed
-      nil
 
       dhcp      = get_item('cli::network::dhcp').value
       # BOOTPROTO=none is valid to spec; BOOTPROTO=static isn't

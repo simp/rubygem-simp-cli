@@ -32,9 +32,9 @@ describe 'simp kv put operations' do
 
         let(:out_root_path) { "/var/kv_test_out/#{backend}" }
 
-        it_behaves_like 'workaround beaker ssh session closures', hosts
-        it_behaves_like 'kv put modify operation test', host, env, backend_opt
-        it_behaves_like 'kv use created/modified keys test', host, env, backend
+        include_examples 'workaround beaker ssh session closures', hosts
+        include_examples 'kv put modify operation test', host, env, backend_opt
+        include_examples 'kv use created/modified keys test', host, env, backend
       end
 
       context "creating keys for #{env} env #{backend} backend on #{host}" do
@@ -89,9 +89,9 @@ describe 'simp kv put operations' do
 
         let(:out_root_path) { "/var/kv_test_out/#{backend}" }
 
-        it_behaves_like 'workaround beaker ssh session closures', hosts
-        it_behaves_like 'kv put create operation test', host, env, backend_opt
-        it_behaves_like 'kv use created/modified keys test', host, env, backend
+        include_examples 'workaround beaker ssh session closures', hosts
+        include_examples 'kv put create operation test', host, env, backend_opt
+        include_examples 'kv use created/modified keys test', host, env, backend
       end
     end
   end

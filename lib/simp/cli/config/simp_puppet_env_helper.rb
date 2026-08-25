@@ -94,8 +94,6 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
     # |:invalid   | :invalid   | :invalid | :invalid |
     #
 
-    nil
-    nil
     status_code = if (status_puppet == :present) && (status_secondary == :present)
                     :exists
                   elsif (status_secondary == :missing) &&

@@ -14,7 +14,7 @@ describe 'simp kv get operations' do
       'custom' => '--backend custom'
     }.each do |backend, backend_opt|
       hosts.each do |host|
-        it_behaves_like 'workaround beaker ssh session closures', hosts
+        include_examples 'workaround beaker ssh session closures', hosts
 
         # The subfolders in keys_sub_env and keys_sub_global are based on
         # initial keys persisted

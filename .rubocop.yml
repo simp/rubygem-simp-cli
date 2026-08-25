@@ -252,3 +252,10 @@ Security/YAMLLoad:
   Description: On Ruby >= 3.1 (Psych 4), YAML.load already uses safe-load
     semantics. The YAML files loaded here are local, trusted configuration.
   Enabled: false
+RSpec/IncludeExamples:
+  Description: include_examples splices shared examples in place, while
+    it_behaves_like nests them in a child group that runs after the parent
+    group's own examples. The acceptance suites rely on in-place ordering
+    (e.g. the beaker ssh-session workaround must run before its siblings),
+    so the conversion changes execution order and breaks them.
+  Enabled: false
