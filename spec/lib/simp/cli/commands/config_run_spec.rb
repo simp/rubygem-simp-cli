@@ -521,6 +521,21 @@ describe 'Simp::Cli::Command::Config#run' do
     end
   end
 
+  context 'KEY=VALUE argument parsing' do
+    it 'tolerates = in values and maps bare KEY and KEY= to nil' do
+      allow(@config).to receive(:saved_session).and_return({})
+      answers = @config.send(
+        :load_pre_set_answers,
+        ['a::b=x=y', 'bare::key', 'empty::value='],
+        { :answers_input_file => nil },
+      )
+      # nil values are skipped when Item values are pre-assigned
+      # (ItemListFactory#assign_value_from_hash), so the affected Items are
+      # prompted for/derived as usual
+      expect(answers).to eq({ 'a::b' => 'x=y', 'bare::key' => nil, 'empty::value' => nil })
+    end
+  end
+
   context 'when -dry-run option selected' do
     let(:files_dir) { File.join(__dir__, 'files', 'el8') }
 

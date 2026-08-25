@@ -541,10 +541,15 @@ EOM
   # returns answers hash
   def load_pre_set_answers(args, options)
     # Retrieve set of answers set at command line via tag=value pairs
-    # split with limit 2 so '=' may appear in values; a bare KEY (no '=')
-    # maps to nil and is rejected by name downstream, as it always has been
+    # - split with limit 2 so '=' may appear in values (e.g. crypt hashes
+    #   with '$6$rounds=...')
+    # - a bare KEY (no '=') or KEY= (empty value) maps to nil, which
+    #   assign_value_from_hash skips, so the Item is prompted for/derived
+    #   as usual (there is no unknown-key validation; a mistyped key is
+    #   silently ignored)
     cli_answers = args.to_h do |x|
       key, value = x.split('=', 2)
+      value = nil if value&.empty?
       [key, value]
     end
     unless cli_answers.empty?
