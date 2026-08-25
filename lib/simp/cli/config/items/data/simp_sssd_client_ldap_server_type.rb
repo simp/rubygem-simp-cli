@@ -1,11 +1,14 @@
+# frozen_string_literal: true
+
 require_relative '../item'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::SimpSssdClientLdapServerType < Item
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'simp::sssd::client::ldap_server_type'
       @description = <<~EOM
         The type of LDAP server that the system is communicating with.
@@ -13,19 +16,19 @@ module Simp::Cli::Config
         * Use `389ds` for servers that are 'Netscape compatible'. This includes
           FreeIPA, Red Hat Directory Server, and other Netscape DS-derived systems.
         * Use `plain` for servers that are 'regular LDAP' like OpenLDAP.
-     EOM
+      EOM
     end
 
     def get_recommended_value
       # os.release.major is a String; compare numerically so EL10+ works
-      if (Facter.value('os')['release']['major'].to_i > 7)
+      if Facter.value('os')['release']['major'].to_i > 7
         '389ds'
       else
         'plain'
       end
     end
 
-    def validate( x )
+    def validate(x)
       (x == '389ds') || (x == 'plain')
     end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/puppetfile/local_simp_puppet_module'
 require 'simp/cli/utils'
 require 'json'
@@ -16,12 +18,13 @@ module Simp::Cli::Puppetfile
     # @return [Array<String>] list of metadata.json files
     def metadata_json_files
       unless File.directory?(@simp_modules_install_path)
-        fail(Simp::Cli::ProcessingError, "ERROR: Missing modules directory at '#{@simp_modules_install_path}'")
+        raise(Simp::Cli::ProcessingError, "ERROR: Missing modules directory at '#{@simp_modules_install_path}'")
       end
+
       mdj_files = Dir[File.join(@simp_modules_install_path, '*', 'metadata.json')]
       if mdj_files.empty?
-        fail(Simp::Cli::ProcessingError, 'ERROR: No modules with metadata.json files found in ' \
-          "'#{@simp_modules_install_path}'")
+        raise(Simp::Cli::ProcessingError, 'ERROR: No modules with metadata.json files found in ' \
+                                          "'#{@simp_modules_install_path}'")
       end
       mdj_files
     end
@@ -29,7 +32,8 @@ module Simp::Cli::Puppetfile
     # Parses a module's metadata.json file and returns the data
     # @return [Hash] module metadata
     def metadata(mdj_file)
-      fail(Simp::Cli::ProcessingError, "ERROR: '#{mdj_file}' does not exist") unless File.exist?(mdj_file)
+      raise(Simp::Cli::ProcessingError, "ERROR: '#{mdj_file}' does not exist") unless File.exist?(mdj_file)
+
       json = File.read(mdj_file)
       JSON.parse(json)
     end
@@ -53,12 +57,10 @@ module Simp::Cli::Puppetfile
           mod = LocalSimpPuppetModule.new(metadata(mdj_file), @simp_modules_git_repos_path)
           modules << mod
         rescue Simp::Cli::Puppetfile::ModuleError => e
-          if @ignore_bad_modules
-            # TODO logger integration when this is called by other simp cli commands
-            $stderr.puts "Ignoring module #{File.basename(File.dirname(mdj_file))}: #{e}"
-          else
-            raise Simp::Cli::ProcessingError.new(e.message)
-          end
+          raise Simp::Cli::ProcessingError, e.message unless @ignore_bad_modules
+
+          # TODO: logger integration when this is called by other simp cli commands
+          warn "Ignoring module #{File.basename(File.dirname(mdj_file))}: #{e}"
         end
       end
       @modules = modules
@@ -69,7 +71,7 @@ module Simp::Cli::Puppetfile
       hr = '-' * 78
       <<~TO_S
         # #{hr}
-        # SIMP Puppetfile (Generated at #{Simp::Cli::Utils::timestamp})
+        # SIMP Puppetfile (Generated at #{Simp::Cli::Utils.timestamp})
         # #{hr}
         # This Puppetfile deploys SIMP Puppet modules from the local Git repositories at
         #   #{@simp_modules_git_repos_path}

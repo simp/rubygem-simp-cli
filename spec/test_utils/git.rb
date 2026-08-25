@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module TestUtils
   module Git
-
     def self.clone_local_module_repo(repo_dir, clone_parent_dir)
-      fail("#{repo_dir} must be a fully qualified path") if repo_dir[0] != '/'
+      raise("#{repo_dir} must be a fully qualified path") if repo_dir[0] != '/'
+
       repo_url = "file://#{repo_dir}"
       Dir.chdir(clone_parent_dir) do
         run_command("git clone #{repo_url}")
@@ -23,15 +25,15 @@ module TestUtils
     # raise RuntimeError if repo_dir already exists, repo_dir and/or
     #   file is not a fully qualified path, or any git operation fails
     def self.create_bare_repo(repo_dir, file, tags = [])
-      fail("#{repo_dir} already exists") if Dir.exist?(repo_dir)
-      fail("#{repo_dir} must be a fully qualified path") if repo_dir[0] != '/'
-      fail("#{file} must be a fully qualified path") if file[0] != '/'
+      raise("#{repo_dir} already exists") if Dir.exist?(repo_dir)
+      raise("#{repo_dir} must be a fully qualified path") if repo_dir[0] != '/'
+      raise("#{file} must be a fully qualified path") if file[0] != '/'
 
       # explicitly set the initial branch name so the test does not depend
       # on the host's init.defaultBranch setting
       run_command("git -c init.defaultBranch=master init --bare #{repo_dir}")
 
-      clone_dir = "#{repo_dir}_clone".gsub('.git','')
+      clone_dir = "#{repo_dir}_clone".gsub('.git', '')
       run_command("git clone file://#{repo_dir} #{clone_dir}")
 
       Dir.chdir(clone_dir) do
@@ -57,11 +59,11 @@ module TestUtils
         "GIT_COMMITTER_EMAIL='#{git_email}'",
         "GIT_AUTHOR_NAME='#{git_author}'",
         "GIT_AUTHOR_EMAIL='#{git_email}'",
-        cmd
+        cmd,
       ].join(' ')
       puts "Executing: #{full_cmd}"
       success = system(full_cmd)
-      fail("'#{cmd}' failed") unless success
+      raise("'#{cmd}' failed") unless success
     end
   end
 end

@@ -8,7 +8,6 @@ require 'fileutils'
 # Environment helper namespace
 module Simp::Cli::Environment
   class DirEnv < Env
-
     attr_reader :directory_path, :base_environments_path, :skeleton_path
 
     def initialize(type, name, base_environments_path, opts)
@@ -25,7 +24,7 @@ module Simp::Cli::Environment
         # IDEA: test restorecon dry run to query if the policy matches what we expect it do be
         paths.each do |path|
           info("Restoring SELinux contexts under '#{path}' (this may take a while...)".cyan)
-          #FIXME should we fail if this fails?
+          # FIXME: should we fail if this fails?
           execute("restorecon -R -F -p #{path}")
         end
       else
@@ -58,42 +57,42 @@ module Simp::Cli::Environment
     #   and user is root
     def copy_skeleton_files(src_dir, dest_dir, group = nil)
       rsync = Facter::Core::Execution.which('rsync')
-      fail("Error: Could not find 'rsync' command!") unless rsync
+      raise("Error: Could not find 'rsync' command!") unless rsync
 
       cmd = "#{rsync} -a '#{src_dir}'/ '#{dest_dir}'/"
       cmd = %(sg - #{group} -c '#{rsync} -a --no-g "#{src_dir}/" "#{dest_dir}/"') if ENV.fetch('USER') == 'root' && group
 
       debug("Copying '#{src_dir}' files into '#{dest_dir}'")
       success = execute(cmd)
-      unless success
-        # process error messages already logged
-        msg = "ERROR: Copy of '#{src_dir}' into '#{dest_dir}' failed"
-        fail(Simp::Cli::ProcessingError, msg)
-      end
+      return if success
+
+      # process error messages already logged
+      msg = "ERROR: Copy of '#{src_dir}' into '#{dest_dir}' failed"
+      raise(Simp::Cli::ProcessingError, msg)
     end
 
-    def copy_environment_files(src_env, fail_if_src_missing=true )
+    def copy_environment_files(src_env, fail_if_src_missing = true)
       src_env_dir = File.join(@base_environments_path, src_env)
       info("Copying #{@type} env '#{src_env_dir}' to '#{@directory_path}'".cyan)
       if File.directory? src_env_dir
         copy_skeleton_files(src_env_dir, @directory_path)
       elsif fail_if_src_missing
-        fail(
+        raise(
           Simp::Cli::ProcessingError,
-          "ERROR: Source environment directory '#{src_env_dir}' does not exist to copy!"
+          "ERROR: Source environment directory '#{src_env_dir}' does not exist to copy!",
         )
       end
     end
 
-    def link_environment_dirs(src_env, fail_if_src_missing=true )
+    def link_environment_dirs(src_env, fail_if_src_missing = true)
       src_env_dir = File.join(@base_environments_path, src_env)
       if File.directory? src_env_dir
         info("Linking #{@type} env '#{src_env_dir}' to '#{@directory_path}'".cyan)
         FileUtils.ln_s(src_env_dir, @directory_path)
       elsif fail_if_src_missing
-        fail(
+        raise(
           Simp::Cli::ProcessingError,
-          "ERROR: Source environment directory '#{src_env_dir}' does not exist to link!"
+          "ERROR: Source environment directory '#{src_env_dir}' does not exist to link!",
         )
       else
         warn("WARNING: Source environment directory '#{src_env_dir}' does not exist to link; skipping.".yellow)
@@ -102,12 +101,12 @@ module Simp::Cli::Environment
 
     def fail_unless_createable
       # Safety feature: Don't clobber an environment directory that already has content
-      unless Dir.glob(File.join(@directory_path, '*')).empty?
-        fail(
-          Simp::Cli::ProcessingError,
-          "ERROR: A directory with content already exists at '#{@directory_path}'"
-        )
-      end
+      return if Dir.glob(File.join(@directory_path, '*')).empty?
+
+      raise(
+        Simp::Cli::ProcessingError,
+        "ERROR: A directory with content already exists at '#{@directory_path}'",
+      )
     end
   end
 end

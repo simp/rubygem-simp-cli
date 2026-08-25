@@ -1,13 +1,14 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/passgen/command_common'
 
 class Simp::Cli::Commands::Passgen::Envs < Simp::Cli::Commands::Command
-
   include Simp::Cli::Passgen::CommandCommon
 
   def initialize
     @opts = {
-      :verbose => 0  # Verbosity of console output:
+      :verbose => 0 # Verbosity of console output:
       #               0 = NOTICE and above
       #               1 = INFO   and above
       #               2 = DEBUG  and above
@@ -24,7 +25,7 @@ class Simp::Cli::Commands::Passgen::Envs < Simp::Cli::Commands::Command
   end
 
   def help
-    parse_command_line( [ '--help' ] )
+    parse_command_line(['--help'])
   end
 
   # @param args Command line options
@@ -59,7 +60,7 @@ class Simp::Cli::Commands::Passgen::Envs < Simp::Cli::Commands::Command
     env_info = {}
     environments.sort.each do |env|
       simplib_version = get_simplib_version(env)
-      env_info[env] =simplib_version unless simplib_version.nil?
+      env_info[env] = simplib_version unless simplib_version.nil?
     end
 
     env_info
@@ -105,9 +106,9 @@ class Simp::Cli::Commands::Passgen::Envs < Simp::Cli::Commands::Command
     # space at end tells logger to omit <CR>, so spinner+done are on same line
     logger.notice('Looking for environments with simp-simplib installed... ')
     valid_envs = nil
-    Simp::Cli::Utils::show_wait_spinner {
+    Simp::Cli::Utils.show_wait_spinner do
       valid_envs = find_valid_environments
-    }
+    end
     logger.notice('done.')
 
     logger.say("\n")
@@ -116,8 +117,8 @@ class Simp::Cli::Commands::Passgen::Envs < Simp::Cli::Commands::Command
     else
       title = 'Environments'
       logger.say(title)
-      logger.say('='*title.length)
-      logger.say( valid_envs.keys.sort.join("\n"))
+      logger.say('=' * title.length)
+      logger.say(valid_envs.keys.sort.join("\n"))
     end
     logger.notice
   end

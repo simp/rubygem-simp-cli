@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'highline/import'
 HighLine.colorize_strings
 
@@ -7,7 +9,6 @@ module Simp; end
 class Simp::Cli; end
 
 module Simp::Cli::Logging
-
   def self.logger
     @logger ||= Simp::Cli::Logging::Logger.new
   end
@@ -35,14 +36,14 @@ module Simp::Cli::Logging
     # the severity symbols in this table or helper methods
     # provided.
     SEVERITY_TO_NUM = {
-      :trace  => ::Logger::FATAL+10,
-      :debug  => ::Logger::FATAL+11,
-      :info   => ::Logger::FATAL+12,
-      :notice => ::Logger::FATAL+13,
-      :warn   => ::Logger::FATAL+14,
-      :error  => ::Logger::FATAL+15,
-      :fatal  => ::Logger::FATAL+16
-    }
+      :trace => ::Logger::FATAL + 10,
+      :debug => ::Logger::FATAL + 11,
+      :info => ::Logger::FATAL + 12,
+      :notice => ::Logger::FATAL + 13,
+      :warn => ::Logger::FATAL + 14,
+      :error => ::Logger::FATAL + 15,
+      :fatal => ::Logger::FATAL + 16
+    }.freeze
 
     def initialize
       @file          = nil
@@ -52,17 +53,17 @@ module Simp::Cli::Logging
     end
 
     def open_logfile(file)
-      @file.close if @file
+      @file&.close
       @file = File.new(file, 'w')  # overwrite existing file
       @file.sync = true            # flush after every write
       @file_logger = ::Logger.new(@file)
-      @file_logger.formatter = proc do |severity, datetime, progname, msg |
+      @file_logger.formatter = proc do |_severity, datetime, _progname, msg|
         timestamp = datetime.strftime('%Y-%m-%d %H:%M:%S')
         "#{timestamp}: #{msg}\n"
       end
     end
 
-    def levels(console_level=:info, file_level=:debug)
+    def levels(console_level = :info, file_level = :debug)
       @console_level = SEVERITY_TO_NUM[console_level]
       @file_level = SEVERITY_TO_NUM[file_level]
       @file_logger.level = @file_level if @file_logger
@@ -126,9 +127,9 @@ module Simp::Cli::Logging
         plain_message.split("\n").each { |msg| @file_logger.log(level_num, msg) }
       end
 
-      unless level_num < @console_level
-        say( formatted_message )
-      end
+      return if level_num < @console_level
+
+      say(formatted_message)
     end
 
     # pause for the specified number of seconds, printing a countdown
@@ -136,10 +137,10 @@ module Simp::Cli::Logging
     # +pause_seconds+: Number of seconds to pause
     # +pre_txt+: Text to prepend to the current count in the console message
     # +post_txt+: Text to append to the current count in the console message
-    def count_down(pause_seconds, pre_txt='', post_txt='')
+    def count_down(pause_seconds, pre_txt = '', post_txt = '')
       count = pause_seconds
       max_len = count.to_s.size
-      while count > 0
+      while count.positive?
         $stdout.printf("...#{pre_txt}%#{max_len}d#{post_txt}", count)
         sleep(1)
         $stdout.write("\r")
@@ -148,18 +149,16 @@ module Simp::Cli::Logging
       $stdout.printf("...#{pre_txt}%#{max_len}d#{post_txt}\n", 0)
     end
 
-   # pause log output to allow message of
-   # message_level to be viewed on the console
+    # pause log output to allow message of
+    # message_level to be viewed on the console
     def pause(message_level, pause_seconds)
-      unless SEVERITY_TO_NUM[message_level] < @console_level
-        sleep pause_seconds
-      end
+      return if SEVERITY_TO_NUM[message_level] < @console_level
+
+      sleep pause_seconds
     end
 
-
     def format_console_message(message, font_options)
-      options = ''
-      if font_options.nil? or font_options.empty?
+      if font_options.nil? || font_options.empty?
         formatted_message = message
       else
         options = ", #{font_options.join(', ')}"
@@ -199,8 +198,7 @@ module Simp::Cli::Logging
     end
 
     def say(message)
-      HighLine::say(message)
+      HighLine.say(message)
     end
   end
-
 end

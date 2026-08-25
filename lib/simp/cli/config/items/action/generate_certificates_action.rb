@@ -1,17 +1,20 @@
+# frozen_string_literal: true
+
 require_relative '../action_item'
 require_relative '../data/cli_network_hostname'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::GenerateCertificatesAction < ActionItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key               = 'certificates'
       @description       = 'Generate interim certificates for SIMP server'
       @dirs              = {
-        :keydist    => "#{@puppet_env_info[:secondary_env_dir]}/site_files/pki_files/files/keydist",
-        :fake_ca    => "#{@puppet_env_info[:secondary_env_dir]}/FakeCA"
+        :keydist => "#{@puppet_env_info[:secondary_env_dir]}/site_files/pki_files/files/keydist",
+        :fake_ca => "#{@puppet_env_info[:secondary_env_dir]}/FakeCA"
       }
       @group             = @puppet_env_info[:puppet_group]
       @die_on_apply_fail = true
@@ -22,33 +25,31 @@ module Simp::Cli::Config
     def apply
       # Certificate Management
       @applied_status = :failed
-      @hostname = get_item( 'cli::network::hostname' ).value
-      info( "Checking system for '#{@hostname}' certificates" )
+      @hostname = get_item('cli::network::hostname').value
+      info("Checking system for '#{@hostname}' certificates")
       set_up_directories unless File.exist?(@dirs[:keydist])
-      if !(
-        File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pub") &&
-        File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pem")
-      )
-        info( "INFO: No certificates were found for '#{@hostname}', generating using FakeCA" )
-        result = generate_certificates(@hostname)
-        @applied_status = :succeeded if result
-      else
+      if File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pub") &&
+         File.exist?("#{@dirs[:keydist]}/#{@hostname}/#{@hostname}.pem")
         @applied_status = :unnecessary
         @applied_detail = "Certificates already exist in\n    #{@dirs[:keydist]}"
-        info( "INFO: Found existing certificates for '#{@hostname}', not recreating", [:MAGENTA] )
+        info("INFO: Found existing certificates for '#{@hostname}', not recreating", [:MAGENTA])
+      else
+        info("INFO: No certificates were found for '#{@hostname}', generating using FakeCA")
+        result = generate_certificates(@hostname)
+        @applied_status = :succeeded if result
       end
     end
 
     def apply_summary
-      "Interim certificate generation for #{@hostname ? "'#@hostname'" : 'SIMP server'} #{@applied_status}" +
+      "Interim certificate generation for #{@hostname ? "'#{@hostname}'" : 'SIMP server'} #{@applied_status}" +
         (@applied_detail ? ":\n    #{@applied_detail}" : '')
     end
 
-    def generate_certificates( hostname )
+    def generate_certificates(hostname)
       result = false
-      if Dir.exist?( @dirs[:fake_ca] )
-        Dir.chdir( @dirs[:fake_ca] ) do
-          File.open('togen', 'w'){|file| file.puts hostname }
+      if Dir.exist?(@dirs[:fake_ca])
+        Dir.chdir(@dirs[:fake_ca]) do
+          File.open('togen', 'w') { |file| file.puts hostname }
 
           # Script generates appropriate dirs/files in keydist/ and
           # locks down their permissions to allow the puppet group.
@@ -59,10 +60,10 @@ module Simp::Cli::Config
           result = execute("./#{Simp::Cli::CERTIFICATE_GENERATOR} auto")
 
           # blank file so subsequent runs don't re-key our hosts
-          File.open('togen', 'w'){ |file| file.truncate(0) }
+          File.open('togen', 'w') { |file| file.truncate(0) }
         end
       else
-        error( "\nERROR: Cannot generate certificates for #{hostname}: #{@dirs[:fake_ca]} not found", [:RED] )
+        error("\nERROR: Cannot generate certificates for #{hostname}: #{@dirs[:fake_ca]} not found", [:RED])
       end
       result
     end
@@ -79,10 +80,10 @@ module Simp::Cli::Config
       # directories of /var/simp/environments/simp/site_files, to
       # ensure site_files/ can be accessed by the puppet group
       prev = site_files_dir
-      (1..3).each do |iter|
+      (1..3).each do |_iter|
         # relative logic allows this code to be unit tested
         current = File.dirname(prev)
-        FileUtils.chmod(0755, current)
+        FileUtils.chmod(0o755, current)
         prev = current
       end
 
@@ -94,10 +95,9 @@ module Simp::Cli::Config
         # This will happen if the user is not root or the group does
         # not exist.
         err_msg = "Could not recursively change #{site_files_dir} group to '#{@group}': #{e}"
-        raise ApplyError.new(err_msg)
+        raise ApplyError, err_msg
       end
       FileUtils.chmod_R('g+rX,o-rwx', site_files_dir)
     end
-
   end
 end

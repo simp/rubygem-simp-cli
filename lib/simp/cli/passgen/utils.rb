@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/utils'
 require 'simp/cli/exec_utils'
 
@@ -13,7 +15,6 @@ class Simp::Cli; end
 module Simp::Cli::Passgen; end
 
 module Simp::Cli::Passgen::Utils
-
   # Prompt the user for a password, read it in, confirm it and then
   # optionally validate it against libpwquality/cracklib
   #
@@ -31,24 +32,22 @@ module Simp::Cli::Passgen::Utils
   #   gathered within specified number of attempts
   #
   def self.get_password(attempts = 5, validate = true, min_length = 8)
-    if (attempts == 0)
+    if attempts.zero?
       err_msg = 'FATAL: Too many failed attempts to enter password'
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
-
-    password = ''
     question1 = "> #{'Enter password'.bold}: "
     password = ask(question1) do |q|
       q.echo = '*'
-      q.validate = lambda { |answer|
-        valid = nil
-        if validate
-          valid = self.validate_password(answer)
-        else
-          # Make sure the length is not too short or manifest will fail
-          # to apply with a difficult-to-understand error message!
-          valid = self.validate_password_length(answer, min_length)
-        end
+      q.validate = ->(answer) {
+        nil
+        valid = if validate
+                  validate_password(answer)
+                else
+                  # Make sure the length is not too short or manifest will fail
+                  # to apply with a difficult-to-understand error message!
+                  validate_password_length(answer, min_length)
+                end
         valid
       }
 
@@ -64,7 +63,7 @@ module Simp::Cli::Passgen::Utils
     end
 
     if password != confirm_password
-      $stderr.puts '  Passwords do not match! Please try again.'.red.bold
+      warn '  Passwords do not match! Please try again.'.red.bold
 
       # start all over
       password = get_password(attempts - 1, validate, min_length)
@@ -82,11 +81,11 @@ module Simp::Cli::Passgen::Utils
   #
   def self.validate_password(password)
     begin
-      Simp::Cli::Utils::validate_password(password)
-      return true
+      Simp::Cli::Utils.validate_password(password)
+      true
     rescue Simp::Cli::PasswordError => e
-      $stderr.puts "  #{e.message}.".red.bold
-      return false
+      warn "  #{e.message}.".red.bold
+      false
     end
   end
 
@@ -97,15 +96,12 @@ module Simp::Cli::Passgen::Utils
   # @return whether password length is sufficient
   #
   def self.validate_password_length(password, min_length)
-    if password.length < min_length
-      msg = "  Password too short. Must be at least #{min_length} "\
-            'characters long.'
+    return true unless password.length < min_length
 
-      $stderr.puts msg.red.bold
-      return false
-    else
-      return true
-    end
+    msg = "  Password too short. Must be at least #{min_length} " \
+          'characters long.'
+
+    warn msg.red.bold
+    false
   end
-
 end

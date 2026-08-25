@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module Acceptance
   module Helpers
     module BeakerWorkarounds
-
       # Temporary, partial, hack until we have a good solution to beaker's ssh
       # connection logic problems that started with the commit of
       # https://github.com/voxpupuli/beaker/pull/1586. The 'improved' beaker
@@ -22,17 +23,13 @@ module Acceptance
         begin
           on(host, 'uptime')
         rescue Beaker::Host::CommandFailure => e
-          if e.message.include?('connection failure') && (tries > 0)
-            puts "Retrying due to << #{e.message.strip} >>"
-            tries -= 1
-            retry
-          else
-            raise e
-          end
+          raise e unless e.message.include?('connection failure') && (tries > 0)
+
+          puts "Retrying due to << #{e.message.strip} >>"
+          tries -= 1
+          retry
         end
       end
-
     end
   end
 end
-

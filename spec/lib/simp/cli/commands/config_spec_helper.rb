@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'test_utils/string_io'
 require 'yaml'
 
@@ -27,7 +29,7 @@ def generate_simp_input_accepting_defaults(ask_if_ready = true, os_major = '8')
     "\n"                          << # use internet SIMP repos
     "\n"                             # SIMP is LDAP server
 
-  if (os_major == '7') # Only prompts for LDAP root password on EL7
+  if os_major == '7' # Only prompts for LDAP root password on EL7
     input_io                        <<
       "\n"                          << # don't auto-generate a password
       "iTXA8O6yC=DMotMGP!eHd7IGI\n" << # LDAP root password
@@ -113,26 +115,26 @@ def config_normalize(file, other_keys_to_exclude = [], overrides = {})
   # These config items whose values cannot be arbitrarily set
   # and/or vary each time they run.
   min_exclude_set = Set.new [
-     'cli::local_priv_user_password',      # hash value that varies from run-to-run with same password
-     'simp_grub::password',                # hash value that varies from run-to-run with same password
-     'simp_options::ldap::bind_hash',      # hash value that varies from run-to-run with same password
-     'simp_options::ldap::sync_hash',      # hash value that varies from run-to-run with same password
-     'simp_options::ntp::servers',         # depends upon actual system configuration
-     'simp_openldap::server::conf::rootpw' # hash value that varies from run-to-run with same password
+    'cli::local_priv_user_password', # hash value that varies from run-to-run with same password
+    'simp_grub::password',                # hash value that varies from run-to-run with same password
+    'simp_options::ldap::bind_hash',      # hash value that varies from run-to-run with same password
+    'simp_options::ldap::sync_hash',      # hash value that varies from run-to-run with same password
+    'simp_options::ntp::servers',         # depends upon actual system configuration
+    'simp_openldap::server::conf::rootpw', # hash value that varies from run-to-run with same password
   ]
 
   exclude_set = min_exclude_set.merge(other_keys_to_exclude)
 
-  yaml_hash = YAML.load(File.read(file))
-  yaml_hash = {} if !yaml_hash.is_a?(Hash) # empty YAML file returns false
+  yaml_hash = YAML.load_file(file)
+  yaml_hash = {} unless yaml_hash.is_a?(Hash) # empty YAML file returns false
   exclude_set.each do |key|
-    if yaml_hash.key?(key)
-      if yaml_hash[key].is_a?(Array)
-        yaml_hash[key] = [ 'value normalized' ]
-      else
-        yaml_hash[key] = 'value normalized'
-      end
-    end
+    next unless yaml_hash.key?(key)
+
+    yaml_hash[key] = if yaml_hash[key].is_a?(Array)
+                       ['value normalized']
+                     else
+                       'value normalized'
+                     end
   end
   yaml_hash.merge(overrides).merge('cli::version' => Simp::Cli::VERSION)
 end

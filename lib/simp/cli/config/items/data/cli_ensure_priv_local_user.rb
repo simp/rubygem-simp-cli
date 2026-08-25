@@ -1,11 +1,14 @@
+# frozen_string_literal: true
+
 require_relative '../yes_no_item'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::CliEnsurePrivLocalUser < YesNoItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'cli::ensure_priv_local_user'
       @description = <<~EOM.strip
         Whether to configure a privileged local user to prevent server lockout
@@ -26,7 +29,7 @@ module Simp::Cli::Config
           local user SSH authorized keys files in SIMP.
       EOM
 
-      @data_type   = :cli_params
+      @data_type = :cli_params
     end
 
     def get_recommended_value

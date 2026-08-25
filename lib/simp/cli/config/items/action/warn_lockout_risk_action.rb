@@ -1,16 +1,19 @@
+# frozen_string_literal: true
+
 require_relative '../../../defaults'
 require_relative '../action_item'
 require 'fileutils'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::WarnLockoutRiskAction < ActionItem
     attr_accessor :warning_file
     attr_reader :warning_message
 
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key             = 'login::lockout::check'
       @description     = 'Check for login lockout risk'
       @category        = :sanity_check
@@ -18,7 +21,7 @@ module Simp::Cli::Config
       @warning_message_brief = 'Locking bootstrap due to potential login lockout.'
       @warning_message = <<DOC
 
-#{'#'*72}
+#{'#' * 72}
 By default, SIMP:
 
   * Disables remote logins for all users.
@@ -154,14 +157,14 @@ DOC
     end
 
     def apply
-      warn( "\nWARNING: #{@warning_message_brief}", [:RED] )
-      warn( "See #{@warning_file} for details", [:RED] )
+      warn("\nWARNING: #{@warning_message_brief}", [:RED])
+      warn("See #{@warning_file} for details", [:RED])
 
       # append/create file that will prevent bootstrap from running until problem
       # is fixed
       FileUtils.mkdir_p(File.expand_path(File.dirname(@warning_file)))
       File.open(@warning_file, 'a') do |file|
-          file.write @warning_message
+        file.write @warning_message
       end
       @applied_status = :failed
     end

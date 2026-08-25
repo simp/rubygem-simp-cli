@@ -1,26 +1,29 @@
+# frozen_string_literal: true
+
 require_relative '../item'
 require_relative '../../utils'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::CliNetworkHostname < Item
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'cli::network::hostname'
-      @description = %q{The Fully Qualified Domain Name (FQDN) of the system.
+      @description = 'The Fully Qualified Domain Name (FQDN) of the system.
 
-This *MUST* contain a domain. Simple hostnames are not allowed.}
+This *MUST* contain a domain. Simple hostnames are not allowed.'
       @data_type   = :cli_params
       @fact        = 'fqdn'
     end
 
-    def validate( x )
+    def validate(x)
       Simp::Cli::Config::Utils.validate_fqdn x
     end
 
     def get_recommended_value
-      # FIXME The 'fqdn' fact used for the os_value is not very sophisticated.
+      # FIXME: The 'fqdn' fact used for the os_value is not very sophisticated.
       # Specifically, it doesn't tell us the network hostname associated
       # with a DHCP-retrieved IP address. We attempt to get that information
       # here, so we can present the user with a better recommended value.
@@ -30,15 +33,13 @@ This *MUST* contain a domain. Simple hostnames are not allowed.}
       # validates.
       network_hostname = nil
       `hostname -A 2>/dev/null`.split.each do |hostname|
-        if validate( hostname )
+        if validate(hostname)
           network_hostname = hostname
           break
         end
       end
 
-      unless network_hostname
-        network_hostname = (validate( os_value ) ? os_value : 'puppet.change.me')
-      end
+      network_hostname ||= (validate(os_value) ? os_value : 'puppet.change.me')
 
       network_hostname
     end

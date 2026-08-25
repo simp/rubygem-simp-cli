@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/passgen/command_common'
 require 'simp/cli/passgen/utils'
 
 class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
-
   include Simp::Cli::Passgen::CommandCommon
 
   DEFAULT_AUTO_GEN_PASSWORDS = false
@@ -18,23 +19,23 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
 
   def initialize
     @opts = {
-      :env          => DEFAULT_PUPPET_ENVIRONMENT,
-      :backend      => nil, # simpkv backend
-      :folder       => nil, # passgen sub-folder in simpkv
-      :names        => [],  # names of passwords to set
-      :gen_options  => {    # password generation options
-        :auto_gen             => DEFAULT_AUTO_GEN_PASSWORDS,
-        :validate             => DEFAULT_VALIDATE,
-        :length               => nil,
-        :default_length       => DEFAULT_PASSWORD_LENGTH,
-        :minimum_length       => MINIMUM_PASSWORD_LENGTH,
-        :complexity           => nil,
-        :default_complexity   => DEFAULT_COMPLEXITY,
-        :complex_only         => nil,
+      :env => DEFAULT_PUPPET_ENVIRONMENT,
+      :backend => nil, # simpkv backend
+      :folder => nil, # passgen sub-folder in simpkv
+      :names => [], # names of passwords to set
+      :gen_options => { # password generation options
+        :auto_gen => DEFAULT_AUTO_GEN_PASSWORDS,
+        :validate => DEFAULT_VALIDATE,
+        :length => nil,
+        :default_length => DEFAULT_PASSWORD_LENGTH,
+        :minimum_length => MINIMUM_PASSWORD_LENGTH,
+        :complexity => nil,
+        :default_complexity => DEFAULT_COMPLEXITY,
+        :complex_only => nil,
         :default_complex_only => DEFAULT_COMPLEX_ONLY
       },
       :password_dir => nil, # fully qualified path to a legacy passgen dir
-      :verbose      => 0    # Verbosity of console output:
+      :verbose => 0 # Verbosity of console output:
       #                        -1 = ERROR  and above
       #                         0 = NOTICE and above
       #                         1 = INFO   and above
@@ -52,7 +53,7 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
   end
 
   def help
-    parse_command_line( [ '--help' ] )
+    parse_command_line(['--help'])
   end
 
   # @param args Command line options
@@ -66,10 +67,10 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
     # space at end tells logger to omit <CR>, so spinner+done are on same line
     logger.notice("Initializing for environment '#{@opts[:env]}'... ")
     manager = nil
-    Simp::Cli::Utils::show_wait_spinner {
+    Simp::Cli::Utils.show_wait_spinner do
       # construct the correct manager to do the work based on simplib version
       manager = get_password_manager(@opts)
-    }
+    end
     logger.notice('done.')
 
     set_passwords(manager, @opts[:names], @opts[:gen_options])
@@ -129,7 +130,7 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
       opts.on('--[no-]auto-gen',
               'Whether to auto-generate new passwords.',
               'When disabled the user will be prompted to',
-              'enter new passwords. Defaults to '\
+              'enter new passwords. Defaults to ' \
               "#{translate_bool(@opts[:gen_options][:auto_gen])}.") do |auto_gen|
         @opts[:gen_options][:auto_gen] = auto_gen
       end
@@ -139,7 +140,7 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
               'is auto-generated. For existing passwords',
               'stored in a simpkv key/value store, defaults',
               'to the current password complexity.',
-              'Otherwise, defaults to '\
+              'Otherwise, defaults to ' \
               "#{@opts[:gen_options][:default_complexity]}.",
               'See simplib::passgen for details.') do |complexity|
         @opts[:gen_options][:complexity] = complexity
@@ -155,7 +156,6 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
               ' by default.') do |complex_only|
         @opts[:gen_options][:complex_only] = complex_only
       end
-
 
       opts.on('--backend BACKEND',
               'Specific simpkv backend to use for',
@@ -179,23 +179,23 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
       end
 
       opts.on('--length LENGTH', Integer,
-            'Password length to use when auto-generated.',
-            'Defaults to the current password length,',
-            'when the password already exists and its',
-            "length is >= #{@opts[:gen_options][:minimum_length]}. "\
-            "Otherwise, defaults to "\
-            "#{@opts[:gen_options][:default_length]}.") do |length|
+              'Password length to use when auto-generated.',
+              'Defaults to the current password length,',
+              'when the password already exists and its',
+              "length is >= #{@opts[:gen_options][:minimum_length]}. " \
+              'Otherwise, defaults to ' \
+              "#{@opts[:gen_options][:default_length]}.") do |length|
         @opts[:gen_options][:length] = length
       end
 
       opts.on('--[no-]validate',
-            'Enabled validation of new passwords with',
-            'libpwquality/cracklib. **Only** appropriate',
-            'for user passwords and does not apply to',
-            'passwords generated via simp-simplib',
-            'functions (environments with simplib >=',
-            "#{SIMPKV_SIMPLIB_VERSION}). Defaults to "\
-            "#{translate_bool(@opts[:gen_options][:validate])}.") do |validate|
+              'Enabled validation of new passwords with',
+              'libpwquality/cracklib. **Only** appropriate',
+              'for user passwords and does not apply to',
+              'passwords generated via simp-simplib',
+              'functions (environments with simplib >=',
+              "#{SIMPKV_SIMPLIB_VERSION}). Defaults to " \
+              "#{translate_bool(@opts[:gen_options][:validate])}.") do |validate|
         @opts[:gen_options][:validate] = validate
       end
 
@@ -205,18 +205,17 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
         puts opts
         @help_requested = true
       end
-
     end
 
     remaining_args = opt_parser.parse!(args)
 
-    unless @help_requested
-      if remaining_args.empty?
-        err_msg = 'Password names are missing from command line'
-        raise Simp::Cli::ProcessingError, err_msg
-      else
-        @opts[:names] = remaining_args[0].split(',').sort
-      end
+    return if @help_requested
+
+    if remaining_args.empty?
+      err_msg = 'Password names are missing from command line'
+      raise Simp::Cli::ProcessingError, err_msg
+    else
+      @opts[:names] = remaining_args[0].split(',').sort
     end
   end
 
@@ -237,17 +236,17 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
         unless password_gen_options[:auto_gen]
           validate = password_gen_options[:validate]
           min_length = password_gen_options[:minimum_length]
-          logger.debug("Gathering password with validate=#{validate} " +
-            "min_length=#{min_length}")
+          logger.debug("Gathering password with validate=#{validate} " \
+                       "min_length=#{min_length}")
 
           password_gen_options[:password] =
-            Simp::Cli::Passgen::Utils::get_password(5, validate, min_length)
+            Simp::Cli::Passgen::Utils.get_password(5, validate, min_length)
         end
 
         password = nil
-        Simp::Cli::Utils::show_wait_spinner {
+        Simp::Cli::Utils.show_wait_spinner do
           password = manager.set_password(name, password_gen_options)
-        }
+        end
         logger.notice('done.')
         logger.notice("  '#{name}' new password: #{password}")
       rescue Exception => e
@@ -259,10 +258,10 @@ class Simp::Cli::Commands::Passgen::Set < Simp::Cli::Commands::Command
       logger.notice
     end
 
-    unless errors.empty?
-      err_msg = "Failed to set #{errors.length} out of #{names.length}" +
-        " passwords in #{manager.location}:\n  #{errors.join("\n  ")}"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    return if errors.empty?
+
+    err_msg = "Failed to set #{errors.length} out of #{names.length} " \
+              "passwords in #{manager.location}:\n  #{errors.join("\n  ")}"
+    raise Simp::Cli::ProcessingError, err_msg
   end
 end

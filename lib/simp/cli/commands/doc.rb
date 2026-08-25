@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 
 class Simp::Cli::Commands::Doc < Simp::Cli::Commands::Command
-
   def description
     'Show SIMP documentation in elinks'
   end
@@ -21,27 +22,27 @@ class Simp::Cli::Commands::Doc < Simp::Cli::Commands::Command
     parse_command_line(args)
     return if @help_requested
 
-    unless system("rpm -q --quiet simp-doc")
+    unless system('rpm -q --quiet simp-doc')
       err_msg = "Package 'simp-doc' is not installed, cannot continue."
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
-    main_page = %x{rpm -ql simp-doc | grep html/index.html$ | head -1}.strip.chomp
+    main_page = `rpm -ql simp-doc | grep html/index.html$ | head -1`.strip.chomp
 
     unless File.exist?(main_page)
       err_msg = "Could not find the SIMP documentation. Please ensure that you can access '#{main_page}'."
-      raise Simp::Cli::ProcessingError.new(err_msg)
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     exec("links #{main_page}")
   end
 
   def parse_command_line(args)
-    if args.include?('-h') or args.include?('--help')
+    if args.include?('-h') || args.include?('--help')
       help
       @help_requested = true
-    elsif args.size > 0
-      raise OptionParser::ParseError.new("Unsupported option: #{args.first}")
+    elsif args.size.positive?
+      raise OptionParser::ParseError, "Unsupported option: #{args.first}"
     end
   end
 end

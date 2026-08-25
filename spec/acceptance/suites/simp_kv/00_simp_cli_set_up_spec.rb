@@ -1,19 +1,20 @@
+# frozen_string_literal: true
+
 require 'spec_helper_acceptance'
 
 test_name 'simp cli set up'
 
 describe 'simp cli set up' do
-
   hosts.each do |host|
     context 'Puppet server set up' do
-      include_examples 'configure sshd', host
-      include_examples 'fixtures move', host
+      it_behaves_like 'configure sshd', host
+      it_behaves_like 'fixtures move', host
 
-      include_examples 'workaround beaker ssh session closures', hosts
-      include_examples 'simp asset manual install', host
+      it_behaves_like 'workaround beaker ssh session closures', hosts
+      it_behaves_like 'simp asset manual install', host
 
-      include_examples 'workaround beaker ssh session closures', hosts
-      include_examples 'puppetserver set up', host
+      it_behaves_like 'workaround beaker ssh session closures', hosts
+      it_behaves_like 'puppetserver set up', host
     end
   end
 end

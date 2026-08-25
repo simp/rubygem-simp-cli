@@ -3,7 +3,6 @@
 require 'simp/cli/commands/command_family'
 
 class Simp::Cli::Commands::Passgen < Simp::Cli::Commands::CommandFamily
-
   def banner
     '=== The SIMP Password Tool ==='
   end

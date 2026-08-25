@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Test environment and global keys created/modified by 'kv put' operation can be
 # used by a manifest in a 'puppet agent' run.
 #
@@ -28,26 +30,26 @@
 #                         containing key info for the backend under test
 require 'json'
 shared_examples 'kv use created/modified keys test' do |host, env, backend|
-  include_examples 'configure puppet env', host, env
+  it_behaves_like 'configure puppet env', host, env
 
-  it 'should ensure class list only has test class to retrieve key info' do
-    default_yaml_file = File.join( '/etc/puppetlabs/code/environments', env,
-      'data', 'default.yaml')
+  it 'ensures class list only has test class to retrieve key info' do
+    default_yaml_file = File.join('/etc/puppetlabs/code/environments', env,
+                                  'data', 'default.yaml')
 
-    hieradata = YAML.load( on(host, "cat #{default_yaml_file}").stdout )
-    hieradata['classes'] = [ 'kv_test::retrieve' ]
+    hieradata = YAML.load(on(host, "cat #{default_yaml_file}").stdout)
+    hieradata['classes'] = ['kv_test::retrieve']
     create_remote_file(host, default_yaml_file, hieradata.to_yaml)
     on(host, "cat #{default_yaml_file}")
   end
 
-  it 'should add any created keys to list of keys to retrieve' do
+  it 'adds any created keys to list of keys to retrieve' do
     if created_key_names.empty? && created_binary_key_names.empty?
       puts '>>> Skipping: no new keys created <<<'
     else
-      default_yaml_file = File.join( '/etc/puppetlabs/code/environments', env,
-        'data', 'default.yaml')
+      default_yaml_file = File.join('/etc/puppetlabs/code/environments', env,
+                                    'data', 'default.yaml')
 
-      hieradata = YAML.load( on(host, "cat #{default_yaml_file}").stdout )
+      hieradata = YAML.load(on(host, "cat #{default_yaml_file}").stdout)
       unless created_key_names.empty?
         hieradata['kv_test::retrieve::extra_key_list'] =
           { backend => created_key_names }
@@ -55,7 +57,7 @@ shared_examples 'kv use created/modified keys test' do |host, env, backend|
 
       unless created_binary_key_names.empty?
         hieradata['kv_test::retrieve::extra_binary_key_list'] =
-         { backend => created_binary_key_names }
+          { backend => created_binary_key_names }
       end
 
       create_remote_file(host, default_yaml_file, hieradata.to_yaml)
@@ -63,9 +65,9 @@ shared_examples 'kv use created/modified keys test' do |host, env, backend|
     end
   end
 
-  it 'should apply manifest to retrieve and use created/modified values' do
+  it 'applies manifest to retrieve and use created/modified values' do
     retry_on(host, 'puppet agent -t', :desired_exit_codes => [0],
-      :max_retries => 5, :verbose => true.to_s)
+                                      :max_retries => 5, :verbose => true.to_s)
   end
 
   # The complex and global_complex folders used in the next two examples are
@@ -73,16 +75,16 @@ shared_examples 'kv use created/modified keys test' do |host, env, backend|
   # TODO Should pass this information into this shared_example or automatically
   #      determine the folders from input, instead of hard-coding them.
 
-  it 'should have retrieved correct values for environment keys' do
+  it 'has retrieved correct values for environment keys' do
     keys = keys_info('/', updated_list_env)
-    keys.merge!( keys_info('complex', updated_list_env) )
+    keys.merge!(keys_info('complex', updated_list_env))
     root_path = File.join(out_root_path, 'environments', env)
     verify_files(host, keys, root_path)
   end
 
-  it 'should have retrieved correct values for global keys' do
+  it 'has retrieved correct values for global keys' do
     keys = keys_info('/', updated_list_global)
-    keys.merge!( keys_info('global_complex', updated_list_global) )
+    keys.merge!(keys_info('global_complex', updated_list_global))
     root_path = File.join(out_root_path, 'globals')
     verify_files(host, keys, root_path)
   end

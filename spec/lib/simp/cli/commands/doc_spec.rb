@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/doc'
 
 describe 'Simp::Cli::Command::Doc' do
@@ -7,7 +9,7 @@ describe 'Simp::Cli::Command::Doc' do
     @doc = Simp::Cli::Commands::Doc.new
   end
 
-  context '#run' do
+  describe '#run' do
     context 'help' do
       it 'prints help message' do
         usage = <<~EOM
@@ -18,17 +20,15 @@ describe 'Simp::Cli::Command::Doc' do
           USAGE:  simp doc
 
         EOM
-        expect{ @doc.run(['-h']) }.to output(usage).to_stdout
-        expect{ @doc.run(['--help']) }.to output(usage).to_stdout
+        expect { @doc.run(['-h']) }.to output(usage).to_stdout
+        expect { @doc.run(['--help']) }.to output(usage).to_stdout
       end
     end
 
     context 'invalid options' do
       it 'fails if any other option specified' do
-        expect{ @doc.run(['-x']) }.to raise_error(/Unsupported option: \-x/)
+        expect { @doc.run(['-x']) }.to raise_error(%r{Unsupported option: -x})
       end
-
     end
   end
-
 end

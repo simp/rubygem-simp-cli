@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'base64'
 require 'highline/import'
 require 'pathname'
@@ -10,7 +12,6 @@ module Simp::Cli::Kv; end
 
 # Base class for key/value store operations
 class Simp::Cli::Kv::OperatorBase
-
   include Simp::Cli::Logging
 
   # @param env Puppet environment.  Used to specify the location of non-global
@@ -31,13 +32,13 @@ class Simp::Cli::Kv::OperatorBase
   # @param title Brief description of operation to use in error reporting
   # @param failure_message Error message to search for in the stderr output of
   #    a failed apply and then use as the (simplified) failure message if found
-  #lib/simp/cli/kv/info_validator.rb
-  def apply_options(title, failure_message=nil)
+  # lib/simp/cli/kv/info_validator.rb
+  def apply_options(title, failure_message = nil)
     opts = {
-      :title         => title,
-      :env           => @env,
-      :fail          => true,
-      :group         => @puppet_info[:config]['group'],
+      :title => title,
+      :env => @env,
+      :fail => true,
+      :group => @puppet_info[:config]['group'],
       :puppet_config => { 'vardir' => @puppet_info[:config]['vardir'] }
     }
 
@@ -62,21 +63,21 @@ class Simp::Cli::Kv::OperatorBase
   def simpkv_options(global)
     {
       'backend' => @backend,
-      'global'  => global
+      'global' => global
     }
   end
 
   # Convert a binary value into its JSON representation
   # @param info Key info Hash containing 'value' and 'metadata' attributes
   def normalize_key_info(info)
-   normalized = info.dup
-   if info['value'].is_a?(String) && (info['value'].encoding == Encoding::ASCII_8BIT)
-     normalized['value'] = Base64.strict_encode64(info['value'])
-     normalized['encoding'] = 'base64'
-     normalized['original_encoding'] = 'ASCII-8BIT'
-   end
+    normalized = info.dup
+    if info['value'].is_a?(String) && (info['value'].encoding == Encoding::ASCII_8BIT)
+      normalized['value'] = Base64.strict_encode64(info['value'])
+      normalized['encoding'] = 'base64'
+      normalized['original_encoding'] = 'ASCII-8BIT'
+    end
 
-   normalized
+    normalized
   end
 
   # Convert any keys that have binary values into their JSON value representations

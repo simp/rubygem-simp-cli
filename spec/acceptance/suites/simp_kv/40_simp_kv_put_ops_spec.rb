@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper_acceptance'
 require 'deep_merge'
 require 'json'
@@ -14,82 +16,82 @@ describe 'simp kv put operations' do
   # default backend via the production env, only, and apply changes to the
   # custom backend via the dev environment, only.
   #
-  [ [ 'production', 'default', ''                 ],
-    [ 'dev',        'custom',  '--backend custom' ]
-  ].each do |env, backend, backend_opt|
+  [['production', 'default', ''],
+   ['dev', 'custom', '--backend custom']].each do |env, backend, backend_opt|
     hosts.each do |host|
-
       context "modifying keys for #{env} env #{backend} backend on #{host}" do
         let(:created_key_names) { {} }
         let(:created_binary_key_names) { {} }
-        let(:updated_list_env) {
+        let(:updated_list_env) do
           change_key_info(detailed_kv_list_results("#{backend} #{env}", false))
-        }
+        end
 
-        let(:updated_list_global) {
+        let(:updated_list_global) do
           change_key_info(detailed_kv_list_results("#{backend} global", true))
-        }
+        end
 
         let(:out_root_path) { "/var/kv_test_out/#{backend}" }
 
-        include_examples 'workaround beaker ssh session closures', hosts
-        include_examples 'kv put modify operation test', host, env, backend_opt
-        include_examples 'kv use created/modified keys test', host, env, backend
+        it_behaves_like 'workaround beaker ssh session closures', hosts
+        it_behaves_like 'kv put modify operation test', host, env, backend_opt
+        it_behaves_like 'kv use created/modified keys test', host, env, backend
       end
 
       context "creating keys for #{env} env #{backend} backend on #{host}" do
-        let(:created_key_names) {
+        let(:created_key_names) do
           # Hash easily transforms to Hash for kv_test::retrieve::extra_key_list
           {
-            'keys'        => [ 'new1', 'new2' ],
-            'global_keys' => [ 'global_new1', 'global_new2' ]
+            'keys' => ['new1', 'new2'],
+            'global_keys' => ['global_new1', 'global_new2']
           }
-        }
+        end
 
-        let(:created_binary_key_names) {
+        let(:created_binary_key_names) do
           # Hash easily transforms to Hash for kv_test::retrieve::extra_binary_key_list
           {
-            'keys'        => [ 'complex/bin_new1', 'complex/bin_new2' ],
-            'global_keys' => [ 'global_complex/bin_new1', 'global_complex/bin_new2' ]
+            'keys' => ['complex/bin_new1', 'complex/bin_new2'],
+            'global_keys' => ['global_complex/bin_new1', 'global_complex/bin_new2']
           }
-        }
+        end
 
-        let(:created_keys_env) {
-          extra_keys, extra_list = create_key_info(created_key_names['keys'],
-            created_binary_key_names['keys'], env, backend)
+        let(:created_keys_env) do
+          extra_keys, = create_key_info(created_key_names['keys'],
+                                        created_binary_key_names['keys'], env, backend)
           extra_keys
-        }
+        end
 
-        let(:created_keys_global) {
-          extra_keys, extra_list = create_key_info(created_key_names['global_keys'],
-            created_binary_key_names['global_keys'], nil, backend)
+        let(:created_keys_global) do
+          extra_keys, = create_key_info(created_key_names['global_keys'],
+                                        created_binary_key_names['global_keys'], nil, backend)
           extra_keys
-        }
+        end
 
-        let(:updated_list_env) {
+        let(:updated_list_env) do
           list = change_key_info(
-            detailed_kv_list_results("#{backend} #{env}", false))
+            detailed_kv_list_results("#{backend} #{env}", false),
+          )
 
-          extra_keys, extra_list = create_key_info(created_key_names['keys'],
-            created_binary_key_names['keys'], env, backend)
+          _, extra_list = create_key_info(created_key_names['keys'],
+                                          created_binary_key_names['keys'], env, backend)
           list.deep_merge!(extra_list)
           list
-        }
+        end
 
-        let(:updated_list_global) {
+        let(:updated_list_global) do
           list = change_key_info(
-            detailed_kv_list_results("#{backend} global", true))
-          extra_keys, extra_list = create_key_info(created_key_names['global_keys'],
-            created_binary_key_names['global_keys'], nil, backend)
+            detailed_kv_list_results("#{backend} global", true),
+          )
+          _, extra_list = create_key_info(created_key_names['global_keys'],
+                                          created_binary_key_names['global_keys'], nil, backend)
           list.deep_merge!(extra_list)
           list
-        }
+        end
 
         let(:out_root_path) { "/var/kv_test_out/#{backend}" }
 
-        include_examples 'workaround beaker ssh session closures', hosts
-        include_examples 'kv put create operation test', host, env, backend_opt
-        include_examples 'kv use created/modified keys test', host, env, backend
+        it_behaves_like 'workaround beaker ssh session closures', hosts
+        it_behaves_like 'kv put create operation test', host, env, backend_opt
+        it_behaves_like 'kv use created/modified keys test', host, env, backend
       end
     end
   end

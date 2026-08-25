@@ -1,12 +1,13 @@
+# frozen_string_literal: true
+
 require 'simp/cli'
 
 describe 'Simp::Cli::Command::Kv' do
-
   before(:each) do
     @kv = Simp::Cli::Commands::Kv.new
   end
 
-  context '#run' do
+  describe '#run' do
     context 'help' do
       it 'prints help message' do
         options_help = <<~EOM
@@ -33,16 +34,16 @@ describe 'Simp::Cli::Command::Kv' do
 
         EOM
 
-        expect{ @kv.run(['-h']) }.to output(options_help).to_stdout
+        expect { @kv.run(['-h']) }.to output(options_help).to_stdout
       end
     end
 
     context 'sub-commands' do
       it 'fails when sub-command is invalid' do
-        expect{ @kv.run(['oops_command', '-h']) }.to raise_error(
-          /ERROR: Did not recognize sub\-command 'oops_command \-h'/)
+        expect { @kv.run(['oops_command', '-h']) }.to raise_error(
+          %r{ERROR: Did not recognize sub-command 'oops_command -h'},
+        )
       end
     end
   end
-
 end

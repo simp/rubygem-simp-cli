@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/logging'
 require_relative 'items'
 
@@ -7,40 +9,38 @@ require_relative 'items'
 # by default, but can be automated.
 #
 class Simp::Cli::Config::Questionnaire
-
   include Simp::Cli::Logging
 
-  def initialize( options = {} )
+  def initialize(options = {})
     @options = {
-     :force_defaults => false,
-     :allow_queries  => true,
-     :user_overrides => false
-    }.merge( options )
+      :force_defaults => false,
+      :allow_queries => true,
+      :user_overrides => false
+    }.merge(options)
   end
-
 
   # processes an Array of Config::Items and returns a hash of Config::Item
   # answers in which the key is the Item's key and the value is the Item
   # itself
-  def process( item_queue=[], answers={} )
+  def process(item_queue = [], answers = {})
     # gather all input, execute immediate actions, and queue up all other actions
     deferred_queue = []
-    answers = process_pass1( item_queue, answers, deferred_queue )
+    answers = process_pass1(item_queue, answers, deferred_queue)
 
     # execute deferred actions
     process_pass2(deferred_queue, answers)
     answers
   end
 
-  def process_pass1( item_queue, answers, deferred_queue )
-    if item = item_queue.shift
+  def process_pass1(item_queue, answers, deferred_queue)
+    if (item = item_queue.shift)
       item.config_items = answers
       deferred_item = process_item(item)
       if deferred_item
         deferred_queue << deferred_item
       else
         # add (or replace) this item's answer to the answers list
-        answers[ item.key ] = item
+        answers[item.key] = item
       end
 
       # add any next_items to the queue
@@ -53,20 +53,20 @@ class Simp::Cli::Config::Questionnaire
   end
 
   def process_pass2(deferred_queue, answers)
-    logger.notice( "\n#{'='*80}\n" )
+    logger.notice("\n#{'=' * 80}\n")
     if @options[:allow_queries] && !(
         @options[:dry_run] || @options[:user_overrides] || @options[:force_defaults]
-    )
+      )
       # space at end of question tells HighLine to remain on the prompt line
       # when gathering user input
       logger.notice("Questionnaire is now finished.\n".green)
-      logger.notice( 'Time to apply the remaining pre-bootstrap configuration.')
+      logger.notice('Time to apply the remaining pre-bootstrap configuration.')
       question = 'Ready to apply? (no = exit with session save):'.bold + ' '
-      unless agree( question ) { |q| q.default = 'yes' }
+      unless agree(question) { |q| q.default = 'yes' }
         msg = "Exiting: User terminated processing prior to final pre-bootstrap config apply.\n"
         msg += "   >> You can apply the remaining config the next time you run 'simp config'. <<\n"
         msg += "   >>>>          Enter 'yes' when asked about resuming the session          <<<<"
-        raise Simp::Cli::ProcessingError.new(msg)
+        raise Simp::Cli::ProcessingError, msg
       end
     end
 
@@ -86,10 +86,9 @@ class Simp::Cli::Config::Questionnaire
       process_item(item)
 
       # add (or replace) this item's answer to the answers list
-      answers[ item.key ] = item
+      answers[item.key] = item
     end
   end
-
 
   # process a Config::Item
   # returns the Item if it is an ActionItem that was deferred; otherwise
@@ -97,13 +96,11 @@ class Simp::Cli::Config::Questionnaire
   def process_item(item)
     item.determine_value(@options[:allow_queries], @options[:force_defaults])
     if item.respond_to?(:safe_apply)
-      if item.defer_apply
-        return item
-      else
-        item.safe_apply
-      end
+      return item if item.defer_apply
+
+      item.safe_apply
+
     end
     nil
   end
-
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/data/cli_simp_scenario'
 require 'fileutils'
 require_relative '../spec_helper'
@@ -6,7 +8,7 @@ describe Simp::Cli::Config::Item::CliSimpScenario do
   before :each do
     env_files_dir = File.expand_path('../../../commands/files', __dir__)
 
-    @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
+    @tmp_dir = Dir.mktmpdir(File.basename(__FILE__))
     FileUtils.cp_r(File.join(env_files_dir, 'environments', 'simp'), @tmp_dir)
     @puppet_env_dir = File.join(@tmp_dir, 'simp')
 
@@ -14,55 +16,53 @@ describe Simp::Cli::Config::Item::CliSimpScenario do
       :puppet_env_dir => @puppet_env_dir
     }
 
-    @ci = Simp::Cli::Config::Item::CliSimpScenario.new(puppet_env_info)
+    @ci = described_class.new(puppet_env_info)
   end
 
   after :each do
     FileUtils.remove_entry_secure @tmp_dir
   end
 
-  context '#recommended_value' do
+  describe '#recommended_value' do
     it "returns 'simp'" do
-      expect( @ci.recommended_value ).to eq('simp')
+      expect(@ci.recommended_value).to eq('simp')
     end
   end
 
-  context '#os_value' do
-
+  describe '#os_value' do
     it 'returns value in site.pp' do
-      expect( @ci.os_value ).to eq('simp')
+      expect(@ci.os_value).to eq('simp')
     end
 
     it 'returns nil when site.pp does not exist' do
       FileUtils.rm_rf(File.join(@puppet_env_dir, 'manifests'))
-      expect( @ci.os_value ).to eq nil
+      expect(@ci.os_value).to be_nil
     end
-
   end
 
-  context '#to_yaml_s custom behavior' do
+  describe '#to_yaml_s custom behavior' do
     it 'never returns auto warning message' do
       auto_warning = @ci.auto_warning
-      expect( @ci.to_yaml_s(false) ).to_not match(/#{auto_warning}/)
-      expect( @ci.to_yaml_s(true) ).to_not match(/#{auto_warning}/)
+      expect(@ci.to_yaml_s(false)).not_to match(%r{#{auto_warning}})
+      expect(@ci.to_yaml_s(true)).not_to match(%r{#{auto_warning}})
     end
   end
 
-  context '#validate' do
+  describe '#validate' do
     it "validates 'simp'" do
-      expect( @ci.validate('simp') ).to eq true
+      expect(@ci.validate('simp')).to be true
     end
 
     it "validates 'simp_lite'" do
-      expect( @ci.validate('simp_lite') ).to eq true
+      expect(@ci.validate('simp_lite')).to be true
     end
 
     it "validates 'poss'" do
-      expect( @ci.validate('poss') ).to eq true
+      expect(@ci.validate('poss')).to be true
     end
 
     it 'rejects invalid scenario names' do
-      expect( @ci.validate('pss') ).to eq false
+      expect(@ci.validate('pss')).to be false
     end
   end
 

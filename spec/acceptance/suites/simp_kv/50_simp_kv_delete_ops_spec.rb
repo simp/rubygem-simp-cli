@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper_acceptance'
 require 'json'
 
@@ -10,7 +12,7 @@ describe 'simp kv delete operations' do
   # TODO Generate these existing key lists based on initial_key_info() and
   #      initial_binary_key_info(), which contain the list of initial
   #      keys persisted
-  let(:keys_env) { [ 'boolean', 'string', 'complex/hash'] }
+  let(:keys_env) { ['boolean', 'string', 'complex/hash'] }
   let(:keys_global) { ['global_float', 'global_complex/array_integers'] }
 
   # In the test set up, production and dev Puppet envs both share the same
@@ -19,34 +21,33 @@ describe 'simp kv delete operations' do
   # via the production env, only, and apply changes to the custom backend via
   # the dev environment, only.
   #
-  [ [ 'production', 'default', ''                 ],
-    [ 'dev',        'custom',  '--backend custom' ]
-  ].each do |env, backend, backend_opt|
+  [['production', 'default', ''],
+   ['dev', 'custom', '--backend custom']].each do |env, backend, backend_opt|
     hosts.each do |host|
-      include_examples 'workaround beaker ssh session closures', hosts
+      it_behaves_like 'workaround beaker ssh session closures', hosts
 
-      it "should delete #{env} env keys from #{backend} backend on #{host}" do
-        cmd = "umask 0077; simp kv delete #{keys_env.join(',')} -e #{env} "\
+      it "deletes #{env} env keys from #{backend} backend on #{host}" do
+        cmd = "umask 0077; simp kv delete #{keys_env.join(',')} -e #{env} " \
               "#{backend_opt} --force"
         on(host, cmd)
 
-        expected = keys_env.map {|key| [ key, 'absent' ] }.to_h
-        cmd = "umask 0077; simp kv exists #{keys_env.join(',')} -e #{env} "\
+        expected = keys_env.to_h { |key| [key, 'absent'] }
+        cmd = "umask 0077; simp kv exists #{keys_env.join(',')} -e #{env} " \
               "#{backend_opt} -o #{outfile}"
         result = run_and_load_json(host, cmd, outfile)
-        expect( result ).to eq(expected)
+        expect(result).to eq(expected)
       end
 
-      it "should delete global keys from #{backend} backend on #{host}" do
-        cmd = "umask 0077; simp kv delete #{keys_global.join(',')} --global "\
+      it "deletes global keys from #{backend} backend on #{host}" do
+        cmd = "umask 0077; simp kv delete #{keys_global.join(',')} --global " \
               "-e #{env} #{backend_opt} --force"
         on(host, cmd)
 
-        expected = keys_global.map {|key| [ key, 'absent' ] }.to_h
-        cmd = "umask 0077; simp kv exists #{keys_global.join(',')} --global "\
+        expected = keys_global.to_h { |key| [key, 'absent'] }
+        cmd = "umask 0077; simp kv exists #{keys_global.join(',')} --global " \
               "-e #{env} #{backend_opt} -o #{outfile}"
         result = run_and_load_json(host, cmd, outfile)
-        expect( result ).to eq(expected)
+        expect(result).to eq(expected)
       end
     end
   end

@@ -1,21 +1,22 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/passgen/command_common'
 
 class Simp::Cli::Commands::Passgen::Show < Simp::Cli::Commands::Command
-
   include Simp::Cli::Passgen::CommandCommon
 
-  DEFAULT_DETAILS = false  # whether to print out all available password info
+  DEFAULT_DETAILS = false # whether to print out all available password info
 
   def initialize
     @opts = {
-      :env          => DEFAULT_PUPPET_ENVIRONMENT,
-      :backend      => nil, # simpkv backend
-      :details      => DEFAULT_DETAILS,
-      :folder       => nil, # passgen sub-folder in simpkv
-      :names        => [],  # names of passwords to show
+      :env => DEFAULT_PUPPET_ENVIRONMENT,
+      :backend => nil, # simpkv backend
+      :details => DEFAULT_DETAILS,
+      :folder => nil, # passgen sub-folder in simpkv
+      :names => [], # names of passwords to show
       :password_dir => nil, # fully qualified path to a legacy passgen dir
-      :verbose      => 0    # Verbosity of console output:
+      :verbose => 0 # Verbosity of console output:
       #                        -1 = ERROR  and above
       #                         0 = NOTICE and above
       #                         1 = INFO   and above
@@ -33,7 +34,7 @@ class Simp::Cli::Commands::Passgen::Show < Simp::Cli::Commands::Command
   end
 
   def help
-    parse_command_line( [ '--help' ] )
+    parse_command_line(['--help'])
   end
 
   # @param args Command line options
@@ -47,10 +48,10 @@ class Simp::Cli::Commands::Passgen::Show < Simp::Cli::Commands::Command
     # space at end tells logger to omit <CR>, so spinner+done are on same line
     logger.notice("Initializing for environment '#{@opts[:env]}'... ")
     manager = nil
-    Simp::Cli::Utils::show_wait_spinner {
+    Simp::Cli::Utils.show_wait_spinner do
       # construct the correct manager to do the work based on simplib version
       manager = get_password_manager(@opts)
-    }
+    end
     logger.notice('done.')
 
     show_password_info(manager, @opts[:names], @opts[:details])
@@ -103,7 +104,7 @@ class Simp::Cli::Commands::Passgen::Show < Simp::Cli::Commands::Command
 
         unless info['metadata']['history'].empty?
           lines << '  History:'
-          info['metadata']['history'].each do |password,salt|
+          info['metadata']['history'].each do |password, salt|
             lines << "    Password: #{password}"
             lines << "    Salt:     #{salt}"
           end
@@ -126,7 +127,6 @@ class Simp::Cli::Commands::Passgen::Show < Simp::Cli::Commands::Command
       format_brief_results(results)
     end
   end
-
 
   # @param args Command line arguments
   #
@@ -202,13 +202,13 @@ class Simp::Cli::Commands::Passgen::Show < Simp::Cli::Commands::Command
 
     remaining_args = opt_parser.parse!(args)
 
-    unless @help_requested
-      if remaining_args.empty?
-        err_msg = 'Password names are missing from command line'
-        raise Simp::Cli::ProcessingError, err_msg
-      else
-        @opts[:names] = remaining_args[0].split(',').sort
-      end
+    return if @help_requested
+
+    if remaining_args.empty?
+      err_msg = 'Password names are missing from command line'
+      raise Simp::Cli::ProcessingError, err_msg
+    else
+      @opts[:names] = remaining_args[0].split(',').sort
     end
   end
 
@@ -229,17 +229,17 @@ class Simp::Cli::Commands::Passgen::Show < Simp::Cli::Commands::Command
     logger.notice('Retrieving password information... ')
     results = {}
     errors = []
-    Simp::Cli::Utils::show_wait_spinner {
+    Simp::Cli::Utils.show_wait_spinner do
       names.each do |name|
         begin
           info = manager.password_info(name)
-          results [ name ] = info
+          results[name] = info
         rescue Exception => e
-          results [ name ] = :skipped
+          results[name] = :skipped
           errors << "'#{name}': #{e}"
         end
       end
-    }
+    end
     logger.notice('done.')
 
     formatted_results = format_results(results, details)
@@ -247,13 +247,13 @@ class Simp::Cli::Commands::Passgen::Show < Simp::Cli::Commands::Command
     logger.say("\n")
     title = "#{manager.location} Passwords"
     logger.say(title)
-    logger.say('='*title.length)
+    logger.say('=' * title.length)
     logger.say(formatted_results)
 
-    unless errors.empty?
-      err_msg = "Failed to retrieve #{errors.length} out of #{names.length}" +
-        " passwords in #{manager.location}:\n  #{errors.join("\n  ")}"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    return if errors.empty?
+
+    err_msg = "Failed to retrieve #{errors.length} out of #{names.length} " \
+              "passwords in #{manager.location}:\n  #{errors.join("\n  ")}"
+    raise Simp::Cli::ProcessingError, err_msg
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../set_server_hieradata_action_item'
 require_relative '../data/simp_openldap_server_conf_rootpw'
 
@@ -7,8 +9,8 @@ class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SetServerOpenldapServerConfigAction < SetServerHieradataActionItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      @hiera_to_add = [ 'simp_openldap::server::conf::rootpw' ]
-      super(puppet_env_info)
+      @hiera_to_add = ['simp_openldap::server::conf::rootpw']
+      super
       @key = 'puppet::set_server_openldap_server_config'
 
       # override with a shorter message

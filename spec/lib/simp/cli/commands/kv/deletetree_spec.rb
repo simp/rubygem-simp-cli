@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/kv'
 require 'simp/cli/commands/kv/deletetree'
 
@@ -10,7 +12,7 @@ describe Simp::Cli::Commands::Kv::Deletetree do
     @output = StringIO.new
     HighLine.default_instance = HighLine.new(@input, @output)
 
-    @kv = Simp::Cli::Commands::Kv::Deletetree.new
+    @kv = described_class.new
   end
 
   after :each do
@@ -20,25 +22,25 @@ describe Simp::Cli::Commands::Kv::Deletetree do
   end
 
   describe '#help' do
-    it 'should print help' do
-      expected_stdout_regex = /#{Simp::Cli::Commands::Kv::Deletetree.description}/
-      expect{ @kv.run(['-h']) }.to output(expected_stdout_regex).to_stdout
+    it 'prints help' do
+      expected_stdout_regex = %r{#{described_class.description}}
+      expect { @kv.run(['-h']) }.to output(expected_stdout_regex).to_stdout
     end
   end
 
   describe '#run' do
-    let(:folders) { [ 'folder1', 'folder2', 'folder3', 'folder4' ] }
+    let(:folders) { ['folder1', 'folder2', 'folder3', 'folder4'] }
     let(:folders_arg) { folders.join(',') }
     let(:default_backend) { 'default' }
     let(:default_env) { 'production' }
 
     context 'default options' do
-      it 'removes folders for default env in default backend when prompt '\
+      it 'removes folders for default env in default backend when prompt ' \
          'returns yes' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_del = object_double('Mock Key Deleter', { :deletetree => nil })
         folders.each do |folder|
-          expect(mock_del).to receive(:deletetree).with(folder,false).and_return(nil)
+          expect(mock_del).to receive(:deletetree).with(folder, false).and_return(nil)
         end
 
         allow(Simp::Cli::Kv::TreeDeleter).to receive(:new)
@@ -59,11 +61,11 @@ describe Simp::Cli::Commands::Kv::Deletetree do
 
         EOM
 
-        @kv.run([ folders_arg ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run([folders_arg])
+        expect(@output.string).to eq(expected_output)
       end
 
-      it 'does not remove folders for default env in default backend when '\
+      it 'does not remove folders for default env in default backend when ' \
          'prompt returns no' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(false)
         mock_del = object_double('Mock Key Deleter', { :deletetree => nil })
@@ -81,21 +83,23 @@ describe Simp::Cli::Commands::Kv::Deletetree do
 
         EOM
 
-        @kv.run([ folders_arg ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run([folders_arg])
+        expect(@output.string).to eq(expected_output)
       end
 
-      it 'removes as many folders as possible and fails with list of folder '\
+      it 'removes as many folders as possible and fails with list of folder ' \
          'remove failures' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_del = object_double('Mock Key Deleter', { :deletetree => nil })
-        expect(mock_del).to receive(:deletetree).with('folder1',false).and_return(nil)
-        expect(mock_del).to receive(:deletetree).with('folder4',false).and_return(nil)
-        expect(mock_del).to receive(:deletetree).with('folder2',false).and_raise(
-          Simp::Cli::ProcessingError, 'Remove failed: folder not found')
+        expect(mock_del).to receive(:deletetree).with('folder1', false).and_return(nil)
+        expect(mock_del).to receive(:deletetree).with('folder4', false).and_return(nil)
+        expect(mock_del).to receive(:deletetree).with('folder2', false).and_raise(
+          Simp::Cli::ProcessingError, 'Remove failed: folder not found'
+        )
 
-        expect(mock_del).to receive(:deletetree).with('folder3',false).and_raise(
-          Simp::Cli::ProcessingError, 'Remove failed: permission denied')
+        expect(mock_del).to receive(:deletetree).with('folder3', false).and_raise(
+          Simp::Cli::ProcessingError, 'Remove failed: permission denied'
+        )
 
         allow(Simp::Cli::Kv::TreeDeleter).to receive(:new)
           .with(default_env, default_backend).and_return(mock_del)
@@ -121,18 +125,18 @@ describe Simp::Cli::Commands::Kv::Deletetree do
             'folder3': Remove failed: permission denied
         EOM
 
-        expect { @kv.run([ folders_arg ]) }
-          .to raise_error( Simp::Cli::ProcessingError,
-          expected_err_msg.strip)
+        expect { @kv.run([folders_arg]) }
+          .to raise_error(Simp::Cli::ProcessingError,
+                          expected_err_msg.strip)
 
-        expect( @output.string ).to eq(expected_stdout)
+        expect(@output.string).to eq(expected_stdout)
       end
     end
 
     context 'custom options' do
       it 'removes folders without prompting when --force' do
         mock_del = object_double('Mock Key Deleter', { :deletetree => nil })
-        expect(mock_del).to receive(:deletetree).with('folder1',false).and_return(nil)
+        expect(mock_del).to receive(:deletetree).with('folder1', false).and_return(nil)
 
         allow(Simp::Cli::Kv::TreeDeleter).to receive(:new)
           .with(default_env, default_backend).and_return(mock_del)
@@ -143,14 +147,14 @@ describe Simp::Cli::Commands::Kv::Deletetree do
 
         EOM
 
-        @kv.run([ 'folder1', '--force' ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['folder1', '--force'])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'removes global folders when --global' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_del = object_double('Mock Key Deleter', { :deletetree => nil })
-        expect(mock_del).to receive(:deletetree).with('folder1',true).and_return(nil)
+        expect(mock_del).to receive(:deletetree).with('folder1', true).and_return(nil)
 
         allow(Simp::Cli::Kv::TreeDeleter).to receive(:new)
           .with(default_env, default_backend).and_return(mock_del)
@@ -161,14 +165,14 @@ describe Simp::Cli::Commands::Kv::Deletetree do
 
         EOM
 
-        @kv.run([ 'folder1', '--global' ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['folder1', '--global'])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'removes folders for backend specified by --backend' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_del = object_double('Mock Key Deleter', { :deletetree => nil })
-        expect(mock_del).to receive(:deletetree).with('folder1',false).and_return(nil)
+        expect(mock_del).to receive(:deletetree).with('folder1', false).and_return(nil)
 
         backend = 'custom_backend'
         allow(Simp::Cli::Kv::TreeDeleter).to receive(:new)
@@ -180,14 +184,14 @@ describe Simp::Cli::Commands::Kv::Deletetree do
 
         EOM
 
-        @kv.run([ 'folder1', '--backend', backend ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['folder1', '--backend', backend])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'removes folders for environment specified by --environment' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_del = object_double('Mock Key Deleter', { :deletetree => nil })
-        expect(mock_del).to receive(:deletetree).with('folder1',false).and_return(nil)
+        expect(mock_del).to receive(:deletetree).with('folder1', false).and_return(nil)
 
         env = 'dev'
         allow(Simp::Cli::Kv::TreeDeleter).to receive(:new)
@@ -199,9 +203,8 @@ describe Simp::Cli::Commands::Kv::Deletetree do
 
         EOM
 
-
-        @kv.run([ 'folder1', '--environment', env ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['folder1', '--environment', env])
+        expect(@output.string).to eq(expected_output)
       end
     end
 
@@ -209,7 +212,8 @@ describe Simp::Cli::Commands::Kv::Deletetree do
       it 'fails if no folders are specified' do
         expect { @kv.run([]) }.to raise_error(
           Simp::Cli::ProcessingError,
-          'Folders to remove are missing from command line')
+          'Folders to remove are missing from command line',
+        )
       end
     end
   end

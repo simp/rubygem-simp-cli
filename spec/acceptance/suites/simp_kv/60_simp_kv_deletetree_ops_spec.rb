@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper_acceptance'
 require 'json'
 
@@ -11,8 +13,8 @@ describe 'simp kv deletetree operations' do
   # TODO Generate these existing folders lists based on initial_key_info() and
   #      initial_binary_key_info(), which contain the list of initial
   #      keys persisted
-  let(:folders_env) { [ 'complex' ] }
-  let(:folders_global) { [ 'global_complex' ] }
+  let(:folders_env) { ['complex'] }
+  let(:folders_global) { ['global_complex'] }
 
   # In the test set up, production and dev Puppet envs both share the same
   # simpkv backends (default and custom).  So, to cleanly test folder removals
@@ -20,35 +22,34 @@ describe 'simp kv deletetree operations' do
   # via the production env, only, and apply changes to the custom backend via
   # the dev environment, only.
   #
-  [ [ 'production', 'default', ''                 ],
-    [ 'dev',        'custom',  '--backend custom' ]
-  ].each do |env, backend, backend_opt|
+  [['production', 'default', ''],
+   ['dev', 'custom', '--backend custom']].each do |env, backend, backend_opt|
     hosts.each do |host|
-      include_examples 'workaround beaker ssh session closures', hosts
+      it_behaves_like 'workaround beaker ssh session closures', hosts
 
-      it "should delete #{env} env folders from #{backend} backend "\
+      it "should delete #{env} env folders from #{backend} backend " \
          "on #{host}" do
-        cmd = "umask 0077; simp kv deletetree #{folders_env.join(',')} "\
+        cmd = "umask 0077; simp kv deletetree #{folders_env.join(',')} " \
               "-e #{env} #{backend_opt} --force"
         on(host, cmd)
 
-        expected = folders_env.map {|key| [ key, 'absent' ] }.to_h
-        cmd = "umask 0077; simp kv exists #{folders_env.join(',')} "\
+        expected = folders_env.to_h { |key| [key, 'absent'] }
+        cmd = "umask 0077; simp kv exists #{folders_env.join(',')} " \
               "-e #{env} #{backend_opt} -o #{outfile}"
         result = run_and_load_json(host, cmd, outfile)
-        expect( result ).to eq(expected)
+        expect(result).to eq(expected)
       end
 
-      it "should delete global folders from #{backend} backend on #{host}" do
-        cmd = "umask 0077; simp kv deletetree #{folders_global.join(',')} "\
+      it "deletes global folders from #{backend} backend on #{host}" do
+        cmd = "umask 0077; simp kv deletetree #{folders_global.join(',')} " \
               "--global -e #{env} #{backend_opt} --force"
         on(host, cmd)
 
-        expected = folders_global.map {|key| [ key, 'absent' ] }.to_h
-        cmd = "umask 0077; simp kv exists #{folders_global.join(',')} "\
+        expected = folders_global.to_h { |key| [key, 'absent'] }
+        cmd = "umask 0077; simp kv exists #{folders_global.join(',')} " \
               "--global -e #{env} #{backend_opt} -o #{outfile}"
         result = run_and_load_json(host, cmd, outfile)
-        expect( result ).to eq(expected)
+        expect(result).to eq(expected)
       end
     end
   end

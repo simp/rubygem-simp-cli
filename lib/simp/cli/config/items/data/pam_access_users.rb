@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require_relative '../item'
 require_relative 'cli_local_priv_user'
 
 module Simp; end
 class Simp::Cli; end
-module Simp::Cli::Config
 
+module Simp::Cli::Config
   # A special Item that never queries because its value is derived
   # from other Items.
   #
@@ -14,7 +16,7 @@ module Simp::Cli::Config
   # enter Hash values as of yet.
   class Item::PamAccessUsers < Item
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'pam::access::users'
       @description = <<~EOM.strip
         PAM remote access rules.
@@ -30,16 +32,24 @@ module Simp::Cli::Config
     end
 
     def get_recommended_value
-      username = get_item( 'cli::local_priv_user' ).value
+      username = get_item('cli::local_priv_user').value
 
       {
-       username => { 'origins' => [ 'ALL' ] }
+        username => { 'origins' => ['ALL'] }
       }
     end
 
     # don't be interactive
-    def query;          nil;   end
-    def validate( x );  true;  end
-    def print_summary;  nil;   end
+    def query
+      nil
+    end
+
+    def validate(_x)
+      true
+    end
+
+    def print_summary
+      nil
+    end
   end
 end

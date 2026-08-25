@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/passgen'
 require 'simp/cli/commands/passgen/envs'
 
@@ -7,17 +9,17 @@ require 'tmpdir'
 
 describe Simp::Cli::Commands::Passgen::Envs do
   before :each do
-    @tmp_dir   = Dir.mktmpdir(File.basename(__FILE__))
+    @tmp_dir = Dir.mktmpdir(File.basename(__FILE__))
     @var_dir = File.join(@tmp_dir, 'vardir')
     @puppet_env_dir = File.join(@tmp_dir, 'environments')
     @user  = Etc.getpwuid(Process.uid).name
     @group = Etc.getgrgid(Process.gid).name
     puppet_info = {
       :config => {
-        'user'            => @user,
-        'group'           => @group,
+        'user' => @user,
+        'group' => @group,
         'environmentpath' => @puppet_env_dir,
-        'vardir'          => @var_dir
+        'vardir' => @var_dir
       }
     }
 
@@ -27,7 +29,7 @@ describe Simp::Cli::Commands::Passgen::Envs do
     HighLine.default_instance = HighLine.new(@input, @output)
 
     allow(Simp::Cli::Utils).to receive(:puppet_info).and_return(puppet_info)
-    @envs = Simp::Cli::Commands::Passgen::Envs.new
+    @envs = described_class.new
 
     # make sure notice and above messages are output
     @envs.set_up_global_logger(0)
@@ -40,7 +42,7 @@ describe Simp::Cli::Commands::Passgen::Envs do
     FileUtils.remove_entry_secure @tmp_dir, true
   end
 
-  let(:module_list_old_simplib) {
+  let(:module_list_old_simplib) do
     <<~EOM
       /etc/puppetlabs/code/environments/production/modules
       ├── puppet-yum (v3.1.1)
@@ -53,36 +55,36 @@ describe Simp::Cli::Commands::Passgen::Envs do
       /etc/puppetlabs/code/modules (no modules installed)
       /opt/puppetlabs/puppet/modules (no modules installed)
     EOM
-  }
+  end
 
-  let(:module_list_new_simplib) {
-    module_list_old_simplib.gsub(/simp-simplib .v3.15.3/,'simp-simplib (v4.0.0)')
-  }
+  let(:module_list_new_simplib) do
+    module_list_old_simplib.gsub(%r{simp-simplib .v3.15.3}, 'simp-simplib (v4.0.0)')
+  end
 
-  let(:module_list_no_simplib) {
+  let(:module_list_no_simplib) do
     list = module_list_old_simplib.dup.split("\n")
     list.delete_if { |line| line.include?('simp-simplib') }
     list.join("\n") + "\n"
-  }
+  end
 
-  let(:missing_deps_warnings) {
+  let(:missing_deps_warnings) do
     <<~EOM
       Warning: Missing dependency 'puppetlabs-apt':
         'puppetlabs-postgresql' (v5.12.1) requires 'puppetlabs-apt' (>= 2.0.0 < 7.0.0)
     EOM
-  }
+  end
 
   #
   # Custom Method Tests
   #
   describe '#find_valid_environments' do
     it 'returns empty hash when Puppet environments dir is missing/inaccessible' do
-      expect( @envs.find_valid_environments ).to eq({})
+      expect(@envs.find_valid_environments).to eq({})
     end
 
     it 'returns empty hash when Puppet environments dir is empty' do
       FileUtils.mkdir_p(@puppet_env_dir)
-      expect( @envs.find_valid_environments ).to eq({})
+      expect(@envs.find_valid_environments).to eq({})
     end
 
     it 'returns empty hash when no Puppet envs have simp-simplib installed' do
@@ -99,13 +101,13 @@ describe Simp::Cli::Commands::Passgen::Envs do
       [
         'puppet module list --color=false --environment=production',
         'puppet module list --color=false --environment=dev',
-        'puppet module list --color=false --environment=test'
+        'puppet module list --color=false --environment=test',
       ].each do |command|
         allow(Simp::Cli::ExecUtils).to receive(:run_command)
           .with(command, false, @envs.logger).and_return(module_list_results)
       end
 
-      expect( @envs.find_valid_environments ).to eq({})
+      expect(@envs.find_valid_environments).to eq({})
     end
 
     it 'returns hash with only Puppet envs that have simp-simplib installed' do
@@ -140,7 +142,7 @@ describe Simp::Cli::Commands::Passgen::Envs do
         .with(command, false, @envs.logger).and_return(module_list_results)
 
       expected = { 'production' => '3.15.3', 'test' => '4.0.0' }
-      expect( @envs.find_valid_environments ).to eq(expected)
+      expect(@envs.find_valid_environments).to eq(expected)
     end
 
     it 'fails if puppet module list command fails' do
@@ -154,22 +156,23 @@ describe Simp::Cli::Commands::Passgen::Envs do
       allow(Simp::Cli::ExecUtils).to receive(:run_command)
         .with(command, false, @envs.logger).and_return(module_list_results)
 
-      expect{ @envs.find_valid_environments }.to raise_error(
+      expect { @envs.find_valid_environments }.to raise_error(
         Simp::Cli::ProcessingError,
-        "Unable to determine simplib version in 'production' environment")
+        "Unable to determine simplib version in 'production' environment",
+      )
     end
   end
 
   describe '#show_environment_list' do
     it 'lists no environments, when no environments exist' do
-      expected_output =<<~EOM
+      expected_output = <<~EOM
         Looking for environments with simp-simplib installed... done.
 
         No environments with simp-simplib installed were found.
 
       EOM
       @envs.show_environment_list
-      expect( @output.string ).to eq(expected_output)
+      expect(@output.string).to eq(expected_output)
     end
 
     it 'lists no environments, when no environments with simp-simplib exist' do
@@ -184,13 +187,13 @@ describe Simp::Cli::Commands::Passgen::Envs do
         .with(command, false, @envs.logger).and_return(module_list_results)
 
       @envs.show_environment_list
-      expected_output =<<~EOM
+      expected_output = <<~EOM
         Looking for environments with simp-simplib installed... done.
 
         No environments with simp-simplib installed were found.
 
       EOM
-      expect( @output.string ).to eq(expected_output)
+      expect(@output.string).to eq(expected_output)
     end
 
     it 'lists available environments with simp-simplib installed' do
@@ -235,7 +238,7 @@ describe Simp::Cli::Commands::Passgen::Envs do
       EOM
 
       @envs.show_environment_list
-      expect( @output.string ).to eq(expected_output)
+      expect(@output.string).to eq(expected_output)
     end
 
     it 'fails if puppet module list command fails' do
@@ -251,7 +254,8 @@ describe Simp::Cli::Commands::Passgen::Envs do
 
       expect { @envs.show_environment_list }.to raise_error(
         Simp::Cli::ProcessingError,
-        "Unable to determine simplib version in 'production' environment")
+        "Unable to determine simplib version in 'production' environment",
+      )
     end
   end
 
@@ -259,9 +263,9 @@ describe Simp::Cli::Commands::Passgen::Envs do
   # Simp::Cli::Commands::Command API methods
   #
   describe '#help' do
-    it 'should print help' do
-      expected_stdout_regex = /#{Simp::Cli::Commands::Passgen::Envs.description}/
-      expect{ @envs.help }.to output(expected_stdout_regex).to_stdout
+    it 'prints help' do
+      expected_stdout_regex = %r{#{described_class.description}}
+      expect { @envs.help }.to output(expected_stdout_regex).to_stdout
     end
   end
 
@@ -309,7 +313,7 @@ describe Simp::Cli::Commands::Passgen::Envs do
       EOM
 
       @envs.run([])
-      expect( @output.string ).to eq(expected_output)
+      expect(@output.string).to eq(expected_output)
     end
   end
 end

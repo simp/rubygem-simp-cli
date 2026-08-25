@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/apply_utils'
 require 'simp/cli/exec_utils'
 require 'simp/cli/kv/operator_base'
@@ -5,16 +7,12 @@ require 'simp/cli/kv/operator_base'
 # Class to delete a folder from a key/value store using the simp-simpkv Puppet
 # module
 class Simp::Cli::Kv::TreeDeleter < Simp::Cli::Kv::OperatorBase
-
   # @param env Puppet environment.  Used to specify the location of non-global
   #   keys/folders in the key/value folder tree as well as where to find the
   #   simpkv backend configuration
   #
   # @param backend Name of key/value store in simpkv configuration
   #
-  def initialize(env, backend)
-    super(env, backend)
-  end
 
   # Remove a folder in the key/value store
   #
@@ -45,14 +43,14 @@ class Simp::Cli::Kv::TreeDeleter < Simp::Cli::Kv::OperatorBase
   #   remove fails
   #
   def delete_folder(folder, global)
-    logger.debug("Removing #{full_store_path(folder, global)} with a "\
-      "puppet apply")
+    logger.debug("Removing #{full_store_path(folder, global)} with a " \
+                 'puppet apply')
 
     args = "'#{folder}', #{simpkv_options(global)}"
     failure_message = "Folder '#{folder}' not found"
     opts = apply_options('Folder delete', failure_message)
 
-    manifest =<<~EOM
+    manifest = <<~EOM
       if simpkv::exists(#{args}) {
         simpkv::deletetree(#{args})
       } else {
@@ -60,6 +58,6 @@ class Simp::Cli::Kv::TreeDeleter < Simp::Cli::Kv::OperatorBase
       }
     EOM
 
-    Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
+    Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
   end
 end

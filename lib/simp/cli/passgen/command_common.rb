@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require 'simp/cli/command_console_logger'
 require 'simp/cli/exec_utils'
 require 'simp/cli/utils'
-
 
 module Simp; end
 class Simp::Cli; end
@@ -11,7 +12,6 @@ module Simp::Cli::Passgen; end
 # Simplib::Cli::Commands::Passgen::* commands
 
 module Simp::Cli::Passgen::CommandCommon
-
   include Simp::Cli::CommandConsoleLogger
 
   DEFAULT_PUPPET_ENVIRONMENT = 'production'
@@ -44,8 +44,8 @@ module Simp::Cli::Passgen::CommandCommon
 
     simplib_version = get_simplib_version(opts[:env])
     if simplib_version.nil?
-      err_msg = "Invalid Puppet environment '#{opts[:env]}': " +
-        'simp-simplib is not installed'
+      err_msg = "Invalid Puppet environment '#{opts[:env]}': " \
+                'simp-simplib is not installed'
 
       raise Simp::Cli::ProcessingError, err_msg
     end
@@ -60,19 +60,19 @@ module Simp::Cli::Passgen::CommandCommon
       # simplib::passgen passwords. Fallback to how these passwords were
       # managed, before.
       manager = Simp::Cli::Passgen::LegacyPasswordManager.new(opts[:env],
-        opts[:password_dir])
+                                                              opts[:password_dir])
     else
       require 'simp/cli/passgen/password_manager'
 
-      logger.info('Using password manager that applies simplib::passgen ' +
-        'functions')
+      logger.info('Using password manager that applies simplib::passgen ' \
+                  'functions')
 
       # This environment has Puppet functions to manage simplib::passgen
       # passwords, whether they are stored in the legacy directory for the
       # environment or in a key/value store via simpkv.  The functions figure
       # out where the passwords are stored and execute appropriate logic.
       manager = Simp::Cli::Passgen::PasswordManager.new(opts[:env],
-       opts[:backend],opts[:folder])
+                                                        opts[:backend], opts[:folder])
     end
 
     manager
@@ -94,7 +94,7 @@ module Simp::Cli::Passgen::CommandCommon
     result = Simp::Cli::ExecUtils.run_command(command, false, logger)
 
     if result[:status]
-      regex = /\s+simp-simplib\s+\(v([0-9]+\.[0-9]+\.[0-9]+)\)/m
+      regex = %r{\s+simp-simplib\s+\(v([0-9]+\.[0-9]+\.[0-9]+)\)}m
       match = result[:stdout].match(regex)
       simplib_version = match[1] unless match.nil?
     else

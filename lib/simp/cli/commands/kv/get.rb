@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/kv/defaults'
 require 'simp/cli/kv/key_retriever'
 require 'simp/cli/kv/reporting'
 
 class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
-
   include Simp::Cli::Kv::Reporting
 
   # @return [String] description of command
@@ -14,11 +15,11 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
 
   def initialize
     @opts = {
-      :env     => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
+      :env => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
       :backend => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
-      :global  => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
+      :global => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
       :outfile => nil,
-      :verbose => 0  # Verbosity of console output:
+      :verbose => 0 # Verbosity of console output:
       #                -1 = ERROR  and above
       #                 0 = NOTICE and above
       #                 1 = INFO   and above
@@ -53,9 +54,9 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
       # space at end tells logger to omit <CR>
       logger.notice("Processing #{entity_description(key, @opts)}... ")
       begin
-        Simp::Cli::Utils::show_wait_spinner {
+        Simp::Cli::Utils.show_wait_spinner do
           results[key] = retriever.get(key, @opts[:global])
-        }
+        end
         logger.notice('done.')
       rescue Exception => e
         logger.notice('done.')
@@ -65,15 +66,15 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
 
     logger.notice
 
-    unless results.empty?  # only empty if all retrievals failed!
+    unless results.empty? # only empty if all retrievals failed!
       report_results('key info', results, @opts[:outfile])
     end
 
-    unless errors.empty?
-      err_msg = "Failed to retrieve key info for #{errors.length} out of "\
-        "#{@opts[:keys].length} keys:\n  #{errors.join("\n  ")}"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    return if errors.empty?
+
+    err_msg = "Failed to retrieve key info for #{errors.length} out of " \
+              "#{@opts[:keys].length} keys:\n  #{errors.join("\n  ")}"
+    raise Simp::Cli::ProcessingError, err_msg
   end
 
   #####################################################
@@ -146,7 +147,7 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
               'Indicates whether the keys are global',
               '(i.e., is not stored within a simpkv folder',
               'for a Puppet environment).',
-              "Defaults to #{@opts[:global]}." ) do |global|
+              "Defaults to #{@opts[:global]}.") do |global|
         @opts[:global] = global
       end
 
@@ -154,7 +155,7 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
               'Output file to write the JSON result of the',
               'retrieval operation.  When absent the',
               'result will be sent to the console.',
-              'See KEY INFO FORMAT below.' ) do |outfile|
+              'See KEY INFO FORMAT below.') do |outfile|
         @opts[:outfile] = outfile
       end
 
@@ -172,13 +173,13 @@ class Simp::Cli::Commands::Kv::Get < Simp::Cli::Commands::Command
 
     remaining_args = opt_parser.parse(args)
 
-    unless @help_requested
-      if remaining_args.empty?
-        err_msg = 'Keys to retrieve are missing from command line'
-        raise Simp::Cli::ProcessingError, err_msg
-      else
-        @opts[:keys] = remaining_args[0].split(',')
-      end
+    return if @help_requested
+
+    if remaining_args.empty?
+      err_msg = 'Keys to retrieve are missing from command line'
+      raise Simp::Cli::ProcessingError, err_msg
+    else
+      @opts[:keys] = remaining_args[0].split(',')
     end
   end
 end

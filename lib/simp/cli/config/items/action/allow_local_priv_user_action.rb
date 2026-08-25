@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../set_server_hieradata_action_item'
 require_relative '../data/cli_local_priv_user'
 require_relative '../data/pam_access_users'
@@ -13,21 +15,21 @@ module Simp::Cli::Config
       @hiera_to_add = [
         'pam::access::users',
         'selinux::login_resources',
-        'sudo::user_specifications'
+        'sudo::user_specifications',
       ]
-      super(puppet_env_info)
+      super
       @key = 'puppet::allow_local_priv_user'
 
       # override base description with a more informative message
       @description = 'Allow ssh & sudo access to local user in SIMP server <host>.yaml'
 
-      @merge_value = true  # all Items have Hash values and we want to add to
-                           # existing Hashes with a shallow merge
+      @merge_value = true # all Items have Hash values and we want to add to
+      # existing Hashes with a shallow merge
     end
 
     # override base apply_summary with a more informative message
     def apply_summary
-      username = get_item( 'cli::local_priv_user' ).value
+      username = get_item('cli::local_priv_user').value
       file = @file ? File.basename(@file) : 'SIMP server <host>.yaml'
       "Configuring ssh & sudo for local user '#{username}' in #{file} #{@applied_status}"
     end

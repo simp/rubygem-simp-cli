@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/kv/defaults'
 require 'simp/cli/kv/key_storer'
@@ -7,16 +9,15 @@ require 'simp/cli/utils'
 require 'json'
 
 class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
-
   include Simp::Cli::Kv::Reporting
 
   def initialize
     @opts = {
-      :env     => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
+      :env => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
       :backend => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
-      :global  => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
-      :force   => Simp::Cli::Kv::DEFAULT_FORCE,
-      :verbose => 0  # Verbosity of console output:
+      :global => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
+      :force => Simp::Cli::Kv::DEFAULT_FORCE,
+      :verbose => 0 # Verbosity of console output:
       #                -1 = ERROR  and above
       #                 0 = NOTICE and above
       #                 1 = INFO   and above
@@ -53,21 +54,21 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
     storer = Simp::Cli::Kv::KeyStorer.new(@opts[:env], @opts[:backend])
 
     errors = []
-    @opts[:keys].each do |key,info|
+    @opts[:keys].each do |key, info|
       set = @opts[:force]
       unless @opts[:force]
         prompt = "Are you sure you want to set key '#{key}'?".bold
-        set = Simp::Cli::Utils::yes_or_no(prompt, false)
+        set = Simp::Cli::Utils.yes_or_no(prompt, false)
       end
 
       if set
         # space at end tells logger to omit <CR>
         logger.notice("Processing #{entity_description(key, @opts)}... ")
         begin
-          Simp::Cli::Utils::show_wait_spinner {
+          Simp::Cli::Utils.show_wait_spinner do
             storer.put(key, info['value'], info['metadata'],
-              binary_value?(info), @opts[:global])
-          }
+                       binary_value?(info), @opts[:global])
+          end
           logger.notice('done.')
           logger.notice("  Set '#{key}'")
         rescue Exception => e
@@ -82,11 +83,11 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
       logger.notice
     end
 
-    unless errors.empty?
-      err_msg = "Failed to set #{errors.length} out of "\
-        "#{@opts[:keys].length} keys:\n  #{errors.join("\n  ")}"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    return if errors.empty?
+
+    err_msg = "Failed to set #{errors.length} out of " \
+              "#{@opts[:keys].length} keys:\n  #{errors.join("\n  ")}"
+    raise Simp::Cli::ProcessingError, err_msg
   end
 
   #####################################################
@@ -94,11 +95,9 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
   #####################################################
   #
   def binary_value?(key_info)
-    (
-      key_info.key?('encoding') &&
+    key_info.key?('encoding') &&
       key_info.key?('original_encoding') &&
       key_info['value'].is_a?(String)
-    )
   end
 
   # extracts the value and metadata for each key from the JSON input
@@ -138,9 +137,9 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
       raise Simp::Cli::ProcessingError, 'No keys specified in JSON'
     end
 
-    in_hash.each do |key,info|
+    in_hash.each do |key, info|
       begin
-        Simp::Cli::Kv::InfoValidator::validate_key_info(key, info)
+        Simp::Cli::Kv::InfoValidator.validate_key_info(key, info)
       rescue Simp::Cli::ProcessingError => e
         err_msg = "Malformed JSON: #{e}"
         raise Simp::Cli::ProcessingError, err_msg
@@ -232,7 +231,7 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
               'Indicates whether the key is global',
               '(i.e., is not stored within a simpkv folder',
               'for a Puppet environment).',
-              "Defaults to #{@opts[:global]}." ) do |global|
+              "Defaults to #{@opts[:global]}.") do |global|
         @opts[:global] = global
       end
 
@@ -241,7 +240,7 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
               'representation of the key info to be',
               'persisted in the store. --infile and --json',
               'are mutually exclusive.',
-              'See INPUT FORMAT below.' ) do |infile|
+              'See INPUT FORMAT below.') do |infile|
         @opts[:infile] = infile
       end
 
@@ -249,7 +248,7 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
               'JSON representation of the key info to be',
               'persisted in the store. --infile and --json',
               'are mutually exclusive.',
-              'See INPUT FORMAT below.' ) do |jsonstring|
+              'See INPUT FORMAT below.') do |jsonstring|
         @opts[:jsonstring] = jsonstring
       end
 
@@ -280,13 +279,12 @@ class Simp::Cli::Commands::Kv::Put < Simp::Cli::Commands::Command
       INPUT_FORMAT
     end
 
-    remaining_args = opt_parser.parse(args)
+    opt_parser.parse(args)
 
-    unless @help_requested
-      if @opts.key?(:infile) && @opts.key?(:jsonstring)
-        err_msg = '--infile and --json are mutually exclusive'
-        raise Simp::Cli::ProcessingError, err_msg
-      end
-    end
+    return if @help_requested
+    return unless @opts.key?(:infile) && @opts.key?(:jsonstring)
+
+    err_msg = '--infile and --json are mutually exclusive'
+    raise Simp::Cli::ProcessingError, err_msg
   end
 end

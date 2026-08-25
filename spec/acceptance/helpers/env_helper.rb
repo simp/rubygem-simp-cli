@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module Acceptance; end
 module Acceptance::Helpers; end
-module Acceptance::Helpers::EnvHelper
 
+module Acceptance::Helpers::EnvHelper
   # @param host Host object on which environment will be created
   # @param opts Options Hash with the following keys:
   #   :env = Puppet environment name
@@ -20,7 +22,7 @@ module Acceptance::Helpers::EnvHelper
     end
 
     default_yaml_filename =  File.join(opts[:envs_dir], opts[:env], 'data',
-      'default.yaml')
+                                       'default.yaml')
     create_remote_file(host, default_yaml_filename, opts[:hieradata].to_yaml)
 
     # Remove includes for simp_options, simp, and compliance_markup

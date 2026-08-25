@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative 'errors'
 require 'yaml'
 
@@ -7,9 +9,7 @@ module Simp::Cli::Config; end
 
 # Builds an Item configuration tree for a scenario
 class Simp::Cli::Config::ItemsYamlGenerator
-
-
-  def initialize(scenario, scenarios_dir=File.join(__dir__, 'scenarios'))
+  def initialize(scenario, scenarios_dir = File.join(__dir__, 'scenarios'))
     @scenario = scenario
     @scenarios_dir = scenarios_dir
   end
@@ -33,10 +33,10 @@ class Simp::Cli::Config::ItemsYamlGenerator
       part_file = File.join(@scenarios_dir, 'parts', part_name)
       unless File.exist?(part_file)
         err_msg = "Cannot find '#{part_name}' include for '#{@scenario}' scenario"
-        raise Simp::Cli::Config::InternalError.new(err_msg)
+        raise Simp::Cli::Config::InternalError, err_msg
       end
 
-      part_yaml = IO.read(part_file)
+      part_yaml = File.read(part_file)
       part_yaml = make_substitutions(part_yaml, substitutions) unless substitutions.empty?
       yaml += part_yaml + "\n"
     end
@@ -45,29 +45,27 @@ class Simp::Cli::Config::ItemsYamlGenerator
 
   def load_scenario_items_yaml
     scenario_items_file = File.join(@scenarios_dir, "#{@scenario}_items.yaml")
-    if File.exist?(scenario_items_file)
-      scenario_yaml  = IO.read(scenario_items_file)
-    else
-      raise Simp::Cli::Config::ValidationError.new("ERROR: Unsupported scenario '#{@scenario}'")
-    end
+    raise Simp::Cli::Config::ValidationError, "ERROR: Unsupported scenario '#{@scenario}'" unless File.exist?(scenario_items_file)
+
+    scenario_yaml = File.read(scenario_items_file)
 
     begin
       scenario_items_hash = YAML.load scenario_yaml
     rescue Psych::SyntaxError => e
-      $stderr.puts "Invalid '#{@scenario} 'scenario Items YAML: #{e.message}"
-      raise Simp::Cli::Config::InternalError.new("Invalid Items list YAML for '#{@scenario}' scenario")
+      warn "Invalid '#{@scenario} 'scenario Items YAML: #{e.message}"
+      raise Simp::Cli::Config::InternalError, "Invalid Items list YAML for '#{@scenario}' scenario"
     end
 
     unless scenario_items_hash['name']
-      raise Simp::Cli::Config::InternalError.new("#{scenario_items_file} missing 'name'")
+      raise Simp::Cli::Config::InternalError, "#{scenario_items_file} missing 'name'"
     end
 
     unless scenario_items_hash['description']
-      raise Simp::Cli::Config::InternalError.new("#{scenario_items_file} missing 'description'")
+      raise Simp::Cli::Config::InternalError, "#{scenario_items_file} missing 'description'"
     end
 
     unless scenario_items_hash['includes']
-      raise Simp::Cli::Config::InternalError.new("#{scenario_items_file} missing 'includes'")
+      raise Simp::Cli::Config::InternalError, "#{scenario_items_file} missing 'includes'"
     end
 
     scenario_items_hash
@@ -79,6 +77,6 @@ class Simp::Cli::Config::ItemsYamlGenerator
       key = sub_hash.keys[0]
       new_yaml.gsub!("%#{key}%", sub_hash[key])
     end
-    return new_yaml
+    new_yaml
   end
 end

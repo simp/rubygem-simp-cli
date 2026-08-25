@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/kv'
 require 'simp/cli/commands/kv/exists'
 
@@ -11,7 +13,7 @@ describe Simp::Cli::Commands::Kv::Exists do
     @output = StringIO.new
     HighLine.default_instance = HighLine.new(@input, @output)
 
-    @kv = Simp::Cli::Commands::Kv::Exists.new
+    @kv = described_class.new
   end
 
   after :each do
@@ -21,14 +23,14 @@ describe Simp::Cli::Commands::Kv::Exists do
   end
 
   describe '#help' do
-    it 'should print help' do
-      expected_stdout_regex = /#{Simp::Cli::Commands::Kv::Exists.description}/
-      expect{ @kv.run(['-h']) }.to output(expected_stdout_regex).to_stdout
+    it 'prints help' do
+      expected_stdout_regex = %r{#{described_class.description}}
+      expect { @kv.run(['-h']) }.to output(expected_stdout_regex).to_stdout
     end
   end
 
   describe '#run' do
-    let(:entities) { [ 'key1', 'key2', 'folder1', 'folder2' ] }
+    let(:entities) { ['key1', 'key2', 'folder1', 'folder2'] }
     let(:entities_arg) { entities.join(',') }
     let(:default_backend) { 'default' }
     let(:default_env) { 'production' }
@@ -36,10 +38,10 @@ describe Simp::Cli::Commands::Kv::Exists do
     context 'default options' do
       it 'checks folders/keys for default env in default backend' do
         mock_ckr = object_double('Mock Existence Checker', { :exists => nil })
-        expect(mock_ckr).to receive(:exists).with('key1',false).and_return(false)
-        expect(mock_ckr).to receive(:exists).with('key2',false).and_return(true)
-        expect(mock_ckr).to receive(:exists).with('folder1',false).and_return(true)
-        expect(mock_ckr).to receive(:exists).with('folder2',false).and_return(false)
+        expect(mock_ckr).to receive(:exists).with('key1', false).and_return(false)
+        expect(mock_ckr).to receive(:exists).with('key2', false).and_return(true)
+        expect(mock_ckr).to receive(:exists).with('folder1', false).and_return(true)
+        expect(mock_ckr).to receive(:exists).with('folder2', false).and_return(false)
 
         allow(Simp::Cli::Kv::EntityChecker).to receive(:new)
           .with(default_env, default_backend).and_return(mock_ckr)
@@ -58,20 +60,22 @@ describe Simp::Cli::Commands::Kv::Exists do
           }
         EOM
 
-        @kv.run([ entities_arg ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run([entities_arg])
+        expect(@output.string).to eq(expected_output)
       end
 
-      it 'checks as many folders/keys as possible and fails with list of '\
+      it 'checks as many folders/keys as possible and fails with list of ' \
          'folder/key failures' do
         mock_ckr = object_double('Mock Existence Checker', { :exists => nil })
-        expect(mock_ckr).to receive(:exists).with('key1',false).and_return(true)
-        expect(mock_ckr).to receive(:exists).with('folder2',false).and_return(false)
-        expect(mock_ckr).to receive(:exists).with('key2',false).and_raise(
-          Simp::Cli::ProcessingError, 'Check failed: server busy')
+        expect(mock_ckr).to receive(:exists).with('key1', false).and_return(true)
+        expect(mock_ckr).to receive(:exists).with('folder2', false).and_return(false)
+        expect(mock_ckr).to receive(:exists).with('key2', false).and_raise(
+          Simp::Cli::ProcessingError, 'Check failed: server busy'
+        )
 
-        expect(mock_ckr).to receive(:exists).with('folder1',false).and_raise(
-          Simp::Cli::ProcessingError, 'Check failed: connection timed out')
+        expect(mock_ckr).to receive(:exists).with('folder1', false).and_raise(
+          Simp::Cli::ProcessingError, 'Check failed: connection timed out'
+        )
 
         allow(Simp::Cli::Kv::EntityChecker).to receive(:new)
           .with(default_env, default_backend).and_return(mock_ckr)
@@ -94,11 +98,11 @@ describe Simp::Cli::Commands::Kv::Exists do
             'folder1': Check failed: connection timed out
         EOM
 
-        expect { @kv.run([ entities_arg ]) }
-          .to raise_error( Simp::Cli::ProcessingError,
-          expected_err_msg.strip)
+        expect { @kv.run([entities_arg]) }
+          .to raise_error(Simp::Cli::ProcessingError,
+                          expected_err_msg.strip)
 
-        expect( @output.string ).to eq(expected_stdout)
+        expect(@output.string).to eq(expected_stdout)
       end
     end
 
@@ -112,7 +116,7 @@ describe Simp::Cli::Commands::Kv::Exists do
       end
 
       before :each do
-        @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
+        @tmp_dir = Dir.mktmpdir(File.basename(__FILE__))
         @outfile = File.join(@tmp_dir, 'status.json')
       end
 
@@ -122,7 +126,7 @@ describe Simp::Cli::Commands::Kv::Exists do
 
       it 'writes check results to file when --outfile' do
         mock_ckr = object_double('Mock Existence Checker', { :exists => nil })
-        expect(mock_ckr).to receive(:exists).with('key1',false).and_return(true)
+        expect(mock_ckr).to receive(:exists).with('key1', false).and_return(true)
         allow(Simp::Cli::Kv::EntityChecker).to receive(:new)
           .with(default_env, default_backend).and_return(mock_ckr)
 
@@ -132,34 +136,30 @@ describe Simp::Cli::Commands::Kv::Exists do
           Output for folder/key existence check written to #{@outfile}
         EOM
 
-        @kv.run([ 'key1', '--outfile', @outfile ])
-        expect( @output.string ).to eq(expected_output)
-        expect( File.read(@outfile) ).to eq(key1_status_json)
+        @kv.run(['key1', '--outfile', @outfile])
+        expect(@output.string).to eq(expected_output)
+        expect(File.read(@outfile)).to eq(key1_status_json)
       end
 
       it 'does not write check results to file when --outfile and all queries fail' do
         mock_ckr = object_double('Mock Existence Checker', { :exists => nil })
-        expect(mock_ckr).to receive(:exists).with('key1',false).and_raise(
-          Simp::Cli::ProcessingError, 'Check failed: server busy')
+        expect(mock_ckr).to receive(:exists).with('key1', false).and_raise(
+          Simp::Cli::ProcessingError, 'Check failed: server busy'
+        )
 
         allow(Simp::Cli::Kv::EntityChecker).to receive(:new)
           .with(default_env, default_backend).and_return(mock_ckr)
 
-        expected_output = <<~EOM
-          Processing 'key1' in 'production' environment... done.
+        expect { @kv.run(['key1', '--outfile', @outfile]) }
+          .to raise_error(Simp::Cli::ProcessingError,
+                          %r{Failed to check existence})
 
-        EOM
-
-        expect { @kv.run([ 'key1', '--outfile', @outfile ]) }
-          .to raise_error( Simp::Cli::ProcessingError,
-          /Failed to check existence/)
-
-        expect( File.exist?(@outfile) ).to be(false)
+        expect(File.exist?(@outfile)).to be(false)
       end
 
       it 'checks for global folders/keys when --global' do
         mock_ckr = object_double('Mock Existence Checker', { :exists => nil })
-        expect(mock_ckr).to receive(:exists).with('key1',true).and_return(true)
+        expect(mock_ckr).to receive(:exists).with('key1', true).and_return(true)
 
         allow(Simp::Cli::Kv::EntityChecker).to receive(:new)
           .with(default_env, default_backend).and_return(mock_ckr)
@@ -170,13 +170,13 @@ describe Simp::Cli::Commands::Kv::Exists do
           #{key1_status_json.strip}
         EOM
 
-        @kv.run([ 'key1', '--global' ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['key1', '--global'])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'checks for folders/keys for backend specified by --backend' do
         mock_ckr = object_double('Mock Existence Checker', { :exists => nil })
-        expect(mock_ckr).to receive(:exists).with('key1',false).and_return(true)
+        expect(mock_ckr).to receive(:exists).with('key1', false).and_return(true)
 
         backend = 'custom_backend'
         allow(Simp::Cli::Kv::EntityChecker).to receive(:new)
@@ -188,13 +188,13 @@ describe Simp::Cli::Commands::Kv::Exists do
           #{key1_status_json.strip}
         EOM
 
-        @kv.run([ 'key1', '--backend', backend ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['key1', '--backend', backend])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'checks for folders/keys for environment specified by --environment' do
         mock_ckr = object_double('Mock Existence Checker', { :exists => nil })
-        expect(mock_ckr).to receive(:exists).with('key1',false).and_return(true)
+        expect(mock_ckr).to receive(:exists).with('key1', false).and_return(true)
 
         env = 'dev'
         allow(Simp::Cli::Kv::EntityChecker).to receive(:new)
@@ -206,8 +206,8 @@ describe Simp::Cli::Commands::Kv::Exists do
           #{key1_status_json.strip}
         EOM
 
-        @kv.run([ 'key1', '--environment', env ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['key1', '--environment', env])
+        expect(@output.string).to eq(expected_output)
       end
     end
 
@@ -215,7 +215,8 @@ describe Simp::Cli::Commands::Kv::Exists do
       it 'fails if no folders/keys are specified' do
         expect { @kv.run([]) }.to raise_error(
           Simp::Cli::ProcessingError,
-          'Folders/keys to check are missing from command line')
+          'Folders/keys to check are missing from command line',
+        )
       end
     end
   end

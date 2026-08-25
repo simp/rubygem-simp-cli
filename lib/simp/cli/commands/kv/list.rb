@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/kv/defaults'
 require 'simp/cli/kv/list_retriever'
 require 'simp/cli/kv/reporting'
 
 class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
-
   include Simp::Cli::Kv::Reporting
 
   DEFAULT_BRIEF = true # whether to limit key info listed to key names
@@ -12,11 +13,11 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
   def initialize
     @opts = {
       :backend => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
-      :brief   => DEFAULT_BRIEF,
-      :env     => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
-      :global  => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
+      :brief => DEFAULT_BRIEF,
+      :env => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
+      :global => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
       :outfile => nil,
-      :verbose => 0  # Verbosity of console output:
+      :verbose => 0 # Verbosity of console output:
       #                -1 = ERROR  and above
       #                 0 = NOTICE and above
       #                 1 = INFO   and above
@@ -56,9 +57,9 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
       # space at end tells logger to omit <CR>
       logger.notice("Processing #{entity_description(folder, @opts)}... ")
       begin
-        Simp::Cli::Utils::show_wait_spinner {
+        Simp::Cli::Utils.show_wait_spinner do
           results[folder] = retriever.list(folder, @opts[:global])
-        }
+        end
         logger.notice('done.')
       rescue Exception => e
         logger.notice('done.')
@@ -68,16 +69,16 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
 
     logger.notice
 
-    unless results.empty?  # only empty if all retrievals failed!
+    unless results.empty? # only empty if all retrievals failed!
       final_results = filter_results(results, @opts[:brief])
       report_results('list', final_results, @opts[:outfile])
     end
 
-    unless errors.empty?
-      err_msg = "Failed to retrieve list for #{errors.length} out of "\
-        "#{@opts[:folders].length} folders:\n  #{errors.join("\n  ")}"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    return if errors.empty?
+
+    err_msg = "Failed to retrieve list for #{errors.length} out of " \
+              "#{@opts[:folders].length} folders:\n  #{errors.join("\n  ")}"
+    raise Simp::Cli::ProcessingError, err_msg
   end
 
   #####################################################
@@ -93,9 +94,9 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
   def filter_results(results, brief)
     final_results = {}
     if brief
-      results.each do |folder,list_hash|
+      results.each do |folder, list_hash|
         final_results[folder] = {
-          'keys'    => list_hash['keys'].keys.sort,
+          'keys' => list_hash['keys'].keys.sort,
           'folders' => list_hash['folders']
         }
       end
@@ -184,7 +185,7 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
               'Indicates whether the folders are global',
               '(i.e., is not stored within a simpkv folder',
               'for a Puppet environment).',
-              "Defaults to #{@opts[:global]}." ) do |global|
+              "Defaults to #{@opts[:global]}.") do |global|
         @opts[:global] = global
       end
 
@@ -192,7 +193,7 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
               'Output file to write the JSON result of the',
               'retrieval operation.  When absent the',
               'result will be sent to the console.',
-              'See KEY INFO FORMAT below.' ) do |outfile|
+              'See KEY INFO FORMAT below.') do |outfile|
         @opts[:outfile] = outfile
       end
 
@@ -210,13 +211,13 @@ class Simp::Cli::Commands::Kv::List < Simp::Cli::Commands::Command
 
     remaining_args = opt_parser.parse(args)
 
-    unless @help_requested
-      if remaining_args.empty?
-        err_msg = 'Folders to list are missing from command line'
-        raise Simp::Cli::ProcessingError, err_msg
-      else
-        @opts[:folders] = remaining_args[0].split(',')
-      end
+    return if @help_requested
+
+    if remaining_args.empty?
+      err_msg = 'Folders to list are missing from command line'
+      raise Simp::Cli::ProcessingError, err_msg
+    else
+      @opts[:folders] = remaining_args[0].split(',')
     end
   end
 end

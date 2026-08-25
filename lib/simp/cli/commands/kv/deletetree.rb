@@ -1,19 +1,20 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/kv/defaults'
 require 'simp/cli/kv/tree_deleter'
 require 'simp/cli/kv/reporting'
 
 class Simp::Cli::Commands::Kv::Deletetree < Simp::Cli::Commands::Command
-
   include Simp::Cli::Kv::Reporting
 
   def initialize
     @opts = {
-      :env      => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
-      :backend  => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
-      :global   => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
-      :force    => Simp::Cli::Kv::DEFAULT_FORCE,
-      :verbose  => 0  # Verbosity of console output:
+      :env => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
+      :backend => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
+      :global => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
+      :force => Simp::Cli::Kv::DEFAULT_FORCE,
+      :verbose => 0 # Verbosity of console output:
       #                -1 = ERROR  and above
       #                 0 = NOTICE and above
       #                 1 = INFO   and above
@@ -52,16 +53,16 @@ class Simp::Cli::Commands::Kv::Deletetree < Simp::Cli::Commands::Command
       remove = @opts[:force]
       unless @opts[:force]
         prompt = "Are you sure you want to remove folder '#{folder}'?".bold
-        remove = Simp::Cli::Utils::yes_or_no(prompt, false)
+        remove = Simp::Cli::Utils.yes_or_no(prompt, false)
       end
 
       if remove
         # space at end tells logger to omit <CR>
         logger.notice("Processing #{entity_description(folder, @opts)}... ")
         begin
-          Simp::Cli::Utils::show_wait_spinner {
+          Simp::Cli::Utils.show_wait_spinner do
             deleter.deletetree(folder, @opts[:global])
-          }
+          end
           logger.notice('done.')
           logger.notice("  Removed '#{folder}'")
         rescue Exception => e
@@ -76,12 +77,11 @@ class Simp::Cli::Commands::Kv::Deletetree < Simp::Cli::Commands::Command
       logger.notice
     end
 
-    unless errors.empty?
-      err_msg = "Failed to remove #{errors.length} out of "\
-        "#{@opts[:folders].length} folders:\n  #{errors.join("\n  ")}"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    return if errors.empty?
 
+    err_msg = "Failed to remove #{errors.length} out of " \
+              "#{@opts[:folders].length} folders:\n  #{errors.join("\n  ")}"
+    raise Simp::Cli::ProcessingError, err_msg
   end
 
   #####################################################
@@ -159,7 +159,7 @@ class Simp::Cli::Commands::Kv::Deletetree < Simp::Cli::Commands::Command
               'Indicates whether the folders are global',
               '(i.e., is not stored within a simpkv folder',
               'for a Puppet environment).',
-              "Defaults to #{@opts[:global]}." ) do |global|
+              "Defaults to #{@opts[:global]}.") do |global|
         @opts[:global] = global
       end
 
@@ -174,14 +174,13 @@ class Simp::Cli::Commands::Kv::Deletetree < Simp::Cli::Commands::Command
 
     remaining_args = opt_parser.parse(args)
 
-    unless @help_requested
-      if remaining_args.empty?
-        err_msg = 'Folders to remove are missing from command line'
-        raise Simp::Cli::ProcessingError, err_msg
-      else
-        @opts[:folders] = remaining_args[0].split(',')
-      end
+    return if @help_requested
+
+    if remaining_args.empty?
+      err_msg = 'Folders to remove are missing from command line'
+      raise Simp::Cli::ProcessingError, err_msg
+    else
+      @opts[:folders] = remaining_args[0].split(',')
     end
   end
-
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/kv'
 require 'simp/cli/commands/kv/list'
 
@@ -11,7 +13,7 @@ describe Simp::Cli::Commands::Kv::List do
     @output = StringIO.new
     HighLine.default_instance = HighLine.new(@input, @output)
 
-    @kv = Simp::Cli::Commands::Kv::List.new
+    @kv = described_class.new
   end
 
   after :each do
@@ -21,9 +23,9 @@ describe Simp::Cli::Commands::Kv::List do
   end
 
   describe '#help' do
-    it 'should print help' do
-      expected_stdout_regex = /#{Simp::Cli::Commands::Kv::List.description}/
-      expect{ @kv.run(['-h']) }.to output(expected_stdout_regex).to_stdout
+    it 'prints help' do
+      expected_stdout_regex = %r{#{described_class.description}}
+      expect { @kv.run(['-h']) }.to output(expected_stdout_regex).to_stdout
     end
   end
 
@@ -32,27 +34,27 @@ describe Simp::Cli::Commands::Kv::List do
       {
         'folder1' => {
           'keys' => {
-            'key1_1' => { 'value' => 1, 'metadata' => {}},
-            'key1_2' => { 'value' => true, 'metadata' => { 'foo'=>'bar'}}
+            'key1_1' => { 'value' => 1, 'metadata' => {} },
+            'key1_2' => { 'value' => true, 'metadata' => { 'foo' => 'bar' } }
           },
           'folders' => [
             'sub1_1',
-            'sub1_2'
+            'sub1_2',
           ]
         },
         'folder2' => {
           'keys' => {},
           'folders' => [
             'sub2_1',
-            'sub2_2'
+            'sub2_2',
           ]
         },
         'folder3' => {
           'keys' => {
-            'key3_1' => { 'value' => [ 'hello', 'world'], 'metadata' => {}},
+            'key3_1' => { 'value' => ['hello', 'world'], 'metadata' => {} },
             'key3_2' => {
-              'value'    => { 'x' => 'marks', 'the' => 'spot'},
-              'metadata' => { 'on'=> 'map'}
+              'value' => { 'x' => 'marks', 'the' => 'spot' },
+              'metadata' => { 'on' => 'map' }
             }
           },
           'folders' => []
@@ -60,7 +62,7 @@ describe Simp::Cli::Commands::Kv::List do
         'folder4' => {
           'keys' => {},
           'folders' => []
-        },
+        }
       }
     end
 
@@ -72,7 +74,7 @@ describe Simp::Cli::Commands::Kv::List do
       it 'retrieves folder list for default env in default backend' do
         mock_rtr = object_double('Mock List Retriever', { :list => nil })
         folders_info.each do |folder, list|
-          expect(mock_rtr).to receive(:list).with(folder,false).and_return(list)
+          expect(mock_rtr).to receive(:list).with(folder, false).and_return(list)
         end
 
         allow(Simp::Cli::Kv::ListRetriever).to receive(:new)
@@ -116,24 +118,26 @@ describe Simp::Cli::Commands::Kv::List do
           }
         EOM
 
-        @kv.run([ folders_arg ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run([folders_arg])
+        expect(@output.string).to eq(expected_output)
       end
 
-      it 'retrieves as many folder listings s as possible and fails with list '\
+      it 'retrieves as many folder listings s as possible and fails with list ' \
          'of folder/key failures' do
         mock_rtr = object_double('Mock List Retriever', { :list => nil })
-        expect(mock_rtr).to receive(:list).with('folder1',false)
-          .and_return(folders_info['folder1'])
+        expect(mock_rtr).to receive(:list).with('folder1', false)
+                                          .and_return(folders_info['folder1'])
 
-        expect(mock_rtr).to receive(:list).with('folder4',false)
-          .and_return(folders_info['folder4'])
+        expect(mock_rtr).to receive(:list).with('folder4', false)
+                                          .and_return(folders_info['folder4'])
 
-        expect(mock_rtr).to receive(:list).with('folder2',false).and_raise(
-          Simp::Cli::ProcessingError, 'Check failed: server busy')
+        expect(mock_rtr).to receive(:list).with('folder2', false).and_raise(
+          Simp::Cli::ProcessingError, 'Check failed: server busy'
+        )
 
-        expect(mock_rtr).to receive(:list).with('folder3',false).and_raise(
-          Simp::Cli::ProcessingError, 'Check failed: connection timed out')
+        expect(mock_rtr).to receive(:list).with('folder3', false).and_raise(
+          Simp::Cli::ProcessingError, 'Check failed: connection timed out'
+        )
 
         allow(Simp::Cli::Kv::ListRetriever).to receive(:new)
           .with(default_env, default_backend).and_return(mock_rtr)
@@ -168,11 +172,11 @@ describe Simp::Cli::Commands::Kv::List do
             'folder3': Check failed: connection timed out
         EOM
 
-        expect { @kv.run([ folders_arg ]) }
-          .to raise_error( Simp::Cli::ProcessingError,
-          expected_err_msg.strip)
+        expect { @kv.run([folders_arg]) }
+          .to raise_error(Simp::Cli::ProcessingError,
+                          expected_err_msg.strip)
 
-        expect( @output.string ).to eq(expected_stdout)
+        expect(@output.string).to eq(expected_stdout)
       end
     end
 
@@ -195,7 +199,7 @@ describe Simp::Cli::Commands::Kv::List do
       end
 
       before :each do
-        @tmp_dir = Dir.mktmpdir( File.basename( __FILE__ ) )
+        @tmp_dir = Dir.mktmpdir(File.basename(__FILE__))
         @outfile = File.join(@tmp_dir, 'status.json')
       end
 
@@ -205,8 +209,8 @@ describe Simp::Cli::Commands::Kv::List do
 
       it 'lists full key info when --no-brief' do
         mock_rtr = object_double('Mock List Retriever', { :list => nil })
-        expect(mock_rtr).to receive(:list).with('folder1',false)
-          .and_return(folders_info['folder1'])
+        expect(mock_rtr).to receive(:list).with('folder1', false)
+                                          .and_return(folders_info['folder1'])
 
         allow(Simp::Cli::Kv::ListRetriever).to receive(:new)
           .with(default_env, default_backend).and_return(mock_rtr)
@@ -236,14 +240,14 @@ describe Simp::Cli::Commands::Kv::List do
           }
         EOM
 
-        @kv.run([ 'folder1', '--no-brief'])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['folder1', '--no-brief'])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'writes list results to file when --outfile' do
         mock_rtr = object_double('Mock List Retriever', { :list => nil })
-        expect(mock_rtr).to receive(:list).with('folder1',false)
-          .and_return(folders_info['folder1'])
+        expect(mock_rtr).to receive(:list).with('folder1', false)
+                                          .and_return(folders_info['folder1'])
 
         allow(Simp::Cli::Kv::ListRetriever).to receive(:new)
           .with(default_env, default_backend).and_return(mock_rtr)
@@ -254,35 +258,31 @@ describe Simp::Cli::Commands::Kv::List do
           Output for list written to #{@outfile}
         EOM
 
-        @kv.run([ 'folder1', '--outfile', @outfile ])
-        expect( @output.string ).to eq(expected_output)
-        expect( File.read(@outfile) ).to eq(folder1_info_json)
+        @kv.run(['folder1', '--outfile', @outfile])
+        expect(@output.string).to eq(expected_output)
+        expect(File.read(@outfile)).to eq(folder1_info_json)
       end
 
       it 'does not write list results to file when --outfile and all queries fail' do
         mock_rtr = object_double('Mock List Retriever', { :list => nil })
-        expect(mock_rtr).to receive(:list).with('folder1',false).and_raise(
-          Simp::Cli::ProcessingError, 'Check failed: server busy')
+        expect(mock_rtr).to receive(:list).with('folder1', false).and_raise(
+          Simp::Cli::ProcessingError, 'Check failed: server busy'
+        )
 
         allow(Simp::Cli::Kv::ListRetriever).to receive(:new)
           .with(default_env, default_backend).and_return(mock_rtr)
 
-        expected_output = <<~EOM
-          Processing 'folder1' in 'production' environment... done.
+        expect { @kv.run(['folder1', '--outfile', @outfile]) }
+          .to raise_error(Simp::Cli::ProcessingError,
+                          %r{Failed to retrieve list})
 
-        EOM
-
-        expect { @kv.run([ 'folder1', '--outfile', @outfile ]) }
-          .to raise_error( Simp::Cli::ProcessingError,
-          /Failed to retrieve list/)
-
-        expect( File.exist?(@outfile) ).to be(false)
+        expect(File.exist?(@outfile)).to be(false)
       end
 
       it 'retrieves global folder lists when --global' do
         mock_rtr = object_double('Mock List Retriever', { :list => nil })
-        expect(mock_rtr).to receive(:list).with('folder1',true)
-          .and_return(folders_info['folder1'])
+        expect(mock_rtr).to receive(:list).with('folder1', true)
+                                          .and_return(folders_info['folder1'])
 
         allow(Simp::Cli::Kv::ListRetriever).to receive(:new)
           .with(default_env, default_backend).and_return(mock_rtr)
@@ -293,14 +293,14 @@ describe Simp::Cli::Commands::Kv::List do
           #{folder1_info_json.strip}
         EOM
 
-        @kv.run([ 'folder1', '--global' ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['folder1', '--global'])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'lists folders for backend specified by --backend' do
         mock_rtr = object_double('Mock List Retriever', { :list => nil })
-        expect(mock_rtr).to receive(:list).with('folder1',false)
-          .and_return(folders_info['folder1'])
+        expect(mock_rtr).to receive(:list).with('folder1', false)
+                                          .and_return(folders_info['folder1'])
 
         backend = 'custom_backend'
         allow(Simp::Cli::Kv::ListRetriever).to receive(:new)
@@ -312,14 +312,14 @@ describe Simp::Cli::Commands::Kv::List do
           #{folder1_info_json.strip}
         EOM
 
-        @kv.run([ 'folder1', '--backend', backend ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['folder1', '--backend', backend])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'lists folders for environment specified by --environment' do
         mock_rtr = object_double('Mock List Retriever', { :list => nil })
-        expect(mock_rtr).to receive(:list).with('folder1',false)
-          .and_return(folders_info['folder1'])
+        expect(mock_rtr).to receive(:list).with('folder1', false)
+                                          .and_return(folders_info['folder1'])
 
         env = 'dev'
         allow(Simp::Cli::Kv::ListRetriever).to receive(:new)
@@ -331,8 +331,8 @@ describe Simp::Cli::Commands::Kv::List do
           #{folder1_info_json.strip}
         EOM
 
-        @kv.run([ 'folder1', '--environment', env ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['folder1', '--environment', env])
+        expect(@output.string).to eq(expected_output)
       end
     end
 
@@ -340,7 +340,8 @@ describe Simp::Cli::Commands::Kv::List do
       it 'fails if no folders are specified' do
         expect { @kv.run([]) }.to raise_error(
           Simp::Cli::ProcessingError,
-          'Folders to list are missing from command line')
+          'Folders to list are missing from command line',
+        )
       end
     end
   end

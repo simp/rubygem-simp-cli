@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/defaults'
 require 'simp/cli/environment/omni_env_controller'
 require 'simp/cli/logging'
@@ -9,7 +11,6 @@ module Simp::Cli::Config; end
 
 # Class to encapsulate the nuances unique to a SIMP Puppet environment
 class Simp::Cli::Config::SimpPuppetEnvHelper
-
   include Simp::Cli::Logging
 
   # +env_name+: Puppet environment name
@@ -33,17 +34,17 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
       back_up_puppet_environment(env_info[:puppet_env_dir])
     end
 
-    #TODO read much of this config in from a config file
+    # TODO: read much of this config in from a config file
     omni_options = Simp::Cli::Utils.default_simp_env_config
-    omni_options[:types][:puppet].merge! ({
-      strategy: :skeleton,
-      puppetfile_generate: true,
-      puppetfile_install: true,
-    })
+    omni_options[:types][:puppet].merge!({
+                                           strategy: :skeleton,
+                                           puppetfile_generate: true,
+                                           puppetfile_install: true
+                                         })
     omni_options[:types][:secondary][:strategy] = :skeleton
     omni_options[:types][:writable][:strategy]  = :skeleton # noop
 
-    #TODO make sure it matches latest OmniEnvController code
+    # TODO: make sure it matches latest OmniEnvController code
     omni_controller = Simp::Cli::Environment::OmniEnvController.new(omni_options, @env_name)
     omni_controller.create
 
@@ -56,15 +57,15 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   def env_info
     return @env_info if @env_info
 
-   # First time this is set, we don't know if @env_name environment
-   # exists yet. However, the info derived from general Puppet
-   # configuration will at least contain the correct paths to the 3
-   # SIMP omni environment directories. This is sufficient for status
-   # queries and creation of the environment.  We'll update @env_info
-   # in create(), after the environment is created, to ensure all the
-   # settings for the environment are correct (e.g. module path and
-   # Hieradata dir).
-   @env_info = get_current_env_info
+    # First time this is set, we don't know if @env_name environment
+    # exists yet. However, the info derived from general Puppet
+    # configuration will at least contain the correct paths to the 3
+    # SIMP omni environment directories. This is sufficient for status
+    # queries and creation of the environment.  We'll update @env_info
+    # in create(), after the environment is created, to ensure all the
+    # settings for the environment are correct (e.g. module path and
+    # Hieradata dir).
+    @env_info = get_current_env_info
   end
 
   # @returns [status_code, status_detail_msg] of the SIMP
@@ -77,11 +78,11 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   # :creatable - Valid Puppet & secondary environments can be safely
   #              created, overwriting any existing skeletal environment
   def env_status
-    #TODO integrate the (yet to be written) OmniEnvController environment
+    # TODO: integrate the (yet to be written) OmniEnvController environment
     #     status method
     #
     status_puppet, details_puppet = puppet_env_status
-    status_secondary, details_secondary  = secondary_env_status
+    status_secondary, details_secondary = secondary_env_status
 
     # Status mapping:
     #
@@ -93,19 +94,19 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
     # |:invalid   | :invalid   | :invalid | :invalid |
     #
 
-    status_code = nil
-    status_msg = nil
-    if (status_puppet == :present) && (status_secondary == :present)
-      status_code = :exists
-    elsif (status_secondary == :missing) &&
-          ( (status_puppet == :empty) || (status_puppet == :missing) )
-      status_code = :creatable
-    else
-      status_code = :invalid
-    end
+    nil
+    nil
+    status_code = if (status_puppet == :present) && (status_secondary == :present)
+                    :exists
+                  elsif (status_secondary == :missing) &&
+                        ((status_puppet == :empty) || (status_puppet == :missing))
+                    :creatable
+                  else
+                    :invalid
+                  end
 
-    status_msg = [ details_puppet, details_secondary ].join("\n")
-    [ status_code, status_msg ]
+    status_msg = [details_puppet, details_secondary].join("\n")
+    [status_code, status_msg]
   end
 
   # @returns Puppet environment [status_code, status_message]
@@ -124,43 +125,43 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   #            path, but does not have a stock SIMP hieradata directory
   #
   def puppet_env_status
-   unless Dir.exist?(env_info[:puppet_env_dir])
-     return [:missing, "Puppet environment '#{@env_name}' does not exist"]
-   end
+    unless Dir.exist?(env_info[:puppet_env_dir])
+      return [:missing, "Puppet environment '#{@env_name}' does not exist"]
+    end
 
-   module_paths = env_info[:puppet_config]['modulepath'].dup
-   module_paths = module_paths.nil? ? [] : module_paths.split(':')
+    module_paths = env_info[:puppet_config]['modulepath'].dup
+    module_paths = module_paths.nil? ? [] : module_paths.split(':')
 
-   # Paths containing PE modules will be added on PE systems, so we need to
-   # remove them from the paths we check for existing modules
-   if env_info[:is_pe]
-     module_paths.delete_if { |path| path.start_with?('/opt/puppetlabs') }
-   end
+    # Paths containing PE modules will be added on PE systems, so we need to
+    # remove them from the paths we check for existing modules
+    if env_info[:is_pe]
+      module_paths.delete_if { |path| path.start_with?('/opt/puppetlabs') }
+    end
 
-   modules_found = false
-   modules_found_path = []
+    modules_found = false
+    modules_found_path = []
 
-   module_paths.each do |path|
-    metadata_files = Dir.glob(File.join(path, '*','metadata.json'))
-    unless metadata_files.empty?
+    module_paths.each do |path|
+      metadata_files = Dir.glob(File.join(path, '*', 'metadata.json'))
+      next if metadata_files.empty?
+
       modules_found = true
       modules_found_path << File.dirname(path)
       break
     end
-   end
 
-   unless modules_found
-     return [:empty, "Existing Puppet environment '#{@env_name}' contains no modules" ]
-   end
+    unless modules_found
+      return [:empty, "Existing Puppet environment '#{@env_name}' contains no modules"]
+    end
 
-   if env_info[:puppet_env_datadir].nil?
-     status = :invalid
-     msg = "Existing Puppet environment '#{@env_name}' at '#{env_info[:puppet_env_dir]}' missing 'data' or 'hieradata' dir"
-   else
-     status = :present
-     msg = "Puppet environment '#{@env_name}' exists with modules at '#{modules_found_path.join(':')}'"
-   end
-   [ status, msg ]
+    if env_info[:puppet_env_datadir].nil?
+      status = :invalid
+      msg = "Existing Puppet environment '#{@env_name}' at '#{env_info[:puppet_env_dir]}' missing 'data' or 'hieradata' dir"
+    else
+      status = :present
+      msg = "Puppet environment '#{@env_name}' exists with modules at '#{modules_found_path.join(':')}'"
+    end
+    [status, msg]
   end
 
   # @returns secondary environment [status_code, status_message]
@@ -178,25 +179,26 @@ class Simp::Cli::Config::SimpPuppetEnvHelper
   # expect that dir to exist?
   #
   def secondary_env_status
-   unless Dir.exist?(env_info[:secondary_env_dir])
-     return [:missing, "Secondary environment '#{@env_name}' does not exist at '#{env_info[:secondary_env_dir]}'"]
-   end
+    unless Dir.exist?(env_info[:secondary_env_dir])
+      return [:missing, "Secondary environment '#{@env_name}' does not exist at '#{env_info[:secondary_env_dir]}'"]
+    end
 
-   cert_gen = File.join(env_info[:secondary_env_dir], 'FakeCA',
-     Simp::Cli::CERTIFICATE_GENERATOR)
+    cert_gen = File.join(env_info[:secondary_env_dir], 'FakeCA',
+                         Simp::Cli::CERTIFICATE_GENERATOR)
 
-   if File.executable?(cert_gen)
-     status = :present
-     msg = "Secondary environment '#{@env_name}' exists at '#{env_info[:secondary_env_dir]}'"
-   else
-     status = :invalid
-     msg = "Existing secondary environment '#{@env_name}' missing executable #{cert_gen}"
-   end
+    if File.executable?(cert_gen)
+      status = :present
+      msg = "Secondary environment '#{@env_name}' exists at '#{env_info[:secondary_env_dir]}'"
+    else
+      status = :invalid
+      msg = "Existing secondary environment '#{@env_name}' missing executable #{cert_gen}"
+    end
 
-   [ status, msg ]
+    [status, msg]
   end
 
-private
+  private
+
   # Back up a Puppet environment outside of the environments directory,
   # so that this backup is not accidentally purged by a R10K/CodeManager
   # deploy operation.
@@ -214,13 +216,12 @@ private
     # ensure the ownership is correct
     orig_dir_stat = File.stat(env_parent_dir)
     File.chown(orig_dir_stat.uid, orig_dir_stat.gid, backup_dir)
-    File.chmod(orig_dir_stat.mode & 0777, backup_dir)
+    File.chmod(orig_dir_stat.mode & 0o777, backup_dir)
 
     # move the environment to a timestamped dir in the backup dir
     backup = File.join(backup_dir,
-      "#{File.basename(puppet_env_dir)}.#{Simp::Cli::Utils::timestamp_compact(@start_time)}"
-    )
-    logger.debug( "Backing up #{puppet_env_dir} to #{backup}" )
+                       "#{File.basename(puppet_env_dir)}.#{Simp::Cli::Utils.timestamp_compact(@start_time)}")
+    logger.debug("Backing up #{puppet_env_dir} to #{backup}")
     FileUtils.mv(puppet_env_dir, backup)
   end
 
@@ -243,15 +244,15 @@ private
     writable_env_dir = File.join(puppet_info[:writable_environment_path], @env_name)
 
     {
-     :puppet_config      => puppet_info[:config],
-     :puppet_group       => puppet_info[:puppet_group],
-     :puppet_version     => puppet_info[:version],
-     :puppet_env         => @env_name,
-     :puppet_env_dir     => puppet_env_dir,
-     :puppet_env_datadir => get_puppet_env_datadir(puppet_env_dir),
-     :secondary_env_dir  => secondary_env_dir,
-     :writable_env_dir   => writable_env_dir,
-     :is_pe              => puppet_info[:is_pe]
+      :puppet_config => puppet_info[:config],
+      :puppet_group => puppet_info[:puppet_group],
+      :puppet_version => puppet_info[:version],
+      :puppet_env => @env_name,
+      :puppet_env_dir => puppet_env_dir,
+      :puppet_env_datadir => get_puppet_env_datadir(puppet_env_dir),
+      :secondary_env_dir => secondary_env_dir,
+      :writable_env_dir => writable_env_dir,
+      :is_pe => puppet_info[:is_pe]
     }
   end
 
@@ -285,6 +286,4 @@ private
   def get_system_puppet_info
     Simp::Cli::Utils::PuppetInfo.new(@env_name).system_puppet_info
   end
-
 end
-

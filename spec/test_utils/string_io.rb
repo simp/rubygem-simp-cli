@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module TestUtils
   # This class provides extensions to the StringIO class so that it can
   # simulate STDIN and STDOUT in HighLine in unit tests.
@@ -7,7 +9,6 @@ module TestUtils
   #   PasswordItem).
   #
   class StringIO < ::StringIO
-
     def getch
       getc
     end
@@ -17,6 +18,5 @@ module TestUtils
     def winsize
       [24, 80]
     end
-
   end
 end

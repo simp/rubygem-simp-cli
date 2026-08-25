@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require 'English'
+
 require 'simp/cli/errors'
 require 'highline'
 require 'highline/import'
@@ -8,7 +12,6 @@ module Simp; end
 class Simp::Cli; end
 
 module Simp::Cli::Utils
-
   ###################################################################
   # Let's be DRY.  Before adding methods to this file, first see if
   # Simp::Cli::***::Utils has what you need and, if so, move that
@@ -18,7 +21,7 @@ module Simp::Cli::Utils
   module_function
 
   DEFAULT_PASSWORD_LENGTH = 32
-  REGEXP_UNIXPATH = %r{\A(?:\/[\w-]*\/?)+\z}
+  REGEXP_UNIXPATH = %r{\A(?:/[\w-]*/?)+\z}.freeze
 
   # According to https://puppet.com/docs/puppet/5.5/environments_creating.html,
   # This should be \A[a-z0-9_]+\Z.  However, there is currently a bug that prevents
@@ -26,7 +29,7 @@ module Simp::Cli::Utils
   #
   #   https://tickets.puppetlabs.com/browse/PUP-8289
   #
-  REGEXP_PUPPET_ENV_NAME = %r{\A[a-z][a-z0-9_]*\Z}
+  REGEXP_PUPPET_ENV_NAME = %r{\A[a-z][a-z0-9_]*\Z}.freeze
 
   @@puppet_info = {}
 
@@ -39,11 +42,11 @@ module Simp::Cli::Utils
       config = get_config(environment)
 
       # Kill the comments and blanks if any exists
-      config_hash = Hash.new
+      config_hash = {}
       config.each do |line|
-        next if line =~ /^\s*(#.*)?$/
+        next if %r{^\s*(#.*)?$}.match?(line)
 
-        param,value = line.split('=')
+        param, value = line.split('=')
         param.strip!
         value.strip!
 
@@ -56,21 +59,21 @@ module Simp::Cli::Utils
       writable_environment_path  = File.expand_path('../simp/environments', config_hash['statedir'])
 
       @system_puppet_info = {
-        :config                     => config_hash,
-        :environment_path           => puppet_environment_path,
+        :config => config_hash,
+        :environment_path => puppet_environment_path,
         :secondary_environment_path => secondary_environment_path,
-        :writable_environment_path  => writable_environment_path,
-        :puppet_group               => config_hash['group'],
-        :version                    => %x{puppet --version}.split(/\n/).last,
-        :is_pe                      => Simp::Cli::Utils.is_pe?
+        :writable_environment_path => writable_environment_path,
+        :puppet_group => config_hash['group'],
+        :version => `puppet --version`.split("\n").last,
+        :is_pe => Simp::Cli::Utils.is_pe?
       }
     end
 
-    def get_config(environment='production', section='server')
+    def get_config(environment = 'production', section = 'server')
       # Get the server section by default in case things are overridden from
       # main or don't match the agent settings
 
-      return %x{puppet config print --environment=#{environment} --section=#{section}}.lines
+      `puppet config print --environment=#{environment} --section=#{section}`.lines
     end
   end
 
@@ -85,18 +88,18 @@ module Simp::Cli::Utils
     return Facter.value('is_pe') if Facter.value('is_pe')
 
     return true if (@system_puppet_info && @system_puppet_info[:puppet_group] == 'pe-puppet') ||
-      Facter.value('pe_build') ||
-      File.exist?('/etc/puppetlabs/enterprise') ||
-      File.exist?('/opt/puppetlabs/server/pe_build') ||
-      File.exist?('/opt/puppetlabs/server/pe_version') ||
-      File.exist?('/opt/puppetlabs/server/data/environments/enterprise')
+                   Facter.value('pe_build') ||
+                   File.exist?('/etc/puppetlabs/enterprise') ||
+                   File.exist?('/opt/puppetlabs/server/pe_build') ||
+                   File.exist?('/opt/puppetlabs/server/pe_version') ||
+                   File.exist?('/opt/puppetlabs/server/data/environments/enterprise')
 
     begin
       return true if Etc.getpwnam('pe-puppet')
-    rescue
+    rescue StandardError
     end
 
-    return false
+    false
   end
 
   def puppet_info(environment = 'production')
@@ -104,7 +107,7 @@ module Simp::Cli::Utils
       @@puppet_info[environment] = PuppetInfo.new(environment)
     end
 
-    return @@puppet_info[environment].system_puppet_info
+    @@puppet_info[environment].system_puppet_info
   end
 
   # Generate a random password
@@ -151,38 +154,34 @@ module Simp::Cli::Utils
   #   the specified time.
   #
   def generate_password(length = DEFAULT_PASSWORD_LENGTH, complexity = 1,
-      complex_only = false, timeout_seconds = 10, validate = true )
-
+                        complex_only = false, timeout_seconds = 10, validate = true)
     require 'timeout'
 
     default_charlist = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
     specific_charlist = nil
     case complexity
-      when 1
-        specific_charlist = ['@','%','-','_','+','=','~']
-      when 2
-        specific_charlist = (' '..'/').to_a + ('['..'`').to_a + ('{'..'~').to_a
-      else
+    when 1
+      specific_charlist = ['@', '%', '-', '_', '+', '=', '~']
+    when 2
+      specific_charlist = (' '..'/').to_a + ('['..'`').to_a + ('{'..'~').to_a
     end
 
-    unless specific_charlist.nil?
-      if complex_only == true
-        charlists = [ specific_charlist ]
-      else
-        charlists = [ default_charlist, specific_charlist ]
-      end
+    charlists = if specific_charlist.nil?
+                  [default_charlist]
+                elsif complex_only == true
+                  [specific_charlist]
+                else
+                  [default_charlist, specific_charlist]
 
-    else
-      charlists = [ default_charlist ]
-    end
+                end
 
     password = ''
     begin
-      Timeout::timeout(timeout_seconds) do
+      Timeout.timeout(timeout_seconds) do
         begin
           index = 0
-          Integer(length).times do |i|
-            password += charlists[index][rand(charlists[index].length-1)]
+          Integer(length).times do |_i|
+            password += charlists[index][rand(charlists[index].length - 1)]
             index += 1
             index = 0 if index == charlists.length
           end
@@ -194,11 +193,11 @@ module Simp::Cli::Utils
             # implementation above, but leaving the check in place in case
             # the implementation changes.)
             if specific_charlist.include?(password[0].chr)
-              password[0] = default_charlist[rand(default_charlist.length-1)]
+              password[0] = default_charlist[rand(default_charlist.length - 1)]
             end
 
-            if specific_charlist.include?(password[password.length-1].chr)
-              password[-1] = default_charlist[rand(default_charlist.length-1)]
+            if specific_charlist.include?(password[-1].chr)
+              password[-1] = default_charlist[rand(default_charlist.length - 1)]
             end
           end
 
@@ -211,7 +210,7 @@ module Simp::Cli::Utils
       end
     rescue Timeout::Error
       err_msg = 'Failed to generate password in allotted time'
-      raise Simp::Cli::PasswordError.new(err_msg)
+      raise Simp::Cli::PasswordError, err_msg
     end
 
     password
@@ -228,15 +227,15 @@ module Simp::Cli::Utils
   #   Whether to add the custom fact paths to the FACTERLIB environment
   #   variable, in addition, so that the facts available to any spawned
   #   processes that use FACTERLIB, (e.g. `puppet apply`)
-  def load_custom_facts(module_paths=[], add_to_env = false)
+  def load_custom_facts(module_paths = [], add_to_env = false)
     require 'puppet'
     require 'facter'
 
     # Missing directories do not matter since they will be skipped
     default_module_paths = [
       Simp::Cli::PE_ENVIRONMENT_PATH,
-      Simp::Cli::SIMP_MODULES_INSTALL_PATH
-    ].map{|x| File.absolute_path(x)}
+      Simp::Cli::SIMP_MODULES_INSTALL_PATH,
+    ].map { |x| File.absolute_path(x) }
 
     fact_paths = []
     Facter.clear # Facter.loadfacts won't reload without this
@@ -244,6 +243,7 @@ module Simp::Cli::Utils
     # First match wins, so load all passed through paths first
     (Array(module_paths) + default_module_paths).uniq.each do |dir|
       next unless File.directory?(dir)
+
       Find.find(dir) do |mod_path|
         Find.prune unless File.directory?(mod_path)
         if mod_path.end_with?('/lib/facter')
@@ -259,10 +259,10 @@ module Simp::Cli::Utils
 
     Facter.loadfacts
 
-    if add_to_env
-      fact_paths << ENV['FACTERLIB'] unless ENV['FACTERLIB'].nil? || ENV['FACTERLIB'].empty?
-      ENV['FACTERLIB'] = fact_paths.join(':')
-    end
+    return unless add_to_env
+
+    fact_paths << ENV.fetch('FACTERLIB', nil) unless ENV['FACTERLIB'].nil? || ENV['FACTERLIB'].empty?
+    ENV['FACTERLIB'] = fact_paths.join(':')
   end
 
   # Validates a password using available system tools
@@ -285,11 +285,11 @@ module Simp::Cli::Utils
   def validate_password_with_pwscore(password)
     require 'shellwords'
     result = `echo #{Shellwords.escape(password)} | /usr/bin/pwscore 2>&1`.strip
-    status = $?
-    unless (!status.nil? and status.success?)
-      # detailed message is in the second line
-      raise Simp::Cli::PasswordError, "Invalid Password: #{result.split("\n")[1]}"
-    end
+    status = $CHILD_STATUS
+    return if !status.nil? && status.success?
+
+    # detailed message is in the second line
+    raise Simp::Cli::PasswordError, "Invalid Password: #{result.split("\n")[1]}"
   end
 
   # Validates a password using cracklib's validator, cracklib-check
@@ -298,10 +298,10 @@ module Simp::Cli::Utils
     require 'shellwords'
     # message is <password>: OK or <password>: <validation failure description>
     result = `echo #{Shellwords.escape(password)} | cracklib-check`.split(':').last.strip
-    if result != 'OK'
-      # detailed message already includes 'Invalid Password'
-      raise Simp::Cli::PasswordError, "Invalid Password: #{result}"
-    end
+    return unless result != 'OK'
+
+    # detailed message already includes 'Invalid Password'
+    raise Simp::Cli::PasswordError, "Invalid Password: #{result}"
   end
 
   # Display an ASCII, spinning progress spinner for the action in a block
@@ -314,13 +314,13 @@ module Simp::Cli::Utils
   # Modification of
   # http://stackoverflow.com/questions/10262235/printing-an-ascii-spinning-cursor-in-the-console
   #
-  def show_wait_spinner(frames_per_second=5)
-    chars = %w[| / - \\]
-    delay = 1.0/frames_per_second
+  def show_wait_spinner(frames_per_second = 5)
+    chars = ['|', '/', '-', '\\']
+    delay = 1.0 / frames_per_second
     iter = 0
     spinner = Thread.new do
-      while iter do  # Keep spinning until told otherwise
-        print chars[(iter+=1) % chars.length]
+      while iter # Keep spinning until told otherwise
+        print chars[(iter += 1) % chars.length]
         sleep delay
         print "\b"
       end
@@ -329,7 +329,7 @@ module Simp::Cli::Utils
   ensure
     iter = false   # Tell the thread to exit (even if the yield raises),
     spinner.join   # and wait for it to do so.
-    print " "
+    print ' '
   end
 
   # Returns a timestamp string of the form
@@ -389,7 +389,7 @@ module Simp::Cli::Utils
           environmentpath: Simp::Cli::Utils.puppet_info[:writable_environment_path]
           # skeleton_path: '/usr/share/simp/environment-skeleton/writable',  # <-- per discussions, not used
         }
-      },
+      }
     }
   end
 
@@ -402,19 +402,19 @@ module Simp::Cli::Utils
   def yes_or_no(prompt, default_yes)
     question = "> #{prompt.bold}: "
     answer = ask(question) do |q|
-      q.validate = /^y$|^n$|^yes$|^no$/i
+      q.validate = %r{^y$|^n$|^yes$|^no$}i
       q.default = (default_yes ? 'yes' : 'no')
       q.responses[:not_valid] = "Invalid response. Please enter 'yes' or 'no'".red
       q.responses[:ask_on_error] = :question
       q
     end
-    result = (answer.downcase[0] == 'y')
+    (answer.downcase[0] == 'y')
   end
 
   # @return whether a systemd service is running
   # @param name Name of the systemd service
   def systemctl_running?(name)
     system("/usr/bin/systemctl status #{name} > /dev/null 2>&1")
-    $?.nil? ? false : ($?.exitstatus == 0)
+    $CHILD_STATUS.nil? ? false : ($CHILD_STATUS.exitstatus.zero?)
   end
 end

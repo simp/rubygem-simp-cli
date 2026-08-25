@@ -10,7 +10,6 @@ require 'yaml'
 # TODO: As more `simp environment` sub-commands are added, a lot of this code
 #      could probably be abstracted into a common class or mixin
 class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
-
   include Simp::Cli::CommandLogger
 
   # @return [String] description of command
@@ -39,10 +38,10 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
     # console, but NOT sent to the console when the corresponding
     # code is used within 'simp config'.
     options[:verbose] = 1 # -1 = ERROR  and above
-                          #  0 = NOTICE and above
-                          #  1 = INFO   and above
-                          #  2 = DEBUG  and above
-                          #  3 = TRACE  and above
+    #  0 = NOTICE and above
+    #  1 = INFO   and above
+    #  2 = DEBUG  and above
+    #  3 = TRACE  and above
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = '== simp environment fix [options]'
@@ -94,18 +93,19 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
     options, remaining_args = parse_command_line(args)
     return if @help_requested
 
-    fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.") if remaining_args.empty?
+    raise(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.") if remaining_args.empty?
+
     env = remaining_args.shift
     unless Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME.match?(env)
-      fail(
+      raise(
         Simp::Cli::ProcessingError,
-        "ERROR: '#{env}' is not an acceptable environment name"
+        "ERROR: '#{env}' is not an acceptable environment name",
       )
     end
 
     set_up_global_logger(options)
 
-    unless (options[:verbose] < 0) || (options[:log_file] == :none)
+    unless options[:verbose].negative? || (options[:log_file] == :none)
       logger.say("Actions will be logged to\n  #{options[:log_file]}\n".bold)
     end
     logger.debug("Environment fix options:\n#{options.to_yaml}\n")
@@ -114,9 +114,8 @@ class Simp::Cli::Commands::Environment::Fix < Simp::Cli::Commands::Command
     omni_controller = Simp::Cli::Environment::OmniEnvController.new(options, env)
     omni_controller.send(action)
 
-    unless (options[:verbose] < 0) || (options[:log_file] == :none)
-      logger.say( "\n" + "Detailed log written to #{options[:log_file]}".bold )
-    end
-  end
+    return if options[:verbose].negative? || (options[:log_file] == :none)
 
+    logger.say("\n" + "Detailed log written to #{options[:log_file]}".bold)
+  end
 end

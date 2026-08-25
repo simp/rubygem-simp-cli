@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/action/update_puppet_conf_action'
 require 'fileutils'
 
@@ -5,21 +7,21 @@ require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
   before :each do
-    @file_dir = File.expand_path( 'files',  File.dirname( __FILE__ ) )
+    @file_dir = File.expand_path('files', File.dirname(__FILE__))
 
-    @tmp_dir = Dir.mktmpdir( File.basename(__FILE__))
+    @tmp_dir = Dir.mktmpdir(File.basename(__FILE__))
     @puppet_conf = File.join(@tmp_dir, 'puppet.conf')
 
     @puppet_env_info = {
-      :puppet_config     => {
+      :puppet_config => {
         'modulepath' => '/does/not/matter',
-        'config'     => @puppet_conf
-      },
+        'config' => @puppet_conf
+      }
     }
 
     FileUtils.cp(File.join(@file_dir, 'puppet.conf'), @puppet_conf)
 
-    @ci             = Simp::Cli::Config::Item::UpdatePuppetConfAction.new(@puppet_env_info)
+    @ci             = described_class.new(@puppet_env_info)
     @ci.start_time  = Time.new(2017, 1, 13, 11, 42, 3)
 
     @puppet_server  = 'puppet.nerd'
@@ -29,13 +31,13 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
     previous_items = {}
     s = Simp::Cli::Config::Item::SimpOptionsPuppetServer.new(@puppet_env_info)
     s.value = @puppet_server
-    previous_items[ s.key ] = s
+    previous_items[s.key] = s
     s = Simp::Cli::Config::Item::SimpOptionsPuppetCA.new(@puppet_env_info)
     s.value = @puppet_ca
-    previous_items[ s.key ] = s
+    previous_items[s.key] = s
     s = Simp::Cli::Config::Item::SimpOptionsPuppetCAPort.new(@puppet_env_info)
     s.value = @puppet_ca_port
-    previous_items[ s.key ] = s
+    previous_items[s.key] = s
 
     @ci.config_items = previous_items
 
@@ -46,7 +48,7 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
     FileUtils.remove_entry_secure @tmp_dir
   end
 
-  describe "#apply" do
+  describe '#apply' do
     context 'updates puppet configuration' do
       before(:each) do
         allow(@ci).to receive(:execute).with(any_args).and_call_original
@@ -56,7 +58,7 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
         expect(@ci).to receive(:execute).with(%(puppet config set ca_port #{@puppet_ca_port})).and_return(true)
 
         @fips_item = Simp::Cli::Config::Item::SimpOptionsFips.new(@puppet_env_info)
-        @ci.config_items[ @fips_item.key ] = @fips_item
+        @ci.config_items[@fips_item.key] = @fips_item
       end
 
       it 'backs up config file and configures server for FIPS mode' do
@@ -66,14 +68,14 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
         @ci.apply
 
         expect(@ci.applied_status).to eq :succeeded
-        expected_content = File.read( File.join( @file_dir, 'puppet.conf.updated' ) )
-        actual_content = File.read( @puppet_conf )
-        expect( actual_content ).to eq expected_content
+        expected_content = File.read(File.join(@file_dir, 'puppet.conf.updated'))
+        actual_content = File.read(@puppet_conf)
+        expect(actual_content).to eq expected_content
 
-        expect( File ).to exist( @backup_conf )
-        expected_backup_content = File.read( File.join( @file_dir, 'puppet.conf') )
-        actual_backup_content = File.read( @backup_conf )
-        expect( actual_backup_content ).to eq expected_backup_content
+        expect(File).to exist(@backup_conf)
+        expected_backup_content = File.read(File.join(@file_dir, 'puppet.conf'))
+        actual_backup_content = File.read(@backup_conf)
+        expect(actual_backup_content).to eq expected_backup_content
       end
 
       it 'backs up config file and configures server for non-FIPS mode' do
@@ -83,14 +85,14 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
         @ci.apply
 
         expect(@ci.applied_status).to eq :succeeded
-        expected_content = File.read( File.join( @file_dir, 'puppet.conf.updated' ) )
-        actual_content = File.read( @puppet_conf )
-        expect( actual_content ).to eq expected_content
+        expected_content = File.read(File.join(@file_dir, 'puppet.conf.updated'))
+        actual_content = File.read(@puppet_conf)
+        expect(actual_content).to eq expected_content
 
-        expect( File ).to exist( @backup_conf )
-        expected_backup_content = File.read( File.join( @file_dir, 'puppet.conf') )
-        actual_backup_content = File.read( @backup_conf )
-        expect( actual_backup_content ).to eq expected_backup_content
+        expect(File).to exist(@backup_conf)
+        expected_backup_content = File.read(File.join(@file_dir, 'puppet.conf'))
+        actual_backup_content = File.read(@backup_conf)
+        expect(actual_backup_content).to eq expected_backup_content
       end
     end
 
@@ -99,7 +101,7 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
         allow(@ci).to receive(:execute).with(any_args).and_call_original
         fips_item = Simp::Cli::Config::Item::SimpOptionsFips.new(@puppet_env_info)
         fips_item.value = false
-        @ci.config_items[ fips_item.key ] = fips_item
+        @ci.config_items[fips_item.key] = fips_item
       end
 
       it 'returns failed status when the puppet set digest_algorithm fails' do
@@ -154,12 +156,12 @@ describe Simp::Cli::Config::Item::UpdatePuppetConfAction do
     end
   end
 
-  describe "#apply_summary" do
+  describe '#apply_summary' do
     it 'reports unattempted status when #apply not called' do
       expect(@ci.apply_summary).to eq "Update to Puppet settings in #{@puppet_conf} unattempted"
     end
   end
 
   it_behaves_like "an Item that doesn't output YAML"
-  it_behaves_like "a child of Simp::Cli::Config::Item"
+  it_behaves_like 'a child of Simp::Cli::Config::Item'
 end

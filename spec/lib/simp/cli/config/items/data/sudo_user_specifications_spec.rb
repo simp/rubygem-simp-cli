@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/data/sudo_user_specifications'
 require 'rspec/its'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SudoUserSpecifications do
   before :each do
-    @ci = Simp::Cli::Config::Item::SudoUserSpecifications.new
+    @ci = described_class.new
     item = Simp::Cli::Config::Item::CliLocalPrivUser.new
     item.value = 'local_admin'
     @ci.config_items[item.key] = item
@@ -18,11 +20,11 @@ describe Simp::Cli::Config::Item::SudoUserSpecifications do
         @ci.config_items[item.key] = item
 
         expected = {
-          'local_admin_su'  => {
-            'user_list' => [ 'local_admin' ],
-            'cmnd'      => [ 'ALL' ],
-            'passwd'    => true,
-            'options'   =>  { 'role'=> 'unconfined_r' }
+          'local_admin_su' => {
+            'user_list' => ['local_admin'],
+            'cmnd' => ['ALL'],
+            'passwd' => true,
+            'options' => { 'role' => 'unconfined_r' }
           }
         }
         expect(@ci.get_recommended_value).to eq(expected)
@@ -40,11 +42,11 @@ describe Simp::Cli::Config::Item::SudoUserSpecifications do
         @ci.config_items[item.key] = item
 
         expected = {
-          'local_admin_su'  => {
-            'user_list' => [ 'local_admin' ],
-            'cmnd'      => [ 'ALL' ],
-            'passwd'    => false,
-            'options'   =>  { 'role'=> 'unconfined_r' }
+          'local_admin_su' => {
+            'user_list' => ['local_admin'],
+            'cmnd' => ['ALL'],
+            'passwd' => false,
+            'options' => { 'role' => 'unconfined_r' }
           }
         }
         expect(@ci.get_recommended_value).to eq(expected)
@@ -62,11 +64,11 @@ describe Simp::Cli::Config::Item::SudoUserSpecifications do
         @ci.config_items[item.key] = item
 
         expected = {
-          'local_admin_su'  => {
-            'user_list' => [ 'local_admin' ],
-            'cmnd'      => [ 'ALL' ],
-            'passwd'    => true,
-            'options'   =>  { 'role'=> 'unconfined_r' }
+          'local_admin_su' => {
+            'user_list' => ['local_admin'],
+            'cmnd' => ['ALL'],
+            'passwd' => true,
+            'options' => { 'role' => 'unconfined_r' }
           }
         }
         expect(@ci.get_recommended_value).to eq(expected)
@@ -77,12 +79,12 @@ describe Simp::Cli::Config::Item::SudoUserSpecifications do
       it 'fails when cli::local_priv_user does not exist' do
         @ci.config_items.delete('cli::local_priv_user')
         expect { @ci.get_recommended_value }.to raise_error(Simp::Cli::Config::InternalError,
-        /Simp::Cli::Config::Item::SudoUserSpecifications could not find cli::local_priv_user/)
+                                                            %r{Simp::Cli::Config::Item::SudoUserSpecifications could not find cli::local_priv_user})
       end
 
       it 'fails when cli::local_priv_user_exists does not exist' do
         expect { @ci.get_recommended_value }.to raise_error(Simp::Cli::Config::InternalError,
-        /Simp::Cli::Config::Item::SudoUserSpecifications could not find cli::local_priv_user_exists/)
+                                                            %r{Simp::Cli::Config::Item::SudoUserSpecifications could not find cli::local_priv_user_exists})
       end
 
       it 'fails when cli::local_priv_user_exists=true and cli::local_priv_user_has_ssh_authorized_keys does not exist' do
@@ -90,28 +92,28 @@ describe Simp::Cli::Config::Item::SudoUserSpecifications do
         item.value = true
         @ci.config_items[item.key] = item
         expect { @ci.get_recommended_value }.to raise_error(Simp::Cli::Config::InternalError,
-        /Simp::Cli::Config::Item::SudoUserSpecifications could not find cli::local_priv_user_has_ssh_authorized_keys/)
+                                                            %r{Simp::Cli::Config::Item::SudoUserSpecifications could not find cli::local_priv_user_has_ssh_authorized_keys})
       end
     end
   end
 
   describe '#validate' do
     it 'always returns true' do
-      expect( @ci.validate('do/not/care') ).to be true
+      expect(@ci.validate('do/not/care')).to be true
     end
   end
 
   describe '#query' do
     it 'always returns nil' do
-      expect( @ci.query ).to be_nil
+      expect(@ci.query).to be_nil
     end
   end
 
   describe '#print_summary' do
     it 'always returns nil' do
-      expect( @ci.print_summary ).to be_nil
+      expect(@ci.print_summary).to be_nil
     end
   end
 
-  it_behaves_like "a child of Simp::Cli::Config::Item"
+  it_behaves_like 'a child of Simp::Cli::Config::Item'
 end

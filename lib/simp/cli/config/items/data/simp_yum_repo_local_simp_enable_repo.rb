@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../yes_no_item'
 
 module Simp; end
@@ -6,7 +8,7 @@ class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpYumRepoLocalSimpEnableRepo < YesNoItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'simp::yum::repo::local_simp::enable_repo'
       @description = 'Whether to enable the SIMP-managed, SIMP and
 SIMP dependency YUM repository.'

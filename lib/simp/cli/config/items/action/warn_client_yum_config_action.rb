@@ -1,11 +1,14 @@
+# frozen_string_literal: true
+
 require_relative '../action_item'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::WarnClientYumConfigAction < ActionItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key             = 'yum::repositories::client::config::check'
       @description     = 'Check YUM configuration for SIMP clients'
       @category        = :sanity_check
@@ -18,20 +21,20 @@ module Simp::Cli::Config
       DOC
 
       @warning_message_brief = 'Your SIMP client YUM configuration requires manual verification'
-   end
+    end
 
     def apply
       @applied_status = :deferred
-      warn( "\nIMPORTANT: #{@warning_message}".yellow )
+      warn("\nIMPORTANT: #{@warning_message}".yellow)
       pause(:warn)
     end
 
     def apply_summary
-      if @applied_status == :deferred
-         extra = ":\n    #{@warning_message_brief}"
-      else
-        extra = ''
-      end
+      extra = if @applied_status == :deferred
+                ":\n    #{@warning_message_brief}"
+              else
+                ''
+              end
       "Checking YUM configuration for SIMP clients #{@applied_status}" + extra
     end
   end

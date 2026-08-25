@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/action_item'
 require 'simp/cli/config/items/data/cli_network_hostname'
 
 module Simp::Cli::Config
-
   # An ActionItem that adds an entry to a class list in the SIMP server's
   # <host>.yaml file
   #
@@ -11,9 +12,8 @@ module Simp::Cli::Config
   #   of this class to ensure the description is meaningful
   #
   class AddServerClassActionItem < ActionItem
-
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @dir         = File.join(@puppet_env_info[:puppet_env_datadir], 'hosts')
       @description = "Add #{@class_to_add} class to SIMP server <host>.yaml"
       @file        = nil
@@ -22,12 +22,12 @@ module Simp::Cli::Config
 
     def apply
       if @class_to_add.to_s.strip.empty?
-        raise InternalError.new( "@class_to_add empty for #{self.class}" )
+        raise InternalError, "@class_to_add empty for #{self.class}"
       end
 
       @applied_status = :failed
-      fqdn    = get_item( 'cli::network::hostname' ).value
-      @file    = File.join( @dir, "#{fqdn}.yaml")
+      fqdn = get_item('cli::network::hostname').value
+      @file = File.join(@dir, "#{fqdn}.yaml")
 
       if File.exist?(@file)
         begin
@@ -35,12 +35,12 @@ module Simp::Cli::Config
           classes_key = get_classes_key(file_info[:content].keys)
           if classes_key.nil?
             classes_key = 'simp::server::classes'
-            info( "Adding #{classes_key} with #{@class_to_add} to #{File.basename(@file)}.", [:GREEN] )
-            tag = pair_to_yaml_tag(classes_key, [ @class_to_add ])
+            info("Adding #{classes_key} with #{@class_to_add} to #{File.basename(@file)}.", [:GREEN])
+            tag = pair_to_yaml_tag(classes_key, [@class_to_add])
             add_yaml_tag_directive(tag, file_info)
           else
-            info( "Adding #{@class_to_add} to #{classes_key} in #{File.basename(@file)}.", [:GREEN] )
-            merge_yaml_tag(classes_key, [ @class_to_add ], file_info)
+            info("Adding #{@class_to_add} to #{classes_key} in #{File.basename(@file)}.", [:GREEN])
+            merge_yaml_tag(classes_key, [@class_to_add], file_info)
           end
 
           @applied_status = :succeeded
@@ -48,10 +48,10 @@ module Simp::Cli::Config
           # something is wrong with the decision tree yaml
           raise(e)
         rescue Exception => e
-          error( "\nERROR: Unable to update #{@file}:\n#{e.message}", [:RED] )
+          error("\nERROR: Unable to update #{@file}:\n#{e.message}", [:RED])
         end
       else
-        error( "\nERROR: file not found: #{@file}", [:RED] )
+        error("\nERROR: file not found: #{@file}", [:RED])
       end
     end
 

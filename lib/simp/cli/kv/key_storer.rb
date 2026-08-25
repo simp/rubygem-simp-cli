@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/apply_utils'
 require 'simp/cli/exec_utils'
 require 'simp/cli/kv/operator_base'
@@ -5,16 +7,12 @@ require 'simp/cli/kv/operator_base'
 # Class to set key info in a key/value store using the simp-simpkv Puppet
 # module
 class Simp::Cli::Kv::KeyStorer < Simp::Cli::Kv::OperatorBase
-
   # @param env Puppet environment.  Used to specify the location of non-global
   #   keys/folders in the key/value folder tree as well as where to find the
   #   simpkv backend configuration
   #
   # @param backend Name of key/value store in simpkv configuration
   #
-  def initialize(env, backend)
-    super(env, backend)
-  end
 
   # Set a key's stored info in the key/value store
   #
@@ -66,7 +64,7 @@ class Simp::Cli::Kv::KeyStorer < Simp::Cli::Kv::OperatorBase
       simpkv::put(#{args})
     EOM
 
-    Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
+    Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
   end
 
   # Set a key's stored info via puppet apply of a manifest that uses
@@ -88,6 +86,6 @@ class Simp::Cli::Kv::KeyStorer < Simp::Cli::Kv::OperatorBase
     args = "'#{key}', #{val}, #{metadata}, #{simpkv_options(global)}"
     opts = apply_options('Key put')
     manifest = "simpkv::put(#{args})"
-    Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
+    Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
   end
 end

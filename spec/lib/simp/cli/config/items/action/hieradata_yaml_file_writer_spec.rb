@@ -1,18 +1,20 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/action/hieradata_yaml_file_writer'
 require 'simp/cli/config/items'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
   before :each do
-    @files_dir = File.expand_path( 'files', File.dirname( __FILE__ ) )
+    @files_dir = File.expand_path('files', File.dirname(__FILE__))
 
     @puppet_env_info = {
       :puppet_config => { 'modulepath' => '/does/not/matter' },
-      :puppet_group  => `groups`.split[0]
+      :puppet_group => `groups`.split[0]
     }
 
-    @ci            = Simp::Cli::Config::Item::HieradataYAMLFileWriter.new(@puppet_env_info)
-    @ci.silent     = true  # comment out this line to see log output
+    @ci            = described_class.new(@puppet_env_info)
+    @ci.silent     = true # comment out this line to see log output
     @ci.start_time = Time.new(2017, 1, 13, 11, 42, 3)
   end
 
@@ -27,7 +29,7 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
 
       ci                = TestListItem.new(@puppet_env_info)
       ci.key            = 'list'
-      ci.value          = ['one','two','three']
+      ci.value          = ['one', 'two', 'three']
       ci.description    = 'A simple list'
       list[ci.key]      = ci
 
@@ -65,19 +67,18 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
       @ci.config_items[item.key] = item
 
       io = StringIO.new
-      @ci.print_hieradata_yaml( io, @simple_item_list )
-      y = YAML.load( io.string )
+      @ci.print_hieradata_yaml(io, @simple_item_list)
+      y = YAML.load(io.string)
 
-      expect( y ).to be_kind_of Hash
-      expect( y ).not_to be_empty
-      expect( y['item'] ).to  eq('foo')
-      expect( y['list'] ).to  eq(['one','two','three'])
-      expect( y.key?('yesno') ).to be false
-      expect( y.key?('action') ).to be false
-      expect( y['simp::classes'] ).to  eq(['some::class::one','some::class::two'])
+      expect(y).to be_a Hash
+      expect(y).not_to be_empty
+      expect(y['item']).to  eq('foo')
+      expect(y['list']).to  eq(['one', 'two', 'three'])
+      expect(y.key?('yesno')).to be false
+      expect(y.key?('action')).to be false
+      expect(y['simp::classes']).to  eq(['some::class::one', 'some::class::two'])
     end
   end
-
 
   context 'when writing a yaml file' do
     before :each do
@@ -102,47 +103,51 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
       item.value = 'myhost.test.local'
       @ci.config_items[item.key] = item
 
-      @tmp_dir  = Dir.mktmpdir( File.basename(__FILE__) )
-      @tmp_file = File.expand_path( 'hieradata_yaml_file_writer.yaml', @tmp_dir )
+      @tmp_dir  = Dir.mktmpdir(File.basename(__FILE__))
+      @tmp_file = File.expand_path('hieradata_yaml_file_writer.yaml', @tmp_dir)
       @ci.file = @tmp_file
+    end
+
+    after :each do
+      FileUtils.remove_entry_secure @tmp_dir
     end
 
     it 'writes a file' do
       @ci.apply
-      expect( File.exist?( @tmp_file ) ).to be true
-      expect( @ci.applied_status ).to eq :succeeded
+      expect(File.exist?(@tmp_file)).to be true
+      expect(@ci.applied_status).to eq :succeeded
     end
 
     it 'writes the correct values in sorted order' do
       @ci.apply
-      actual_content = IO.read( @tmp_file )
-      expected_content = IO.read(File.join(@files_dir, 'hieradata_yaml_file_writer.yaml'))
+      actual_content = File.read(@tmp_file)
+      expected_content = File.read(File.join(@files_dir, 'hieradata_yaml_file_writer.yaml'))
       # fix version
-      expected_content.gsub!(/using simp-cli version ([0-9.])+/,
-        "using simp-cli version #{Simp::Cli::VERSION}")
+      expected_content.gsub!(%r{using simp-cli version ([0-9.])+},
+                             "using simp-cli version #{Simp::Cli::VERSION}")
 
-      expect( actual_content).to eq expected_content
+      expect(actual_content).to eq expected_content
     end
 
     it 'backs up an existing file before writing' do
       old_content = "---\nkey1:value\n"
-      File.open(@tmp_file, 'w') { |file| file.write(old_content) }
+      File.write(@tmp_file, old_content)
 
       @ci.apply
       backup_file = "#{@tmp_file}.20170113T114203"
-      expect( File.exist?( backup_file ) ).to be true
-      actual_backup_content = IO.read( backup_file)
-      expect( actual_backup_content).to eq old_content
+      expect(File.exist?(backup_file)).to be true
+      actual_backup_content = File.read(backup_file)
+      expect(actual_backup_content).to eq old_content
 
-      expect( File.exist?( @tmp_file ) ).to be true
-      actual_content = IO.read( @tmp_file )
-      expected_content = IO.read(File.join(@files_dir, 'hieradata_yaml_file_writer.yaml'))
+      expect(File.exist?(@tmp_file)).to be true
+      actual_content = File.read(@tmp_file)
+      expected_content = File.read(File.join(@files_dir, 'hieradata_yaml_file_writer.yaml'))
       # fix version
-      expected_content.gsub!(/using simp-cli version ([0-9.])+/,
-        "using simp-cli version #{Simp::Cli::VERSION}")
+      expected_content.gsub!(%r{using simp-cli version ([0-9.])+},
+                             "using simp-cli version #{Simp::Cli::VERSION}")
 
-      expect( actual_content).to eq expected_content
-      expect( @ci.applied_status ).to eq :succeeded
+      expect(actual_content).to eq expected_content
+      expect(@ci.applied_status).to eq :succeeded
     end
 
     it 'writes out a simp::classes array when :global_class Items exist' do
@@ -157,36 +162,32 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
 
       @ci.apply
 
-      actual_content = IO.read( @tmp_file )
-      expected_content = IO.read(File.join(@files_dir, 'hieradata_yaml_file_writer_with_classes.yaml'))
+      actual_content = File.read(@tmp_file)
+      expected_content = File.read(File.join(@files_dir, 'hieradata_yaml_file_writer_with_classes.yaml'))
       # fix version
-      expected_content.gsub!(/using simp-cli version ([0-9.])+/,
-        "using simp-cli version #{Simp::Cli::VERSION}")
+      expected_content.gsub!(%r{using simp-cli version ([0-9.])+},
+                             "using simp-cli version #{Simp::Cli::VERSION}")
 
-      expect( actual_content).to eq expected_content
+      expect(actual_content).to eq expected_content
     end
 
     it "fails when it can't set group ownership" do
-      allow(FileUtils).to receive(:chown).with(nil, `groups`.split[0], @ci.file).and_raise( ArgumentError )
+      allow(FileUtils).to receive(:chown).with(nil, `groups`.split[0], @ci.file).and_raise(ArgumentError)
       @ci.apply
-      expect( @ci.applied_status ).to eq :failed
-    end
-
-    after :each do
-      FileUtils.remove_entry_secure @tmp_dir
+      expect(@ci.applied_status).to eq :failed
     end
   end
 
   describe '#apply_summary' do
     it 'reports unattempted status when #apply not called' do
-      ci        = Simp::Cli::Config::Item::HieradataYAMLFileWriter.new(@puppet_env_info)
+      ci = described_class.new(@puppet_env_info)
       ci.file = '/some/path/environments/simp/simp_config_overrides.yaml'
       expect(ci.apply_summary).to eq(
-        'Creation of /etc/.../environments/simp/simp_config_overrides.yaml unattempted')
+        'Creation of /etc/.../environments/simp/simp_config_overrides.yaml unattempted',
+      )
     end
   end
 
   it_behaves_like "an Item that doesn't output YAML"
   it_behaves_like 'a child of Simp::Cli::Config::Item'
 end
-

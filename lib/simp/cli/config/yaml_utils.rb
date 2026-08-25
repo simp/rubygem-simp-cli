@@ -1,10 +1,10 @@
+# frozen_string_literal: true
+
 require 'yaml'
 
 module Simp::Cli::Config
-
   # YAML utilities for parsing and modifying a YAML file
   module YamlUtils
-
     # Add a tag directive to a YAML file
     #
     # - Will add tag_directive before the 1st key that matches
@@ -41,7 +41,7 @@ module Simp::Cli::Config
             tag_added = true
           end
           # use write + \n to eliminate puts dedup of \n
-          file.write(info[:comments].join("\n") +  "\n") unless info[:comments].empty?
+          file.write(info[:comments].join("\n") + "\n") unless info[:comments].empty?
           file.puts(pair_to_yaml_tag(k, info[:value]))
         end
 
@@ -79,7 +79,7 @@ module Simp::Cli::Config
     #   its content fails
     #
     def load_yaml_with_comment_blocks(filename)
-      yaml_hash = YAML.load(IO.read(filename))
+      yaml_hash = YAML.load_file(filename)
       keys = yaml_hash.keys
 
       content = {}
@@ -88,7 +88,7 @@ module Simp::Cli::Config
       key = keys[key_index]
       initial_comment_block = []
       comment_block = []
-      raw_lines = IO.readlines(filename)
+      raw_lines = File.readlines(filename)
       raw_lines.each do |line|
         if line.start_with?('---')
           start_found = true
@@ -98,7 +98,7 @@ module Simp::Cli::Config
         end
 
         if start_found
-          if line.match(/^'?#{key}'?\s*:/)
+          if line.match?(%r{^'?#{key}'?\s*:})
             content[key] = { :comments => comment_block.dup, :value => yaml_hash[key] }
             key_index += 1
             key = keys[key_index]
@@ -114,7 +114,7 @@ module Simp::Cli::Config
       {
         :filename => filename,
         :preamble => initial_comment_block,
-        :content  => content
+        :content => content
       }
     end
 
@@ -168,16 +168,14 @@ module Simp::Cli::Config
       if new_value.nil? || old_value.nil?
         change_type = :replace
         replace_yaml_tag(key, new_value, file_info)
-      else
-        if merge && mergeable?(old_value, new_value)
-          if merge_required?(old_value, new_value)
-            change_type = :merge
-            merge_yaml_tag(key, new_value, file_info)
-          end
-        else
-          change_type = :replace
-          replace_yaml_tag(key, new_value, file_info)
+      elsif merge && mergeable?(old_value, new_value)
+        if merge_required?(old_value, new_value)
+          change_type = :merge
+          merge_yaml_tag(key, new_value, file_info)
         end
+      else
+        change_type = :replace
+        replace_yaml_tag(key, new_value, file_info)
       end
 
       change_type
@@ -191,10 +189,11 @@ module Simp::Cli::Config
 
       merge_required = false
       if old_value.is_a?(Array)
-        merge_required = !( (new_value & old_value) == new_value)
+        # Array set intersection, not an integer bit test
+        merge_required = (new_value & old_value) != new_value
       elsif old_value.is_a?(Hash)
         if (new_value.keys & old_value.keys) == new_value.keys
-          new_value.each do |key,value|
+          new_value.each do |key, value|
             if old_value[key] != value
               merge_required = true
               break
@@ -239,25 +238,25 @@ module Simp::Cli::Config
     #
     def merge_yaml_tag(key, new_value, file_info)
       unless file_info[:content].key?(key)
-        err_msg = "Unable to merge values for #{:key}:\n" +
-          "#{key} does not exist in #{file_info[:filename]}"
+        err_msg = "Unable to merge values for key:\n" \
+                  "#{key} does not exist in #{file_info[:filename]}"
         raise err_msg
       end
 
       old_value = file_info[:content][key][:value]
 
       unless mergeable?(old_value, new_value)
-        err_msg = "Unable to merge values for #{key}:\n" +
-          "old type (#{old_value.class}) and new type (#{new_value.class}) cannot be merged"
+        err_msg = "Unable to merge values for #{key}:\n" \
+                  "old type (#{old_value.class}) and new type (#{new_value.class}) cannot be merged"
         raise err_msg
       end
 
-      merged_value = nil
-      if new_value.is_a?(Array)
-        merged_value = (new_value + old_value).uniq
-      else
-        merged_value = old_value.merge(new_value)
-      end
+      nil
+      merged_value = if new_value.is_a?(Array)
+                       (new_value + old_value).uniq
+                     else
+                       old_value.merge(new_value)
+                     end
 
       replace_yaml_tag(key, merged_value, file_info)
     end
@@ -275,7 +274,7 @@ module Simp::Cli::Config
     #
     def pair_to_yaml_tag(key, value)
       # TODO: should we be using SafeYAML?  http://danieltao.com/safe_yaml/
-      { key => value }.to_yaml.gsub(/^---\s*\n/m, '')
+      { key => value }.to_yaml.gsub(%r{^---\s*\n}m, '')
     end
 
     # Replace tag directive for a key in a YAML file, preserving any existing
@@ -290,20 +289,19 @@ module Simp::Cli::Config
     # @param file_info Hash returned by load_yaml_with_comment_blocks
     #
     def replace_yaml_tag(key, new_value, file_info)
-      return unless file_info[:content].keys.include?(key)
+      return unless file_info[:content].key?(key)
 
       File.open(file_info[:filename], 'w') do |file|
         file.puts(file_info[:preamble].join("\n")) unless file_info[:preamble].empty?
         file.puts('---')
         file_info[:content].each do |k, info|
           # use write + \n to eliminate puts dedup of \n
-          file.write(info[:comments].join("\n") +  "\n") unless info[:comments].empty?
-          yaml_str = ''
-          if k == key
-            yaml_str = pair_to_yaml_tag(k, new_value)
-          else
-            yaml_str = pair_to_yaml_tag(k, info[:value])
-          end
+          file.write(info[:comments].join("\n") + "\n") unless info[:comments].empty?
+          yaml_str = if k == key
+                       pair_to_yaml_tag(k, new_value)
+                     else
+                       pair_to_yaml_tag(k, info[:value])
+                     end
 
           file.puts(yaml_str)
         end
@@ -311,4 +309,3 @@ module Simp::Cli::Config
     end
   end
 end
-

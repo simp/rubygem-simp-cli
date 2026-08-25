@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli'
 
 module Simp::Cli::Puppetfile
@@ -16,10 +18,10 @@ module Simp::Cli::Puppetfile
       @data = metadata
       @simp_modules_git_repos_path = simp_modules_git_repos_path
 
-      %w[name version].each do |field|
+      ['name', 'version'].each do |field|
         unless @data.is_a?(Hash) && @data.key?(field)
           msg = "ERROR: Could not read '#{field}' from module metadata"
-          fail(Simp::Cli::Puppetfile::ModuleError, msg)
+          raise(Simp::Cli::Puppetfile::ModuleError, msg)
         end
       end
 
@@ -47,13 +49,13 @@ module Simp::Cli::Puppetfile
     def verify_tag_exists_for_version
       tags = []
       Dir.chdir(local_git_repo_path) do
-        tags = %x(git tag -l).strip.split("\n").map(&:strip)
+        tags = `git tag -l`.strip.split("\n").map(&:strip)
       end
-      unless tags.include?(@data['version'])
-        msg = "ERROR: Tag '#{@data['version']}' not found in local repo " \
-          "'#{local_git_repo_path}'"
-        fail(Simp::Cli::Puppetfile::ModuleError, msg)
-      end
+      return if tags.include?(@data['version'])
+
+      msg = "ERROR: Tag '#{@data['version']}' not found in local repo " \
+            "'#{local_git_repo_path}'"
+      raise(Simp::Cli::Puppetfile::ModuleError, msg)
     end
 
     # module's local git repository
@@ -66,7 +68,7 @@ module Simp::Cli::Puppetfile
       @repo_path = File.join(@simp_modules_git_repos_path, "#{@data['name']}.git")
       unless File.directory?(@repo_path)
         msg = "ERROR: Missing local git repository at '#{@repo_path}'"
-        fail(Simp::Cli::Puppetfile::ModuleError, msg)
+        raise(Simp::Cli::Puppetfile::ModuleError, msg)
       end
       @repo_path
     end

@@ -10,7 +10,6 @@ require 'simp/cli/logging'
 module Simp::Cli::Environment
   # Controller class to manage SIMP Omni environments
   class OmniEnvController
-
     include Simp::Cli::Logging
 
     def initialize(opts = {}, env = nil)
@@ -20,7 +19,7 @@ module Simp::Cli::Environment
       @opts[:types].each do |type, data|
         # TODO: honor backends?
         # TODO: refactor into a Factory
-        base_env_path = data[:environmentpath] || fail(ArgumentError, 'ERROR: no :environmentpath in opts')
+        base_env_path = data[:environmentpath] || raise(ArgumentError, 'ERROR: no :environmentpath in opts')
         opts_data = data.reject { |k, _v| k == :enabled }
         case type
         when :puppet
@@ -30,11 +29,10 @@ module Simp::Cli::Environment
         when :writable
           @environments[:writable]  = WritableDirEnv.new(env, base_env_path, opts_data)
         else
-          fail("ERROR: Unrecognized environment type '#{env_type}'")
+          raise("ERROR: Unrecognized environment type '#{env_type}'")
         end
       end
     end
-
 
     def fail_unless_createable
       errors = []
@@ -46,12 +44,12 @@ module Simp::Cli::Environment
           next
         end
       end
-      unless errors.empty?
-        fail Simp::Cli::ProcessingError, [
-          "Cannot create environment because of errors encountered:",
-          errors.map{|e| "  #{e.message}" }
-        ].join("\n")
-      end
+      return if errors.empty?
+
+      raise Simp::Cli::ProcessingError, [
+        'Cannot create environment because of errors encountered:',
+        errors.map { |e| "  #{e.message}" },
+      ].join("\n")
     end
 
     # Create a new environment for each environment type
@@ -64,29 +62,29 @@ module Simp::Cli::Environment
         env_obj.create
       end
 
-      fix  # ensure environments are correct after creating them
+      fix # ensure environments are correct after creating them
     end
 
     # Update environment
     def update
-      fail NotImplementedError
+      raise NotImplementedError
     end
 
     # Remove environment
     def remove
-      fail NotImplementedError
+      raise NotImplementedError
     end
 
     # @return [Hash<Simp::Cli::Environment::Env>] current environments
     def list
-      fail NotImplementedError
+      raise NotImplementedError
     end
 
     # Fix consistency of environment
     def fix
       logger.notice("Re-applying FACLs, SELinux contexts, & permissions to '#{@env}' environment".bold)
       each_environment 'fix' do |env_type, env_obj|
-        if @opts[:types][env_type].fetch(:strategy,'') == :link
+        if @opts[:types][env_type].fetch(:strategy, '') == :link
           logger.trace("TRACE: (action: fix) skipping fix of #{env_type} environment because strategy is :link")
           next
         end
@@ -96,7 +94,7 @@ module Simp::Cli::Environment
 
     # Validate consistency of environment
     def validate
-      fail NotImplementedError
+      raise NotImplementedError
     end
 
     private

@@ -6,7 +6,7 @@ require 'simp/cli/commands/command'
 class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
   # @return [String] "snake-case" name of command
   def snakecase_name
-    self.class.to_s.split('::').last.gsub(%r{(?<!^)[A-Z]}) { "_#{$&}" }.downcase
+    self.class.to_s.split('::').last.gsub(%r{(?<!^)[A-Z]}) { "_#{::Regexp.last_match(0)}" }.downcase
   end
 
   # @return [Hash<Simp::Cli::Commands::Command>] memoized hash of sub commands
@@ -19,7 +19,7 @@ class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
       obj = self.class.const_get(constant)
       next unless obj.ancestors.include? Simp::Cli::Commands::Command
 
-      cmd = constant.to_s.gsub(%r{(?<!^)[A-Z]}) { "_#{$&}" }.downcase
+      cmd = constant.to_s.gsub(%r{(?<!^)[A-Z]}) { "_#{::Regexp.last_match(0)}" }.downcase
       @sub_commands[cmd] = obj
     end
     @sub_commands
@@ -53,13 +53,13 @@ class Simp::Cli::Commands::CommandFamily < Simp::Cli::Commands::Command
       help
 
       if cmd || !args.empty?
-        fail(
+        raise(
           Simp::Cli::ProcessingError,
-          "ERROR: Did not recognize sub-command '#{cmd} #{args.join(' ')}'"
+          "ERROR: Did not recognize sub-command '#{cmd} #{args.join(' ')}'",
         )
       end
 
-      fail(Simp::Cli::ProcessingError, 'ERROR: Did not provide sub-command')
+      raise(Simp::Cli::ProcessingError, 'ERROR: Did not provide sub-command')
     end
   end
 

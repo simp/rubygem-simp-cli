@@ -1,18 +1,19 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/kv/defaults'
 require 'simp/cli/kv/entity_checker'
 require 'simp/cli/kv/reporting'
 
 class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
-
   include Simp::Cli::Kv::Reporting
 
   def initialize
     @opts = {
-      :env     => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
+      :env => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
       :backend => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
-      :global  => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
-      :verbose      => 0  # Verbosity of console output:
+      :global => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
+      :verbose => 0 # Verbosity of console output:
       #                -1 = ERROR  and above
       #                 0 = NOTICE and above
       #                 1 = INFO   and above
@@ -48,14 +49,14 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
 
     results = {}
     errors = []
-    mapping = { true => 'present', false => 'absent'}
+    mapping = { true => 'present', false => 'absent' }
     @opts[:entities].each do |entity|
       begin
         # space at end tells logger to omit <CR>
         logger.notice("Processing #{entity_description(entity, @opts)}... ")
-        Simp::Cli::Utils::show_wait_spinner {
+        Simp::Cli::Utils.show_wait_spinner do
           results[entity] = mapping[checker.exists(entity, @opts[:global])]
-        }
+        end
         logger.notice('done.')
       rescue Exception => e
         logger.notice('done.')
@@ -65,15 +66,15 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
 
     logger.notice
 
-    unless results.empty?  # only empty if all check operations failed!
+    unless results.empty? # only empty if all check operations failed!
       report_results('folder/key existence check', results, @opts[:outfile])
     end
 
-    unless errors.empty?
-      err_msg = "Failed to check existence of #{errors.length} out of "\
-        "#{@opts[:entities].length} folders/keys:\n  #{errors.join("\n  ")}"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    return if errors.empty?
+
+    err_msg = "Failed to check existence of #{errors.length} out of " \
+              "#{@opts[:entities].length} folders/keys:\n  #{errors.join("\n  ")}"
+    raise Simp::Cli::ProcessingError, err_msg
   end
 
   #####################################################
@@ -147,14 +148,14 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
               'Indicates whether the keys/folders are',
               'global (i.e., is not stored within a simpkv',
               'folder for a Puppet environment).',
-              "Defaults to #{@opts[:global]}." ) do |global|
+              "Defaults to #{@opts[:global]}.") do |global|
         @opts[:global] = global
       end
 
       opts.on('-o', '--outfile OUTFILE',
               'Output file to write the JSON result of the',
               'check operation.  When absent the result',
-              'will be sent to the console.' ) do |outfile|
+              'will be sent to the console.') do |outfile|
         @opts[:outfile] = outfile
       end
 
@@ -169,14 +170,13 @@ class Simp::Cli::Commands::Kv::Exists < Simp::Cli::Commands::Command
 
     remaining_args = opt_parser.parse(args)
 
-    unless @help_requested
-      if remaining_args.empty?
-        err_msg = 'Folders/keys to check are missing from command line'
-        raise Simp::Cli::ProcessingError, err_msg
-      else
-        @opts[:entities] = remaining_args[0].split(',')
-      end
+    return if @help_requested
+
+    if remaining_args.empty?
+      err_msg = 'Folders/keys to check are missing from command line'
+      raise Simp::Cli::ProcessingError, err_msg
+    else
+      @opts[:entities] = remaining_args[0].split(',')
     end
   end
-
 end

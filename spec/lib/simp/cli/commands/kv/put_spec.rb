@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/kv'
 require 'simp/cli/commands/kv/put'
 
@@ -10,7 +12,7 @@ describe Simp::Cli::Commands::Kv::Put do
     @output = StringIO.new
     HighLine.default_instance = HighLine.new(@input, @output)
 
-    @kv = Simp::Cli::Commands::Kv::Put.new
+    @kv = described_class.new
   end
 
   after :each do
@@ -20,9 +22,9 @@ describe Simp::Cli::Commands::Kv::Put do
   end
 
   describe '#help' do
-    it 'should print help' do
-      expected_stdout_regex = /#{Simp::Cli::Commands::Kv::Put.description}/
-      expect{ @kv.run(['-h']) }.to output(expected_stdout_regex).to_stdout
+    it 'prints help' do
+      expected_stdout_regex = %r{#{described_class.description}}
+      expect { @kv.run(['-h']) }.to output(expected_stdout_regex).to_stdout
     end
   end
 
@@ -38,10 +40,10 @@ describe Simp::Cli::Commands::Kv::Put do
       it 'sets keys from --infile for default env in default backend' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_str = object_double('Mock Key Storer', { :put => nil })
-        keys.each do |key,info|
+        keys.each do |key, info|
           expect(mock_str).to receive(:put)
-          .with(key, info['value'],info['metadata'],info.key?('encoding'),false)
-          .and_return(nil)
+            .with(key, info['value'], info['metadata'], info.key?('encoding'), false)
+            .and_return(nil)
         end
 
         allow(Simp::Cli::Kv::KeyStorer).to receive(:new)
@@ -62,17 +64,17 @@ describe Simp::Cli::Commands::Kv::Put do
 
         EOM
 
-        @kv.run([ '--infile', valid_file ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['--infile', valid_file])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'sets keys from --json for default env in default backend' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_str = object_double('Mock Key Storer', { :put => nil })
-        keys.each do |key,info|
+        keys.each do |key, info|
           expect(mock_str).to receive(:put)
-          .with(key, info['value'],info['metadata'],info.key?('encoding'),false)
-          .and_return(nil)
+            .with(key, info['value'], info['metadata'], info.key?('encoding'), false)
+            .and_return(nil)
         end
 
         allow(Simp::Cli::Kv::KeyStorer).to receive(:new)
@@ -93,11 +95,11 @@ describe Simp::Cli::Commands::Kv::Put do
 
         EOM
 
-        @kv.run([ '--json', JSON.generate(keys) ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['--json', JSON.generate(keys)])
+        expect(@output.string).to eq(expected_output)
       end
 
-      it 'does not set keys for default env in default backend when '\
+      it 'does not set keys for default env in default backend when ' \
          'prompt returns no' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(false)
         mock_str = object_double('Mock Key Storer', { :delete => nil })
@@ -115,31 +117,33 @@ describe Simp::Cli::Commands::Kv::Put do
 
         EOM
 
-        @kv.run([ '--infile', valid_file ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['--infile', valid_file])
+        expect(@output.string).to eq(expected_output)
       end
 
-      it 'sets as many keys as possible and fails with list of key '\
+      it 'sets as many keys as possible and fails with list of key ' \
          'set failures' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_str = object_double('Mock Key Storer', { :delete => nil })
         expect(mock_str).to receive(:put)
-          .with('key1',keys['key1']['value'],keys['key1']['metadata'],false,false)
+          .with('key1', keys['key1']['value'], keys['key1']['metadata'], false, false)
           .and_return(nil)
 
         expect(mock_str).to receive(:put)
-          .with('key4',keys['key4']['value'],keys['key4']['metadata'],false,false)
+          .with('key4', keys['key4']['value'], keys['key4']['metadata'], false, false)
           .and_return(nil)
 
         expect(mock_str).to receive(:put)
-          .with('key2',keys['key2']['value'],keys['key2']['metadata'],false,false)
+          .with('key2', keys['key2']['value'], keys['key2']['metadata'], false, false)
           .and_raise(
-          Simp::Cli::ProcessingError, 'Put failed: connection timed out')
+            Simp::Cli::ProcessingError, 'Put failed: connection timed out'
+          )
 
         expect(mock_str).to receive(:put)
-          .with('key3',keys['key3']['value'],keys['key3']['metadata'],true,false)
+          .with('key3', keys['key3']['value'], keys['key3']['metadata'], true, false)
           .and_raise(
-          Simp::Cli::ProcessingError, 'Put failed: permission denied')
+            Simp::Cli::ProcessingError, 'Put failed: permission denied'
+          )
 
         allow(Simp::Cli::Kv::KeyStorer).to receive(:new)
           .with(default_env, default_backend).and_return(mock_str)
@@ -165,27 +169,26 @@ describe Simp::Cli::Commands::Kv::Put do
             'key3': Put failed: permission denied
         EOM
 
-        expect { @kv.run([ '--infile', valid_file ]) }
-          .to raise_error( Simp::Cli::ProcessingError,
-          expected_err_msg.strip)
+        expect { @kv.run(['--infile', valid_file]) }
+          .to raise_error(Simp::Cli::ProcessingError,
+                          expected_err_msg.strip)
 
-        expect( @output.string ).to eq(expected_stdout)
+        expect(@output.string).to eq(expected_stdout)
       end
-
     end
 
     context 'custom options' do
       let(:key) { 'key1' }
       let(:value) { 1 }
       let(:metadata) { {} }
-      let(:json) {
+      let(:json) do
         "{\"#{key}\":{\"value\":#{value},\"metadata\":#{metadata}}}"
-      }
+      end
 
       it 'sets keys without prompting when --force' do
         mock_str = object_double('Mock Key Storer', { :put => nil })
-        expect(mock_str).to receive(:put).with(key,value,metadata,false,false)
-          .and_return(nil)
+        expect(mock_str).to receive(:put).with(key, value, metadata, false, false)
+                                         .and_return(nil)
 
         allow(Simp::Cli::Kv::KeyStorer).to receive(:new)
           .with(default_env, default_backend).and_return(mock_str)
@@ -196,15 +199,15 @@ describe Simp::Cli::Commands::Kv::Put do
 
         EOM
 
-        @kv.run([ '--json', json, '--force' ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['--json', json, '--force'])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'sets global keys when --global' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_str = object_double('Mock Key Storer', { :put => nil })
-        expect(mock_str).to receive(:put).with(key,value,metadata,false,true)
-          .and_return(nil)
+        expect(mock_str).to receive(:put).with(key, value, metadata, false, true)
+                                         .and_return(nil)
 
         allow(Simp::Cli::Kv::KeyStorer).to receive(:new)
           .with(default_env, default_backend).and_return(mock_str)
@@ -215,15 +218,15 @@ describe Simp::Cli::Commands::Kv::Put do
 
         EOM
 
-        @kv.run([ '--json', json, '--global' ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['--json', json, '--global'])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'sets keys for backend specified by --backend' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_str = object_double('Mock Key Storer', { :put => nil })
-        expect(mock_str).to receive(:put).with(key,value,metadata,false,false)
-          .and_return(nil)
+        expect(mock_str).to receive(:put).with(key, value, metadata, false, false)
+                                         .and_return(nil)
 
         backend = 'custom_backend'
         allow(Simp::Cli::Kv::KeyStorer).to receive(:new)
@@ -235,15 +238,15 @@ describe Simp::Cli::Commands::Kv::Put do
 
         EOM
 
-        @kv.run([ '--json', json, '--backend', backend ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['--json', json, '--backend', backend])
+        expect(@output.string).to eq(expected_output)
       end
 
       it 'sets keys for environment specified by --environment' do
         allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
         mock_str = object_double('Mock Key Storer', { :put => nil })
-        expect(mock_str).to receive(:put).with(key,value,metadata,false,false)
-          .and_return(nil)
+        expect(mock_str).to receive(:put).with(key, value, metadata, false, false)
+                                         .and_return(nil)
 
         env = 'dev'
         allow(Simp::Cli::Kv::KeyStorer).to receive(:new)
@@ -255,9 +258,8 @@ describe Simp::Cli::Commands::Kv::Put do
 
         EOM
 
-
-        @kv.run([ '--json', json, '--environment', env ])
-        expect( @output.string ).to eq(expected_output)
+        @kv.run(['--json', json, '--environment', env])
+        expect(@output.string).to eq(expected_output)
       end
     end
 
@@ -265,45 +267,46 @@ describe Simp::Cli::Commands::Kv::Put do
       it 'fails to set keys when JSON file cannot be read' do
         allow(File).to receive(:read).with(any_args).and_call_original
         allow(File).to receive(:read).with('test_key.json').and_raise(
-          Errno::EACCES, 'failed read')
+          Errno::EACCES, 'failed read'
+        )
 
         expect { @kv.run(['--infile', 'test_key.json']) }
           .to raise_error(Simp::Cli::ProcessingError,
-          'Failed to read test_key.json: Permission denied - failed read')
+                          'Failed to read test_key.json: Permission denied - failed read')
       end
 
       it 'fails to set keys when JSON is malformed' do
         invalid_file = File.join(files_dir, 'invalid.json')
         expect { @kv.run(['--infile', invalid_file]) }
           .to raise_error(Simp::Cli::ProcessingError,
-          /Invalid JSON:/)
+                          %r{Invalid JSON:})
       end
 
       it 'fails to set keys when JSON is not a Hash' do
         expect { @kv.run(['--json', '[1,2]']) }
           .to raise_error(Simp::Cli::ProcessingError,
-          /Malformed JSON: Not a Hash/)
+                          %r{Malformed JSON: Not a Hash})
       end
 
       it 'fails to set keys when JSON is empty Hash' do
         expect { @kv.run(['--json', '{}']) }
           .to raise_error(Simp::Cli::ProcessingError,
-          'No keys specified in JSON')
+                          'No keys specified in JSON')
       end
 
-      it "fails to set keys when JSON fails key info validation" do
+      it 'fails to set keys when JSON fails key info validation' do
         invalid_file = File.join(files_dir, 'missing_value.json')
         expect { @kv.run(['--infile', invalid_file]) }
           .to raise_error(Simp::Cli::ProcessingError,
-          "Malformed JSON: Missing 'value' attribute for 'key1'")
+                          "Malformed JSON: Missing 'value' attribute for 'key1'")
       end
-   end
+    end
 
     context 'option validation' do
       it 'fails if both --infile and --json are specified' do
         expect { @kv.run(['--json', '{}', '--infile', 'key.json']) }
           .to raise_error(Simp::Cli::ProcessingError,
-          '--infile and --json are mutually exclusive')
+                          '--infile and --json are mutually exclusive')
       end
     end
   end

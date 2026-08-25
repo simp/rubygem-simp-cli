@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 require_relative '../yes_no_item'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::SimpOptionsFips < YesNoItem
-
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'simp_options::fips'
-      @description = %Q{Prepare system to use FIPS mode.
+      @description = %{Prepare system to use FIPS mode.
 
 #{@key} enforces strict compliance with FIPS-140-2.  All core SIMP
 modules can support this configuration. Enabling simp_options::fips will

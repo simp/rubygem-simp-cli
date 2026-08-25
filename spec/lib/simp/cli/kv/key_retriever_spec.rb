@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/kv/key_retriever'
 
 require 'etc'
@@ -22,79 +24,81 @@ describe Simp::Cli::Kv::KeyRetriever do
     @vardir = '/server/var/dir'
     puppet_info = {
       :config => {
-        'user'   => @user,
-        'group'  => @group,
+        'user' => @user,
+        'group' => @group,
         'vardir' => @vardir
       }
     }
 
     allow(Simp::Cli::Utils).to receive(:puppet_info).with(@env)
-      .and_return(puppet_info)
+                                                    .and_return(puppet_info)
 
-    @retriever = Simp::Cli::Kv::KeyRetriever.new(@env, @backend)
+    @retriever = described_class.new(@env, @backend)
   end
 
   describe '#get' do
-    let(:key_info) { {
-      'value'    => { 'password' => 'password1', 'salt' => 'salt1'},
-      'metadata' => { 'history' => [] }
-    } }
+    let(:key_info) do
+      {
+        'value' => { 'password' => 'password1', 'salt' => 'salt1' },
+        'metadata' => { 'history' => [] }
+      }
+    end
 
     it 'returns hash with key info for key in the environment' do
       allow(@retriever).to receive(:get_key_info).with(key, false)
-        .and_return(key_info)
+                                                 .and_return(key_info)
 
-      expect( @retriever.get(key, false) ).to eq(key_info)
+      expect(@retriever.get(key, false)).to eq(key_info)
     end
 
     it 'returns hash with key info for global key' do
       allow(@retriever).to receive(:get_key_info).with(key, true)
-        .and_return(key_info)
+                                                 .and_return(key_info)
 
-      expect( @retriever.get(key, true) ).to eq(key_info)
+      expect(@retriever.get(key, true)).to eq(key_info)
     end
 
-    it "fails when retrieved info is malformed" do
-      bad_info = { 'metadata' => { 'foo' => 'bar'} }
+    it 'fails when retrieved info is malformed' do
+      bad_info = { 'metadata' => { 'foo' => 'bar' } }
       allow(@retriever).to receive(:get_key_info).with(key, false)
-        .and_return(bad_info)
+                                                 .and_return(bad_info)
 
       expect { @retriever.get(key, false) }.to raise_error(
         Simp::Cli::ProcessingError,
-        "Key get failed: Key info malformed: Missing 'value' attribute for '#{key}'")
+        "Key get failed: Key info malformed: Missing 'value' attribute for '#{key}'",
+      )
     end
 
     it 'fails when #get_key_info fails' do
       allow(@retriever).to receive(:get_key_info).with(key, false)
-        .and_raise( Simp::Cli::ProcessingError, 'Connection failure')
+                                                 .and_raise(Simp::Cli::ProcessingError, 'Connection failure')
 
       expect { @retriever.get(key, false) }.to raise_error(
         Simp::Cli::ProcessingError,
-        'Key get failed: Connection failure')
+        'Key get failed: Connection failure',
+      )
     end
   end
 
   describe '#get_key_info' do
-    let(:key_info) { {
-      'value'    => { 'password' => 'password1', 'salt' => 'salt' },
-      'metadata' => { 'history'  => [] }
-    } }
+    let(:key_info) do
+      {
+        'value' => { 'password' => 'password1', 'salt' => 'salt' },
+        'metadata' => { 'history' => [] }
+      }
+    end
 
     it 'applies manifest to retrieve key info and then returns it' do
-      allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
-        .and_return({}) # don't care about return
+      allow(Simp::Cli::ApplyUtils).to receive_messages(apply_manifest_with_spawn: {}, load_yaml: key_info)
 
-      allow(Simp::Cli::ApplyUtils).to receive(:load_yaml)
-        .and_return(key_info)
-
-      expect( @retriever.get_key_info(key, true) ).to eq(key_info)
+      expect(@retriever.get_key_info(key, true)).to eq(key_info)
     end
 
     it 'fails when manifest apply fails' do
       allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_raise(Simp::Cli::ProcessingError, 'Connection failure')
 
-      expect{ @retriever.get_key_info(key, true) }
+      expect { @retriever.get_key_info(key, true) }
         .to raise_error(Simp::Cli::ProcessingError, 'Connection failure')
     end
 
@@ -103,11 +107,12 @@ describe Simp::Cli::Kv::KeyRetriever do
         .and_return({}) # don't care about return
 
       allow(Simp::Cli::ApplyUtils).to receive(:load_yaml).and_raise(
-        Simp::Cli::ProcessingError, 'Failed to load key info YAML')
+        Simp::Cli::ProcessingError, 'Failed to load key info YAML'
+      )
 
-      expect{ @retriever.get_key_info(key, true) }
+      expect { @retriever.get_key_info(key, true) }
         .to raise_error(Simp::Cli::ProcessingError,
-        'Failed to load key info YAML')
+                        'Failed to load key info YAML')
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Test 'simp kv put' operation that creates environment and global keys
 #
 # @param host Host object on which to execute test
@@ -17,33 +19,33 @@
 #   outfile             = JSON output file for 'simp kv list' operation
 #
 shared_examples 'kv put create operation test' do |host, env, backend_opt|
-  it "should store key info for new #{env} env keys" do
+  it "stores key info for new #{env} env keys" do
     create_remote_file(host, infile, created_keys_env.to_json)
-    keys = created_keys_env.keys
-    store_cmd = "umask 0077; simp kv put -i #{infile} --force -e #{env} "\
+    created_keys_env.keys
+    store_cmd = "umask 0077; simp kv put -i #{infile} --force -e #{env} " \
                 "#{backend_opt}"
     on(host, store_cmd)
 
     # TODO: Determine the folders to list based on input data instead of
     #       being hard-coded
-    list_cmd = "umask 0077; simp kv list /,complex --no-brief -e #{env} "\
+    list_cmd = "umask 0077; simp kv list /,complex --no-brief -e #{env} " \
                "-o #{outfile} #{backend_opt}"
     result = run_and_load_json(host, list_cmd, outfile)
-    expect( result ).to eq( updated_list_env )
+    expect(result).to eq(updated_list_env)
   end
 
-  it 'should store new key info for new global keys' do
+  it 'stores new key info for new global keys' do
     create_remote_file(host, infile, created_keys_global.to_json)
-    keys = created_keys_global.keys
-    store_cmd = "umask 0077; simp kv put -i #{infile} --force -e #{env} "\
-                " --global #{backend_opt}"
+    created_keys_global.keys
+    store_cmd = "umask 0077; simp kv put -i #{infile} --force -e #{env}  " \
+                "--global #{backend_opt}"
     on(host, store_cmd)
 
     # TODO: Determine the folders to list based on input data instead of
     #       being hard-coded
-    list_cmd = "umask 0077; simp kv list /,global_complex --no-brief "\
+    list_cmd = 'umask 0077; simp kv list /,global_complex --no-brief ' \
                "-o #{outfile} --global #{backend_opt}"
     result = run_and_load_json(host, list_cmd, outfile)
-    expect( result ).to eq( updated_list_global )
+    expect(result).to eq(updated_list_global)
   end
 end

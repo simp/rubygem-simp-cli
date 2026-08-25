@@ -1,13 +1,16 @@
+# frozen_string_literal: true
+
 require_relative '../yes_no_item'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::CliSetUpNIC < YesNoItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'cli::network::set_up_nic'
-      @description = %Q{Whether to configure and activate this NIC now. A properly configured
+      @description = %(Whether to configure and activate this NIC now. A properly configured
 NIC with associated hostname is required for SIMP to be bootstrapped.
 
 If you enter 'yes', this will immediately, with appropriate prompts for
@@ -22,7 +25,7 @@ network has been configured and activated.
 
 You should enter 'yes' if the interface has not yet been configured.
 You may want to enter 'yes', if you want to reconfigure it and are **NOT**
-logged into the server via this interface.}
+logged into the server via this interface.)
 
       @data_type   = :cli_params
     end
@@ -32,9 +35,8 @@ logged into the server via this interface.}
     end
 
     def query_ask
-      nic = get_item( 'cli::network::interface' ).value
+      get_item('cli::network::interface').value
       super
     end
-
   end
 end

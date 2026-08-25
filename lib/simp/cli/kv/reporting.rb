@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/command_console_logger'
 
 module Simp; end
@@ -5,21 +7,18 @@ class Simp::Cli; end
 module Simp::Cli::Kv; end
 
 module Simp::Cli::Kv::Reporting
-
   include Simp::Cli::CommandConsoleLogger
 
   # @returns key/folder description
   # @param entity Key/folder name
   # @param opts KV command options Hash
   def entity_description(entity, opts)
-    entity_descr = nil
+    nil
     if opts[:global]
-      entity_descr = "global '#{entity}'"
+      "global '#{entity}'"
     else
-      entity_descr = "'#{entity}' in '#{opts[:env]}' environment"
+      "'#{entity}' in '#{opts[:env]}' environment"
     end
-
-    entity_descr
   end
 
   # Report results to console or file in JSON format
@@ -52,5 +51,4 @@ module Simp::Cli::Kv::Reporting
       end
     end
   end
-
 end

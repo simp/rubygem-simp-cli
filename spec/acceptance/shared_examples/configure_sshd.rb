@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 # Configure test-specific sshd settings
 shared_examples 'configure sshd' do |host|
-  let(:manifest) {
+  let(:manifest) do
     <<~EOM
       # Set up sshd client keepalives to try to eliminate ssh connection
       # timeouts that kill the tests when the Hosts are slow VMs.
@@ -20,13 +22,13 @@ shared_examples 'configure sshd' do |host|
         value  => 'yes'
       }
     EOM
-  }
+  end
 
-  it "should configure sshd settings on #{host}" do
+  it "configures sshd settings on #{host}" do
     apply_manifest_on(host, manifest)
   end
 
-  it "should reboot #{host} to restart vagrant connections with new settings" do
+  it "reboots #{host} to restart vagrant connections with new settings" do
     host.reboot
   end
 end

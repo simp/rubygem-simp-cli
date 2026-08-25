@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/action/set_hostname_action'
 
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SetHostnameAction do
   before :each do
-    @ci = Simp::Cli::Config::Item::SetHostnameAction.new
+    @ci = described_class.new
   end
 
   # TODO:  test with acceptance tests
   describe '#apply' do
-    it 'will do set hostname' do
+    it 'does set hostname' do
       cli_network_hostname = Simp::Cli::Config::Item::CliNetworkHostname.new
       cli_network_hostname.value = 'foo.bar.baz'
       cli_network_dhcp = Simp::Cli::Config::Item::CliNetworkDHCP.new
@@ -29,7 +31,7 @@ describe Simp::Cli::Config::Item::SetHostnameAction do
 
       @ci.apply
 
-      expect( @ci.applied_status ).to eq :succeeded
+      expect(@ci.applied_status).to eq :succeeded
     end
 
     it 'sets applied_status to :failed when fails to set hostname' do
@@ -39,7 +41,7 @@ describe Simp::Cli::Config::Item::SetHostnameAction do
 
       expect(@ci).to receive(:execute).with("hostname #{cli_network_hostname.value}").and_return(false)
       @ci.apply
-      expect( @ci.applied_status ).to eq :failed
+      expect(@ci.applied_status).to eq :failed
     end
   end
 

@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 require_relative '../action_item'
 require_relative '../data/cli_network_hostname'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::SetUpPuppetAutosignAction < ActionItem
-
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'puppet::autosign'
       @description = 'Set up Puppet autosign'
       @category    = :puppet_global
@@ -15,24 +17,24 @@ module Simp::Cli::Config
       @group       = @puppet_env_info[:puppet_group]
     end
 
-#FIXME this is unused.... was it supposted to be?
+    # FIXME: this is unused.... was it supposted to be?
     def get_os_value
       # TODO: make this a custom fact?
-      values = Array.new
+      values = []
       File.readable?(@file) &&
-      File.readlines(@file).each do |line|
-        next if line =~ /^(\#|\s*$)/
+        File.readlines(@file).each do |line|
+          next if %r{^(\#|\s*$)}.match?(line)
 
-        # if we encounter 'puppet.your.domain' (the default value from a
-        # fresh simp-bootstrap RPM), infer this is a freshly installed system
-        # with no legitimate autosign entries.
-        if line =~ /^puppet.your.domain/
-          values = []
-          break
+          # if we encounter 'puppet.your.domain' (the default value from a
+          # fresh simp-bootstrap RPM), infer this is a freshly installed system
+          # with no legitimate autosign entries.
+          if %r{^puppet.your.domain}.match?(line)
+            values = []
+            break
+          end
+          values << line.strip
         end
-        values << line.strip
-      end
-      if values.size == 0
+      if values.empty?
         nil
       else
         values
@@ -41,9 +43,7 @@ module Simp::Cli::Config
 
     def get_recommended_value
       rec_value = os_value
-      if !rec_value
-        rec_value = [ get_item( 'cli::network::hostname' ).value ]
-      end
+      rec_value ||= [get_item('cli::network::hostname').value]
       rec_value
     end
 
@@ -51,35 +51,35 @@ module Simp::Cli::Config
       @applied_status = :failed
       if File.exist?(@file)
         backup_file = "#{@file}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-        info( "Backing up #{@file} to #{backup_file}" )
+        info("Backing up #{@file} to #{backup_file}")
         FileUtils.cp(@file, backup_file)
         group_id = File.stat(@file).gid
         File.chown(nil, group_id, backup_file)
       end
 
       entries = recommended_value
-      info( "Updating #{@file}" )
+      info("Updating #{@file}")
       begin
         File.open(@file, 'w') do |file|
-          file.puts "# You should place any hostnames/domains here that you wish to autosign.\n" +
-                    "# The most security-conscious method is to list each individual hostname:\n" +
-                    "#   hosta.your.domain\n" +
-                    "#   hostb.your.domain\n" +
-                    "#\n" +
-                    "# Wildcard domains work, but absolutely should NOT be used unless you fully\n" +
-                    "# trust your network.\n" +
+          file.puts "# You should place any hostnames/domains here that you wish to autosign.\n" \
+                    "# The most security-conscious method is to list each individual hostname:\n" \
+                    "#   hosta.your.domain\n" \
+                    "#   hostb.your.domain\n" \
+                    "#\n" \
+                    "# Wildcard domains work, but absolutely should NOT be used unless you fully\n" \
+                    "# trust your network.\n" \
                     "#   *.your.domain\n\n"
           entries.each do |entry|
             file.puts(entry)
           end
         end
-        FileUtils.chmod(0640, @file)
+        FileUtils.chmod(0o640, @file)
         FileUtils.chown(nil, @group, @file)
         @applied_status = :succeeded
       rescue Errno::EPERM, ArgumentError => e
         # This will happen if the user is not root or the group does
         # not exist.
-        error( "\nERROR: Could not create #{@file} with group '#{@group}': #{e}", [:RED] )
+        error("\nERROR: Could not create #{@file} with group '#{@group}': #{e}", [:RED])
       end
     end
 

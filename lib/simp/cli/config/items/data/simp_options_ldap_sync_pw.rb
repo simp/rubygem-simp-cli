@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../password_item'
 
 module Simp; end
@@ -6,9 +8,9 @@ class Simp::Cli; end
 module Simp::Cli::Config
   class Item::SimpOptionsLdapSyncPw < PasswordItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key           = 'simp_options::ldap::sync_pw'
-      @description   = %Q{The LDAP Sync password.}
+      @description   = %(The LDAP Sync password.)
       @password_name = 'LDAP Sync'
     end
 
@@ -16,13 +18,12 @@ module Simp::Cli::Config
       'LDAP Sync password'
     end
 
-    def validate string
+    def validate(string)
       !string.to_s.strip.empty? && super
     end
 
-
     # LDAP Bind PW must known and stored in cleartext
-    def encrypt string
+    def encrypt(string)
       string
     end
   end

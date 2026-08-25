@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/data/simp_yum_repo_local_simp_enable_repo'
 require 'rspec/its'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SimpYumRepoLocalSimpEnableRepo do
   before :each do
-    @ci = Simp::Cli::Config::Item::SimpYumRepoLocalSimpEnableRepo.new
+    @ci = described_class.new
   end
 
-  context "#recommended_value" do
+  describe '#recommended_value' do
     it "returns 'no'" do
-      expect( @ci.recommended_value ).to eq('no')
+      expect(@ci.recommended_value).to eq('no')
     end
   end
 

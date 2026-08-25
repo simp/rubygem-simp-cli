@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/data/simp_sssd_client_ldap_server_type'
-#require 'rspec/its'
+# require 'rspec/its'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SimpSssdClientLdapServerType do
   before :each do
-    @ci = Simp::Cli::Config::Item::SimpSssdClientLdapServerType.new
+    @ci = described_class.new
     @ci.silent = true
   end
 
@@ -15,8 +17,8 @@ describe Simp::Cli::Config::Item::SimpSssdClientLdapServerType do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
       end
 
-      it "should return 'plain'" do
-        expect( @ci.recommended_value ).to eq 'plain'
+      it "returns 'plain'" do
+        expect(@ci.recommended_value).to eq 'plain'
       end
     end
 
@@ -26,31 +28,31 @@ describe Simp::Cli::Config::Item::SimpSssdClientLdapServerType do
         allow(Facter).to receive(:value).with('os').and_return(os_fact)
       end
 
-      it "should return '389ds'" do
-        expect( @ci.recommended_value ).to eq '389ds'
+      it "returns '389ds'" do
+        expect(@ci.recommended_value).to eq '389ds'
       end
     end
   end
 
   describe '#validate' do
-    it "should accept '389ds'" do
-      expect( @ci.validate('389ds') ).to eq true
+    it "accepts '389ds'" do
+      expect(@ci.validate('389ds')).to be true
     end
 
-    it "should accept 'plain'" do
-      expect( @ci.validate('plain') ).to eq true
+    it "accepts 'plain'" do
+      expect(@ci.validate('plain')).to be true
     end
 
-    it 'should reject an empty type' do
-      expect( @ci.validate('') ).to eq false
+    it 'rejects an empty type' do
+      expect(@ci.validate('')).to be false
     end
 
-    it 'should reject an unsupported type' do
-      expect( @ci.validate('ad') ).to eq false
+    it 'rejects an unsupported type' do
+      expect(@ci.validate('ad')).to be false
     end
   end
 
   context 'base operation' do
-    it_behaves_like "a child of Simp::Cli::Config::Item"
+    it_behaves_like 'a child of Simp::Cli::Config::Item'
   end
 end

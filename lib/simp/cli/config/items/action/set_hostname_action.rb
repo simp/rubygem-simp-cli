@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../action_item'
 require_relative '../data/cli_network_dhcp'
 require_relative '../data/cli_network_hostname'
@@ -5,10 +7,11 @@ require_relative '../data/cli_network_interface'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::SetHostnameAction < ActionItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key               = 'hostname::conf'
       @description       = 'Set hostname'
       @category          = :system
@@ -18,30 +21,30 @@ module Simp::Cli::Config
 
     def apply
       @applied_status = :failed
-      @fqdn     = get_item( 'cli::network::hostname' ).value
+      @fqdn = get_item('cli::network::hostname').value
 
       # TODO: replace this with 'puppet apply' + network::global
-      info( 'Updating hostname' )
+      info('Updating hostname')
       success = execute("hostname #{@fqdn}")
 
-      if (success)
-        info( 'Updating /etc/sysconfig/network' )
+      if success
+        info('Updating /etc/sysconfig/network')
         # only sed error is if file does not exist
-        success = success && execute("sed -i '/HOSTNAME/d' /etc/sysconfig/network")
-        success = success && execute("echo HOSTNAME=#{@fqdn} >> /etc/sysconfig/network")
+        success &&= execute("sed -i '/HOSTNAME/d' /etc/sysconfig/network")
+        success &&= execute("echo HOSTNAME=#{@fqdn} >> /etc/sysconfig/network")
       end
 
-      if (success)
-        info( 'Updating /etc/hostname' )
+      if success
+        info('Updating /etc/hostname')
         begin
-          File.open('/etc/hostname','w'){|fh| fh.puts(@fqdn)}
+          File.open('/etc/hostname', 'w') { |fh| fh.puts(@fqdn) }
         rescue Errno::EACCES
           success = false
         end
       end
 
       if success && Facter::Core::Execution.which('hostnamectl')
-        success = success && execute("hostnamectl set-hostname #{@fqdn}")
+        success &&= execute("hostnamectl set-hostname #{@fqdn}")
       end
 
       begin
@@ -50,23 +53,23 @@ module Simp::Cli::Config
         # NOOP
       end
 
-      if success && dhcp_item && ( dhcp_item.value == 'dhcp' )
+      if success && dhcp_item && (dhcp_item.value == 'dhcp')
         # restart the interface to pick up any domain changes associated
         # with the new hostname, if the interface is configured via DHCP
-        interface = get_item( 'cli::network::interface' ).value
-        info( "Restarting #{interface} interface to update domain info" )
-        Simp::Cli::Utils::show_wait_spinner {
-          success = success && execute("/sbin/ifdown #{interface}; /sbin/ifup #{interface} && wait && sleep 10")
-        }
+        interface = get_item('cli::network::interface').value
+        info("Restarting #{interface} interface to update domain info")
+        Simp::Cli::Utils.show_wait_spinner do
+          success &&= execute("/sbin/ifdown #{interface}; /sbin/ifup #{interface} && wait && sleep 10")
+        end
 
         # clear out any old networking-related facts
         Facter.clear
       end
-      @applied_status = :succeeded if (success)
+      @applied_status = :succeeded if success
     end
 
     def apply_summary
-      "Setting of hostname#{@fqdn ? ' to ' + @fqdn : ''} #{@applied_status}"
+      "Setting of hostname#{' to ' + @fqdn if @fqdn} #{@applied_status}"
     end
   end
 end

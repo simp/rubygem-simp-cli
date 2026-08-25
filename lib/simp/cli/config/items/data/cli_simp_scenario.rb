@@ -1,15 +1,18 @@
+# frozen_string_literal: true
+
 require_relative '../item'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::CliSimpScenario < Item
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'cli::simp::scenario'
-#TODO Generate description and validation based on available
-# scenarios/*_items.yaml
-      @description = %Q{The SIMP scenario: Predetermined set of security features to apply.
+      # TODO: Generate description and validation based on available
+      # scenarios/*_items.yaml
+      @description = %{The SIMP scenario: Predetermined set of security features to apply.
 
 'simp'      = Settings for a full SIMP system. Both the SIMP server
               (this host) and all clients will be running with
@@ -31,19 +34,19 @@ bootstrapped your SIMP server.}
       site_pp = File.join(@puppet_env_info[:puppet_env_dir], 'manifests', 'site.pp')
       return nil unless File.exist?(site_pp)
 
-      scenario_lines = IO.readlines(site_pp).delete_if do |line|
-        !(line =~ /^\$simp_scenario\s*=\s*['"]*(\S+)['"]/)
+      scenario_lines = File.readlines(site_pp).delete_if do |line|
+        line !~ %r{^\$simp_scenario\s*=\s*['"]*(\S+)['"]}
       end
       return nil if scenario_lines.size != 1
 
-      scenario_lines[0].match(/^\$simp_scenario\s*=\s*['"]*(\S+)['"]/)[1]
+      scenario_lines[0].match(%r{^\$simp_scenario\s*=\s*['"]*(\S+)['"]})[1]
     end
 
     def get_recommended_value
       'simp'
     end
 
-    def validate( x )
+    def validate(x)
       ['simp', 'simp_lite', 'poss'].include?(x)
     end
 
@@ -60,7 +63,7 @@ bootstrapped your SIMP server.}
     # it gets added to # the tree with @skip_query and @silent both set to true.
     # This, in turn causes an inapplicable warning message to be added to the
     # Item's YAML (see Item#auto_warning and Item#to_yaml_s).
-    def to_yaml_s(include_auto_warning = false)
+    def to_yaml_s(_include_auto_warning = false)
       super(false)
     end
   end

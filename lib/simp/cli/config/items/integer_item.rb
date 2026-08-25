@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 require_relative 'item'
 
 module Simp::Cli::Config
-
   # An Item that asks for an Integer instead of a String
   # NOTE:
   # - @value is a Integer
@@ -15,7 +16,7 @@ module Simp::Cli::Config
     # before being written to YAML
     def to_yaml_s(include_auto_warning = false)
       @value = @value.to_i
-      super(include_auto_warning)
+      super
     end
 
     # Ensure queried item is converted to an integer

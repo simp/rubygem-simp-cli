@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/exec_utils'
 
 require 'yaml'
@@ -7,7 +9,6 @@ module Simp; end
 class Simp::Cli; end
 
 module Simp::Cli::ApplyUtils
-
   # Apply a Puppet manifest in an environment via a spawned process
   #
   # @param manifest Contents of the manifest to be applied
@@ -42,9 +43,9 @@ module Simp::Cli::ApplyUtils
 
     result = nil
     cmd = nil
-    Dir.mktmpdir( File.basename( __FILE__ ) ) do |dir|
-      logger.debug("Creating manifest file for #{options[:title]} with" +
-        " content:\n\n#{manifest}\n") if logger
+    Dir.mktmpdir(File.basename(__FILE__)) do |dir|
+      logger&.debug("Creating manifest file for #{options[:title]} with " \
+                    "content:\n\n#{manifest}\n")
 
       manifest_file = File.join(dir, 'apply_manifest.pp')
       File.open(manifest_file, 'w') { |file| file.puts manifest }
@@ -52,21 +53,21 @@ module Simp::Cli::ApplyUtils
         'puppet apply',
         '--color=false',
         "--environment=#{options[:env]}",
-        options[:puppet_config].map { |cfg,value| "--#{cfg}=#{value}"}.join(' '),
-        manifest_file
+        options[:puppet_config].map { |cfg, value| "--#{cfg}=#{value}" }.join(' '),
+        manifest_file,
       ].join(' ')
 
       cmd = nil
-      if options[:group]
-        cmd = "sg #{options[:group]} -c '#{puppet_apply}'"
-      else
-        cmd = puppet_apply
-      end
+      cmd = if options[:group]
+              "sg #{options[:group]} -c '#{puppet_apply}'"
+            else
+              puppet_apply
+            end
 
       # We need to defer handling of error logging to the caller, so don't pass
       # logger into run_command().  Since we are not using the logger in
       # run_command(), we will have to duplicate the command debug logging here.
-      logger.debug( "Executing: #{cmd}" ) if logger
+      logger&.debug("Executing: #{cmd}")
       result = Simp::Cli::ExecUtils.run_command(cmd)
     end
 
@@ -77,12 +78,12 @@ module Simp::Cli::ApplyUtils
 
     if !result[:status] && options[:fail]
       err_msg = nil
-      if ( options.key?(:fail_filter) &&
-          result[:stderr].include?(options[:fail_filter]) )
+      if options.key?(:fail_filter) &&
+         result[:stderr].include?(options[:fail_filter])
         err_msg = options[:fail_filter]
       else
         stderr = result[:stderr].split("\n")
-        stderr.delete_if { |line| line.match(/^\s*Error/).nil? }
+        stderr.delete_if { |line| line.match(%r{^\s*Error}).nil? }
         stderr.map! { |line| "    #{line}" }
         err_msg = "#{options[:title]} failed:\n#{stderr.join("\n")}"
       end
@@ -93,12 +94,9 @@ module Simp::Cli::ApplyUtils
     result
   end
 
-=begin
-TODO
-  def self.apply_manifest_with_pal(manifest, ..., logger = nil)
-  end
-=end
-
+  # TODO
+  #   def self.apply_manifest_with_pal(manifest, ..., logger = nil)
+  #   end
 
   # Load YAML from a temporary file and return the resulting Hash
   #
@@ -118,18 +116,17 @@ TODO
     yaml = nil
     content = nil
     begin
-      logger.debug("Loading #{id} YAML from file") if logger
+      logger&.debug("Loading #{id} YAML from file")
       content = File.read(file)
-      logger.debug("Content:\n#{content}") if logger
+      logger&.debug("Content:\n#{content}")
       yaml = YAML.load(content)
     rescue Exception => e
       err_msg = "Failed to load #{id} YAML:\n"
-      err_msg += "<<< YAML Content:\n#{content}\n"  unless content.nil?
+      err_msg += "<<< YAML Content:\n#{content}\n" unless content.nil?
       err_msg += "<<< Error: #{e}"
       raise Simp::Cli::ProcessingError, err_msg
     end
 
     yaml
   end
-
 end

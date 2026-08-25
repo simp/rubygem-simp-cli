@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../item'
 require_relative 'cli_local_priv_user'
 require_relative 'cli_local_priv_user_exists'
@@ -5,8 +7,8 @@ require_relative 'cli_local_priv_user_has_ssh_authorized_keys'
 
 module Simp; end
 class Simp::Cli; end
-module Simp::Cli::Config
 
+module Simp::Cli::Config
   # A special Item that never queries because its value is derived
   # from other Items.
   #
@@ -16,7 +18,7 @@ module Simp::Cli::Config
   # enter Hash values as of yet.
   class Item::SudoUserSpecifications < Item
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'sudo::user_specifications'
       @description = '`sudo` user rules.'
 
@@ -27,10 +29,10 @@ module Simp::Cli::Config
     end
 
     def get_recommended_value
-      username = get_item( 'cli::local_priv_user' ).value
+      username = get_item('cli::local_priv_user').value
       password_required = true
-      if ( get_item( 'cli::local_priv_user_exists' ).value &&
-         get_item( 'cli::local_priv_user_has_ssh_authorized_keys' ).value )
+      if get_item('cli::local_priv_user_exists').value &&
+         get_item('cli::local_priv_user_has_ssh_authorized_keys').value
 
         # May be a cloud user who does not have a password, so doesn't
         # make sense for sudo to prompt for a password
@@ -39,17 +41,25 @@ module Simp::Cli::Config
 
       {
         "#{username}_su" => {
-          'user_list' => [ username ],
-          'cmnd'      => [ 'ALL' ],
-          'passwd'    => password_required,
-          'options'   =>  { 'role' => 'unconfined_r' }
+          'user_list' => [username],
+          'cmnd' => ['ALL'],
+          'passwd' => password_required,
+          'options' => { 'role' => 'unconfined_r' }
         }
       }
     end
 
     # don't be interactive
-    def query;          nil;   end
-    def validate( x );  true;  end
-    def print_summary;  nil;   end
+    def query
+      nil
+    end
+
+    def validate(_x)
+      true
+    end
+
+    def print_summary
+      nil
+    end
   end
 end

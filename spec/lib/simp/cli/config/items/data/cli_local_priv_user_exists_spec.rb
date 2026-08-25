@@ -1,41 +1,42 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/data/cli_local_priv_user_exists'
 require 'test_utils/etc_pwnam_struct'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::CliLocalPrivUserExists do
-
   before :each do
-    @ci = Simp::Cli::Config::Item::CliLocalPrivUserExists.new
+    @ci = described_class.new
 
     item = Simp::Cli::Config::Item::CliLocalPrivUser.new
     item.value = 'local_admin'
     @ci.config_items[item.key] = item
   end
 
-  context '#recommended_value' do
+  describe '#recommended_value' do
     context 'when local privileged user exists' do
-      let(:local_admin_pwnam) {
+      let(:local_admin_pwnam) do
         pwnam = TestUtils::EtcPwnamStruct.new
         pwnam.name   = 'local_admin'
         pwnam.passwd = 'x'
         pwnam.uid    = 1778
         pwnam.gid    = 1778
-        pwnam.gecos   = ''
+        pwnam.gecos = ''
         pwnam.dir    = '/var/local/local_admin'
         pwnam.shell  = '/bin/bash'
         pwnam
-      }
+      end
 
       it "returns 'yes'" do
         allow(Etc).to receive(:getpwnam).and_return(local_admin_pwnam)
-        expect( @ci.recommended_value ).to eq('yes')
+        expect(@ci.recommended_value).to eq('yes')
       end
     end
 
     context 'when local privileged user does not exist' do
       it "returns 'no'" do
         allow(Etc).to receive(:getpwnam).and_raise(ArgumentError)
-        expect( @ci.recommended_value ).to eq('no')
+        expect(@ci.recommended_value).to eq('no')
       end
     end
   end

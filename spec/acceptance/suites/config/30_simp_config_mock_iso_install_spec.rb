@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper_acceptance'
 require 'inifile'
 require 'yaml'
@@ -8,7 +10,6 @@ host_interfaces = {}
 hosts.each do |host|
   host_interfaces[host] = fact_on(host, 'interfaces').split(',').delete_if { |x| x == 'lo' }
 end
-
 
 # Tests `simp config`, alone, in a server configuration that is akin to
 # installation from SIMP ISO.
@@ -40,15 +41,15 @@ describe 'simp config defaults for (mock) ISO install' do
 
   context "with defaults on #{host}" do
     hosts.each do |host|
-      include_examples 'remove SIMP omni environment', host, 'production'
+      it_behaves_like 'remove SIMP omni environment', host, 'production'
 
       options = {
-        :description  => 'with defaults',
-        :iso_install  => true,
-        :interface    => host_interfaces[host].first
+        :description => 'with defaults',
+        :iso_install => true,
+        :interface => host_interfaces[host].first
       }
 
-      include_examples 'simp config operation', host, options
+      it_behaves_like 'simp config operation', host, options
     end
   end
 end

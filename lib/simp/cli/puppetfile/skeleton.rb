@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/defaults'
 require 'simp/cli/errors'
 require 'simp/cli/utils'
@@ -8,8 +10,8 @@ module Simp::Cli::Puppetfile
   # Provides a skeleton Puppetfile that includes a local Puppetfile.simp
   # and can include local module refs
   class Skeleton
-    SECTION_SEPARATOR    = '='*78
-    SUBSECTION_SEPARATOR = '-'*78
+    SECTION_SEPARATOR    = '=' * 78
+    SUBSECTION_SEPARATOR = '-' * 78
 
     INTRO_SECTION = <<~INTRO
       # #{SECTION_SEPARATOR}
@@ -112,10 +114,10 @@ module Simp::Cli::Puppetfile
     #
     def find_local_modules(puppet_env)
       git = Facter::Core::Execution.which('git')
-      fail(Simp::Cli::ProcessingError, "Error: Could not find 'git' command!") unless git
+      raise(Simp::Cli::ProcessingError, "Error: Could not find 'git' command!") unless git
 
       # Find module sub-directories
-      env_path = Simp::Cli::Utils::puppet_info(puppet_env)[:environment_path]
+      env_path = Simp::Cli::Utils.puppet_info(puppet_env)[:environment_path]
       mdj_files = Dir.glob(File.join(env_path, puppet_env, 'modules', '*', 'metadata.json'))
       module_dirs = mdj_files.map { |mdj_file| File.dirname(mdj_file) }
 
@@ -123,21 +125,21 @@ module Simp::Cli::Puppetfile
       local_mods = []
       module_dirs.each do |module_dir|
         Dir.chdir(module_dir) do
-           metadata = load_metadata(module_dir)
-           next if metadata.nil?
+          metadata = load_metadata(module_dir)
+          next if metadata.nil?
 
-           if Dir.exist?('.git')
-             if `#{git} remote -v`.strip.empty?
-               local_mods << [ File.basename(module_dir), metadata['name'] ]
-             end
-           else
-             local_mods << [ File.basename(module_dir), metadata['name'] ]
-           end
+          if Dir.exist?('.git')
+            if `#{git} remote -v`.strip.empty?
+              local_mods << [File.basename(module_dir), metadata['name']]
+            end
+          else
+            local_mods << [File.basename(module_dir), metadata['name']]
+          end
         end
       end
 
       # Remove any 'local' modules for which a local Git repo exists
-      local_mods.delete_if do |mod_name, org_plus_name|
+      local_mods.delete_if do |_mod_name, org_plus_name|
         Dir.exist?(File.join(@simp_modules_git_repos_path, "#{org_plus_name}.git"))
       end
 
@@ -146,7 +148,7 @@ module Simp::Cli::Puppetfile
       # NOTE:  There may be modules that were obsoleted by the 'simp' or
       #        'simp-extras' RPMs (e.g., simp-site, simp-simpcat), but it
       #         would be too aggressive to remove those...
-      local_mods.delete_if do |mod_name, org_plus_name|
+      local_mods.delete_if do |_mod_name, org_plus_name|
         local_module_obsolete?(org_plus_name)
       end
 
@@ -156,10 +158,11 @@ module Simp::Cli::Puppetfile
     # @returns a 'Generated' header when local modules are to be included
     #   in the generated Puppetfile
     def header
-      return '' if  local_modules.empty?
+      return '' if local_modules.empty?
+
       <<~HEADER
         # #{SECTION_SEPARATOR}
-        # Puppetfile (Generated at #{Simp::Cli::Utils::timestamp} with local modules from
+        # Puppetfile (Generated at #{Simp::Cli::Utils.timestamp} with local modules from
         # '#{@puppet_env}' Puppet environment)
         #
       HEADER
@@ -172,7 +175,7 @@ module Simp::Cli::Puppetfile
     def load_metadata(module_dir)
       mdj_file = File.join(module_dir, 'metadata.json')
       unless File.exist?(mdj_file)
-        $stderr.puts "Ignoring local module #{module_dir}: metadata.json missing"
+        warn "Ignoring local module #{module_dir}: metadata.json missing"
         return nil
       end
 
@@ -180,11 +183,11 @@ module Simp::Cli::Puppetfile
       begin
         metadata = JSON.parse(File.read(mdj_file))
         unless metadata['name']
-          $stderr.puts "Ignoring local module #{module_dir}: 'name' missing from metadata.json"
+          warn "Ignoring local module #{module_dir}: 'name' missing from metadata.json"
           metadata = nil
         end
       rescue JSON::JSONError => e
-        $stderr.puts "Ignoring local module #{module_dir}: #{e}"
+        warn "Ignoring local module #{module_dir}: #{e}"
       end
       metadata
     end
@@ -195,11 +198,11 @@ module Simp::Cli::Puppetfile
     def local_modules
       return @local_modules if @local_modules
 
-      if @puppet_env.nil?
-        @local_modules = []
-      else
-        @local_modules = find_local_modules(@puppet_env)
-      end
+      @local_modules = if @puppet_env.nil?
+                         []
+                       else
+                         find_local_modules(@puppet_env)
+                       end
       @local_modules
     end
 
@@ -216,14 +219,13 @@ module Simp::Cli::Puppetfile
       obsolete = false
       possible_matches.map! { |repo_name| "pupmod-#{File.basename(repo_name, '.git')}" }
       possible_matches.each do |pkg_name|
-        result = %x{rpm -q #{pkg_name} --obsoletes 2>&1}
-        if result.match(/^pupmod-#{org_plus_name}(\s)+/)
+        result = `rpm -q #{pkg_name} --obsoletes 2>&1`
+        if result.match?(%r{^pupmod-#{org_plus_name}(\s)+})
           obsolete = true
           break
         end
       end
       obsolete
     end
-
   end
 end

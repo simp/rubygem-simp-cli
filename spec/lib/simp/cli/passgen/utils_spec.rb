@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/passgen/utils'
 require 'spec_helper'
 require 'test_utils/mock_logger'
@@ -23,7 +25,7 @@ describe Simp::Cli::Passgen::Utils do
       @input << "#{password1}\n"
       @input << "#{password1}\n"
       @input.rewind
-      expect( Simp::Cli::Passgen::Utils.get_password ).to eq password1
+      expect(described_class.get_password).to eq password1
 
       expected = <<~EOM
         > Enter password: ********************
@@ -37,7 +39,7 @@ describe Simp::Cli::Passgen::Utils do
       @input << "#{password1}\n"
       @input << "#{password1}\n"
       @input.rewind
-      expect( Simp::Cli::Passgen::Utils.get_password ).to eq password1
+      expect(described_class.get_password).to eq password1
 
       expected = <<~EOM
         > Enter password: *****
@@ -53,7 +55,7 @@ describe Simp::Cli::Passgen::Utils do
       @input << "#{password1}\n"
       @input << "#{password1}\n"
       @input.rewind
-      expect( Simp::Cli::Passgen::Utils.get_password ).to eq password1
+      expect(described_class.get_password).to eq password1
 
       expected = <<~EOM
         > Enter password: ********************
@@ -76,7 +78,7 @@ describe Simp::Cli::Passgen::Utils do
       @input << "#{password1}\n"
       @input << "bad confirm 5\n"
       @input.rewind
-      expect{ Simp::Cli::Passgen::Utils.get_password }
+      expect { described_class.get_password }
         .to raise_error(Simp::Cli::ProcessingError)
     end
 
@@ -85,7 +87,7 @@ describe Simp::Cli::Passgen::Utils do
       @input << "#{simple_password}\n"
       @input << "#{simple_password}\n"
       @input.rewind
-      expect( Simp::Cli::Passgen::Utils.get_password(5, false) )
+      expect(described_class.get_password(5, false))
         .to eq simple_password
     end
 
@@ -97,19 +99,19 @@ describe Simp::Cli::Passgen::Utils do
       @input << "#{ok_password}\n"
       @input << "#{ok_password}\n"
       @input.rewind
-      expect( Simp::Cli::Passgen::Utils.get_password(5, false, 9) )
+      expect(described_class.get_password(5, false, 9))
         .to eq ok_password
-   end
+    end
   end
 
   describe '.validate_password_length' do
     it 'returns true when password has valid length' do
-      expect( Simp::Cli::Passgen::Utils.validate_password_length('1234', 4) )
+      expect(described_class.validate_password_length('1234', 4))
         .to be true
     end
 
     it 'returns false when password has invalid length' do
-      expect( Simp::Cli::Passgen::Utils.validate_password_length('1234', 5) )
+      expect(described_class.validate_password_length('1234', 5))
         .to be false
     end
   end

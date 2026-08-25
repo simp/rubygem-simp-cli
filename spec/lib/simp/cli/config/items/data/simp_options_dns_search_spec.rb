@@ -1,81 +1,80 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/data/simp_options_dns_search'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::SimpOptionsDNSSearch do
   before :all do
-    @files_dir = File.expand_path( 'files', File.dirname( __FILE__ ) )
+    @files_dir = File.expand_path('files', File.dirname(__FILE__))
   end
 
   before :each do
-    @ci = Simp::Cli::Config::Item::SimpOptionsDNSSearch.new
+    @ci = described_class.new
   end
-
 
   describe '#recommended_value' do
     context 'when /etc/resolv.conf is populated' do
       it 'handles a single domain' do
-        @ci.file = File.join(@files_dir,'resolv.conf__single')
-        expect( @ci.recommended_value).to eq ['tasty.bacon']
+        @ci.file = File.join(@files_dir, 'resolv.conf__single')
+        expect(@ci.recommended_value).to eq ['tasty.bacon']
       end
 
       it 'handles multiple domains' do
-        @ci.file = File.join(@files_dir,'resolv.conf__multiple')
-        expect( @ci.recommended_value).to eq ['tasty.bacon', 'yucky.bacon', 'instant.bacon']
+        @ci.file = File.join(@files_dir, 'resolv.conf__multiple')
+        expect(@ci.recommended_value).to eq ['tasty.bacon', 'yucky.bacon', 'instant.bacon']
       end
     end
 
     context 'when /etc/resolv.conf is empty' do
       before :each do
-        @ci.file = '/dev/null'
+        @ci.file = File::NULL
       end
 
       it 'recommends ipaddress (when available)' do
         fqdn = Simp::Cli::Config::Item::CliNetworkHostname.new
         fqdn.value = 'puppet.snazzy.domain'
-        @ci.config_items[ fqdn.key ] = fqdn
+        @ci.config_items[fqdn.key] = fqdn
 
-        expect( @ci.recommended_value.size ).to eq 1
-        expect( @ci.recommended_value      ).to eq ['snazzy.domain']
+        expect(@ci.recommended_value.size).to eq 1
+        expect(@ci.recommended_value).to eq ['snazzy.domain']
       end
 
       it 'recommends a must-change value (when ipaddress is not available)' do
-        expect( @ci.recommended_value.size  ).to eq 1
-        expect( @ci.recommended_value.first ).to match( /CHANGE THIS/ )
+        expect(@ci.recommended_value.size).to eq 1
+        expect(@ci.recommended_value.first).to match(%r{CHANGE THIS})
       end
     end
 
     context 'when /etc/resolv.conf does not exist' do
       it 'recommends a must-change value (when ipaddress is not available)' do
         @ci.file = '/does/not/exist/resolv.conf'
-        expect( @ci.recommended_value.size  ).to eq 1
-        expect( @ci.recommended_value.first ).to match( /CHANGE THIS/ )
+        expect(@ci.recommended_value.size).to eq 1
+        expect(@ci.recommended_value.first).to match(%r{CHANGE THIS})
       end
     end
   end
 
-
-  describe "#validate" do
-    it "validates array with domains" do
-      expect( @ci.validate ['dev1', 'simp.dev', 'google.com', '0simp.dev'] ).to eq true
+  describe '#validate' do
+    it 'validates array with domains' do
+      expect(@ci.validate(['dev1', 'simp.dev', 'google.com', '0simp.dev'])).to be true
     end
 
     it "doesn't validate array with bad domains" do
-      expect( @ci.validate [nil]         ).to eq false
-      expect( @ci.validate ['simp.dev-'] ).to eq false
-      expect( @ci.validate ['.simp.dev'] ).to eq false
+      expect(@ci.validate([nil])).to be false
+      expect(@ci.validate(['simp.dev-'])).to be false
+      expect(@ci.validate(['.simp.dev'])).to be false
     end
 
     it "doesn't validate empty array" do
-      expect( @ci.validate []         ).to eq false
+      expect(@ci.validate([])).to be false
     end
 
     it "doesn't validate nonsense" do
-      expect( @ci.validate 0             ).to eq false
-      expect( @ci.validate nil           ).to eq false
-      expect( @ci.validate false         ).to eq false
+      expect(@ci.validate(0)).to be false
+      expect(@ci.validate(nil)).to be false
+      expect(@ci.validate(false)).to be false
     end
   end
 
-  it_behaves_like "a child of Simp::Cli::Config::Item"
+  it_behaves_like 'a child of Simp::Cli::Config::Item'
 end
-

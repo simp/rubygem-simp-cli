@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'ipaddr'
 require 'resolv'
 require_relative '../list_item'
@@ -6,12 +8,13 @@ require_relative 'cli_network_netmask'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::SimpOptionsTrustedNets < ListItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'simp_options::trusted_nets'
-      @description = %Q{A list of subnets to permit, in CIDR notation.
+      @description = %{A list of subnets to permit, in CIDR notation.
 
 If you need this to be more (or less) restrictive for a given class,
 you can override it in Hiera.}
@@ -31,36 +34,36 @@ you can override it in Hiera.}
 
       # snarfed from:
       #   http://stackoverflow.com/questions/1825928/netmask-to-cidr-in-ruby
-      subnet = IPAddr.new( nm ).to_i.to_s( 2 ).count('1')
+      subnet = IPAddr.new(nm).to_i.to_s(2).count('1')
 
       mucky_cidr = "#{address}/#{subnet}"
-      cidr = "#{ IPAddr.new( mucky_cidr ).to_range.first.to_s}/#{subnet}"
+      cidr = "#{IPAddr.new(mucky_cidr).to_range.first}/#{subnet}"
 
-      [ cidr ]
+      [cidr]
     end
 
     # validate subnet
-    def validate_item( net )
+    def validate_item(net)
       ### warn "'#{net}' doesn't end like a CIDR";
-      return false if net !~ %r{/\d+$}
+      return false unless %r{/\d+$}.match?(net)
 
       ### warn "list item '#{net}' is not in proper CIDR notation";
       return false if net.split('/').size > 2
 
-      subnet,cidr = net.split('/')
+      subnet, cidr = net.split('/')
 
       # NOTE: if we support IPv6, we should redo netmask & validations
       ### warn "subnet '#{subnet}' is not a valid IP!";
-      return false if !((subnet =~ Resolv::IPv4::Regex) || (subnet =~ Resolv::IPv6::Regex))
+      return false unless (subnet =~ Resolv::IPv4::Regex) || (subnet =~ Resolv::IPv6::Regex)
 
       ### warn "/#{cidr} is not a valid CIDR suffix";
-      return false if !(cidr.to_i >= 0 && cidr.to_i <= 32)
+      return false unless cidr.to_i.between?(0, 32)
 
       true
     end
 
     def not_valid_message
-      "Invalid list of trusted networks in CIDR notation."
+      'Invalid list of trusted networks in CIDR notation.'
     end
   end
 end

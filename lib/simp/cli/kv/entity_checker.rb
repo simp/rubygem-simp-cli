@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/apply_utils'
 require 'simp/cli/exec_utils'
 require 'simp/cli/kv/operator_base'
@@ -5,16 +7,12 @@ require 'simp/cli/kv/operator_base'
 # Class to check the existence of a folder/key in a key/value store using
 # the simp-simpkv Puppet module
 class Simp::Cli::Kv::EntityChecker < Simp::Cli::Kv::OperatorBase
-
   # @param env Puppet environment.  Used to specify the location of non-global
   #   keys/folders in the key/value folder tree as well as where to find the
   #   simpkv backend configuration
   #
   # @param backend Name of key/value store in simpkv configuration
   #
-  def initialize(env, backend)
-    super(env, backend)
-  end
 
   # Check whether a folder/key exists in the key/value store
   #
@@ -50,16 +48,16 @@ class Simp::Cli::Kv::EntityChecker < Simp::Cli::Kv::OperatorBase
   # @raise Simp::Cli::ProcessingError if the check fails
   #
   def get_exists(entity, global)
-    logger.debug("Checking existence of #{full_store_path(entity, global)} "\
-      "with a puppet apply")
+    logger.debug("Checking existence of #{full_store_path(entity, global)} " \
+                 'with a puppet apply')
 
     args = "'#{entity}', #{simpkv_options(global)}"
     opts = apply_options('Folder/key exists')
 
     # such a trivial operation, going to use log scraping to gather result
     found_string = "'#{entity}' EXISTS"
-    missing_string ="'#{entity}' DOES NOT EXIST"
-    manifest =<<~EOM
+    missing_string = "'#{entity}' DOES NOT EXIST"
+    manifest = <<~EOM
       if simpkv::exists(#{args}) {
         warning("#{found_string}")
       } else {
@@ -67,7 +65,7 @@ class Simp::Cli::Kv::EntityChecker < Simp::Cli::Kv::OperatorBase
       }
     EOM
 
-    result = Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
-    !result[:stderr].match(/#{Regexp.escape(found_string)}/).nil?
+    result = Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
+    !result[:stderr].match(%r{#{Regexp.escape(found_string)}}).nil?
   end
 end

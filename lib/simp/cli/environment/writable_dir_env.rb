@@ -18,7 +18,6 @@ module Simp::Cli::Environment
 
       case @opts[:strategy]
 
-      # rubocop:disable Lint/EmptyWhen
       when :skeleton
         # noop
       when :copy
@@ -26,9 +25,8 @@ module Simp::Cli::Environment
       when :link
         link_environment_dirs(@opts[:src_env], false)
       else
-        fail("ERROR: Unknown Writable environment create strategy: '#{@opts[:strategy]}'")
+        raise("ERROR: Unknown Writable environment create strategy: '#{@opts[:strategy]}'")
       end
-      # rubocop:enable Lint/EmptyWhen
     end
 
     # Fix consistency of Puppet directory environment
@@ -56,22 +54,21 @@ module Simp::Cli::Environment
     #   may become useful to fix permissions when migrating SIMP Omni
     #   environments between different Puppet/PE servers.
     #
-    def fix
-    end
+    def fix; end
 
     # Update environment
     def update
-      fail NotImplementedError
+      raise NotImplementedError
     end
 
     # Remove environment
     def remove
-      fail NotImplementedError
+      raise NotImplementedError
     end
 
     # Validate consistency of environment
     def validate
-      fail NotImplementedError
+      raise NotImplementedError
     end
   end
 end

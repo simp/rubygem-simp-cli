@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module Simp; end
 class Simp::Cli; end
-module Simp::Cli::Config
 
+module Simp::Cli::Config
   # Exception class for errors during ActionItem::safe_apply()
   # and ActionItem::apply()
   class ApplyError < StandardError; end
@@ -14,12 +16,11 @@ module Simp::Cli::Config
     end
   end
 
-  class MissingItemError < InternalError;
+  class MissingItemError < InternalError
     def initialize(missing_item_key, class_needing_item)
       super("#{class_needing_item} could not find #{missing_item_key}")
     end
   end
 
   class ValidationError < StandardError; end
-
 end

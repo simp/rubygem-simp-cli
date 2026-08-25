@@ -10,11 +10,10 @@ require 'yaml'
 # TODO: As more `simp environment` sub-commands are added, a lot of this code
 #      could probably be abstracted into a common class or mixin
 class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
-
   include Simp::Cli::CommandLogger
 
-  TYPES=[:puppet, :secondary, :writable]
-  STRATEGY_ARGS=['--skeleton', '--copy', '--link']
+  TYPES = [:puppet, :secondary, :writable].freeze
+  STRATEGY_ARGS = ['--skeleton', '--copy', '--link'].freeze
 
   # @return [String] description of command
   def self.description
@@ -27,12 +26,12 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
   end
 
   def fail_on_multiple_strategies(args)
-    if args.count{ |x| STRATEGY_ARGS.include?(x) } > 1
-      fail(
-        Simp::Cli::ProcessingError,
-        "ERROR: Cannot specify more than one of: #{STRATEGY_ARGS.join(', ')}"
-      )
-    end
+    return unless args.count { |x| STRATEGY_ARGS.include?(x) } > 1
+
+    raise(
+      Simp::Cli::ProcessingError,
+      "ERROR: Cannot specify more than one of: #{STRATEGY_ARGS.join(', ')}",
+    )
   end
 
   # Parse command-line options for this simp command
@@ -52,10 +51,10 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     # console, but NOT sent to the console when the corresponding
     # code is used within 'simp config'.
     options[:verbose] = 1 # -1 = ERROR  and above
-                          #  0 = NOTICE and above
-                          #  1 = INFO   and above
-                          #  2 = DEBUG  and above
-                          #  3 = TRACE  and above
+    #  0 = NOTICE and above
+    #  1 = INFO   and above
+    #  2 = DEBUG  and above
+    #  3 = TRACE  and above
 
     opt_parser = OptionParser.new do |opts|
       opts.banner = '== simp environment new [options]'
@@ -104,19 +103,19 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
       opts.separator('PRIMARY OPTIONS (mutually exclusive):')
       opts.on('--skeleton',
-               '(default) Generate environments from',
-               'skeleton templates and generate',
-               'Puppetfiles in the Puppet environment',
-               "that reference SIMP's local module Git",
-               'repositories.') do
-         TYPES.each do |type|
-           options[:types][type][:strategy]    = :skeleton
-         end
+              '(default) Generate environments from',
+              'skeleton templates and generate',
+              'Puppetfiles in the Puppet environment',
+              "that reference SIMP's local module Git",
+              'repositories.') do
+        TYPES.each do |type|
+          options[:types][type][:strategy] = :skeleton
+        end
 
-         unless ( args.include?('--no-puppet-env') ||
-                 args.include?('--no-puppetfile-gen') )
-           options[:types][:puppet][:puppetfile_generate] = true
-         end
+        unless args.include?('--no-puppet-env') ||
+               args.include?('--no-puppetfile-gen')
+          options[:types][:puppet][:puppetfile_generate] = true
+        end
       end
 
       opts.on('--copy SRC_ENV', Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
@@ -155,7 +154,7 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
               'Automatically deploy an existing Puppetfile',
               'in the Puppet environment.',
               ' * Can be used with `--puppetfile-gen`',
-              '   to create the Puppetfile first.') do |v|
+              '   to create the Puppetfile first.') do |_v|
         options[:types][:puppet][:puppetfile_install] = true
       end
 
@@ -187,8 +186,8 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
       end
     end
 
-    unless STRATEGY_ARGS.any?{ |x| args.include?(x) }
-      say "TRACE: === default: add --skeleton".cyan if options[:verbose] > 2
+    unless STRATEGY_ARGS.any? { |x| args.include?(x) }
+      say 'TRACE: === default: add --skeleton'.cyan if options[:verbose] > 2
       args.unshift('--skeleton')
     end
 
@@ -205,18 +204,19 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
 
     return if @help_requested
 
-    fail(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.") if remaining_args.empty?
+    raise(Simp::Cli::ProcessingError, "ERROR: 'ENVIRONMENT' is required.") if remaining_args.empty?
+
     env = remaining_args.shift
     unless Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME.match?(env)
-      fail(
+      raise(
         Simp::Cli::ProcessingError,
-        "ERROR: '#{env}' is not an acceptable environment name"
+        "ERROR: '#{env}' is not an acceptable environment name",
       )
     end
 
     set_up_global_logger(options)
 
-    unless (options[:verbose] < 0) || (options[:log_file] == :none)
+    unless options[:verbose].negative? || (options[:log_file] == :none)
       logger.say("Actions will be logged to\n  #{options[:log_file]}\n".bold)
     end
     logger.debug("Environment creation options:\n#{options.to_yaml}\n")
@@ -225,9 +225,8 @@ class Simp::Cli::Commands::Environment::New < Simp::Cli::Commands::Command
     omni_controller = Simp::Cli::Environment::OmniEnvController.new(options, env)
     omni_controller.send(action)
 
-    unless (options[:verbose] < 0) || (options[:log_file] == :none)
-      logger.say( "\n" + "Detailed log written to #{options[:log_file]}".bold )
-    end
-  end
+    return if options[:verbose].negative? || (options[:log_file] == :none)
 
+    logger.say("\n" + "Detailed log written to #{options[:log_file]}".bold)
+  end
 end

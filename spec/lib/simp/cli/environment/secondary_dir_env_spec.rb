@@ -4,7 +4,6 @@ require 'simp/cli/environment/secondary_dir_env'
 require 'spec_helper'
 
 describe Simp::Cli::Environment::SecondaryDirEnv do
-  # rubocop:disable RSpec/SubjectStub
   let(:opts) do
     skel_dir = '/usr/share/simp/environments'
     {
@@ -45,20 +44,25 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
       before(:each) { allow(File).to receive(:exist?).with(env_dir).and_return(false) }
 
       context 'when strategy is :skeleton' do
-        let(:opts){ super().merge(strategy: :skeleton) }
-        before(:each){ allow(described_object).to receive(:create_environment_from_skeletons)}
+        let(:opts) { super().merge(strategy: :skeleton) }
+
+        before(:each) { allow(described_object).to receive(:create_environment_from_skeletons) }
+
         it { expect { described_object.create }.not_to raise_error }
       end
 
       context 'when strategy is :copy' do
         let(:opts) do
           super().merge({
-            strategy: :copy,
-            src_env:  File.join(base_env_path,'src_env'),
-          })
+                          strategy: :copy,
+                          src_env: File.join(base_env_path, 'src_env')
+                        })
         end
-        before(:each) { allow( described_object ).to receive(:copy_environment_files).with(opts[:src_env]) }
+
+        before(:each) { allow(described_object).to receive(:copy_environment_files).with(opts[:src_env]) }
+
         it { expect { described_object.create }.not_to raise_error }
+
         example do
           described_object.create
           expect(described_object).to have_received(:copy_environment_files).with(opts[:src_env])
@@ -68,12 +72,15 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
       context 'when strategy is :link' do
         let(:opts) do
           super().merge({
-            strategy: :link,
-            src_env:  File.join(base_env_path,'src_env'),
-          })
+                          strategy: :link,
+                          src_env: File.join(base_env_path, 'src_env')
+                        })
         end
-        before(:each){ allow( described_object ).to receive(:link_environment_dirs).with(opts[:src_env]) }
+
+        before(:each) { allow(described_object).to receive(:link_environment_dirs).with(opts[:src_env]) }
+
         it { expect { described_object.create }.not_to raise_error }
+
         example do
           described_object.create
           expect(described_object).to have_received(:link_environment_dirs).with(opts[:src_env])
@@ -98,18 +105,22 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
         end
 
         it { expect { described_object.fix }.not_to raise_error }
+
         it {
           described_object.fix
           expect(described_object).to have_received(:selinux_fix_file_contexts).with([env_dir]).once
         }
+
         it {
           described_object.fix
           expect(described_object).to have_received(:apply_puppet_permissions).with(site_files_dir, false, true).once
         }
+
         it {
           described_object.fix
           expect(described_object).to have_received(:apply_puppet_permissions).with(env_dir, false, true, false).once
         }
+
         it {
           described_object.fix
           expect(described_object).to have_received(:apply_facls).with(rsync_dir, rsync_facl_file).once
@@ -118,10 +129,11 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
 
       context 'when secondary environment directory is missing' do
         before(:each) { allow(File).to receive(:directory?).with(env_dir).and_return(false) }
+
         it {
           expect { described_object.fix }.to raise_error(
             Simp::Cli::ProcessingError,
-            %r{directory not found at '#{env_dir}'}
+            %r{directory not found at '#{env_dir}'},
           )
         }
       end

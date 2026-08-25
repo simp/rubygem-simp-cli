@@ -1,19 +1,20 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/passgen/command_common'
 
 class Simp::Cli::Commands::Passgen::Remove < Simp::Cli::Commands::Command
-
   include Simp::Cli::Passgen::CommandCommon
 
   def initialize
     @opts = {
-      :env          => DEFAULT_PUPPET_ENVIRONMENT,
-      :backend      => nil, # simpkv backend
-      :folder       => nil, # passgen sub-folder in simpkv
+      :env => DEFAULT_PUPPET_ENVIRONMENT,
+      :backend => nil, # simpkv backend
+      :folder => nil, # passgen sub-folder in simpkv
       :force_remove => DEFAULT_FORCE, # whether to remove without prompting
-      :names        => [],  # names of passwords to remove
+      :names => [], # names of passwords to remove
       :password_dir => nil, # fully qualified path to a legacy passgen dir
-      :verbose      => 0    # Verbosity of console output:
+      :verbose => 0 # Verbosity of console output:
       #                        -1 = ERROR  and above
       #                         0 = NOTICE and above
       #                         1 = INFO   and above
@@ -31,7 +32,7 @@ class Simp::Cli::Commands::Passgen::Remove < Simp::Cli::Commands::Command
   end
 
   def help
-    parse_command_line( [ '--help' ] )
+    parse_command_line(['--help'])
   end
 
   # @param args Command line options
@@ -45,10 +46,10 @@ class Simp::Cli::Commands::Passgen::Remove < Simp::Cli::Commands::Command
     # space at end tells logger to omit <CR>, so spinner+done are on same line
     logger.notice("Initializing for environment '#{@opts[:env]}'... ")
     manager = nil
-    Simp::Cli::Utils::show_wait_spinner {
+    Simp::Cli::Utils.show_wait_spinner do
       # construct the correct manager to do the work based on simplib version
       manager = get_password_manager(@opts)
-    }
+    end
     logger.notice('done.')
 
     remove_passwords(manager, @opts[:names], @opts[:force_remove])
@@ -103,24 +104,24 @@ class Simp::Cli::Commands::Passgen::Remove < Simp::Cli::Commands::Command
       end
 
       opts.on('-d', '--dir DIR',
-          'Fully qualified path to a legacy password',
-          'store. Rarely needs to be set. Overrides',
-          'the directory for the environment.') do |dir|
+              'Fully qualified path to a legacy password',
+              'store. Rarely needs to be set. Overrides',
+              'the directory for the environment.') do |dir|
         @opts[:password_dir] = dir
       end
 
       opts.on('-e', '--env ENV',
-          'Puppet environment to which the operation',
-          "will be applied. Defaults to '#{@opts[:env]}'.") do |env|
+              'Puppet environment to which the operation',
+              "will be applied. Defaults to '#{@opts[:env]}'.") do |env|
         @opts[:env] = env
       end
 
       opts.on('--[no-]force',
-          'Remove passwords without prompting user to',
-          'confirm. When disabled, the user will be',
-          'prompted to confirm the removal for each',
-          'password. Defaults to ' +
-          "#{translate_bool(@opts[:env])}.") do |force|
+              'Remove passwords without prompting user to',
+              'confirm. When disabled, the user will be',
+              'prompted to confirm the removal for each',
+              'password. Defaults to ' \
+              "#{translate_bool(@opts[:env])}.") do |force|
         @opts[:force_remove] = force
       end
 
@@ -134,13 +135,13 @@ class Simp::Cli::Commands::Passgen::Remove < Simp::Cli::Commands::Command
 
     remaining_args = opt_parser.parse!(args)
 
-    unless @help_requested
-      if remaining_args.empty?
-        err_msg = 'Password names are missing from command line'
-        raise Simp::Cli::ProcessingError, err_msg
-      else
-        @opts[:names] = remaining_args[0].split(',').sort
-      end
+    return if @help_requested
+
+    if remaining_args.empty?
+      err_msg = 'Password names are missing from command line'
+      raise Simp::Cli::ProcessingError, err_msg
+    else
+      @opts[:names] = remaining_args[0].split(',').sort
     end
   end
 
@@ -159,7 +160,7 @@ class Simp::Cli::Commands::Passgen::Remove < Simp::Cli::Commands::Command
       remove = force_remove
       unless force_remove
         prompt = "Are you sure you want to remove all info for '#{name}'?".bold
-        remove = Simp::Cli::Utils::yes_or_no(prompt, false)
+        remove = Simp::Cli::Utils.yes_or_no(prompt, false)
       end
 
       if remove
@@ -167,9 +168,9 @@ class Simp::Cli::Commands::Passgen::Remove < Simp::Cli::Commands::Command
         # line
         logger.notice("Processing '#{name}' in #{manager.location}... ")
         begin
-          Simp::Cli::Utils::show_wait_spinner {
+          Simp::Cli::Utils.show_wait_spinner do
             manager.remove_password(name)
-          }
+          end
           logger.notice('done.')
           logger.notice("  Removed '#{name}'")
         rescue Exception => e
@@ -184,10 +185,10 @@ class Simp::Cli::Commands::Passgen::Remove < Simp::Cli::Commands::Command
       logger.notice
     end
 
-    unless errors.empty?
-      err_msg = "Failed to remove #{errors.length} out of #{names.length}" +
-        " passwords in #{manager.location}:\n  #{errors.join("\n  ")}"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    return if errors.empty?
+
+    err_msg = "Failed to remove #{errors.length} out of #{names.length} " \
+              "passwords in #{manager.location}:\n  #{errors.join("\n  ")}"
+    raise Simp::Cli::ProcessingError, err_msg
   end
 end

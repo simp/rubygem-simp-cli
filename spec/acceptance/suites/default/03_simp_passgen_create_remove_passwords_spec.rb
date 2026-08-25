@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper_acceptance'
 
 # global variable to hold results from an example for comparison in
@@ -12,63 +14,60 @@ describe 'simp passgen create and remove passwords' do
   [
     'old_simplib',
     'new_simplib_legacy_passgen',
-    'new_simplib_simpkv_passgen'
+    'new_simplib_simpkv_passgen',
   ].each do |env|
     hosts.each do |host|
-
       context 'Password name creation' do
-        include_examples 'workaround beaker ssh session closures', hosts
+        it_behaves_like 'workaround beaker ssh session closures', hosts
 
-        it "should create new passwords in #{env}" do
+        it "creates new passwords in #{env}" do
           new_names.each do |name|
             cmd = "simp passgen set #{name} -e #{env} --auto-gen"
             set_result = on(host, cmd).stdout
-            new_password = set_result.match(/.*new password: (.*)/m)[1].chomp!.chomp!
+            new_password = set_result.match(%r{.*new password: (.*)}m)[1].chomp!.chomp!
             saved_new_passwords[name] = new_password
           end
         end
 
-        it "should list the new password names in #{env}" do
+        it "lists the new password names in #{env}" do
           result = on(host, "simp passgen list -e #{env}").stdout
           new_names.each do |name|
-            expect(result).to match(/#{name}/)
+            expect(result).to match(%r{#{name}})
           end
         end
       end
 
-
       context 'Use of externally created password in a manifest' do
-
         context 'puppet agent prep' do
-          include_examples 'workaround beaker ssh session closures', hosts
-          include_examples 'configure puppet env', host, env
+          it_behaves_like 'workaround beaker ssh session closures', hosts
+          it_behaves_like 'configure puppet env', host, env
         end
 
         context 'puppet agent run' do
-          include_examples 'workaround beaker ssh session closures', hosts
+          it_behaves_like 'workaround beaker ssh session closures', hosts
 
-          it 'should add extra passwords to passgen_test via hieradata' do
-            default_yaml_file = File.join( '/etc/puppetlabs/code/environments',
-               env, 'data', 'default.yaml')
+          it 'adds extra passwords to passgen_test via hieradata' do
+            default_yaml_file = File.join('/etc/puppetlabs/code/environments',
+                                          env, 'data', 'default.yaml')
 
-            hieradata = YAML.load( on(host, "cat #{default_yaml_file}").stdout )
+            hieradata = YAML.load(on(host, "cat #{default_yaml_file}").stdout)
             hieradata['passgen_test::extra_keys'] = new_names
             create_remote_file(host, default_yaml_file, hieradata.to_yaml)
             on(host, "cat #{default_yaml_file}")
           end
 
-          it 'should apply manifest to add extra persisted passwords' do
+          it 'applies manifest to add extra persisted passwords' do
             retry_on(host, 'puppet agent -t', :desired_exit_codes => [0],
-              :max_retries => 5, :verbose => true.to_s)
+                                              :max_retries => 5, :verbose => true.to_s)
           end
 
           [
-           "/var/passgen_test/#{env}-passgen_test_default_new1",
-           "/var/passgen_test/#{env}-passgen_test_default_new2",
+            "/var/passgen_test/#{env}-passgen_test_default_new1",
+            "/var/passgen_test/#{env}-passgen_test_default_new2",
           ].each do |file|
-            it "should create #{file} with the externally pre-set password" do
-              expect( file_exists_on(host, file) ).to be true
-              name = File.basename(file).gsub(/#{env}\-/,'')
+            it "creates #{file} with the externally pre-set password" do
+              expect(file_exists_on(host, file)).to be true
+              name = File.basename(file).gsub(%r{#{env}-}, '')
               preset_value = saved_new_passwords[name]
               curr_value = on(host, "cat #{file}").stdout
               expect(curr_value).to eq(preset_value)
@@ -78,9 +77,9 @@ describe 'simp passgen create and remove passwords' do
       end
 
       context 'Password name removal' do
-        include_examples 'workaround beaker ssh session closures', hosts
+        it_behaves_like 'workaround beaker ssh session closures', hosts
 
-        it "should remove passwords in #{env}" do
+        it "removes passwords in #{env}" do
           new_names.each do |name|
             cmd = "simp passgen remove #{name} -e #{env} --force"
             on(host, cmd).stdout
@@ -88,10 +87,10 @@ describe 'simp passgen create and remove passwords' do
 
           result = on(host, "simp passgen list -e #{env}").stdout
           new_names.each do |name|
-            expect(result).to_not match(/#{name}/)
+            expect(result).not_to match(%r{#{name}})
           end
         end
       end
-    end # hosts.each
-  end #[...].each do |env|
-end #describe...
+    end
+  end
+end

@@ -8,8 +8,8 @@ require 'spec_helper'
 require 'yaml'
 
 describe Simp::Cli::Environment::OmniEnvController do
-  OMNI_ENVIRONMENT  = %i[puppet secondary writable].freeze
-  EXTRA_ENVIRONMENT = %i[secondary writable].freeze
+  OMNI_ENVIRONMENT  = [:puppet, :secondary, :writable].freeze
+  EXTRA_ENVIRONMENT = [:secondary, :writable].freeze
 
   subject(:described_object) { described_class.new(opts, 'foo') }
 
@@ -40,9 +40,9 @@ describe Simp::Cli::Environment::OmniEnvController do
       allow($stdout).to receive(:write)
     end
 
-    it "calls #{method}() for enabled environments: #{expected_envs.map(&:to_s).join(', ')}" do
+    it "calls #{method}() for enabled environments: #{expected_envs.join(', ')}" do
       subject.call
-      spies.select { |k, _v| expected_envs.include?(k) }.each do |_env, spy|
+      spies.slice(*expected_envs).each_value do |spy|
         expect(spy).to have_received(method).once
       end
     end
@@ -51,7 +51,7 @@ describe Simp::Cli::Environment::OmniEnvController do
     unless disabled_envs.empty?
       it "does not call #{method}() for disabled environment: #{disabled_envs.join(', ')}" do
         subject.call
-        spies.select { |k, _v| expected_envs.include?(k) }.each do |_env, spy|
+        spies.slice(*expected_envs).each_value do |spy|
           expect(spy).to have_received(method).once
         end
       end
@@ -74,16 +74,16 @@ describe Simp::Cli::Environment::OmniEnvController do
     context 'when the Puppet environment is not enabled' do
       let(:opts) { opts_pup_disabled }
 
-      it_behaves_like 'it delegates to enabled Env objects', :fail_unless_createable, %i[secondary writable]
-      it_behaves_like 'it delegates to enabled Env objects', :create, %i[secondary writable]
-      it_behaves_like('it delegates to enabled Env objects', :fix, %i[secondary writable])
+      it_behaves_like 'it delegates to enabled Env objects', :fail_unless_createable, [:secondary, :writable]
+      it_behaves_like 'it delegates to enabled Env objects', :create, [:secondary, :writable]
+      it_behaves_like('it delegates to enabled Env objects', :fix, [:secondary, :writable])
     end
   end
 
   describe '#fix' do
     subject(:fix) { proc { described_object.create } }
 
-    it_behaves_like 'it delegates to enabled Env objects', :fix, %i[puppet secondary writable]
+    it_behaves_like 'it delegates to enabled Env objects', :fix, [:puppet, :secondary, :writable]
     context 'when the Puppet environment is not enabled' do
       let(:opts) { opts_pup_disabled }
 

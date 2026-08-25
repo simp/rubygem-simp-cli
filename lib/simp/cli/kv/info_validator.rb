@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/errors'
 require 'base64'
 
@@ -6,41 +8,32 @@ class Simp::Cli; end
 module Simp::Cli::Kv; end
 
 module Simp::Cli::Kv::InfoValidator
-
   def self.validate_binary_key_info(key, info)
-    if info.key?('encoding')
-      unless info['value'].is_a?(String)
-        err_msg = "'encoding' found for '#{key}'.\n"
-        err_msg += ">> 'encoding' reserved for binary values"
-        raise Simp::Cli::ProcessingError, err_msg
-      end
+    if info.key?('encoding') && !info['value'].is_a?(String)
+      err_msg = "'encoding' found for '#{key}'.\n"
+      err_msg += ">> 'encoding' reserved for binary values"
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
-    if info.key?('original_encoding')
-      unless info['value'].is_a?(String)
-        err_msg = "'original_encoding' found for '#{key}'.\n"
-        err_msg += ">> 'original_encoding' reserved for binary values"
-        raise Simp::Cli::ProcessingError, err_msg
-      end
+    if info.key?('original_encoding') && !info['value'].is_a?(String)
+      err_msg = "'original_encoding' found for '#{key}'.\n"
+      err_msg += ">> 'original_encoding' reserved for binary values"
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
-    if info.key?('encoding')
-      unless info.key?('original_encoding')
-        err_msg = "Missing 'original_encoding' for '#{key}' with binary value"
-        raise Simp::Cli::ProcessingError, err_msg
-      end
+    if info.key?('encoding') && !info.key?('original_encoding')
+      err_msg = "Missing 'original_encoding' for '#{key}' with binary value"
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
-    if info.key?('original_encoding')
-      unless info.key?('encoding')
-        err_msg = "Missing 'encoding' for '#{key}' with binary value"
-        raise Simp::Cli::ProcessingError, err_msg
-      end
+    if info.key?('original_encoding') && !info.key?('encoding')
+      err_msg = "Missing 'encoding' for '#{key}' with binary value"
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     begin
       Base64.strict_decode64(info['value'])
-    rescue ArgumentError => e
+    rescue ArgumentError
       err_msg = "'value' for '#{key}' does not contain strict Base64 encoding"
       raise Simp::Cli::ProcessingError, err_msg
     end
@@ -67,9 +60,9 @@ module Simp::Cli::Kv::InfoValidator
       raise Simp::Cli::ProcessingError, err_msg
     end
 
-    if info.key?('encoding') || info.key?('original_encoding')
-      validate_binary_key_info(key, info)
-    end
+    return unless info.key?('encoding') || info.key?('original_encoding')
+
+    validate_binary_key_info(key, info)
   end
 
   def self.validate_list_info(folder, info, validate_keys = false)
@@ -89,7 +82,7 @@ module Simp::Cli::Kv::InfoValidator
     end
 
     if validate_keys
-      info['keys'].each do |key,info|
+      info['keys'].each do |key, info|
         begin
           validate_key_info(key, info)
         rescue Simp::Cli::ProcessingError => e
@@ -104,10 +97,9 @@ module Simp::Cli::Kv::InfoValidator
       raise Simp::Cli::ProcessingError, err_msg
     end
 
-    unless info['folders'].is_a?(Array)
-      err_msg = "'folders' for '#{folder}' is not an Array"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
-  end
+    return if info['folders'].is_a?(Array)
 
+    err_msg = "'folders' for '#{folder}' is not an Array"
+    raise Simp::Cli::ProcessingError, err_msg
+  end
 end

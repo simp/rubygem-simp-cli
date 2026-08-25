@@ -1,13 +1,16 @@
+# frozen_string_literal: true
+
 require_relative '../item'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::SvckillMode < Item
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'svckill::mode'
-      @description = %Q{Strategy svckill should use when it encounters undeclared services.
+      @description = %(Strategy svckill should use when it encounters undeclared services.
 
 'enforcing' = Shut down and disable all services not listed in your
               manifests or the exclusion file
@@ -20,19 +23,19 @@ requirement that no unauthorized services are running on your system.
 If you are fully aware of all services that need to be running on the
 system, including any custom applications, use 'enforcing'.  If you
 first need to ascertain which services should be running on the system,
-use 'warning'.}
+use 'warning'.)
 
       @warning_msgs = {
         :enforcing =>
-%Q{IMPORTANT:  Be sure to register your site-specific services with
+%(IMPORTANT:  Be sure to register your site-specific services with
 svckill to prevent them from being automatically shut down and disabled.
-See svckill::ignore and svckill::ignore_files.},
+See svckill::ignore and svckill::ignore_files.),
 
         :warning =>
-%Q{IMPORTANT: Once you have examined the list of undeclared services
+%(IMPORTANT: Once you have examined the list of undeclared services
 reported by svckill and have determined which of those should be
 allowed, register the allowed services with svckill and then change
-#{@key} to 'enforcing'.  See svckill::ignore and svckill::ignore_files.}
+#{@key} to 'enforcing'.  See svckill::ignore and svckill::ignore_files.)
       }
     end
 
@@ -44,18 +47,18 @@ allowed, register the allowed services with svckill and then change
       'warning'
     end
 
-    def validate( x )
+    def validate(x)
       result = false
       if x == 'warning'
         result = true
-        notice( @warning_msgs[:warning], [:YELLOW] )
+        notice(@warning_msgs[:warning], [:YELLOW])
 
         # if the value is not pre-assigned, pause to give the user time
         # to think about the impact of not specifying NTP servers
         pause(:notice) if @value.nil?
       elsif x == 'enforcing'
         result = true
-        notice( @warning_msgs[:enforcing], [:RED] )
+        notice(@warning_msgs[:enforcing], [:RED])
         pause(:notice)
       end
       result

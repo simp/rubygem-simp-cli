@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../password_item'
 require_relative 'cli_local_priv_user'
 require_relative '../../utils'
@@ -5,12 +7,10 @@ require_relative '../../utils'
 module Simp; end
 class Simp::Cli; end
 
-
 module Simp::Cli::Config
   class Item::CliLocalPrivUserPassword < PasswordItem
-
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key             = 'cli::local_priv_user_password'
       @description     = <<~EOM.strip
         The password of the local privileged user.
@@ -25,11 +25,11 @@ module Simp::Cli::Config
 
     def query_prompt
       # make it clear we are asking for the password, not the hash
-      username = get_item( 'cli::local_priv_user' ).value
+      username = get_item('cli::local_priv_user').value
       "'#{username}' password"
     end
 
-    def validate string
+    def validate(string)
       if @value.nil?
         # we should be dealing with an unencrypted password
         !string.to_s.strip.empty? && super
@@ -39,7 +39,7 @@ module Simp::Cli::Config
       end
     end
 
-    def encrypt string
+    def encrypt(string)
       Simp::Cli::Config::Utils.encrypt_password_sha512(string)
     end
   end

@@ -1,17 +1,18 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/data/simp_server_allow_simp_user'
 require 'fileutils'
 require 'rspec/its'
 require_relative '../spec_helper'
 
-
 describe Simp::Cli::Config::Item::SimpServerAllowSimpUser do
   before :each do
-    @ci = Simp::Cli::Config::Item::SimpServerAllowSimpUser.new
+    @ci = described_class.new
   end
 
-  context '#recommended_value' do
+  describe '#recommended_value' do
     it "returns 'no'" do
-      expect( @ci.recommended_value ).to eq('no')
+      expect(@ci.recommended_value).to eq('no')
     end
   end
 

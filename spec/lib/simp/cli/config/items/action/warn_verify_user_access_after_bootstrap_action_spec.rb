@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/action/warn_verify_user_access_after_bootstrap_action'
 require_relative '../spec_helper'
 
 describe Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction do
   before :each do
-    @ci  = Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction.new
+    @ci  = described_class.new
 
     item = Simp::Cli::Config::Item::CliLocalPrivUser.new
     item.value = 'local_admin'
@@ -17,31 +19,32 @@ describe Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction do
   describe '#apply' do
     it 'sets applied_status to deferred' do
       @ci.apply
-      expect( @ci.applied_status ).to eq :deferred
+      expect(@ci.applied_status).to eq :deferred
       expected = <<~EOM
         'local_admin' access verification after `simp bootstrap` deferred:
             'local_admin' access configuration requires manual verification
       EOM
-      expect( @ci.apply_summary ).to eq(expected.strip)
+      expect(@ci.apply_summary).to eq(expected.strip)
     end
 
     it 'fails when cli::local_priv_user Item does not exist' do
       @ci.config_items.delete('cli::local_priv_user')
       expect { @ci.apply }.to raise_error(Simp::Cli::Config::InternalError,
-        /Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction could not find cli::local_priv_user/)
+                                          %r{Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction could not find cli::local_priv_user})
     end
 
     it 'fails when cli::network:hostname Item does not exist' do
       @ci.config_items.delete('cli::network::hostname')
       expect { @ci.apply }.to raise_error(Simp::Cli::Config::InternalError,
-        /Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction could not find cli::network::hostname/)
+                                          %r{Simp::Cli::Config::Item::WarnVerifyUserAccessAfterBootstrapAction could not find cli::network::hostname})
     end
   end
 
   describe '#apply_summary' do
     it 'reports unattempted status when #apply not called' do
       expect(@ci.apply_summary).to eq(
-        "'local_admin' access verification after `simp bootstrap` unattempted")
+        "'local_admin' access verification after `simp bootstrap` unattempted",
+      )
     end
   end
 

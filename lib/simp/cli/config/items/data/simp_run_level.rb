@@ -1,30 +1,32 @@
+# frozen_string_literal: true
+
 require_relative '../integer_item'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::SimpRunLevel < IntegerItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'simp::runlevel'
-      #TODO allow systemd options ('rescue','multi-user','graphical').
-      @description = %Q{The default system runlevel (1-5).}
+      # TODO: allow systemd options ('rescue','multi-user','graphical').
+      @description = %{The default system runlevel (1-5).}
     end
 
     # x is either the recommended value (Integer) or the query
     # result (String) prior to conversion to Integer
-    def validate( x )
-      (x.to_s =~ /\A[1-5]\Z/) ? true : false
+    def validate(x)
+      (x.to_s =~ %r{\A[1-5]\Z}) ? true : false
     end
 
     def not_valid_message
       'Must be a number between 1 and 5'
     end
 
-
     def get_os_value
       # FIXME: Facter fact
-      %x{runlevel | awk '{print $2}'}.strip.to_i
+      `runlevel | awk '{print $2}'`.strip.to_i
     end
 
     def get_recommended_value

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/action_item'
 require_relative 'spec_helper'
 
@@ -31,8 +33,8 @@ end
 describe Simp::Cli::Config::ActionItem do
   describe '#initialize' do
     it "has 'unattempted' applied_status when initialized" do
-      ci = Simp::Cli::Config::ActionItem.new
-      expect( ci.applied_status ).to eq :unattempted
+      ci = described_class.new
+      expect(ci.applied_status).to eq :unattempted
     end
   end
 
@@ -66,7 +68,7 @@ describe Simp::Cli::Config::ActionItem do
       ci.apply_action = :fail_no_raise
 
       expect { ci.safe_apply }.to raise_error(Simp::Cli::Config::ApplyError,
-        'Action for my::action::item failed')
+                                              'Action for my::action::item failed')
       expect(ci.applied_status).to eq :failed
     end
 
@@ -76,10 +78,9 @@ describe Simp::Cli::Config::ActionItem do
       ci.apply_action = :fail_raise
 
       expect { ci.safe_apply }.to raise_error(Simp::Cli::Config::ApplyError,
-       'MyActionItem error occurred')
+                                              'MyActionItem error occurred')
 
       expect(ci.applied_status).to eq :failed
     end
-
   end
 end

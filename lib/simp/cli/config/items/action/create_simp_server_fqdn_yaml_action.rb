@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/config/items/action_item'
 require 'simp/cli/config/items/data/cli_network_hostname'
 require 'fileutils'
@@ -7,13 +9,13 @@ module Simp::Cli::Config
     attr_accessor :alt_file
 
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
 
-      if puppet_env_info[:is_pe]
-        host_config_yaml = 'pe-puppet.your.domain.yaml'
-      else
-        host_config_yaml = 'puppet.your.domain.yaml'
-      end
+      host_config_yaml = if puppet_env_info[:is_pe]
+                           'pe-puppet.your.domain.yaml'
+                         else
+                           'puppet.your.domain.yaml'
+                         end
 
       @key                = 'puppet::create_simp_server_fqdn_yaml'
       @description        = 'Create SIMP server <host>.yaml from template'
@@ -21,14 +23,16 @@ module Simp::Cli::Config
 
       @template_file = File.join(
         @puppet_env_info[:puppet_env_datadir],
-        'hosts', host_config_yaml)
+        'hosts', host_config_yaml
+      )
 
-      #FIXME inject skeleton install path in constructor instead of hardcoding
+      # FIXME: inject skeleton install path in constructor instead of hardcoding
       #      and remove attr_accessor for alt_file
-      @alt_file      = File.join(
+      @alt_file = File.join(
         Simp::Cli::SIMP_ENV_SKELETON_INSTALL_PATH,
         File.basename(@puppet_env_info[:puppet_env_datadir]),
-        'hosts', host_config_yaml)
+        'hosts', host_config_yaml
+      )
 
       @host_yaml  = nil
       @group      = @puppet_env_info[:puppet_group]
@@ -36,8 +40,8 @@ module Simp::Cli::Config
     end
 
     def apply
-      fqdn     = get_item( 'cli::network::hostname' ).value
-      @host_yaml = File.join( File.dirname( @template_file ), "#{fqdn}.yaml" )
+      fqdn = get_item('cli::network::hostname').value
+      @host_yaml = File.join(File.dirname(@template_file), "#{fqdn}.yaml")
       @applied_status = :failed
 
       if !File.exist?(@template_file) && !File.exist?(@host_yaml) && File.exist?(@alt_file)
@@ -48,29 +52,29 @@ module Simp::Cli::Config
         extra_host_yaml = Dir.glob(File.join(File.dirname(@host_yaml), '*.yaml'))
 
         extra_host_yaml.each do |extra_yaml|
-            info("Other <host>.yaml file found: #{extra_yaml}")
+          info("Other <host>.yaml file found: #{extra_yaml}")
         end
 
         FileUtils.cp(@alt_file, @template_file)
       end
-      info( "Creating #{File.basename(@host_yaml)} from #{File.basename(@template_file)} template" )
+      info("Creating #{File.basename(@host_yaml)} from #{File.basename(@template_file)} template")
 
       if File.exist?(@template_file)
-        if File.exist?( @host_yaml )
-          diff   = `diff #{@host_yaml} #{@template_file}`
+        if File.exist?(@host_yaml)
+          diff = `diff #{@host_yaml} #{@template_file}`
           if diff.empty?
             @applied_status = :succeeded
             FileUtils.rm_rf(@template_file)
           else
             @applied_status = :deferred
             @applied_status_detail =
-              "Manual merging of #{File.basename(@template_file)} into pre-existing" +
-              " #{File.basename(@host_yaml)} may be required"
+              "Manual merging of #{File.basename(@template_file)} into pre-existing " \
+              "#{File.basename(@host_yaml)} may be required"
 
-            message = %Q{\nWARNING: #{File.basename( @host_yaml )} already exists, but differs from the template.
+            message = %(\nWARNING: #{File.basename(@host_yaml)} already exists, but differs from the template.
 Review and consider updating:
-#{diff}}
-            warn( message, [:YELLOW] )
+#{diff})
+            warn(message, [:YELLOW])
             pause(:warn)
 
             # backup this file because we will be modifying settings and/or the
@@ -78,45 +82,43 @@ Review and consider updating:
             backup_host_yaml
           end
         else
-          File.rename( @template_file, @host_yaml )
+          File.rename(@template_file, @host_yaml)
           # make sure permissions and ownership are correct
-          FileUtils.chmod(0640, @host_yaml)
+          FileUtils.chmod(0o640, @host_yaml)
           begin
             FileUtils.chown(nil, @group, @host_yaml)
             @applied_status = :succeeded
           rescue Errno::EPERM, ArgumentError
             # This will happen if the user is not root or the group does
             # not exist.
-            error( "\nERROR: Could not change #{@host_yaml} to #{@group} group", [:RED])
+            error("\nERROR: Could not change #{@host_yaml} to #{@group} group", [:RED])
           end
         end
-      else
-        if File.exist?(@host_yaml)
-          @applied_status = :unnecessary
-          @applied_status_detail = "Template already moved to #{File.basename(@host_yaml)}"
-          message = "#{File.basename(@host_yaml)} creation not required:\n" +
-            "    #{@applied_status_detail}"
-          info( message, [:MAGENTA] )
+      elsif File.exist?(@host_yaml)
+        @applied_status = :unnecessary
+        @applied_status_detail = "Template already moved to #{File.basename(@host_yaml)}"
+        message = "#{File.basename(@host_yaml)} creation not required:\n    " \
+                  "#{@applied_status_detail}"
+        info(message, [:MAGENTA])
 
-          # backup this file because we will be modifying settings and/or the
-          # class list in it via other ActionItems
-          backup_host_yaml
-        else
-          error( "\nERROR: Creation of #{File.basename(@host_yaml)} not possible. Neither template file " +
-            "#{File.basename(@template_file)} or\n#{File.basename(@host_yaml)} exist.", [:RED] )
-        end
+        # backup this file because we will be modifying settings and/or the
+        # class list in it via other ActionItems
+        backup_host_yaml
+      else
+        error("\nERROR: Creation of #{File.basename(@host_yaml)} not possible. Neither template file " \
+              "#{File.basename(@template_file)} or\n#{File.basename(@host_yaml)} exist.", [:RED])
       end
     end
 
     def apply_summary
-      'Creation of ' +
-        "#{@host_yaml ? File.basename(@host_yaml) : 'SIMP server <host>.yaml'} #{@applied_status.to_s}" +
-        "#{@applied_status_detail ? ":\n    #{@applied_status_detail}" : ''}"
+      'Creation of ' \
+        "#{@host_yaml ? File.basename(@host_yaml) : 'SIMP server <host>.yaml'} #{@applied_status}" \
+        "#{":\n    #{@applied_status_detail}" if @applied_status_detail}"
     end
 
     def backup_host_yaml
       backup_file = "#{@host_yaml}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-      info( "Backing up #{@host_yaml} to #{backup_file}" )
+      info("Backing up #{@host_yaml} to #{backup_file}")
       FileUtils.cp(@host_yaml, backup_file)
       FileUtils.chown(nil, @group, backup_file)
     end

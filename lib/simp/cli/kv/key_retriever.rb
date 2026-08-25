@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/apply_utils'
 require 'simp/cli/exec_utils'
 require 'simp/cli/kv/info_validator'
@@ -7,16 +9,12 @@ require 'tmpdir'
 # Class to retrieve info for a key from a key/value store using the simp-simpkv
 # Puppet module
 class Simp::Cli::Kv::KeyRetriever < Simp::Cli::Kv::OperatorBase
-
   # @param env Puppet environment.  Used to specify the location of non-global
   #   keys/folders in the key/value folder tree as well as where to find the
   #   simpkv backend configuration
   #
   # @param backend Name of key/value store in simpkv configuration
   #
-  def initialize(env, backend)
-    super(env, backend)
-  end
 
   # Retrieve a key's stored info from the key/value store
   #
@@ -37,7 +35,7 @@ class Simp::Cli::Kv::KeyRetriever < Simp::Cli::Kv::OperatorBase
     begin
       info = get_key_info(key, global)
       begin
-        Simp::Cli::Kv::InfoValidator::validate_key_info(key, info)
+        Simp::Cli::Kv::InfoValidator.validate_key_info(key, info)
       rescue Simp::Cli::ProcessingError => e
         err_msg = "Key info malformed: #{e}"
         raise Simp::Cli::ProcessingError, err_msg
@@ -65,10 +63,10 @@ class Simp::Cli::Kv::KeyRetriever < Simp::Cli::Kv::OperatorBase
   #   key info cannot be read
   #
   def get_key_info(key, global)
-    logger.debug("Retrieving info for #{full_store_path(key,global)} with a "\
-      "puppet apply")
+    logger.debug("Retrieving info for #{full_store_path(key, global)} with a " \
+                 'puppet apply')
 
-    tmpdir = Dir.mktmpdir( File.basename( __FILE__ ) )
+    tmpdir = Dir.mktmpdir(File.basename(__FILE__))
     key_info = nil
 
     begin
@@ -78,7 +76,7 @@ class Simp::Cli::Kv::KeyRetriever < Simp::Cli::Kv::OperatorBase
       result_file = File.join(tmpdir, 'get.yaml')
       failure_message = "Key '#{key}' not found"
       opts = apply_options('Key get', failure_message)
-      manifest =<<~EOM
+      manifest = <<~EOM
         if simpkv::exists(#{args}) {
           $key_info = simpkv::get(#{args})
           file { '#{result_file}': content => to_yaml($key_info) }
@@ -87,8 +85,8 @@ class Simp::Cli::Kv::KeyRetriever < Simp::Cli::Kv::OperatorBase
         }
       EOM
 
-      Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
-      key_info = Simp::Cli::ApplyUtils::load_yaml(result_file, 'get', logger)
+      Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
+      key_info = Simp::Cli::ApplyUtils.load_yaml(result_file, 'get', logger)
 
       # Currently, simpkv::get() will omit 'metadata' attribute from returned
       # results if it is an empty Hash, but 'simp kv get' expects it to be

@@ -1,12 +1,15 @@
+# frozen_string_literal: true
+
 require_relative '../yes_no_item'
 require 'etc'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::CliHasSimpLocalUserFromIso < YesNoItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'cli::has_simp_local_user_from_iso'
       @description = <<~EOM.strip
         Whether the server has the local 'simp' user created by
@@ -21,11 +24,11 @@ module Simp::Cli::Config
         local user, 'simp', for which su and ssh privileges will be enabled
         via the simp::server manifest, when SIMP is bootstrapped.
       EOM
-      @data_type  = :internal  # don't persist this as it needs to be
-                               # evaluated each time simp config is run
+      @data_type = :internal # don't persist this as it needs to be
+      # evaluated each time simp config is run
       @username = 'simp'
 
-      # FIXME This is especially fragile....ASSuming ISO install because a
+      # FIXME: This is especially fragile....ASSuming ISO install because a
       # file installed by the ISO (and unfortunately, a file that should be,
       # but, as of now, is not managed by SIMP) exists.
       @iso_marker = '/etc/yum.repos.d/simp_filesystem.repo'
@@ -40,13 +43,11 @@ module Simp::Cli::Config
         Etc.getpwnam(@username)
 
         # just to be sure this user is from an ISO install
-        if iso_install?
-          return 'yes'
-        else
-          return 'no'
-        end
-      rescue ArgumentError => e
-        return 'no'
+        return 'yes' if iso_install?
+
+        'no'
+      rescue ArgumentError
+        'no'
       end
     end
 

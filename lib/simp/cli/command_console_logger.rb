@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/defaults'
 require 'simp/cli/logging'
 require 'simp/cli/utils'
@@ -13,7 +15,6 @@ class Simp::Cli; end
 # call set_up_global_logger() to set up the logger prior to command
 # processing.
 module Simp::Cli::CommandConsoleLogger
-
   include Simp::Cli::Logging
 
   # Adds standard logging options to an OptionParser object
@@ -32,21 +33,20 @@ module Simp::Cli::CommandConsoleLogger
   # CAUTION:  This ASSUMES specific options.  Any class that uses
   #    this must not have any conflicting options short/longnames.
   def add_logging_command_options(opt_parser, options)
-    options[:verbose] = 0 unless options.has_key?(:verbose)
+    options[:verbose] = 0 unless options.key?(:verbose)
 
-    #TODO Not allow -v and -q intermixed or the user may be surprised
+    # TODO: Not allow -v and -q intermixed or the user may be surprised
     #     by subsequent console logging.
     opt_parser.on('-v', '--verbose',
-            'Verbose console output (stacks).' ) do
+                  'Verbose console output (stacks).') do
       options[:verbose] += 1
     end
 
     opt_parser.on('-q', '--quiet',
-            'Quiet console output.  Only errors are',
-            'reported to the console.' ) do
+                  'Quiet console output.  Only errors are',
+                  'reported to the console.') do
       options[:verbose] = -1
     end
-
   end
 
   # Set up the global logger
@@ -63,19 +63,18 @@ module Simp::Cli::CommandConsoleLogger
   #               3 = TRACE  and above  (developer debug)
   #
   def set_up_global_logger(verbose = 0)
-    case verbose
-    when -1
-      console_log_level = :error
-    when 0
-      console_log_level = :notice
-    when 1
-      console_log_level = :info
-    when 2
-      console_log_level = :debug
-    else
-      console_log_level = :trace # developer debug
-    end
+    console_log_level = case verbose
+                        when -1
+                          :error
+                        when 0
+                          :notice
+                        when 1
+                          :info
+                        when 2
+                          :debug
+                        else
+                          :trace # developer debug
+                        end
     logger.levels(console_log_level)
   end
-
 end

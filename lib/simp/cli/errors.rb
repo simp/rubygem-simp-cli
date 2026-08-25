@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Simp; end
 
 class Simp::Cli
@@ -9,11 +11,9 @@ class Simp::Cli
   class PasswordError < StandardError; end
 
   # Invalid spawn command
-  class InvalidSpawnError < StandardError;
+  class InvalidSpawnError < StandardError
     def initialize(cmd)
       super("Internal error: Invalid pipe '|' in spawn command: <#{cmd}>")
     end
   end
-
 end
-

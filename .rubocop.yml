@@ -26,6 +26,11 @@ Layout/EmptyLinesAroundAttributeAccessor:
 Layout/LineLength:
   Description: People have wide screens, use them.
   Max: 200
+  AllowedPatterns:
+  # embedded GRUB password hashes in test data
+  - grub\.pbkdf2\.sha512
+  # generated single-line puppet apply commands in test expectations
+  - 'network::eth\{'
 Layout/SpaceAroundMethodCallOperator:
   Enabled: true
 Lint/RaiseException:
@@ -39,8 +44,9 @@ RSpec/BeforeAfterAll:
   - spec/acceptance/**/*.rb
   - spec/lib/**/*.rb
 RSpec/ExpectInHook:
-  Exclude:
-  - spec/unit/**/*.rb
+  Description: Message expectations in before hooks are an established
+    pattern in these specs.
+  Enabled: false
 RSpec/HookArgument:
   Description: Prefer explicit :each argument, matching existing module's style
   EnforcedStyle: each
@@ -102,7 +108,9 @@ Style/SymbolArray:
   Description: Using percent style obscures symbolic intent of array's contents.
   EnforcedStyle: brackets
 RSpec/MessageSpies:
-  EnforcedStyle: receive
+  Description: The specs mix expect-to-receive and spy styles extensively;
+    converging on one style is not worth the churn.
+  Enabled: false
 Style/WordArray:
   EnforcedStyle: brackets
 Style/CollectionMethods:
@@ -205,9 +213,6 @@ RSpec/NoExpectationExample:
   Enabled: false
 RSpec/SpecFilePathFormat:
   Enabled: false
-RSpec/Output:
-  Exclude:
-  - spec/acceptance/**/*
 RSpec/StubbedMock:
   Enabled: false
 Style/FileOpen:
@@ -221,4 +226,29 @@ Style/OneClassPerFile:
 Style/StringConcatenation:
   Enabled: false
 Lint/ConstantDefinitionInBlock:
+  Enabled: false
+RSpec/Output:
+  Description: The CLI specs intentionally print captured console output for
+    test diagnostics, and spec helper classes implement real option parsers.
+  Enabled: false
+RSpec/VerifiedDoubleReference:
+  Description: object_double doubles here use descriptive strings on purpose;
+    the cop's autocorrection mangles them into invalid constant references.
+  Enabled: false
+Style/BitwisePredicate:
+  Description: This codebase uses & for Array set intersection; the cop
+    misidentifies those comparisons as integer bit tests and its
+    autocorrection (allbits?) raises NoMethodError on Arrays.
+  Enabled: false
+Lint/EmptyClass:
+  Description: Empty module/class declarations (e.g. `module Simp; end`) are
+    used throughout as namespace forward declarations.
+  Enabled: false
+RSpec/SubjectStub:
+  Description: The command/item specs stub methods on the object under test
+    extensively; reworking them is out of scope for style cleanup.
+  Enabled: false
+Security/YAMLLoad:
+  Description: On Ruby >= 3.1 (Psych 4), YAML.load already uses safe-load
+    semantics. The YAML files loaded here are local, trusted configuration.
   Enabled: false

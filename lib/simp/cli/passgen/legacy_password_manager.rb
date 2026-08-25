@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'highline/import'
 require 'simp/cli/logging'
 require 'simp/cli/utils'
@@ -30,10 +32,12 @@ class Simp::Cli::Passgen::LegacyPasswordManager
     @puppet_info = Simp::Cli::Utils.puppet_info(@environment)
     if password_dir.nil?
       password_env_dir = File.join(
-        @puppet_info[:config]['vardir'], 'simp', 'environments')
+        @puppet_info[:config]['vardir'], 'simp', 'environments'
+      )
 
       @password_dir = File.join(
-        password_env_dir, @environment, 'simp_autofiles', 'gen_passwd')
+        password_env_dir, @environment, 'simp_autofiles', 'gen_passwd'
+      )
 
       @location = "'#{@environment}' Environment"
     else
@@ -41,10 +45,10 @@ class Simp::Cli::Passgen::LegacyPasswordManager
       @location = @password_dir
     end
 
-    if File.exist?(@password_dir) && !File.directory?(@password_dir)
-      err_msg = "Password directory '#{@password_dir}' is not a directory"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    return unless File.exist?(@password_dir) && !File.directory?(@password_dir)
+
+    err_msg = "Password directory '#{@password_dir}' is not a directory"
+    raise Simp::Cli::ProcessingError, err_msg
   end
 
   #########################################################
@@ -66,7 +70,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
       Dir.chdir(@password_dir) do
         names = Dir.glob('*').select do |x|
           # exclude salt and backup files
-          File.file?(x) && (x !~ /\.salt$|\.last$/)
+          File.file?(x) && (x !~ %r{\.salt$|\.last$})
         end
       end
     rescue Exception => e
@@ -95,13 +99,13 @@ class Simp::Cli::Passgen::LegacyPasswordManager
     current_password_filename = File.join(@password_dir, name)
     unless File.exist?(current_password_filename)
       err_msg = "'#{name}' password not present"
-      raise Simp::Cli::ProcessingError,  err_msg
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     info = {
-      'value'    => {
+      'value' => {
         'password' => 'UNKNOWN',
-        'salt'     => 'UNKNOWN'
+        'salt' => 'UNKNOWN'
       },
       'metadata' => {
         'history' => []
@@ -110,7 +114,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
 
     current_salt_filename = File.join(@password_dir, "#{name}.salt")
     last_password_filename = File.join(@password_dir, "#{name}.last")
-    last_salt_filename =  File.join(@password_dir, "#{name}.salt.last")
+    last_salt_filename = File.join(@password_dir, "#{name}.salt.last")
 
     begin
       logger.debug("Reading password files for '#{name}' in #{@password_dir}")
@@ -125,7 +129,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
         if File.exist?(last_salt_filename)
           last_salt = File.read(last_salt_filename).chomp
         end
-        info['metadata']['history'] << [ last_password, last_salt ]
+        info['metadata']['history'] << [last_password, last_salt]
       end
     rescue Exception => e
       err_msg = "Retrieve failed: #{e}"
@@ -152,32 +156,32 @@ class Simp::Cli::Passgen::LegacyPasswordManager
       File.join(@password_dir, name),
       File.join(@password_dir, "#{name}.salt"),
       File.join(@password_dir, "#{name}.last"),
-      File.join(@password_dir, "#{name}.salt.last")
+      File.join(@password_dir, "#{name}.salt.last"),
     ].each do |file|
-      if File.exist?(file)
-        num_existing_files += 1
+      next unless File.exist?(file)
 
-        begin
-          File.unlink(file)
-          logger.debug("Removed '#{file}'")
-        rescue Exception => e
-          # Will report all problems at end.
-          errors << "'#{file}': #{e}"
-        end
+      num_existing_files += 1
+
+      begin
+        File.unlink(file)
+        logger.debug("Removed '#{file}'")
+      rescue Exception => e
+        # Will report all problems at end.
+        errors << "'#{file}': #{e}"
       end
     end
 
-    if num_existing_files == 0
+    if num_existing_files.zero?
       err_msg = "'#{name}' password not found"
       raise Simp::Cli::ProcessingError, err_msg
     end
 
-    unless errors.empty?
-      err_msg = "Failed to delete the following password files:\n  " +
-        errors.join("\n  ")
+    return if errors.empty?
 
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    err_msg = "Failed to delete the following password files:\n  " +
+              errors.join("\n  ")
+
+    raise Simp::Cli::ProcessingError, err_msg
   end
 
   # Set a password to a value selected by the user (input or generated)
@@ -223,7 +227,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
     password = nil
     begin
       password_options = merge_password_options(password_filename, options)
-      password, generated = get_new_password(password_options)
+      password, = get_new_password(password_options)
       if File.exist?(password_filename)
         backup_password_files(password_filename)
       else
@@ -235,7 +239,7 @@ class Simp::Cli::Passgen::LegacyPasswordManager
 
       # Ensure that the ownership and permissions are correct
       FileUtils.chown(puppet_user, puppet_group, password_filename)
-      FileUtils.chmod(0640, password_filename)
+      FileUtils.chmod(0o640, password_filename)
     rescue Exception => e
       err_msg = "Set failed: #{e}"
       raise Simp::Cli::ProcessingError, err_msg
@@ -267,9 +271,9 @@ class Simp::Cli::Passgen::LegacyPasswordManager
         FileUtils.mv(salt_filename, backup_filename, :force => true)
         logger.debug("Moved #{salt_filename} to #{backup_filename}")
       end
-    rescue Exception => err
+    rescue Exception => e
       name = File.basename(password_filename)
-      err_msg = "Error occurred while backing up '#{name}': #{err}"
+      err_msg = "Error occurred while backing up '#{name}': #{e}"
       raise Simp::Cli::ProcessingError, err_msg
     end
   end
@@ -285,23 +289,22 @@ class Simp::Cli::Passgen::LegacyPasswordManager
     password = ''
     generated = false
     if options[:auto_gen]
-      validate = false
       timeout_seconds = 10
-      logger.debug("Generating password with length=#{options[:length]}," +
-        " complexity=#{options[:complexity]}," +
-        " complex_only=#{options[:complex_only]}," +
-        " validate=#{options[:validate]}")
+      logger.debug("Generating password with length=#{options[:length]}, " \
+                   "complexity=#{options[:complexity]}, " \
+                   "complex_only=#{options[:complex_only]}, " \
+                   "validate=#{options[:validate]}")
 
       password = Simp::Cli::Utils.generate_password(options[:length],
-        options[:complexity], options[:complex_only], timeout_seconds,
-        options[:validate])
+                                                    options[:complexity], options[:complex_only], timeout_seconds,
+                                                    options[:validate])
       generated = true
     else
       logger.debug('Using user-entered password')
       password = options[:password]
     end
 
-    [ password, generated ]
+    [password, generated]
   end
 
   # @return copy of options with :length, :complexity, and :complex_only
@@ -322,8 +325,8 @@ class Simp::Cli::Passgen::LegacyPasswordManager
     if options[:length].nil?
       if File.exist?(password_file)
         begin
-          logger.debug("Reading previous password from #{password_file}" +
-            " to determine new password length")
+          logger.debug("Reading previous password from #{password_file} " \
+                       'to determine new password length')
           password = File.read(password_file).chomp
           length = password.length
         rescue Exception => e
@@ -369,11 +372,9 @@ class Simp::Cli::Passgen::LegacyPasswordManager
       raise Simp::Cli::ProcessingError, err_msg
     end
 
-    unless options[:auto_gen]
-      unless options.key?(:password)
-        err_msg = 'Missing :password option'
-        raise Simp::Cli::ProcessingError, err_msg
-      end
+    if !options[:auto_gen] && !options.key?(:password)
+      err_msg = 'Missing :password option'
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options.key?(:validate)
@@ -396,10 +397,9 @@ class Simp::Cli::Passgen::LegacyPasswordManager
       raise Simp::Cli::ProcessingError, err_msg
     end
 
-    unless options.key?(:default_complex_only)
-      err_msg = 'Missing :default_complex_only option'
-      raise Simp::Cli::ProcessingError, err_msg
-    end
-  end
+    return if options.key?(:default_complex_only)
 
+    err_msg = 'Missing :default_complex_only option'
+    raise Simp::Cli::ProcessingError, err_msg
+  end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/kv/tree_deleter'
 
 require 'etc'
@@ -22,58 +24,60 @@ describe Simp::Cli::Kv::TreeDeleter do
     @vardir = '/server/var/dir'
     puppet_info = {
       :config => {
-        'user'   => @user,
-        'group'  => @group,
+        'user' => @user,
+        'group' => @group,
         'vardir' => @vardir
       }
     }
 
     allow(Simp::Cli::Utils).to receive(:puppet_info).with(@env)
-      .and_return(puppet_info)
+                                                    .and_return(puppet_info)
 
-    @deleter = Simp::Cli::Kv::TreeDeleter.new(@env, @backend)
+    @deleter = described_class.new(@env, @backend)
   end
 
   describe '#deletetree' do
     it 'removes folder in the environment' do
       allow(@deleter).to receive(:delete_folder).with(folder, false)
-        .and_return({}) # don't care about return
+                                                .and_return({}) # don't care about return
 
-      expect{ @deleter.deletetree(folder, false) }.to_not raise_error
+      expect { @deleter.deletetree(folder, false) }.not_to raise_error
     end
 
     it 'removes global key' do
       allow(@deleter).to receive(:delete_folder).with(folder, true)
-        .and_return({}) # don't care about return
+                                                .and_return({}) # don't care about return
 
-      expect{ @deleter.deletetree(folder, true) }.to_not raise_error
+      expect { @deleter.deletetree(folder, true) }.not_to raise_error
     end
 
     it 'fails when #delete_folder fails' do
       err_msg = "Folder '#{folder}' not found"
       allow(@deleter).to receive(:delete_folder).with(folder, false)
-        .and_raise(Simp::Cli::ProcessingError, err_msg)
+                                                .and_raise(Simp::Cli::ProcessingError, err_msg)
 
       expect { @deleter.deletetree(folder, false) }.to raise_error(
         Simp::Cli::ProcessingError,
-        "Folder delete failed: #{err_msg}")
+        "Folder delete failed: #{err_msg}",
+      )
     end
   end
 
   describe '#delete_folder' do
-    it 'should succeed when #apply_manifest_with_spawn succeeds' do
+    it 'succeeds when #apply_manifest_with_spawn succeeds' do
       allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_return({}) # don't care about return
 
-      expect{ @deleter.delete_folder(key, true) }.to_not raise_error
+      expect { @deleter.delete_folder(key, true) }.not_to raise_error
     end
 
-    it 'should fail when #apply_manifest_with_spawn fails' do
+    it 'fails when #apply_manifest_with_spawn fails' do
       allow(Simp::Cli::ApplyUtils).to receive(:apply_manifest_with_spawn)
         .and_raise(Simp::Cli::ProcessingError, 'Connection failure')
 
-      expect{ @deleter.delete_folder(folder, true) }.to raise_error(
-        Simp::Cli::ProcessingError, 'Connection failure')
+      expect { @deleter.delete_folder(folder, true) }.to raise_error(
+        Simp::Cli::ProcessingError, 'Connection failure'
+      )
     end
   end
 end

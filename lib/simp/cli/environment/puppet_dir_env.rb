@@ -10,7 +10,7 @@ module Simp::Cli::Environment
   class PuppetDirEnv < DirEnv
     def initialize(name, base_environments_path, opts)
       super(:puppet, name, base_environments_path, opts)
-      @skeleton_path = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
+      @skeleton_path = opts[:skeleton_path] || raise(ArgumentError, 'No :skeleton_path in opts')
       @puppetfile_simp_path = File.join(directory_path, 'Puppetfile.simp')
       @puppetfile_path = File.join(directory_path, 'Puppetfile')
     end
@@ -33,7 +33,7 @@ module Simp::Cli::Environment
       when :link
         create_environment_from_link
       else
-        fail("ERROR: Unknown Puppet environment create strategy: '#{@opts[:strategy]}'")
+        raise("ERROR: Unknown Puppet environment create strategy: '#{@opts[:strategy]}'")
       end
     end
 
@@ -46,9 +46,9 @@ module Simp::Cli::Environment
     def fix
       # if environment is not available, fail with helpful message
       unless File.directory? @directory_path
-        fail(
+        raise(
           Simp::Cli::ProcessingError,
-          "ERROR: Puppet environment directory not found at '#{@directory_path}'"
+          "ERROR: Puppet environment directory not found at '#{@directory_path}'",
         )
       end
 
@@ -64,17 +64,17 @@ module Simp::Cli::Environment
 
     # Update environment
     def update
-      fail NotImplementedError
+      raise NotImplementedError
     end
 
     # Remove environment
     def remove
-      fail NotImplementedError
+      raise NotImplementedError
     end
 
     # Validate consistency of environment
     def validate
-      fail NotImplementedError
+      raise NotImplementedError
     end
 
     def create_environment_from_copy
@@ -105,9 +105,9 @@ module Simp::Cli::Environment
       #   previous impl: https://github.com/simp/simp-adapter/blob/0.1.1/src/sbin/simp_rpm_helper#L351
       #
       puppet_group = puppet_info[:puppet_group]
-      fail('Error: Could not determine puppet group') if puppet_group.to_s.empty?
+      raise('Error: Could not determine puppet group') if puppet_group.to_s.empty?
 
-      FileUtils.mkdir_p @directory_path, mode: 0755
+      FileUtils.mkdir_p @directory_path, mode: 0o755
       copy_skeleton_files(@skeleton_path, @directory_path, puppet_group)
       template_environment_conf
 
@@ -129,7 +129,7 @@ module Simp::Cli::Environment
         warn "WARNING: No template found at '#{env_conf_template}'".yellow
         unless File.file?(env_conf)
           msg = "ERROR: No template and no conf file at #{env_conf_file}"
-          fail(Simp::Cli::ProcessingError, msg)
+          raise(Simp::Cli::ProcessingError, msg)
         end
         return
       end
@@ -150,7 +150,7 @@ module Simp::Cli::Environment
       require 'simp/cli/puppetfile/skeleton'
       puppetfile_modules = Simp::Cli::Puppetfile::LocalSimpPuppetModules.new(
         @opts[:skeleton_modules_path],
-        @opts[:module_repos_path]
+        @opts[:module_repos_path],
       )
       puppetfile_skeleton = Simp::Cli::Puppetfile::Skeleton.new
 
@@ -177,9 +177,9 @@ module Simp::Cli::Environment
       Dir.chdir(directory_path) do
         info("Running r10k from '#{directory_path}' to install Puppet modules".cyan)
         unless execute(r10k_cmd)
-          fail(
+          raise(
             Simp::Cli::ProcessingError,
-            "ERROR:  Failed to install Puppet modules using r10k in '#{directory_path}'"
+            "ERROR:  Failed to install Puppet modules using r10k in '#{directory_path}'",
           )
         end
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/passgen'
 require 'simp/cli/commands/passgen/remove'
 require 'simp/cli/passgen/legacy_password_manager'
@@ -9,17 +11,17 @@ require 'tmpdir'
 
 describe Simp::Cli::Commands::Passgen::Remove do
   before :each do
-    @tmp_dir   = Dir.mktmpdir(File.basename(__FILE__))
+    @tmp_dir = Dir.mktmpdir(File.basename(__FILE__))
     @var_dir = File.join(@tmp_dir, 'vardir')
     @puppet_env_dir = File.join(@tmp_dir, 'environments')
     @user  = Etc.getpwuid(Process.uid).name
     @group = Etc.getgrgid(Process.gid).name
     puppet_info = {
       :config => {
-        'user'            => @user,
-        'group'           => @group,
+        'user' => @user,
+        'group' => @group,
         'environmentpath' => @puppet_env_dir,
-        'vardir'          => @var_dir
+        'vardir' => @var_dir
       }
     }
 
@@ -29,7 +31,7 @@ describe Simp::Cli::Commands::Passgen::Remove do
     HighLine.default_instance = HighLine.new(@input, @output)
 
     allow(Simp::Cli::Utils).to receive(:puppet_info).and_return(puppet_info)
-    @remover = Simp::Cli::Commands::Passgen::Remove.new
+    @remover = described_class.new
 
     # make sure notice and above messages are output
     @remover.set_up_global_logger
@@ -42,7 +44,7 @@ describe Simp::Cli::Commands::Passgen::Remove do
     FileUtils.remove_entry_secure @tmp_dir, true
   end
 
-  let(:module_list_old_simplib) {
+  let(:module_list_old_simplib) do
     <<~EOM
       /etc/puppetlabs/code/environments/production/modules
       ├── puppet-yum (v3.1.1)
@@ -55,33 +57,30 @@ describe Simp::Cli::Commands::Passgen::Remove do
       /etc/puppetlabs/code/modules (no modules installed)
       /opt/puppetlabs/puppet/modules (no modules installed)
     EOM
-  }
+  end
 
-  let(:module_list_new_simplib) {
-    module_list_old_simplib.gsub(/simp-simplib .v3.15.3/,'simp-simplib (v4.0.0)')
-  }
+  let(:module_list_new_simplib) do
+    module_list_old_simplib.gsub(%r{simp-simplib .v3.15.3}, 'simp-simplib (v4.0.0)')
+  end
 
-  let(:module_list_no_simplib) {
+  let(:module_list_no_simplib) do
     list = module_list_old_simplib.dup.split("\n")
     list.delete_if { |line| line.include?('simp-simplib') }
     list.join("\n") + "\n"
-  }
+  end
 
-  let(:missing_deps_warnings) {
+  let(:missing_deps_warnings) do
     <<~EOM
       Warning: Missing dependency 'puppetlabs-apt':
         'puppetlabs-postgresql' (v5.12.1) requires 'puppetlabs-apt' (>= 2.0.0 < 7.0.0)
     EOM
-  }
+  end
 
   #
   # Custom Method Tests
   #
   describe '#remove_passwords' do
-    before :each do
-    end
-
-    let(:names) { [ 'name1', 'name2', 'name3', 'name4' ] }
+    let(:names) { ['name1', 'name2', 'name3', 'name4'] }
 
     it 'removes passwords when force_remove=false & prompt returns yes' do
       allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
@@ -89,9 +88,9 @@ describe Simp::Cli::Commands::Passgen::Remove do
       # mock the password manager with a double of String in which methods
       # needed have been defined
       mock_manager = object_double('Mock Password Manager', {
-        :remove_password => nil,
-        :location        => "'production' Environment"
-      })
+                                     :remove_password => nil,
+                                     :location => "'production' Environment"
+                                   })
 
       expected_output = <<~EOM
         Processing 'name1' in 'production' Environment... done.
@@ -109,15 +108,15 @@ describe Simp::Cli::Commands::Passgen::Remove do
       EOM
 
       @remover.remove_passwords(mock_manager, names, false)
-      expect( @output.string ).to eq(expected_output)
+      expect(@output.string).to eq(expected_output)
     end
 
     it 'does not remove passwords when force_remove=false & prompt returns no' do
       allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(false)
       mock_manager = object_double('Mock Password Manager', {
-        :remove_password => nil,
-        :location        => "'production' Environment"
-      })
+                                     :remove_password => nil,
+                                     :location => "'production' Environment"
+                                   })
       expected_output = <<~EOM
         Skipped 'name1' in 'production' Environment
 
@@ -130,14 +129,14 @@ describe Simp::Cli::Commands::Passgen::Remove do
       EOM
 
       @remover.remove_passwords(mock_manager, names, false)
-      expect( @output.string ).to eq(expected_output)
+      expect(@output.string).to eq(expected_output)
     end
 
     it 'removes password names when force_remove=true' do
       mock_manager = object_double('Mock Password Manager', {
-        :remove_password => nil,
-        :location        => "'production' Environment"
-      })
+                                     :remove_password => nil,
+                                     :location => "'production' Environment"
+                                   })
 
       expected_output = <<~EOM
         Processing 'name1' in 'production' Environment... done.
@@ -155,29 +154,29 @@ describe Simp::Cli::Commands::Passgen::Remove do
       EOM
 
       @remover.remove_passwords(mock_manager, names, true)
-      expect( @output.string ).to eq(expected_output)
+      expect(@output.string).to eq(expected_output)
     end
 
-    it 'removes as many passwords as possible and fails with list of ' +
+    it 'removes as many passwords as possible and fails with list of ' \
        'password remove failures' do
-
       mock_manager = object_double('Mock Password Manager', {
-        :remove_password => nil,
-        :location        => "'production' Environment"
-      })
+                                     :remove_password => nil,
+                                     :location => "'production' Environment"
+                                   })
 
       allow(mock_manager).to receive(:remove_password).with('name1')
-        .and_return(nil)
+                                                      .and_return(nil)
 
       allow(mock_manager).to receive(:remove_password).with('name4')
-        .and_return(nil)
+                                                      .and_return(nil)
 
       allow(mock_manager).to receive(:remove_password).with('name2').and_raise(
-        Simp::Cli::ProcessingError, 'Remove failed: password not found')
+        Simp::Cli::ProcessingError, 'Remove failed: password not found'
+      )
 
       allow(mock_manager).to receive(:remove_password).with('name3').and_raise(
-        Simp::Cli::ProcessingError, 'Remove failed: permission denied')
-
+        Simp::Cli::ProcessingError, 'Remove failed: permission denied'
+      )
 
       expected_stdout = <<~EOM
         Processing 'name1' in 'production' Environment... done.
@@ -201,10 +200,10 @@ describe Simp::Cli::Commands::Passgen::Remove do
       EOM
 
       expect { @remover.remove_passwords(mock_manager, names, true) }
-        .to raise_error( Simp::Cli::ProcessingError,
-        expected_err_msg.strip)
+        .to raise_error(Simp::Cli::ProcessingError,
+                        expected_err_msg.strip)
 
-      expect( @output.string ).to eq(expected_stdout)
+      expect(@output.string).to eq(expected_stdout)
     end
   end
 
@@ -212,9 +211,9 @@ describe Simp::Cli::Commands::Passgen::Remove do
   # Simp::Cli::Commands::Command API methods
   #
   describe '#help' do
-    it 'should print help' do
-      expected_stdout_regex = /#{Simp::Cli::Commands::Passgen::Remove.description}/
-      expect{ @remover.help }.to output(expected_stdout_regex).to_stdout
+    it 'prints help' do
+      expected_stdout_regex = %r{#{described_class.description}}
+      expect { @remover.help }.to output(expected_stdout_regex).to_stdout
     end
   end
 
@@ -246,7 +245,8 @@ describe Simp::Cli::Commands::Passgen::Remove do
       it 'fails when the environment does not exist' do
         expect { @remover.run(['name1', '-e', 'oops']) }.to raise_error(
           Simp::Cli::ProcessingError,
-          "Invalid Puppet environment 'oops': Does not exist")
+          "Invalid Puppet environment 'oops': Does not exist",
+        )
       end
 
       it 'fails when the environment does not have simp-simplib installed' do
@@ -261,21 +261,23 @@ describe Simp::Cli::Commands::Passgen::Remove do
 
         expect { @remover.run(['name1']) }.to raise_error(
           Simp::Cli::ProcessingError,
-          "Invalid Puppet environment 'production': " +
-          'simp-simplib is not installed')
+          "Invalid Puppet environment 'production': " \
+          'simp-simplib is not installed',
+        )
       end
 
       it 'fails when LegacyPasswordManager cannot be constructed' do
         allow(@remover).to receive(:get_simplib_version).and_return('3.0.0')
         password_env_dir = File.join(@var_dir, 'simp', 'environments')
         default_password_dir = File.join(password_env_dir, 'production',
-          'simp_autofiles', 'gen_passwd')
+                                         'simp_autofiles', 'gen_passwd')
 
         FileUtils.mkdir_p(File.dirname(default_password_dir))
         FileUtils.touch(default_password_dir)
         expect { @remover.run(['name1']) }.to raise_error(
           Simp::Cli::ProcessingError,
-          "Password directory '#{default_password_dir}' is not a directory")
+          "Password directory '#{default_password_dir}' is not a directory",
+        )
       end
     end
 
@@ -298,15 +300,15 @@ describe Simp::Cli::Commands::Passgen::Remove do
           allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
 
           mock_manager = object_double('Mock LegacyPasswordManager', {
-            :remove_password => nil,
-            :location        => "'production' Environment"
-          })
+                                         :remove_password => nil,
+                                         :location => "'production' Environment"
+                                       })
 
           allow(mock_manager).to receive(:remove_password).with('name1')
-            .and_return(nil)
+                                                          .and_return(nil)
 
           allow(mock_manager).to receive(:remove_password).with('name2')
-            .and_return(nil)
+                                                          .and_return(nil)
 
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('production', nil).and_return(mock_manager)
@@ -322,29 +324,21 @@ describe Simp::Cli::Commands::Passgen::Remove do
           EOM
 
           @remover.run(['name1,name2'])
-          expect( @output.string ).to eq(expected_output)
+          expect(@output.string).to eq(expected_output)
         end
 
-        it 'removes names for default environment without prompting when ' +
+        it 'removes names for default environment without prompting when ' \
            '--force' do
-
           mock_manager = object_double('Mock LegacyPasswordManager', {
-            :remove_password => nil,
-            :location        => "'production' Environment"
-          })
+                                         :remove_password => nil,
+                                         :location => "'production' Environment"
+                                       })
 
           allow(mock_manager).to receive(:remove_password).with('name1')
-            .and_return(nil)
+                                                          .and_return(nil)
 
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('production', nil).and_return(mock_manager)
-
-          expected_output = <<~EOM
-            Initializing for environment 'production'... done.
-            Processing 'name1' in 'production' Environment...
-              Removed 'name1'
-
-          EOM
 
           @remover.run(['name1', '--force'])
         end
@@ -353,12 +347,12 @@ describe Simp::Cli::Commands::Passgen::Remove do
           allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
 
           mock_manager = object_double('Mock LegacyPasswordManager', {
-            :remove_password => nil,
-            :location        => "'dev' Environment"
-          })
+                                         :remove_password => nil,
+                                         :location => "'dev' Environment"
+                                       })
 
           allow(mock_manager).to receive(:remove_password).with('name1')
-            .and_return(nil)
+                                                          .and_return(nil)
 
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('dev', nil).and_return(mock_manager)
@@ -371,19 +365,19 @@ describe Simp::Cli::Commands::Passgen::Remove do
           EOM
 
           @remover.run(['name1', '-e', 'dev'])
-          expect( @output.string ).to eq(expected_output)
+          expect(@output.string).to eq(expected_output)
         end
 
         it 'removes names for specified directory' do
           allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
 
           mock_manager = object_double('Mock LegacyPasswordManager', {
-            :remove_password => nil,
-            :location  => '/some/passgen/path'
-          })
+                                         :remove_password => nil,
+                                         :location => '/some/passgen/path'
+                                       })
 
           allow(mock_manager).to receive(:remove_password).with('name1')
-            .and_return(nil)
+                                                          .and_return(nil)
 
           allow(Simp::Cli::Passgen::LegacyPasswordManager).to receive(:new)
             .with('production', '/some/passgen/path').and_return(mock_manager)
@@ -396,7 +390,7 @@ describe Simp::Cli::Commands::Passgen::Remove do
           EOM
 
           @remover.run(['name1', '-d', '/some/passgen/path'])
-          expect( @output.string ).to eq(expected_output)
+          expect(@output.string).to eq(expected_output)
         end
       end
 
@@ -415,15 +409,15 @@ describe Simp::Cli::Commands::Passgen::Remove do
           allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
 
           mock_manager = object_double('Mock PasswordManager', {
-            :remove_password => nil,
-            :location        => "'production' Environment"
-          })
+                                         :remove_password => nil,
+                                         :location => "'production' Environment"
+                                       })
 
           allow(mock_manager).to receive(:remove_password).with('name1')
-            .and_return(nil)
+                                                          .and_return(nil)
 
           allow(mock_manager).to receive(:remove_password).with('name2')
-            .and_return(nil)
+                                                          .and_return(nil)
 
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('production', nil, nil).and_return(mock_manager)
@@ -439,19 +433,18 @@ describe Simp::Cli::Commands::Passgen::Remove do
           EOM
 
           @remover.run(['name1,name2'])
-          expect( @output.string ).to eq(expected_output)
+          expect(@output.string).to eq(expected_output)
         end
 
-        it 'removes names for default env without prompting when ' +
+        it 'removes names for default env without prompting when ' \
            '--force' do
-
           mock_manager = object_double('Mock PasswordManager', {
-            :remove_password => nil,
-            :location        => "'production' Environment"
-          })
+                                         :remove_password => nil,
+                                         :location => "'production' Environment"
+                                       })
 
           allow(mock_manager).to receive(:remove_password).with('name1')
-            .and_return(nil)
+                                                          .and_return(nil)
 
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('production', nil, nil).and_return(mock_manager)
@@ -464,20 +457,20 @@ describe Simp::Cli::Commands::Passgen::Remove do
           EOM
 
           @remover.run(['name1', '--force'])
-          expect( @output.string ).to eq(expected_output)
+          expect(@output.string).to eq(expected_output)
         end
 
         it 'removes passwords for specified names in specified <env,backend>' do
           allow(Simp::Cli::Utils).to receive(:yes_or_no).and_return(true)
 
           mock_manager = object_double('Mock PasswordManager', {
-            :remove_password => nil,
-            :location        =>
+                                         :remove_password => nil,
+                                         :location =>
               "'dev' Environment, 'backend3' simpkv Backend"
-          })
+                                       })
 
           allow(mock_manager).to receive(:remove_password).with('name1')
-            .and_return(nil)
+                                                          .and_return(nil)
 
           allow(Simp::Cli::Passgen::PasswordManager).to receive(:new)
             .with('dev', 'backend3', nil).and_return(mock_manager)
@@ -491,7 +484,7 @@ describe Simp::Cli::Commands::Passgen::Remove do
 
           @remover.run(['name1', '-e', 'dev', '--backend', 'backend3'])
 
-          expect( @output.string ).to eq(expected_output)
+          expect(@output.string).to eq(expected_output)
         end
       end
     end
@@ -500,7 +493,8 @@ describe Simp::Cli::Commands::Passgen::Remove do
       it 'requires non-empty name list' do
         expect { @remover.run([]) }.to raise_error(
           Simp::Cli::ProcessingError,
-          'Password names are missing from command line')
+          'Password names are missing from command line',
+        )
       end
     end
   end

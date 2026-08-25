@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'highline/import'
 require 'simp/cli/apply_utils'
 require 'simp/cli/exec_utils'
@@ -10,7 +12,6 @@ class Simp::Cli; end
 module Simp::Cli::Passgen; end
 
 class Simp::Cli::Passgen::PasswordManager
-
   include Simp::Cli::Logging
 
   attr_reader :location
@@ -22,7 +23,7 @@ class Simp::Cli::Passgen::PasswordManager
     @puppet_info = Simp::Cli::Utils.puppet_info(@environment)
 
     @location = "'#{@environment}' Environment"
-    if @folder or @backend
+    if @folder || @backend
       qualifiers = []
       qualifiers << "'#{@folder}' Folder" if @folder
       qualifiers << "'#{@backend}' simpkv Backend" if @backend
@@ -43,8 +44,8 @@ class Simp::Cli::Passgen::PasswordManager
   # @raise Simp::Cli::ProcessingError if the password list operation failed or
   #   information retrieved is malformed
   def name_list
-    logger.info('Retrieving list of password names with simplib::passgen ' +
-      'functions')
+    logger.info('Retrieving list of password names with simplib::passgen ' \
+                'functions')
 
     begin
       password_list.key?('keys') ? password_list['keys'].keys.sort : []
@@ -69,8 +70,8 @@ class Simp::Cli::Passgen::PasswordManager
   #   info cannot be retrieved
   #
   def password_info(name)
-    logger.info("Retrieving password info for '#{name}' using " +
-      'simplib::passgen functions')
+    logger.info("Retrieving password info for '#{name}' using " \
+                'simplib::passgen functions')
 
     begin
       fullname = @folder.nil? ? name : "#{@folder}/#{name}"
@@ -85,8 +86,8 @@ class Simp::Cli::Passgen::PasswordManager
       # problem if simplib::passgen::get changes and this software was not
       # updated
       unless valid_password_info?(info)
-        err_msg = 'Invalid result returned from simplib::passgen::get:' +
-          "\n\n#{info}"
+        err_msg = 'Invalid result returned from simplib::passgen::get:' \
+                  "\n\n#{info}"
 
         raise Simp::Cli::ProcessingError, err_msg
       end
@@ -106,8 +107,8 @@ class Simp::Cli::Passgen::PasswordManager
   #   remove fails
   #
   def remove_password(name)
-    logger.info("Removing password info for '#{name}' using simplib::passgen " +
-      'functions')
+    logger.info("Removing password info for '#{name}' using simplib::passgen " \
+                'functions')
 
     fullname = @folder.nil? ? name : "#{@folder}/#{name}"
     args = "'#{fullname}'"
@@ -124,8 +125,8 @@ class Simp::Cli::Passgen::PasswordManager
     logger.debug("Removing the password info for '#{fullname}' with a manifest")
     opts = apply_options('Password remove', failure_message)
     begin
-      Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
-    rescue => e
+      Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
+    rescue StandardError => e
       err_msg = "Remove failed: #{e.message}"
       raise Simp::Cli::ProcessingError, err_msg
     end
@@ -161,8 +162,8 @@ class Simp::Cli::Passgen::PasswordManager
   # @raise Simp::Cli::ProcessingError upon any failure
   #
   def set_password(name, options)
-    logger.info("Setting password info for '#{name}' using simplib::passgen " +
-      'functions')
+    logger.info("Setting password info for '#{name}' using simplib::passgen " \
+                'functions')
 
     validate_set_config(options)
 
@@ -170,11 +171,11 @@ class Simp::Cli::Passgen::PasswordManager
     begin
       fullname = @folder.nil? ? name : "#{@folder}/#{name}"
       password_options = merge_password_options(fullname, options)
-      if options[:auto_gen]
-        password = generate_and_set_password(fullname, password_options)
-      else
-        password = get_and_set_password(fullname, password_options)
-      end
+      password = if options[:auto_gen]
+                   generate_and_set_password(fullname, password_options)
+                 else
+                   get_and_set_password(fullname, password_options)
+                 end
     rescue Exception => e
       err_msg = "Set failed: #{e}"
       raise Simp::Cli::ProcessingError, err_msg
@@ -193,13 +194,13 @@ class Simp::Cli::Passgen::PasswordManager
   # @param title Brief description of operation to use in error reporting
   # @param failure_message Error message to search for in the stderr output of
   #    a failed apply and then use as the (simplified) failure message if found
-  #lib/simp/cli/kv/info_validator.rb
-  def apply_options(title, failure_message=nil)
+  # lib/simp/cli/kv/info_validator.rb
+  def apply_options(title, failure_message = nil)
     opts = {
-      :title         => title,
-      :env           => @environment,
-      :fail          => true,
-      :group         => @puppet_info[:config]['group'],
+      :title => title,
+      :env => @environment,
+      :fail => true,
+      :group => @puppet_info[:config]['group'],
       :puppet_config => { 'vardir' => @puppet_info[:config]['vardir'] }
     }
 
@@ -220,25 +221,25 @@ class Simp::Cli::Passgen::PasswordManager
   #   password info cannot be read
   #
   def current_password_info(fullname)
-    logger.debug("Retrieving current password info for '#{fullname}'" +
-      ' with a manifest')
+    logger.debug("Retrieving current password info for '#{fullname}' " \
+                 'with a manifest')
 
-    tmpdir = Dir.mktmpdir( File.basename( __FILE__ ) )
+    tmpdir = Dir.mktmpdir(File.basename(__FILE__))
     password_info = nil
     begin
       args = "'#{fullname}'"
       args += ", #{@custom_options}" if @custom_options
       # persist to file, because log scraping is fragile
       result_file = File.join(tmpdir, 'password_info.yaml')
-      manifest =<<~EOM
+      manifest = <<~EOM
         $password_info = simplib::passgen::get(#{args})
         file { '#{result_file}': content => to_yaml($password_info) }
       EOM
 
       opts = apply_options('Current password retrieve')
-      Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
-      password_info = Simp::Cli::ApplyUtils::load_yaml(result_file,
-        'password info', logger)
+      Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
+      password_info = Simp::Cli::ApplyUtils.load_yaml(result_file,
+                                                      'password info', logger)
     ensure
       FileUtils.remove_entry_secure(tmpdir)
     end
@@ -270,20 +271,20 @@ class Simp::Cli::Passgen::PasswordManager
   # @return generated password
   #
   def generate_and_set_password(fullname, options)
-    logger.debug("Generating and setting the password and salt for" +
-      " '#{fullname}' with password length=#{options[:length]}," +
-      " complexity=#{options[:complexity]}, and" +
-      " complex_only=#{options[:complex_only]}" +
-      " via a manifest")
+    logger.debug('Generating and setting the password and salt for ' \
+                 "'#{fullname}' with password length=#{options[:length]}, " \
+                 "complexity=#{options[:complexity]}, and " \
+                 "complex_only=#{options[:complex_only]} " \
+                 'via a manifest')
 
-    tmpdir = Dir.mktmpdir( File.basename( __FILE__ ) )
+    tmpdir = Dir.mktmpdir(File.basename(__FILE__))
     password = nil
     begin
       # persist password to file for retrieval, because log scraping is fragile
       result_file = File.join(tmpdir, 'password.txt')
       generate_timeout_seconds = 30
       custom_options = @custom_options ? ", #{@custom_options}" : ''
-      manifest =<<~EOM
+      manifest = <<~EOM
         [ $password, $salt ] = simplib::passgen::gen_password_and_salt(
           #{options[:length]}, # length
           #{options[:complexity]}, # complexity
@@ -303,7 +304,7 @@ class Simp::Cli::Passgen::PasswordManager
       EOM
 
       opts = apply_options('Password generate and set')
-      Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
+      Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
       begin
         password = File.read(result_file)
       rescue Exception => e
@@ -334,11 +335,11 @@ class Simp::Cli::Passgen::PasswordManager
     logger.debug('Using user-entered password')
     password = options[:password]
 
-    logger.debug("Generating the salt and setting the password and salt for" +
-      " '#{fullname}' with a manifest")
+    logger.debug('Generating the salt and setting the password and salt for ' \
+                 "'#{fullname}' with a manifest")
 
     custom_options = @custom_options ? ", #{@custom_options}" : ''
-    manifest =<<~EOM
+    manifest = <<~EOM
       $salt = simplib::passgen::gen_salt(30)  # 30 second generate timeout
       $password_options = {
         'complexity'   => #{options[:complexity]},
@@ -351,7 +352,7 @@ class Simp::Cli::Passgen::PasswordManager
     EOM
 
     opts = apply_options('Password set')
-    Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
+    Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
     password
   end
 
@@ -380,11 +381,11 @@ class Simp::Cli::Passgen::PasswordManager
     current = current_password_info(fullname)
 
     if options[:length].nil?
-      if current.key?('value')
-        password_options[:length] = current['value']['password'].length
-      else
-        password_options[:length] = options[:default_length]
-      end
+      password_options[:length] = if current.key?('value')
+                                    current['value']['password'].length
+                                  else
+                                    options[:default_length]
+                                  end
     end
 
     if password_options[:length] < options[:minimum_length]
@@ -392,24 +393,23 @@ class Simp::Cli::Passgen::PasswordManager
     end
 
     if options[:complexity].nil?
-      if ( current.key?('metadata') && current['metadata'].key?('complexity') )
-        password_options[:complexity] = current['metadata']['complexity']
-      else
-        password_options[:complexity] = options[:default_complexity]
-      end
+      password_options[:complexity] = if current.key?('metadata') && current['metadata'].key?('complexity')
+                                        current['metadata']['complexity']
+                                      else
+                                        options[:default_complexity]
+                                      end
     end
 
     if options[:complex_only].nil?
-      if ( current.key?('metadata') && current['metadata'].key?('complex_only') )
-        password_options[:complex_only] = current['metadata']['complex_only']
-      else
-        password_options[:complex_only] = options[:default_complex_only]
-      end
+      password_options[:complex_only] = if current.key?('metadata') && current['metadata'].key?('complex_only')
+                                          current['metadata']['complex_only']
+                                        else
+                                          options[:default_complex_only]
+                                        end
     end
 
     password_options
   end
-
 
   # Retrieve and validate a list of a password folder
   #
@@ -417,39 +417,38 @@ class Simp::Cli::Passgen::PasswordManager
   #   cannot be parsed as YAML, or the result does not have the required keys
   #
   def password_list
-    tmpdir = Dir.mktmpdir( File.basename( __FILE__ ) )
+    tmpdir = Dir.mktmpdir(File.basename(__FILE__))
     list = nil
     begin
-      args = ''
       folder = @folder.nil? ? '/' : @folder
-      if @custom_options
-        args = "'#{folder}', #{@custom_options}"
-      else
-        args = "'#{folder}'"
-      end
+      args = if @custom_options
+               "'#{folder}', #{@custom_options}"
+             else
+               "'#{folder}'"
+             end
 
-      logger.debug("Listing passwords in '#{folder}' passgen folder with " +
-        'a manifest')
+      logger.debug("Listing passwords in '#{folder}' passgen folder with " \
+                   'a manifest')
 
       # persist to file, because content may be large and log scraping
       # is fragile
       result_file = File.join(tmpdir, 'list.yaml')
-      manifest =<<~EOM
+      manifest = <<~EOM
         $list = simplib::passgen::list(#{args})
         file { '#{result_file}': content => to_yaml($list) }
       EOM
 
       opts = apply_options('Password list')
-      Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
-      list = Simp::Cli::ApplyUtils::load_yaml(result_file, 'password list',
-        logger)
+      Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
+      list = Simp::Cli::ApplyUtils.load_yaml(result_file, 'password list',
+                                             logger)
 
       # make sure results are something we can process...should only have a
       # problem if simplib::passgen::list changes and this software was not
       # updated
       unless valid_password_list?(list)
-        err_msg = 'Invalid result returned from simplib::passgen::list:' +
-          "\n\n#{list}"
+        err_msg = 'Invalid result returned from simplib::passgen::list:' \
+                  "\n\n#{list}"
 
         raise Simp::Cli::ProcessingError, err_msg
       end
@@ -464,7 +463,7 @@ class Simp::Cli::Passgen::PasswordManager
     valid = true
     unless list.empty?
       if list.key?('keys')
-        list['keys'].each do |name, info|
+        list['keys'].each_value do |info|
           unless valid_password_info?(info)
             valid = false
             break
@@ -487,13 +486,12 @@ class Simp::Cli::Passgen::PasswordManager
   # }
   #
   def valid_password_info?(password_info)
-    ( password_info.key?('value') &&
+    password_info.key?('value') &&
       password_info['value'].key?('password') &&
       password_info['value']['password'].is_a?(String) &&
       password_info.key?('metadata') &&
       password_info['metadata'].key?('history') &&
       password_info['metadata']['history'].is_a?(Array)
-    )
   end
 
   # Verifies options contains the following keys:
@@ -513,11 +511,9 @@ class Simp::Cli::Passgen::PasswordManager
       raise Simp::Cli::ProcessingError, err_msg
     end
 
-    unless options[:auto_gen]
-      unless options.key?(:password)
-        err_msg = 'Missing :password option'
-        raise Simp::Cli::ProcessingError, err_msg
-      end
+    if !options[:auto_gen] && !options.key?(:password)
+      err_msg = 'Missing :password option'
+      raise Simp::Cli::ProcessingError, err_msg
     end
 
     unless options.key?(:validate)
@@ -540,10 +536,9 @@ class Simp::Cli::Passgen::PasswordManager
       raise Simp::Cli::ProcessingError, err_msg
     end
 
-    unless options.key?(:default_complex_only)
-      err_msg = 'Missing :default_complex_only option'
-      raise Simp::Cli::ProcessingError, err_msg
-    end
-  end
+    return if options.key?(:default_complex_only)
 
+    err_msg = 'Missing :default_complex_only option'
+    raise Simp::Cli::ProcessingError, err_msg
+  end
 end

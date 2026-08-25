@@ -8,7 +8,6 @@ require 'simp/cli/utils'
 module Simp::Cli::Environment
   # Abstract environment class
   class Env
-
     attr_reader :type
 
     include Simp::Cli::Logging
@@ -19,8 +18,8 @@ module Simp::Cli::Environment
     # @param [Hash]   opts  options Hash
     def initialize(type, name, opts)
       unless Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME.match?(name)
-        fail(ArgumentError, "ERROR: Illegal environment name: '#{name}'" \
-             "\n\nSee: https://puppet.com/docs/puppet/6.4/environments_creating.html#concept-5441")
+        raise(ArgumentError, "ERROR: Illegal environment name: '#{name}'" \
+                             "\n\nSee: https://puppet.com/docs/puppet/6.4/environments_creating.html#concept-5441")
       end
 
       @type = type
@@ -32,27 +31,27 @@ module Simp::Cli::Environment
 
     # Create a new environment
     def create
-      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+      raise NotImplementedError, "Implement .#{__method__} in a subclass"
     end
 
     # Update environment
     def update
-      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+      raise NotImplementedError, "Implement .#{__method__} in a subclass"
     end
 
     # Remove environment
     def remove
-      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+      raise NotImplementedError, "Implement .#{__method__} in a subclass"
     end
 
     # Validate consistency of environment
     def validate
-      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+      raise NotImplementedError, "Implement .#{__method__} in a subclass"
     end
 
     # Fix consistency of environment
     def fix
-      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+      raise NotImplementedError, "Implement .#{__method__} in a subclass"
     end
 
     # Execute a command in a child process, log failure and return
@@ -64,7 +63,7 @@ module Simp::Cli::Environment
     #   a hash with :status = true
     #
     def run_command(command, ignore_failure = false)
-      return Simp::Cli::ExecUtils::run_command(command, ignore_failure, logger)
+      Simp::Cli::ExecUtils.run_command(command, ignore_failure, logger)
     end
 
     # Execute a command in a child process, log failure and return
@@ -74,7 +73,7 @@ module Simp::Cli::Environment
     # @param [Boolean] ignore_failure  Whether to ignore failures.  When true and
     #   the command fails, does not log the failure and returns true.
     def execute(command, ignore_failure = false)
-      return Simp::Cli::ExecUtils::execute(command, ignore_failure, logger)
+      Simp::Cli::ExecUtils.execute(command, ignore_failure, logger)
     end
 
     def trace(*args)
@@ -106,7 +105,7 @@ module Simp::Cli::Environment
     end
 
     def fail_unless_createable
-      fail NotImplementedError, "Implement .#{__method__} in a subclass"
+      raise NotImplementedError, "Implement .#{__method__} in a subclass"
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'tempfile'
 
 module Acceptance; end
@@ -7,7 +9,6 @@ module Acceptance::Helpers; end
 # Puppet module.
 
 module Acceptance::Helpers::KvTestData
-
   # @return Hash of initial keys to be pre-seeded in the 'default' and 'custom'
   #   backends via the kv_test module
   #
@@ -25,14 +26,14 @@ module Acceptance::Helpers::KvTestData
   def initial_key_info
     {
       'default' => {
-        'keys'        => {
-          'boolean'                => true,
-          'integer'                => 123,
-          'float'                  => 4.567,
-          'string'                 => 'string1',
-          'complex/array_strings'  => [ 'string2', 'string3' ],
-          'complex/array_integers' => [ 8, 9, 10 ],
-          'complex/hash'           => {
+        'keys' => {
+          'boolean' => true,
+          'integer' => 123,
+          'float' => 4.567,
+          'string' => 'string1',
+          'complex/array_strings' => ['string2', 'string3'],
+          'complex/array_integers' => [8, 9, 10],
+          'complex/hash' => {
             'key1' => 'string4',
             'key2' => 11,
             'key3' => false,
@@ -44,13 +45,13 @@ module Acceptance::Helpers::KvTestData
           }
         },
         'global_keys' => {
-          'global_boolean'                => true,
-          'global_integer'                => 123,
-          'global_float'                  => 4.567,
-          'global_string'                 => 'string1',
-          'global_complex/array_strings'  => [ 'string2', 'string3' ],
-          'global_complex/array_integers' => [ 8, 9, 10 ],
-          'global_complex/hash'           => {
+          'global_boolean' => true,
+          'global_integer' => 123,
+          'global_float' => 4.567,
+          'global_string' => 'string1',
+          'global_complex/array_strings' => ['string2', 'string3'],
+          'global_complex/array_integers' => [8, 9, 10],
+          'global_complex/hash' => {
             'key1' => 'string4',
             'key2' => 11,
             'key3' => false,
@@ -63,14 +64,14 @@ module Acceptance::Helpers::KvTestData
         }
       },
       'custom' => {
-        'keys'        => {
-          'boolean'                => true,
-          'integer'                => 123,
-          'float'                  => 4.567,
-          'string'                 => 'string1',
-          'complex/array_strings'  => [ 'string2', 'string3' ],
-          'complex/array_integers' => [ 8, 9, 10 ],
-          'complex/hash'           => {
+        'keys' => {
+          'boolean' => true,
+          'integer' => 123,
+          'float' => 4.567,
+          'string' => 'string1',
+          'complex/array_strings' => ['string2', 'string3'],
+          'complex/array_integers' => [8, 9, 10],
+          'complex/hash' => {
             'key1' => 'string4',
             'key2' => 11,
             'key3' => false,
@@ -82,13 +83,13 @@ module Acceptance::Helpers::KvTestData
           }
         },
         'global_keys' => {
-          'global_boolean'                => true,
-          'global_integer'                => 123,
-          'global_float'                  => 4.567,
-          'global_string'                 => 'string1',
-          'global_complex/array_strings'  => [ 'string2', 'string3' ],
-          'global_complex/array_integers' => [ 8, 9, 10 ],
-          'global_complex/hash'           => {
+          'global_boolean' => true,
+          'global_integer' => 123,
+          'global_float' => 4.567,
+          'global_string' => 'string1',
+          'global_complex/array_strings' => ['string2', 'string3'],
+          'global_complex/array_integers' => [8, 9, 10],
+          'global_complex/hash' => {
             'key1' => 'string4',
             'key2' => 11,
             'key3' => false,
@@ -120,18 +121,18 @@ module Acceptance::Helpers::KvTestData
   def initial_binary_key_info
     {
       'default' => {
-        'keys'        => {
+        'keys' => {
           'complex/binary' => 'kv_test/test_krb5.keytab'
         },
-        'global_keys'        => {
+        'global_keys' => {
           'global_complex/binary' => 'kv_test/test_krb5.keytab'
         }
       },
       'custom' => {
-        'keys'        => {
+        'keys' => {
           'complex/binary' => 'kv_test/test_krb5.keytab'
         },
-        'global_keys'        => {
+        'global_keys' => {
           'global_complex/binary' => 'kv_test/test_krb5.keytab'
         }
       }
@@ -141,29 +142,29 @@ module Acceptance::Helpers::KvTestData
   # @return the Base64-encoded value of the binary data provided by the
   # kv_test module
   def binary_base64
-    'BQIAAABXAAIABFRFU1QABGhvc3QAFmZha2VfaG9zdDEuc29tZS5kb21haW4AAAABXXfabAEAEg'\
-    'AgaDM0Qy9kh4YJ5F9e9Z0sB9HNY+ejsIUn8nTBbT5xsrYAAAABAAAARwACAARURVNUAARob3N0'\
-    'ABZmYWtlX2hvc3QxLnNvbWUuZG9tYWluAAAAAV132mwBABEAEDZg19gW99qgG+DQYeyffFMAAAAB'
+    'BQIAAABXAAIABFRFU1QABGhvc3QAFmZha2VfaG9zdDEuc29tZS5kb21haW4AAAABXXfabAEAEg' \
+      'AgaDM0Qy9kh4YJ5F9e9Z0sB9HNY+ejsIUn8nTBbT5xsrYAAAABAAAARwACAARURVNUAARob3N0' \
+      'ABZmYWtlX2hvc3QxLnNvbWUuZG9tYWluAAAAAV132mwBABEAEDZg19gW99qgG+DQYeyffFMAAAAB'
   end
 
   def brief_kv_list_results(global)
-    prefix =  global ? 'global_' : ''
+    prefix = global ? 'global_' : ''
     {
       '/' => {
-        'keys'           => [
-            "#{prefix}boolean",
-            "#{prefix}float",
-            "#{prefix}integer",
-            "#{prefix}string",
+        'keys' => [
+          "#{prefix}boolean",
+          "#{prefix}float",
+          "#{prefix}integer",
+          "#{prefix}string",
         ],
-        'folders' => [ "#{prefix}complex" ]
+        'folders' => ["#{prefix}complex"]
       },
       "#{prefix}complex" => {
-        'keys'           => [
+        'keys' => [
           'array_integers',
           'array_strings',
           'binary',
-          'hash'
+          'hash',
         ],
         'folders' => []
       }
@@ -174,44 +175,44 @@ module Acceptance::Helpers::KvTestData
     prefix = global ? 'global_' : ''
     {
       '/' => {
-        'keys'    => {
+        'keys' => {
           "#{prefix}boolean" => {
-              'value'    => true,
-              'metadata' => { 'id' => "#{id_prefix} #{prefix}boolean" }
+            'value' => true,
+            'metadata' => { 'id' => "#{id_prefix} #{prefix}boolean" }
           },
-          "#{prefix}float"   => {
-            'value'    => 4.567,
+          "#{prefix}float" => {
+            'value' => 4.567,
             'metadata' => { 'id' => "#{id_prefix} #{prefix}float" }
           },
           "#{prefix}integer" => {
-            'value'    => 123,
+            'value' => 123,
             'metadata' => { 'id' => "#{id_prefix} #{prefix}integer" }
           },
-          "#{prefix}string"  => {
-            'value'    => 'string1',
+          "#{prefix}string" => {
+            'value' => 'string1',
             'metadata' => { 'id' => "#{id_prefix} #{prefix}string" }
           }
         },
-        'folders' => [ "#{prefix}complex" ]
+        'folders' => ["#{prefix}complex"]
       },
       "#{prefix}complex" => {
-        'keys'    => {
+        'keys' => {
           'array_integers' => {
-            'value'    => [ 8, 9, 10 ],
+            'value' => [8, 9, 10],
             'metadata' => { 'id' => "#{id_prefix} #{prefix}complex/array_integers" }
           },
-          'array_strings'  => {
-            'value'    => [ 'string2', 'string3' ],
+          'array_strings' => {
+            'value' => ['string2', 'string3'],
             'metadata' => { 'id' => "#{id_prefix} #{prefix}complex/array_strings" }
           },
-          'binary'         => {
-            'value'             => binary_base64,
-            'metadata'          => { 'id' => "#{id_prefix} #{prefix}complex/binary" },
-            'encoding'          => 'base64',
+          'binary' => {
+            'value' => binary_base64,
+            'metadata' => { 'id' => "#{id_prefix} #{prefix}complex/binary" },
+            'encoding' => 'base64',
             'original_encoding' => 'ASCII-8BIT'
           },
-          'hash'           => {
-            'value'    => {
+          'hash' => {
+            'value' => {
               'key1' => 'string4',
               'key2' => 11,
               'key3' => false,
@@ -228,7 +229,7 @@ module Acceptance::Helpers::KvTestData
   def keys_info(folder, detailed_list)
     keys = {}
     prefix = (folder == '/') ? '' : "#{folder}/"
-    detailed_list[folder]['keys'].each do |key,info|
+    detailed_list[folder]['keys'].each do |key, info|
       keys["#{prefix}#{key}"] = info
     end
 
@@ -238,14 +239,14 @@ module Acceptance::Helpers::KvTestData
   # change the value and metadata for each key info in a list result
   def change_key_info(current_list)
     updated_list = Marshal.load(Marshal.dump(current_list))
-    updated_list.each do |folder,folder_info|
-      folder_info['keys'].each do |key,key_info|
+    updated_list.each_value do |folder_info|
+      folder_info['keys'].each_value do |key_info|
         if key_info['value'].is_a?(Array) || key_info['value'].is_a?(String)
           key_info['value'] = key_info['value'] + key_info['value']
         end
 
         if key_info['value'].is_a?(TrueClass) || key_info['value'].is_a?(FalseClass)
-          key_info['value'] = ! key_info['value']
+          key_info['value'] = !key_info['value']
         end
 
         if key_info['value'].is_a?(Hash)
@@ -263,41 +264,39 @@ module Acceptance::Helpers::KvTestData
     updated_list
   end
 
-  def create_key_info(regular_keys, binary_keys, env, backend )
+  def create_key_info(regular_keys, binary_keys, env, backend)
     keys = {}
-    list = { }
+    list = {}
     location = env.nil? ? 'globals' : File.join('environments', env)
     regular_keys.each do |key|
       key_path = key
       key_dir = File.dirname(key_path)
       key_dir = '/' if key_dir == '.'
       unless list.key?(key_dir)
-        list[key_dir] = { 'keys' => {}, 'folders' => []}
+        list[key_dir] = { 'keys' => {}, 'folders' => [] }
       end
 
       info = {
-        'value'    => "#{key_path} value",
+        'value' => "#{key_path} value",
         'metadata' => { 'id' => "#{backend} #{location} #{key_path}" }
       }
 
       keys[key_path] = info
       list[key_dir]['keys'][File.basename(key_path)] = info
     end
-
-    sub_list = { 'keys' => {}, 'folders' => [] }
     binary_keys.each do |key|
       key_path = key
       key_dir = File.dirname(key_path)
       key_dir = '/' if key_dir == '.'
       unless list.key?(key_dir)
-        list[key_dir] = { 'keys' => {}, 'folders' => []}
+        list[key_dir] = { 'keys' => {}, 'folders' => [] }
       end
 
       info = {
-        'value'             => binary_base64,
-        'encoding'          => 'base64',
+        'value' => binary_base64,
+        'encoding' => 'base64',
         'original_encoding' => 'ASCII-8BIT',
-        'metadata'          => {
+        'metadata' => {
           'id' => "#{backend} #{location} #{key_path}"
         }
       }
@@ -306,39 +305,35 @@ module Acceptance::Helpers::KvTestData
       list[key_dir]['keys'][File.basename(key_path)] = info
     end
 
-    [ keys, list ]
+    [keys, list]
   end
 
   def run_and_load_json(host, cmd, json_file)
     on(host, cmd)
-    JSON.load( on(host, "cat #{json_file}").stdout )
+    JSON.parse(on(host, "cat #{json_file}").stdout)
   end
 
   def verify_files(host, keys, root_path)
-    keys.each do |key,info|
+    keys.each do |key, info|
       file = File.join(root_path, key)
       if info.key?('encoding')
         puts "Verifying '#{key}' value"
-        actual_binary_file = "#{file}.bin"
         expected_binary_file = "/root/#{File.basename(key)}.bin"
         Tempfile.open 'kv_test_data' do |tempfile|
-          File.open(tempfile.path, 'w') do |file|
-            file.write(Base64.strict_decode64(info['value']))
-          end
+          File.write(tempfile.path, Base64.strict_decode64(info['value']))
 
           copy_to(host, tempfile.path, expected_binary_file)
         end
 
-       puts "Verifying '#{key}' metadata"
+        puts "Verifying '#{key}' metadata"
         meta_file = "#{file}.meta"
-        actual_meta = JSON.load( on(host, "cat #{meta_file}").stdout )
-        expect( actual_meta ).to eq(info['metadata'])
+        actual_meta = JSON.parse(on(host, "cat #{meta_file}").stdout)
+        expect(actual_meta).to eq(info['metadata'])
       else
         puts "Verifying '#{key}' value and metadata"
-        actual = JSON.load( on(host, "cat #{file}").stdout )
-        expect( actual ).to eq(info)
+        actual = JSON.parse(on(host, "cat #{file}").stdout)
+        expect(actual).to eq(info)
       end
     end
   end
-
 end

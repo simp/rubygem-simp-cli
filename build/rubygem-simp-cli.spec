@@ -203,6 +203,7 @@ EOM
 - Fix the EL version comparison in the simp::sssd::client::ldap_server_type
   recommendation so EL10+ recommends 389ds
 - Update GitHub Actions workflows to build and release EL8/EL9/EL10 RPMs
+- Fix all rubocop offenses and make the Ruby Style CI check gating
 
 * Fri May 20 2022 Trevor Vaughan <tvaughan@onyxpoint.com> - 7.0.1
 - Always set the hostname to the one specified during `simp config` in the apply

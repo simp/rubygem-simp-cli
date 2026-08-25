@@ -43,13 +43,13 @@ describe Simp::Cli::Commands::Environment::Fix do
             types: hash_including(
               puppet: hash_including(backend: :directory),
               secondary: hash_including(backend: :directory),
-              writable: hash_including(backend: :directory)
-            )
+              writable: hash_including(backend: :directory),
+            ),
           ), 'foo'
         )
       end
 
-      it 'runs OmniEnvController#fix' do
+      it 'fixes each environment via OmniEnvController#fix' do
         described_class.new.run(['foo', '--console-only'])
         expect(omni_spy).to have_received(:fix).once
       end

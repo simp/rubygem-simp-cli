@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'beaker-rspec'
 require_relative 'acceptance/helpers'
 require_relative 'acceptance/shared_examples'
@@ -25,7 +27,6 @@ unless ENV['BEAKER_provision'] == 'no'
   end
 end
 
-
 RSpec.configure do |c|
   # ensure that environment OS is ready on each host
   fix_errata_on hosts
@@ -42,13 +43,12 @@ RSpec.configure do |c|
     begin
       # Copy over modules and dependencies from spec/fixtures/modules.
       # Tests will move to correct locations and let puppetserver handle plugin-sync.
-      copy_fixture_modules_to( hosts, { :pluginsync => false } )
+      copy_fixture_modules_to(hosts, { :pluginsync => false })
     rescue StandardError, ScriptError => e
-      if ENV['PRY']
-        require 'pry'; binding.pry
-      else
-        raise e
-      end
+      raise e unless ENV['PRY']
+
+      require 'pry'
+      binding.pry # rubocop:disable Lint/Debugger -- intentional debug hook, gated by ENV['PRY']
     end
   end
 end

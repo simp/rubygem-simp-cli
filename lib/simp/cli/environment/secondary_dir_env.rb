@@ -10,14 +10,14 @@ module Simp::Cli::Environment
   class SecondaryDirEnv < DirEnv
     def initialize(name, base_environments_path, opts)
       super(:secondary, name, base_environments_path, opts)
-      @skeleton_path = opts[:skeleton_path] || fail(ArgumentError, 'No :skeleton_path in opts')
+      @skeleton_path = opts[:skeleton_path] || raise(ArgumentError, 'No :skeleton_path in opts')
 
       @rsync_dest_path = File.join(@directory_path, 'rsync')
-      @rsync_skeleton_path = opts[:rsync_skeleton_path] || fail(ArgumentError, 'No :rsync_skeleton_path in opts')
+      @rsync_skeleton_path = opts[:rsync_skeleton_path] || raise(ArgumentError, 'No :rsync_skeleton_path in opts')
 
-      tftpboot_dest_path = @opts[:tftpboot_dest_path] || fail(ArgumentError, 'No :tftpboot_dest_path in opts')
+      tftpboot_dest_path = @opts[:tftpboot_dest_path] || raise(ArgumentError, 'No :tftpboot_dest_path in opts')
       @tftpboot_dest_path = File.join(@directory_path, tftpboot_dest_path)
-      @tftpboot_src_path  = @opts[:tftpboot_src_path] || fail(ArgumentError, 'No :tftpboot_src_path in opts')
+      @tftpboot_src_path  = @opts[:tftpboot_src_path] || raise(ArgumentError, 'No :tftpboot_src_path in opts')
 
       @fakeca_dest_path   = File.join(@directory_path, 'FakeCA')
 
@@ -55,7 +55,7 @@ module Simp::Cli::Environment
       when :link
         link_environment_dirs(@opts[:src_env])
       else
-        fail("ERROR: Unknown Secondary environment create strategy: '#{@opts[:strategy]}'")
+        raise("ERROR: Unknown Secondary environment create strategy: '#{@opts[:strategy]}'")
       end
     end
 
@@ -77,9 +77,9 @@ module Simp::Cli::Environment
 
       # if environment is not available, fail with helpful message
       unless File.directory? @directory_path
-        fail(
+        raise(
           Simp::Cli::ProcessingError,
-          "ERROR: secondary directory not found at '#{@directory_path}'"
+          "ERROR: secondary directory not found at '#{@directory_path}'",
         )
       end
 
@@ -110,18 +110,18 @@ module Simp::Cli::Environment
     # @param [String] facl_file  absolute path to rsync facl rules
     def apply_facls(path, facl_file)
       unless File.exist? @directory_path
-        fail(
+        raise(
           Simp::Cli::ProcessingError,
-          "ERROR: Path does not exist to set FACLS: '#{path}'"
+          "ERROR: Path does not exist to set FACLS: '#{path}'",
         )
       end
-      fail(Simp::Cli::ProcessingError, "ERROR: No FACL file at '#{facl_file}'") unless File.exist?(facl_file)
+      raise(Simp::Cli::ProcessingError, "ERROR: No FACL file at '#{facl_file}'") unless File.exist?(facl_file)
 
       Dir.chdir(path) do
         info("Applying FACL rules to '#{path}'".cyan)
         cmd = "setfacl --restore=#{facl_file}"
         unless execute(cmd)
-          fail(Simp::Cli::ProcessingError, "ERROR:  Failed to apply FACL rules to #{path}")
+          raise(Simp::Cli::ProcessingError, "ERROR:  Failed to apply FACL rules to #{path}")
         end
       end
     end
@@ -130,9 +130,9 @@ module Simp::Cli::Environment
       info("Creating #{@type} env '#{@directory_path}' from '#{@skeleton_path}'".cyan)
 
       # make sure directory exists and is readable by all
-      FileUtils.mkdir_p @directory_path, mode: 0755
-      FileUtils.chmod(0755, File.dirname(@directory_path))
-      FileUtils.chmod(0755, File.dirname(File.dirname(@directory_path)))
+      FileUtils.mkdir_p @directory_path, mode: 0o755
+      FileUtils.chmod(0o755, File.dirname(@directory_path))
+      FileUtils.chmod(0o755, File.dirname(File.dirname(@directory_path)))
 
       copy_skeleton_files(@skeleton_path, @directory_path)        # A1.2
       copy_rsync_skeleton_files                                   # C1.2, C2.1, C.5.2
@@ -145,7 +145,7 @@ module Simp::Cli::Environment
       info("Copying rsync skeleton files from '#{@rsync_skeleton_path} into #{@type} env".cyan)
       copy_skeleton_files(@rsync_skeleton_path, @rsync_dest_path) # C1.2, C2.1
       Dir.chdir(@rsync_dest_path) do
-        FileUtils.ln_s('RedHat', 'CentOS')  # C.5.2
+        FileUtils.ln_s('RedHat', 'CentOS') # C.5.2
       end
     end
 
@@ -163,9 +163,8 @@ module Simp::Cli::Environment
         copy_skeleton_files(dir, dst_path, 'nobody')
         # change perms to world readable or tftp fails
         Dir.chdir(dst_path) do
-          FileUtils.chmod(0644, Dir.entries(dst_path) - %w[. ..])
+          FileUtils.chmod(0o644, Dir.entries(dst_path) - ['.', '..'])
         end
-
 
         # create major OS version link
         os_info[1] = os_info[1].split('.').first
@@ -180,7 +179,7 @@ module Simp::Cli::Environment
     #   prev impl: https://github.com/simp/simp-environment-skeleton/blob/6.3.0/build/simp-environment.spec#L192-L196
     #
     def create_fakeca_cacert_key
-      fail(Simp::Cli::ProcessingError, "No FakeCA directory at '#{@fakeca_dest_path}'") unless File.directory? @fakeca_dest_path
+      raise(Simp::Cli::ProcessingError, "No FakeCA directory at '#{@fakeca_dest_path}'") unless File.directory? @fakeca_dest_path
 
       cacertkey_path = File.join(@fakeca_dest_path, 'cacertkey')
       info("Creating in FakeCA cacertkey in #{@type} env at '#{cacertkey_path}'".cyan)

@@ -1,57 +1,58 @@
+# frozen_string_literal: true
+
 require 'spec_helper_acceptance'
 
 test_name 'simp passgen miscellaneous'
 
 describe 'simp passgen miscellaneous' do
-
-
   [
     'old_simplib',
     'new_simplib_legacy_passgen',
-    'new_simplib_simpkv_passgen'
+    'new_simplib_simpkv_passgen',
   ].each do |env|
     hosts.each do |host|
-
-      include_examples 'workaround beaker ssh session closures', hosts
+      it_behaves_like 'workaround beaker ssh session closures', hosts
 
       if env == 'new_simplib_simpkv_passgen'
         context 'Specifying simpkv backend' do
           let(:valid_backend) { 'default' }
-          let(:names) { [
-            'passgen_test_default',
-            'passgen_test_c0_8',
-            'passgen_test_c1_1024',
-            'passgen_test_c2_20',
-            'passgen_test_c2_only'
-          ] }
+          let(:names) do
+            [
+              'passgen_test_default',
+              'passgen_test_c0_8',
+              'passgen_test_c1_1024',
+              'passgen_test_c2_20',
+              'passgen_test_c2_only',
+            ]
+          end
 
-          it "should list names when valid backend specified in #{env}" do
+          it "lists names when valid backend specified in #{env}" do
             cmd = "simp passgen list -e #{env} --backend #{valid_backend}"
             result = on(host, cmd).stdout
 
             names.each do |name|
-              expect(result).to match(/#{name}/)
+              expect(result).to match(%r{#{name}})
             end
           end
 
-          it "should list passwords when valid backend specified in #{env}" do
+          it "lists passwords when valid backend specified in #{env}" do
             cmd = "simp passgen show #{names.first} -e #{env} --backend #{valid_backend}"
             result = on(host, cmd).stdout
-            expect(result).to match(/Current:/)
+            expect(result).to match(%r{Current:})
           end
 
-          it "should set passwords when valid backend specified in #{env}" do
+          it "sets passwords when valid backend specified in #{env}" do
             cmd = "simp passgen set new_name -e #{env} --backend #{valid_backend} --auto-gen"
             on(host, cmd)
             result = on(host, "simp passgen list -e #{env} --backend #{valid_backend}").stdout
-            expect(result).to match(/new_name/)
+            expect(result).to match(%r{new_name})
           end
 
-          it "should remove passwords when valid backend specified in #{env}" do
+          it "removes passwords when valid backend specified in #{env}" do
             cmd = "simp passgen remove new_name -e #{env} --backend #{valid_backend} --force"
             on(host, cmd)
             result = on(host, "simp passgen list -e #{env} --backend #{valid_backend}").stdout
-            expect(result).to_not match(/new_name/)
+            expect(result).not_to match(%r{new_name})
           end
         end
       end
@@ -61,39 +62,38 @@ describe 'simp passgen miscellaneous' do
         let(:invalid_name) { 'passgen_test_oops' }
         let(:invalid_backend) { 'oops_backend' }
 
-        it "should fail password list when invalid name specified in #{env}" do
+        it "fails password list when invalid name specified in #{env}" do
           cmd = "simp passgen show #{invalid_name} -e #{env}"
           on(host, cmd, :acceptable_exit_codes => 1)
         end
 
-        it "should fail password remove when invalid name specified in #{env}" do
+        it "fails password remove when invalid name specified in #{env}" do
           cmd = "simp passgen remove #{invalid_name} -e #{env} --force"
           on(host, cmd, :acceptable_exit_codes => 1)
         end
 
         if env == 'new_simplib_simpkv_passgen'
-          it "should fail name list when invalid backend specified in #{env}" do
+          it "fails name list when invalid backend specified in #{env}" do
             cmd = "simp passgen list -e #{env} --backend #{invalid_backend}"
             on(host, cmd, :acceptable_exit_codes => 1)
           end
 
-          it "should fail password list when invalid backend specified in #{env}" do
+          it "fails password list when invalid backend specified in #{env}" do
             cmd = "simp passgen show #{valid_name} -e #{env} --backend #{invalid_backend}"
             on(host, cmd, :acceptable_exit_codes => 1)
           end
 
-          it "should fail password set when invalid backend specified in #{env}" do
+          it "fails password set when invalid backend specified in #{env}" do
             cmd = "simp passgen set new_name -e #{env} --backend #{invalid_backend} --auto-gen"
             on(host, cmd, :acceptable_exit_codes => 1)
           end
 
-          it "should fail password remove when invalid backend specified in #{env}" do
+          it "fails password remove when invalid backend specified in #{env}" do
             cmd = "simp passgen remove #{valid_name} -e #{env} --backend #{invalid_backend} --force"
             on(host, cmd, :acceptable_exit_codes => 1)
           end
         end
       end
-
-    end # hosts.each
-  end #[...].each do |env|
-end #describe...
+    end
+  end
+end

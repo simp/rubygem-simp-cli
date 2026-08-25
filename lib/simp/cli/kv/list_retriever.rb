@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/apply_utils'
 require 'simp/cli/exec_utils'
 require 'simp/cli/kv/info_validator'
@@ -7,16 +9,12 @@ require 'tmpdir'
 # Class to retrieve folder info from a key/value store using the simp-simpkv
 # Puppet module
 class Simp::Cli::Kv::ListRetriever < Simp::Cli::Kv::OperatorBase
-
   # @param env Puppet environment.  Used to specify the location of non-global
   #   keys/folders in the key/value folder tree as well as where to find the
   #   simpkv backend configuration
   #
   # @param backend Name of key/value store in simpkv configuration
   #
-  def initialize(env, backend)
-    super(env, backend)
-  end
 
   # Retrieve the list of a folder's contents from the key/value store
   #
@@ -39,7 +37,7 @@ class Simp::Cli::Kv::ListRetriever < Simp::Cli::Kv::OperatorBase
     begin
       list = get_folder_list(folder, global)
       begin
-        Simp::Cli::Kv::InfoValidator::validate_list_info(folder, list)
+        Simp::Cli::Kv::InfoValidator.validate_list_info(folder, list)
       rescue Simp::Cli::ProcessingError => e
         err_msg = "List info malformed: #{e}"
         raise Simp::Cli::ProcessingError, err_msg
@@ -68,10 +66,10 @@ class Simp::Cli::Kv::ListRetriever < Simp::Cli::Kv::OperatorBase
   #   cannot be parsed as YAML
   #
   def get_folder_list(folder, global)
-    logger.debug("Listing #{full_store_path(folder, global)} folder with a "\
-      "puppet apply")
+    logger.debug("Listing #{full_store_path(folder, global)} folder with a " \
+                 'puppet apply')
 
-    tmpdir = Dir.mktmpdir( File.basename( __FILE__ ) )
+    tmpdir = Dir.mktmpdir(File.basename(__FILE__))
     list = nil
 
     begin
@@ -82,7 +80,7 @@ class Simp::Cli::Kv::ListRetriever < Simp::Cli::Kv::OperatorBase
       result_file = File.join(tmpdir, 'list.yaml')
       failure_message = "Folder '#{folder}' not found"
       opts = apply_options('Folder list', failure_message)
-      manifest =<<~EOM
+      manifest = <<~EOM
         if simpkv::exists(#{args}) {
           $list = simpkv::list(#{args})
           file { '#{result_file}': content => to_yaml($list) }
@@ -91,8 +89,8 @@ class Simp::Cli::Kv::ListRetriever < Simp::Cli::Kv::OperatorBase
         }
       EOM
 
-      Simp::Cli::ApplyUtils::apply_manifest_with_spawn(manifest, opts, logger)
-      list = Simp::Cli::ApplyUtils::load_yaml(result_file, 'list', logger)
+      Simp::Cli::ApplyUtils.apply_manifest_with_spawn(manifest, opts, logger)
+      list = Simp::Cli::ApplyUtils.load_yaml(result_file, 'list', logger)
     ensure
       FileUtils.remove_entry_secure(tmpdir)
     end

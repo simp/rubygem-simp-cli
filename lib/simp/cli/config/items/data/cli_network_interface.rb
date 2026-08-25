@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 require_relative '../item'
 
 module Simp; end
 class Simp::Cli; end
-module Simp::Cli::Config
 
+module Simp::Cli::Config
   class Item::CliNetworkInterface < Item
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key               = 'cli::network::interface'
       @description       = 'The network interface to use to connect the SIMP server to the network.'
       @data_type         = :cli_params
@@ -32,44 +34,42 @@ module Simp::Cli::Config
       if @primary_interface && interfaces[@primary_interface]
         recommended = @primary_interface
       else
-        interfaces_with_ips = interfaces.dup.delete_if { |interface,ip| ip.nil? }
-        if interfaces_with_ips.empty?
-          # consider all interfaces, since none have IPv4 addresses
-          devices = interfaces.keys.sort
-        else
-          # restrict to interfaces that have IPv4 addresses
-          devices = interfaces_with_ips.keys.sort
-        end
-        recommended = (
-          devices.select{|x| x.match(/^br/)}.first  ||
-          # el7 systemd naming convention; Ethernet
-          devices.select{|x| x.match(/^en/)}.first   ||
-          # el7 biosdevname naming convention; embedded network interface
-          devices.select{|x| x.match(/^em/)}.first   ||
-          # el7 biosdevname naming convention; PCI card network interface
-          devices.select{|x| x.match(/^p([0-9])+p([0-9])$/)}.first   ||
-          # el6 kernel naming scheme
-          devices.select{|x| x.match(/^eth/)}.first ||
-          # anything else
-          devices.first
-         )
+        interfaces_with_ips = interfaces.dup.delete_if { |_interface, ip| ip.nil? }
+        devices = if interfaces_with_ips.empty?
+                    # consider all interfaces, since none have IPv4 addresses
+                    interfaces.keys.sort
+                  else
+                    # restrict to interfaces that have IPv4 addresses
+                    interfaces_with_ips.keys.sort
+                  end
+        recommended = devices.find { |x| x.match(%r{^br}) } ||
+                      # el7 systemd naming convention; Ethernet
+                      devices.find { |x| x.match(%r{^en}) }   ||
+                      # el7 biosdevname naming convention; embedded network interface
+                      devices.find { |x| x.match(%r{^em}) }   ||
+                      # el7 biosdevname naming convention; PCI card network interface
+                      devices.find { |x| x.match(%r{^p([0-9])+p([0-9])$}) } ||
+                      # el6 kernel naming scheme
+                      devices.find { |x| x.match(%r{^eth}) } ||
+                      # anything else
+                      devices.first
       end
 
       recommended
     end
 
-    def validate( x )
+    def validate(x)
       if acceptable_values.empty?
         # should only get here if the networking fact is not present, e.g.,
         # when running `simp config` with Facter 2.x
         x.nil? ? false : !x.strip.empty?
       else
-        acceptable_values.include?( x )
+        acceptable_values.include?(x)
       end
     end
 
     def not_valid_message
-      "Acceptable values:\n" + acceptable_values.map{ |x| "  #{x}" }.join("\n")
+      "Acceptable values:\n" + acceptable_values.map { |x| "  #{x}" }.join("\n")
     end
 
     # helper method; provides a list of available NICs
@@ -84,8 +84,9 @@ module Simp::Cli::Config
     def get_interface_info
       network_info = Facter.value('networking')
       if network_info
-        network_info['interfaces'].each do |interface,settings|
+        network_info['interfaces'].each do |interface, settings|
           next if interface == 'lo'
+
           @interface_hash[interface[interface]] = settings['ip']
         end
         @primary_interface = network_info['primary']
@@ -104,19 +105,19 @@ module Simp::Cli::Config
       interface_hash = interfaces.dup
       return '' if interface_hash.empty?
 
+      header = 'Interface'
       max_interface_length = interface_hash.keys.map(&:length).max
-      max_interface_length = ['Interface'.length, max_interface_length].max
+      max_interface_length = [header.length, max_interface_length].max
       output = [
         'AVAILABLE INTERFACES:',
-        sprintf("    %-#{max_interface_length}s  %s", 'Interface', 'IP Address'),
-        sprintf("    %-#{max_interface_length}s  %s", '---------', '----------')
+        "    %-#{max_interface_length}s  %s" % ['Interface', 'IP Address'],
+        "    %-#{max_interface_length}s  %s" % ['---------', '----------'],
       ]
 
-      interface_hash.each do |interface,ipaddr|
-        output << sprintf("    %-#{max_interface_length}s  %s", interface,
-         (ipaddr.nil? ? 'N/A': ipaddr))
+      interface_hash.each do |interface, ipaddr|
+        output << ("    %-#{max_interface_length}s  %s" % [interface, (ipaddr.nil? ? 'N/A' : ipaddr)])
       end
-       output.join("\n")
+      output.join("\n")
     end
 
     def primary_interface

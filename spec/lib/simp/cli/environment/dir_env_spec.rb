@@ -24,7 +24,7 @@ describe Simp::Cli::Environment::DirEnv do
   context 'with abstract methods' do
     subject(:described_object) { described_class.new(env_type, env_name, base_env_path, opts) }
 
-    %i[create fix update validate remove].each do |action|
+    [:create, :fix, :update, :validate, :remove].each do |action|
       describe "##{action}" do
         it { expect { described_object.send action }.to raise_error(NotImplementedError) }
       end
@@ -45,13 +45,16 @@ describe Simp::Cli::Environment::DirEnv do
           allow(Facter).to receive(:value).with(:selinux).and_return(true)
           allow(Facter).to receive(:value).with(:selinux_current_mode).and_return('enforcing')
         end
+
         context 'with no paths' do
           it { expect { described_object.selinux_fix_file_contexts }.not_to raise_error }
-          it 'should not attempt to execute anything' do
+
+          it 'does not attempt to execute anything' do
             described_object.selinux_fix_file_contexts
             expect(described_object).not_to have_received(:execute)
           end
         end
+
         context "with ['/path/to/thing']" do
           it 'runs restorecon on the paths' do
             described_object.selinux_fix_file_contexts(['/path/to/thing'])
@@ -65,10 +68,12 @@ describe Simp::Cli::Environment::DirEnv do
           allow(Facter).to receive(:value).with(:selinux).and_return(false)
           allow(described_object).to receive(:info)
         end
+
         it { expect { described_object.selinux_fix_file_contexts }.not_to raise_error }
+
         it 'skips with an expected `info` message' do
-         described_object.selinux_fix_file_contexts
-         expect(described_object).to have_received(:info).with(/SELinux is disabled; skipping context restorecon for/)
+          described_object.selinux_fix_file_contexts
+          expect(described_object).to have_received(:info).with(%r{SELinux is disabled; skipping context restorecon for})
         end
       end
     end
@@ -82,15 +87,16 @@ describe Simp::Cli::Environment::DirEnv do
 
       context 'when environment directory is present' do
         it { expect { apply_puppet_permissions.call }.not_to raise_error }
+
         example do
           apply_puppet_permissions.call
           expect(FileUtils).to have_received(:chown_R).with(nil, 'puppet', env_dir).once
         end
       end
     end
-    describe '#copy_skeleton_files' do
 
-      let(:opts){ super().merge(strategy: :skeleton) }
+    describe '#copy_skeleton_files' do
+      let(:opts) { super().merge(strategy: :skeleton) }
       let(:rsync_cmd) do
         %(sg - puppet -c '/usr/bin/rsync -a --no-g "#{opts[:skeleton_path]}/" "#{env_dir}/"')
       end
@@ -102,7 +108,6 @@ describe Simp::Cli::Environment::DirEnv do
         allow(ENV).to receive(:fetch).with(any_args).and_call_original
         allow(ENV).to receive(:fetch).with('USER').and_return('root')
         allow(described_object).to receive(:execute).with(rsync_cmd).and_return(true)
-
       end
 
       example do
@@ -114,22 +119,25 @@ describe Simp::Cli::Environment::DirEnv do
 
   describe '#fail_unless_createable' do
     subject(:described_object) { described_class.new(:test, env_name, base_env_path, opts) }
+
     context 'when writable environment directory is empty' do
       before(:each) do
         allow(Dir).to receive(:glob).with(any_args).and_call_original
         allow(Dir).to receive(:glob).with(File.join(env_dir, '*')).and_return([])
       end
+
       it { expect { described_object.fail_unless_createable }.not_to raise_error }
     end
+
     context 'when writable environment directory is not empty' do
       before(:each) { allow(Dir).to receive(:glob).and_return(['data', 'hiera.yaml']) }
+
       it {
         expect { described_object.fail_unless_createable }.to raise_error(
           Simp::Cli::ProcessingError,
-          %r{already exists at '#{env_dir}'}
+          %r{already exists at '#{env_dir}'},
         )
       }
     end
   end
-
 end

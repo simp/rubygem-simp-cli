@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 require_relative '../action_item'
 require_relative '../data/cli_local_priv_user'
 require_relative '../data/cli_network_hostname'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::WarnVerifyUserAccessAfterBootstrapAction < ActionItem
-
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key         = 'login::verify::access'
       @description = 'Verify access after `simp bootstrap`'
       @category    = :sanity_check
@@ -16,7 +18,7 @@ module Simp::Cli::Config
 
     def apply
       username = get_item('cli::local_priv_user').value
-      hostname = get_item( 'cli::network::hostname' ).value
+      hostname = get_item('cli::network::hostname').value
       warning_message = <<~DOC
 
         #########################################################################
@@ -48,18 +50,18 @@ module Simp::Cli::Config
       DOC
 
       @applied_status = :deferred
-      warn( warning_message.yellow )
+      warn(warning_message.yellow)
       pause(:warn, 6)
     end
 
     def apply_summary
       username = get_item('cli::local_priv_user').value
       warning_message_brief = "'#{username}' access configuration requires manual verification"
-      if @applied_status == :deferred
-         extra = ":\n    #{warning_message_brief}"
-      else
-        extra = ''
-      end
+      extra = if @applied_status == :deferred
+                ":\n    #{warning_message_brief}"
+              else
+                ''
+              end
       "'#{username}' access verification after `simp bootstrap` #{@applied_status}" + extra
     end
   end

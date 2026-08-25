@@ -1,17 +1,18 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/passgen/command_common'
 
 class Simp::Cli::Commands::Passgen::List < Simp::Cli::Commands::Command
-
   include Simp::Cli::Passgen::CommandCommon
 
   def initialize
     @opts = {
-      :env          => DEFAULT_PUPPET_ENVIRONMENT,
-      :backend      => nil, # simpkv backend
-      :folder       => nil, # passgen sub-folder in simpkv
+      :env => DEFAULT_PUPPET_ENVIRONMENT,
+      :backend => nil, # simpkv backend
+      :folder => nil, # passgen sub-folder in simpkv
       :password_dir => nil, # fully qualified path to a legacy passgen dir
-      :verbose      => 0    # Verbosity of console output:
+      :verbose => 0 # Verbosity of console output:
       #                        -1 = ERROR  and above
       #                         0 = NOTICE and above
       #                         1 = INFO   and above
@@ -29,7 +30,7 @@ class Simp::Cli::Commands::Passgen::List < Simp::Cli::Commands::Command
   end
 
   def help
-    parse_command_line( [ '--help' ] )
+    parse_command_line(['--help'])
   end
 
   # @param args Command line options
@@ -43,10 +44,10 @@ class Simp::Cli::Commands::Passgen::List < Simp::Cli::Commands::Command
     # space at end tells logger to omit <CR>, so spinner+done are on same line
     logger.notice("Initializing for environment '#{@opts[:env]}'... ")
     manager = nil
-    Simp::Cli::Utils::show_wait_spinner {
+    Simp::Cli::Utils.show_wait_spinner do
       # construct the correct manager to do the work based on simplib version
       manager = get_password_manager(@opts)
-    }
+    end
     logger.notice('done.')
 
     show_name_list(manager)
@@ -113,7 +114,7 @@ class Simp::Cli::Commands::Passgen::List < Simp::Cli::Commands::Command
       opts.on('--folder FOLDER',
               'Sub-folder in which to find password names',
               'in a simpkv key/value store. Defaults to the',
-              'top-level folder for simplib::passgen.' ) do |folder|
+              'top-level folder for simplib::passgen.') do |folder|
         @opts[:folder] = folder
       end
 
@@ -139,9 +140,9 @@ class Simp::Cli::Commands::Passgen::List < Simp::Cli::Commands::Command
     logger.notice('Retrieving password names... ')
     begin
       names = nil
-      Simp::Cli::Utils::show_wait_spinner {
+      Simp::Cli::Utils.show_wait_spinner do
         names = manager.name_list
-      }
+      end
       logger.notice('done.')
 
       logger.say("\n")
@@ -150,7 +151,7 @@ class Simp::Cli::Commands::Passgen::List < Simp::Cli::Commands::Command
       else
         title = "#{manager.location} Password Names"
         logger.say(title)
-        logger.say('='*title.length)
+        logger.say('=' * title.length)
         logger.say(names.join("\n"))
       end
       logger.notice

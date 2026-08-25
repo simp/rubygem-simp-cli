@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/puppetfile/errors'
 require 'simp/cli/puppetfile/local_simp_puppet_modules'
@@ -66,10 +68,9 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
 
       opts.on('-s', '--[no-]skeleton',
               'Generate an empty Puppetfile that includes',
-              'Puppetfile.simp.',
-             ) do |skel|
-                 @puppetfile_type = skel ? :skeleton : :simp
-              end
+              'Puppetfile.simp.') do |skel|
+        @puppetfile_type = skel ? :skeleton : :simp
+      end
 
       opts.on('-l', '--local-modules ENV',
               Simp::Cli::Utils::REGEXP_PUPPET_ENV_NAME,
@@ -114,17 +115,16 @@ class Simp::Cli::Commands::Puppetfile::Generate < Simp::Cli::Commands::Command
     if @puppetfile_type == :skeleton
       puts Simp::Cli::Puppetfile::Skeleton.new(
         @puppet_env,
-        @simp_modules_git_repos_path
+        @simp_modules_git_repos_path,
       ).to_puppetfile
     else
       puts Simp::Cli::Puppetfile::LocalSimpPuppetModules.new(
         @simp_modules_install_path,
-        @simp_modules_git_repos_path
+        @simp_modules_git_repos_path,
       ).to_puppetfile
     end
-
   rescue Simp::Cli::Puppetfile::ModuleError => e
     # backtrace is not useful here, so only report the error message
-    raise Simp::Cli::ProcessingError.new(e.message)
+    raise Simp::Cli::ProcessingError, e.message
   end
 end

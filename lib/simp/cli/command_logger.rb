@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'simp/cli/defaults'
 require 'simp/cli/logging'
 require 'simp/cli/utils'
@@ -13,7 +15,6 @@ class Simp::Cli; end
 # call set_up_global_logger() to set up the logger prior to command
 # processing.
 module Simp::Cli::CommandLogger
-
   include Simp::Cli::Logging
 
   # Adds standard logging options to an OptionParser object
@@ -44,29 +45,30 @@ module Simp::Cli::CommandLogger
   #    this must not have any conflicting options short/longnames.
   def add_logging_command_options(opt_parser, options)
     unless options[:log_basename]
-      fail('add_logging_command_options: options Hash must contain :log_basename key')
+      raise('add_logging_command_options: options Hash must contain :log_basename key')
     end
-    options[:verbose] = 0 unless options.has_key?(:verbose)
+
+    options[:verbose] = 0 unless options.key?(:verbose)
 
     default_base = File.join(Simp::Cli::SIMP_CLI_HOME, options[:log_basename])
     opt_parser.on('-l', '--log-file FILE',
-            'Log file. Defaults to',
-            "#{default_base}.<timestamp>") do |file|
+                  'Log file. Defaults to',
+                  "#{default_base}.<timestamp>") do |file|
       options[:log_file] = File.expand_path(file)
     end
 
-    #TODO Not allow -v and -q intermixed or the user may be surprised
+    # TODO: Not allow -v and -q intermixed or the user may be surprised
     #     by subsequent console logging.
     opt_parser.on('-v', '--verbose',
-            'Verbose console output (stacks). All details',
-            'are recorded in the log file regardless.' ) do
+                  'Verbose console output (stacks). All details',
+                  'are recorded in the log file regardless.') do
       options[:verbose] += 1
     end
 
     opt_parser.on('-q', '--quiet',
-            'Quiet console output.  Only errors are',
-            'reported to the console. All details are',
-            'recorded in the log file regardless.') do
+                  'Quiet console output.  Only errors are',
+                  'reported to the console. All details are',
+                  'recorded in the log file regardless.') do
       options[:verbose] = -1
     end
 
@@ -74,7 +76,6 @@ module Simp::Cli::CommandLogger
                   'Suppress logging to file.') do
       options[:log_file] = :none
     end
-
   end
 
   # Set up the global logger
@@ -114,34 +115,33 @@ module Simp::Cli::CommandLogger
     options[:start_time] = Time.now unless options[:start_time]
     unless options[:log_file]
       unless options[:log_basename]
-        fail('set_up_global_logger: options Hash must contain :log_basename or :log_file')
+        raise('set_up_global_logger: options Hash must contain :log_basename or :log_file')
       end
 
-      timestamp = Simp::Cli::Utils::timestamp_compact(options[:start_time])
+      timestamp = Simp::Cli::Utils.timestamp_compact(options[:start_time])
       log_file = "#{options[:log_basename]}.#{timestamp}"
       options[:log_file] = File.join(Simp::Cli::SIMP_CLI_HOME, log_file)
     end
 
-    unless (options[:log_file] == :none)
+    unless options[:log_file] == :none
       FileUtils.mkdir_p(File.dirname(options[:log_file]))
       logger.open_logfile(options[:log_file])
     end
 
     options[:verbose] = 0 unless options[:verbose]
-    case options[:verbose]
-    when -1
-      console_log_level = :error
-    when 0
-      console_log_level = :notice
-    when 1
-      console_log_level = :info
-    when 2
-      console_log_level = :debug
-    else
-      console_log_level = :trace # developer debug
-    end
-    file_log_level = :debug      # all but developer debug to file
+    console_log_level = case options[:verbose]
+                        when -1
+                          :error
+                        when 0
+                          :notice
+                        when 1
+                          :info
+                        when 2
+                          :debug
+                        else
+                          :trace # developer debug
+                        end
+    file_log_level = :debug # all but developer debug to file
     logger.levels(console_log_level, file_log_level)
   end
-
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'highline/import'
 require 'yaml'
 require 'fileutils'
@@ -13,14 +15,13 @@ require 'simp/cli/config/simp_puppet_env_helper'
 
 # Handle CLI interactions for "simp config"
 class Simp::Cli::Commands::Config < Simp::Cli::Commands::Command
-
   include Simp::Cli::CommandLogger
 
   # Intro is broken into 3 parts so that we can inject filenames
   # between the parts and use different font formatting for those
   # filenames.
   # @see greet_user
-  SECTION_SEPARATOR  = '='*80
+  SECTION_SEPARATOR  = '=' * 80
   INTRO_TEXT_PART1   = <<EOM
 #{SECTION_SEPARATOR}
 `simp config` will take you through preparing your infrastructure for bootstrap
@@ -48,54 +49,51 @@ EOM
   FORCE_CONFIG_WAIT_SECONDS = 15
 
   def initialize
-
     # default run options
-    @options =  {
-      :puppet_env             => Simp::Cli::BOOTSTRAP_PUPPET_ENV,
-      :puppet_env_info        => nil, # will be set once we have ensured we
-                                      # have the Puppet environment in place
-      :force_config           => false,
-      :allow_queries          => true,
-      :force_defaults         => false, # true = use valid Item defaults, preemptively,
-                                        # instead of querying
-      :dry_run                => false,
+    @options = {
+      :puppet_env => Simp::Cli::BOOTSTRAP_PUPPET_ENV,
+      :puppet_env_info => nil, # will be set once we have ensured we
+      # have the Puppet environment in place
+      :force_config => false,
+      :allow_queries => true,
+      :force_defaults => false, # true = use valid Item defaults, preemptively,
+      # instead of querying
+      :dry_run => false,
 
+      :answers_input_file => nil,
+      :answers_output_file => Simp::Cli::CONFIG_ANSWERS_OUTFILE,
+      :hiera_output_file => nil, # will be set once we determine the
+      # correct Puppet environment and correct
+      # directory name for hieradata in the
+      # environment
 
-      :answers_input_file     => nil,
-      :answers_output_file    => Simp::Cli::CONFIG_ANSWERS_OUTFILE,
-      :hiera_output_file      => nil, # will be set once we determine the
-                                      # correct Puppet environment and correct
-                                      # directory name for hieradata in the
-                                      # environment
-
-      :use_safety_save        => true,
+      :use_safety_save => true,
       :autoaccept_safety_save => false,
-      :interrupted_session    => false,
+      :interrupted_session => false,
 
-      :start_time             => Time.now,
-      :log_basename           => 'simp_conf.log',
-      :log_file               => nil,
+      :start_time => Time.now,
+      :log_basename => 'simp_conf.log',
+      :log_file => nil,
 
-      :clean_session          => true,  # whether we are starting the questionnaire
-                                        # from the beginning and queries are allowed
-      :user_overrides         => false, # whether user has provided overrides via
-                                        # an answers input file or KEY=VALUE pairs
+      :clean_session => true, # whether we are starting the questionnaire
+      # from the beginning and queries are allowed
+      :user_overrides => false, # whether user has provided overrides via
+      # an answers input file or KEY=VALUE pairs
       :first_interactive_session => nil, # whether user should be prompted to continue
-                                         # after intro
-    ####### IMPORTANT
-    # This is EXPLICITLY set to NOTICE, so that, by default, the
-    # detailed action messages from OmniEnvController.create are
-    # **NOT** sent to the console when that code is used within
-    # 'simp config'.
-      :verbose                => 0  # -1 = ERROR  and above
-                                    #  0 = NOTICE and above
-                                    #  1 = INFO   and above
-                                    #  2 = DEBUG  and above
-                                    #  3 = TRACE  and above
+      # after intro
+      ####### IMPORTANT
+      # This is EXPLICITLY set to NOTICE, so that, by default, the
+      # detailed action messages from OmniEnvController.create are
+      # **NOT** sent to the console when that code is used within
+      # 'simp config'.
+      :verbose => 0 # -1 = ERROR  and above
+      #  0 = NOTICE and above
+      #  1 = INFO   and above
+      #  2 = DEBUG  and above
+      #  3 = TRACE  and above
     }
 
     @version = Simp::Cli::VERSION
-
   end
 
   #####################################################
@@ -107,7 +105,7 @@ EOM
   end
 
   def help
-    parse_command_line( [ '--help' ] )
+    parse_command_line(['--help'])
   end
 
   def run(args)
@@ -136,7 +134,7 @@ EOM
     # - a complex data Item (decision point) that itself contains one
     #   or more Item lists and whose value Item determines which
     #   sub-list to use when the decision tree is traversed.
-    item_list = Simp::Cli::Config::ItemListFactory.new( @options ).process( answers_hash )
+    item_list = Simp::Cli::Config::ItemListFactory.new(@options).process(answers_hash)
 
     # Process item tree:
     #  - Get any remaining answers via user queries or item defaults.
@@ -145,23 +143,22 @@ EOM
     #  - When the safety-save option is enabled, after each answer is
     #    determined, persist the accumulated subset of answers for the
     #    session.
-    questionnaire = Simp::Cli::Config::Questionnaire.new( @options )
-    answers = questionnaire.process( item_list, {} )
+    questionnaire = Simp::Cli::Config::Questionnaire.new(@options)
+    answers = questionnaire.process(item_list, {})
 
     # Summarize any actions taken
     print_summary(answers) if answers
 
-    unless @options[:verbose] < 0
-      logger.say( "\n" + "Detailed log written to #{@options[:log_file]}".bold )
+    unless @options[:verbose].negative?
+      logger.say("\n" + "Detailed log written to #{@options[:log_file]}".bold)
     end
 
     # Remove the copy of session answers persisted when safety-save
     # is enabled
     remove_saved_session
-
   rescue Simp::Cli::Config::ApplyError, Simp::Cli::Config::ValidationError => e
     # backtrace is not useful here, so only report the error message
-    raise Simp::Cli::ProcessingError.new(e.message)
+    raise Simp::Cli::ProcessingError, e.message
   end
 
   #####################################################
@@ -172,12 +169,12 @@ EOM
   # SIMP Puppet environment are available before the first pluginsync
   def add_custom_facts
     modulepaths = []
-    if @options[:puppet_env_info][:puppet_config]['modulepath']  # nil in spec tests
+    if @options[:puppet_env_info][:puppet_config]['modulepath'] # nil in spec tests
       modulepaths += @options[:puppet_env_info][:puppet_config]['modulepath'].split(':')
     end
 
     modulepaths << Simp::Cli::SIMP_MODULES_INSTALL_PATH
-    Simp::Cli::Utils::load_custom_facts(modulepaths, true)
+    Simp::Cli::Utils.load_custom_facts(modulepaths, true)
   end
 
   # Create a new SIMP omni-environment and loads Puppet configuration for it.
@@ -188,26 +185,25 @@ EOM
       # Space at end of question tells HighLine to remain on the prompt line
       # when gathering user input.
       question = 'Ready to create the SIMP omni-environment? (no = exit program):'.bold + ' '
-      unless agree( question ) { |q| q.default = 'yes' }
+      unless agree(question) { |q| q.default = 'yes' }
         msg = 'Exiting: User terminated processing prior to creating SIMP omni-environment.'
-        raise Simp::Cli::ProcessingError.new(msg)
+        raise Simp::Cli::ProcessingError, msg
       end
     end
     logger.notice('>> Applying:', [:GREEN, :BOLD],
-      " Creating the SIMP omni-environment for '#{@options[:puppet_env]}'..."
-    )
+                  " Creating the SIMP omni-environment for '#{@options[:puppet_env]}'...")
     logger.info(details_msg)
     @options[:puppet_env_info] = env_helper.create
 
     # verify environment was successfully created
-    status_code, status_details =  env_helper.env_status
+    status_code, status_details = env_helper.env_status
     if status_code == :exists
       logger.notice('Succeeded'.green.bold)
     else
       logger.notice('Failed'.red.bold)
       msg = "Creation of SIMP omni-environment for '#{@options[:puppet_env]}' failed:\n"
       msg += status_details.split("\n").map { |line| '  >> ' + line }.join("\n")
-      raise Simp::Cli::ProcessingError.new(msg)
+      raise Simp::Cli::ProcessingError, msg
     end
   end
 
@@ -231,7 +227,7 @@ EOM
         @options[:puppet_env], @options[:start_time]
       )
 
-      status_code, status_details =  env_helper.env_status
+      status_code, status_details = env_helper.env_status
       details_msg = status_details.split("\n").map { |line| '  >> ' + line }.join("\n")
 
       if status_code == :creatable
@@ -247,26 +243,26 @@ EOM
         #  any local customizations?
         msg = "Unable to configure: Invalid SIMP omni-environment for '#{@options[:puppet_env]}' exists:\n"
         msg += details_msg
-        raise Simp::Cli::ProcessingError.new(msg)
+        raise Simp::Cli::ProcessingError, msg
       end
 
       # Set remaining @options based on the Puppet environment
       unless @options[:hiera_output_file]
         @options[:hiera_output_file] = File.join(
-            @options[:puppet_env_info][:puppet_env_datadir],
-            Simp::Cli::CONFIG_GLOBAL_HIERA_FILENAME
+          @options[:puppet_env_info][:puppet_env_datadir],
+          Simp::Cli::CONFIG_GLOBAL_HIERA_FILENAME,
         )
       end
     end
   end
 
   def greet_user
-    indent = ' '*15
-    logger.notice( "\n#{INTRO_TEXT_PART1}".rstrip, [:GREEN] )
-    logger.notice( "#{indent}#{@options[:log_file]}")
-    logger.notice( "\n#{INTRO_TEXT_PART2}".rstrip, [:GREEN] )
-    logger.notice( "#{indent}#{@options[:safety_save_file]}")
-    logger.notice( "\n#{INTRO_TEXT_PART3}".rstrip, [:GREEN] )
+    indent = ' ' * 15
+    logger.notice("\n#{INTRO_TEXT_PART1}".rstrip, [:GREEN])
+    logger.notice("#{indent}#{@options[:log_file]}")
+    logger.notice("\n#{INTRO_TEXT_PART2}".rstrip, [:GREEN])
+    logger.notice("#{indent}#{@options[:safety_save_file]}")
+    logger.notice("\n#{INTRO_TEXT_PART3}".rstrip, [:GREEN])
   end
 
   # Loads Puppet configuration for the existing SIMP omni-environment
@@ -280,8 +276,8 @@ EOM
       msg = "Modifying existing SIMP omni-environment for '#{@options[:puppet_env]}'"
       logger.warn(msg.yellow.bold)
       logger.info(details_msg.yellow)
-      msg = ">>> This may remove local modifications.  If you have not yet backed up the\n" +
-        ">>> '#{@options[:puppet_env]}' environment, exit the program now ( <CTRL-C> )!"
+      msg = ">>> This may remove local modifications.  If you have not yet backed up the\n" \
+            ">>> '#{@options[:puppet_env]}' environment, exit the program now ( <CTRL-C> )!"
       logger.warn(msg.red.bold)
       unless @options[:first_interactive_session]
         # The program won't be stopped at the prompt about starting the
@@ -297,15 +293,14 @@ EOM
       msg += "1) Back up your '#{@options[:puppet_env]}' Puppet environment to archive\n"
       msg += "   any site-specific changes.\n"
       msg += "2) Run 'simp config --force-config'.\n"
-      msg += "3) Manually restore archived site-specific changes, as appropriate."
-      raise Simp::Cli::ProcessingError.new(msg)
+      msg += '3) Manually restore archived site-specific changes, as appropriate.'
+      raise Simp::Cli::ProcessingError, msg
     end
   end
 
-
   def parse_command_line(args)
     @opt_parser      = OptionParser.new do |opts|
-      opts_separator = ' '*4 + '-'*76
+      opts_separator = (' ' * 4) + ('-' * 76)
       opts.banner    = "\n=== The SIMP Configuration Tool ==="
       opts.separator ''
       opts.separator 'The SIMP Configuration Tool sets up the server configuration'
@@ -322,7 +317,7 @@ EOM
       opts.separator 'arguments.'
       opts.separator ''
       opts.separator 'USAGE:'
-      opts.separator "  #{File.basename($0)} config [options] [KEY=VALUE] [KEY=VALUE1,,VALUE2,,VALUE3] [...]"
+      opts.separator "  #{File.basename($PROGRAM_NAME)} config [options] [KEY=VALUE] [KEY=VALUE1,,VALUE2,,VALUE3] [...]"
       opts.separator ''
       opts.separator "OPTIONS:\n"
       opts.separator opts_separator
@@ -367,14 +362,14 @@ EOM
       end
 
       opts.on('-f', '--force-defaults',
-              'Use valid default answers for otherwise unspecified items.') do |force_defaults|
+              'Use valid default answers for otherwise unspecified items.') do |_force_defaults|
         @options[:force_defaults] = true
       end
 
       opts.on('-D', '--disable-queries',
               'Run completely non-interactively. All',
               'answers must be specified by an answers',
-              'file or command line KEY=VALUE pairs.') do |disable_queries|
+              'file or command line KEY=VALUE pairs.') do |_disable_queries|
         @options[:allow_queries] = false
       end
 
@@ -387,7 +382,7 @@ EOM
               'configuration file but do not apply',
               'system changes (e.g., NIC setup, Puppet',
               'configuration changes, SIMP scenario',
-              'configuration, ...)' ) do
+              'configuration, ...)') do
         @options[:dry_run] = true
       end
 
@@ -411,34 +406,34 @@ EOM
       opts.separator 'via key/value command line arguments:'
       opts.separator ''
       opts.separator 'KEY=VALUE syntax specifies a mapped, scalar node. For example,'
-      opts.separator "  #{File.basename($0)} config simp_options::auditd=true"
+      opts.separator "  #{File.basename($PROGRAM_NAME)} config simp_options::auditd=true"
       opts.separator ''
       opts.separator 'KEY=VALUE1,,VALUE2,,VALUE3 syntax specifies a mapped sequence'
       opts.separator 'node. For example,'
-      opts.separator "  #{File.basename($0)} config simp_options::dns::search=domain1,,domain2"
+      opts.separator "  #{File.basename($PROGRAM_NAME)} config simp_options::dns::search=domain1,,domain2"
       opts.separator ''
     end
 
     @opt_parser.parse!(args)
 
     @options[:safety_save_file] = File.join(
-      File.dirname( @options[:answers_output_file] ),
-      ".#{File.basename( @options[:answers_output_file] )}" )
+      File.dirname(@options[:answers_output_file]),
+      ".#{File.basename(@options[:answers_output_file])}",
+    )
 
     validate_options unless @help_requested
   end
 
-
   def print_summary(answers)
-    apply_actions = answers.select { |key,item| item.respond_to?(:applied_time) }
+    apply_actions = answers.select { |_key, item| item.respond_to?(:applied_time) }
 
-    unless apply_actions.empty?
-      logger.notice( "\n#{SECTION_SEPARATOR}", [:BOLD] )
-      logger.notice( "\nSummary of Applied Changes", [:BOLD] )
-      apply_actions.each.sort{ |a,b| a[1].applied_time <=> b[1].applied_time }.each do |pair|
-        item = pair[1]
-        logger.notice("  #{item.apply_summary}", [item.status_color, :BOLD] )
-      end
+    return if apply_actions.empty?
+
+    logger.notice("\n#{SECTION_SEPARATOR}", [:BOLD])
+    logger.notice("\nSummary of Applied Changes", [:BOLD])
+    apply_actions.each.sort { |a, b| a[1].applied_time <=> b[1].applied_time }.each do |pair|
+      item = pair[1]
+      logger.notice("  #{item.apply_summary}", [item.status_color, :BOLD])
     end
   end
 
@@ -446,52 +441,53 @@ EOM
   # run, when safety-save is enabled
   def saved_session
     result = {}
-    if @options[:use_safety_save] && file = @options[:safety_save_file]
+    if @options[:use_safety_save] && @options[:safety_save_file]
       _file = @options[:safety_save_file]
-      if File.file?( _file )
-        lines      = File.open( _file, 'r' ).readlines
+      if File.file?(_file)
+        File.open(_file, 'r').readlines
         saved_hash = read_answers_file _file
         last_item  = nil
-        if saved_hash.keys.size > 0
-          #TODO Figure out last non-silent value the user was asked.
+        if saved_hash.keys.size.positive?
+          # TODO: Figure out last non-silent value the user was asked.
           # Very confusing for the user to be asked to continue on from
           # a silent Item for which the user was never queried.
           # This requires the answers file to have state info not
           # currently persisted.
-          last_item = {saved_hash.keys.last =>
-                       saved_hash[ saved_hash.keys.last ]}.to_yaml.gsub( /^---/, '' ).strip
+          last_item = { saved_hash.keys.last =>
+                       saved_hash[saved_hash.keys.last] }.to_yaml.gsub(%r{^---}, '').strip
         end
 
         @options[:interrupted_session] = true
 
         color = :YELLOW
-        message = %Q{WARNING: interrupted session detected!}
-        logger.warn( "\n*** #{message} ***\n", [color, :BOLD] )
-        logger.warn( 'An automatic safety-save file from a previous session has been found at:',
-          [color] )
-        logger.warn("      #{_file}\n", [:BOLD] )
+        message = %(WARNING: interrupted session detected!)
+        logger.warn("\n*** #{message} ***\n", [color, :BOLD])
+        logger.warn('An automatic safety-save file from a previous session has been found at:',
+                    [color])
+        logger.warn("      #{_file}\n", [:BOLD])
         if last_item
-          logger.warn( 'The most recent answer from this session was:', [color] )
-          logger.warn( "#{last_item.gsub( /^/, "      " )}\n", [:BOLD] )
+          logger.warn('The most recent answer from this session was:', [color])
+          logger.warn("#{last_item.gsub(%r{^}, '      ')}\n", [:BOLD])
         end
 
-        if @options.fetch( :autoaccept_safety_save, false )
+        if @options.fetch(:autoaccept_safety_save, false)
           logger.warn(
-              'Automatically resuming these answers because ', [color],
-              '--accept-safety-save', [color,:BOLD],
-              " is active.\n", [color])
+            'Automatically resuming these answers because ', [color],
+            '--accept-safety-save', [color, :BOLD],
+            " is active.\n", [color]
+          )
           result = saved_hash
         else
-          logger.warn( "You can resume the session or discard the previous answers.\n", [color] )
+          logger.warn("You can resume the session or discard the previous answers.\n", [color])
 
           # space at end of question tells HighLine to remain on the prompt line
           # when gathering user input
           question = 'Resume the session? (no = deletes saved file):'.bold + ' '
-          if agree( question ) { |q| q.default = 'yes' }
-            logger.notice( "\nApplying answers from '#{_file}'", [:GREEN])
+          if agree(question) { |q| q.default = 'yes' }
+            logger.notice("\nApplying answers from '#{_file}'", [:GREEN])
             result = saved_hash
           else
-            logger.info( "\nRemoving file '#{_file}'", [:RED] )
+            logger.info("\nRemoving file '#{_file}'", [:RED])
             FileUtils.rm_f _file
           end
         end
@@ -501,16 +497,14 @@ EOM
     result
   end
 
-
   # Removes the set of answers saved during this session when the
   # safety-save operation is enabled
   def remove_saved_session
-    if file = @options.fetch( :answers_output_file )
-      _file = File.join( File.dirname( file ), ".#{File.basename( file )}" )
-      FileUtils.rm_f( _file, :verbose => false ) if File.file?( _file )
-    end
-  end
+    return unless (file = @options.fetch(:answers_output_file))
 
+    _file = File.join(File.dirname(file), ".#{File.basename(file)}")
+    FileUtils.rm_f(_file, :verbose => false) if File.file?(_file)
+  end
 
   # Read in the 'answers file' containing the answers to some/all
   # of the questions 'simp config' asks (Item values), as well as
@@ -519,26 +513,24 @@ EOM
     answers_hash = {} # Read the input file
 
     unless File.exist?(file)
-      raise Simp::Cli::ProcessingError.new("ERROR: Could not access the file '#{file}'!")
+      raise Simp::Cli::ProcessingError, "ERROR: Could not access the file '#{file}'!"
     end
 
     begin
       logger.info("Loading answers from #{file}")
-      answers_hash = YAML.load(File.read(file))
-      answers_hash = {} if !answers_hash.is_a?(Hash) # empty yaml file returns false
-
+      answers_hash = YAML.load_file(file)
+      answers_hash = {} unless answers_hash.is_a?(Hash) # empty yaml file returns false
     rescue Psych::SyntaxError => e
       err_msgs = [
         "ERROR: System configuration file '#{file}' is corrupted:",
         e.message,
-        'Review the file and either fix or remove it before trying again.'
+        'Review the file and either fix or remove it before trying again.',
       ]
-      raise Simp::Cli::ProcessingError.new(err_msgs.join("\n"))
+      raise Simp::Cli::ProcessingError, err_msgs.join("\n")
     end
 
     answers_hash
   end
-
 
   # Read in and merge sets of answers (predetermined Item values) to
   # result in the following priority
@@ -548,10 +540,8 @@ EOM
   #
   # returns answers hash
   def load_pre_set_answers(args, options)
-
     # Retrieve set of answers set at command line via tag=value pairs
-    cli_answers = {}
-    cli_answers = Hash[ args.map{ |x| x.split '=' } ]
+    cli_answers = args.to_h { |x| x.split '=' }
     unless cli_answers.empty?
       @options[:clean_session] = false
       @options[:user_overrides] = true
@@ -564,7 +554,7 @@ EOM
     # Retrieve set of answers from an input answers file
     file_answers = {}
     if options.fetch(:answers_input_file)
-      file_answers = read_answers_file( options.fetch(:answers_input_file) )
+      file_answers = read_answers_file(options.fetch(:answers_input_file))
       @options[:clean_session] = false
       @options[:user_overrides] = true
     end
@@ -573,18 +563,15 @@ EOM
     # after the intro. This affects a pause, that, in turn, allows the
     # user to have time to actually read the intro.
     @options[:first_interactive_session] = @options[:clean_session] &&
-          @options[:allow_queries] && !@options[:force_defaults]
+                                           @options[:allow_queries] && !@options[:force_defaults]
 
     # Merge what has been read in
-    answers_hash = (file_answers.merge(interrupted_session_answers)).merge(cli_answers)
-
-    answers_hash
+    file_answers.merge(interrupted_session_answers).merge(cli_answers)
   end
 
   def validate_options
-    if (ENV.fetch('USER') != 'root') && !@options[:dry_run]
-      raise Simp::Cli::Config::ValidationError.new('Non-root users must use --dry-run option.')
-    end
-  end
+    return unless (ENV.fetch('USER') != 'root') && !@options[:dry_run]
 
+    raise Simp::Cli::Config::ValidationError, 'Non-root users must use --dry-run option.'
+  end
 end

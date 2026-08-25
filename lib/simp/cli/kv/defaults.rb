@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module Simp; end
 class Simp::Cli; end
-module Simp::Cli::Kv
 
+module Simp::Cli::Kv
   DEFAULT_PUPPET_ENVIRONMENT = 'production'
-  DEFAULT_SIMPKV_BACKEND      = 'default'
+  DEFAULT_SIMPKV_BACKEND = 'default'
   DEFAULT_GLOBAL_KEY         = false
   DEFAULT_FORCE              = false # do not prompt user to confirm operation
 

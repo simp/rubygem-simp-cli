@@ -1,13 +1,16 @@
+# frozen_string_literal: true
+
 require_relative '../action_item'
 require_relative '../data/cli_local_priv_user'
 require_relative '../data/cli_local_priv_user_password'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::CreateLocalUserAction < ActionItem
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @key               = 'cli::create_local_user'
       @description       = 'Create a privileged local user'
       @die_on_apply_fail = true
@@ -17,8 +20,8 @@ module Simp::Cli::Config
 
     def apply
       @applied_status = :failed
-      @username = get_item( 'cli::local_priv_user' ).value
-      pwd_hash = get_item( 'cli::local_priv_user_password' ).value
+      @username = get_item('cli::local_priv_user').value
+      pwd_hash = get_item('cli::local_priv_user_password').value
 
       result = create_resource('group', @username)
 
@@ -28,7 +31,7 @@ module Simp::Cli::Config
           "password='#{pwd_hash}'",
           "home=/var/local/#{@username}",
           'manageHome=true',
-          'shell=/bin/bash'
+          'shell=/bin/bash',
         ]
 
         result = create_resource('user', @username, user_attributes)
@@ -38,7 +41,7 @@ module Simp::Cli::Config
     end
 
     def apply_summary
-      "Creation of local user#{@username ? " #{@username}" : ''} #{@applied_status}"
+      "Creation of local user#{" #{@username}" if @username} #{@applied_status}"
     end
 
     # Create a resource using `puppet resource`
@@ -49,15 +52,15 @@ module Simp::Cli::Config
     #
     # @return whether resource was created
     #
-    def create_resource(type, name, attributes=[])
-      result = Simp::Cli::Utils::show_wait_spinner {
+    def create_resource(type, name, attributes = [])
+      Simp::Cli::Utils.show_wait_spinner do
         # puppet command won't necessarily exit with a non-0 exit code upon
         # failure, but will definitely return the status of the resource on
         # success
         cmd_succeeded = true
         cmd = "puppet resource #{type} #{name} ensure=present #{attributes.join(' ')} --to_yaml"
         result = run_command(cmd)
-        if result[:stdout].match(/ensure:\s+present/)
+        if result[:stdout].match?(%r{ensure:\s+present})
           info("Created #{type} '#{name}'")
         else
           err_msg = "Unable to create #{type} '#{name}'"
@@ -67,9 +70,7 @@ module Simp::Cli::Config
           cmd_succeeded = false
         end
         cmd_succeeded
-      }
-
-      result
+      end
     end
   end
 end

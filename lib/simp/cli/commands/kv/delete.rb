@@ -1,19 +1,20 @@
+# frozen_string_literal: true
+
 require 'simp/cli/commands/command'
 require 'simp/cli/kv/defaults'
 require 'simp/cli/kv/key_deleter'
 require 'simp/cli/kv/reporting'
 
 class Simp::Cli::Commands::Kv::Delete < Simp::Cli::Commands::Command
-
   include Simp::Cli::Kv::Reporting
 
   def initialize
     @opts = {
-      :env     => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
+      :env => Simp::Cli::Kv::DEFAULT_PUPPET_ENVIRONMENT,
       :backend => Simp::Cli::Kv::DEFAULT_SIMPKV_BACKEND,
-      :global  => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
-      :force   => Simp::Cli::Kv::DEFAULT_FORCE,
-      :verbose => 0  # Verbosity of console output:
+      :global => Simp::Cli::Kv::DEFAULT_GLOBAL_KEY,
+      :force => Simp::Cli::Kv::DEFAULT_FORCE,
+      :verbose => 0 # Verbosity of console output:
       #                -1 = ERROR  and above
       #                 0 = NOTICE and above
       #                 1 = INFO   and above
@@ -52,16 +53,16 @@ class Simp::Cli::Commands::Kv::Delete < Simp::Cli::Commands::Command
       remove = @opts[:force]
       unless @opts[:force]
         prompt = "Are you sure you want to remove key '#{key}'?".bold
-        remove = Simp::Cli::Utils::yes_or_no(prompt, false)
+        remove = Simp::Cli::Utils.yes_or_no(prompt, false)
       end
 
       if remove
         # space at end tells logger to omit <CR>
         logger.notice("Processing #{entity_description(key, @opts)}... ")
         begin
-          Simp::Cli::Utils::show_wait_spinner {
+          Simp::Cli::Utils.show_wait_spinner do
             deleter.delete(key, @opts[:global])
-          }
+          end
           logger.notice('done.')
           logger.notice("  Removed '#{key}'")
         rescue Exception => e
@@ -76,11 +77,11 @@ class Simp::Cli::Commands::Kv::Delete < Simp::Cli::Commands::Command
       logger.notice
     end
 
-    unless errors.empty?
-      err_msg = "Failed to remove #{errors.length} out of "\
-        "#{@opts[:keys].length} keys:\n  #{errors.join("\n  ")}"
-      raise Simp::Cli::ProcessingError, err_msg
-    end
+    return if errors.empty?
+
+    err_msg = "Failed to remove #{errors.length} out of " \
+              "#{@opts[:keys].length} keys:\n  #{errors.join("\n  ")}"
+    raise Simp::Cli::ProcessingError, err_msg
   end
 
   #####################################################
@@ -161,7 +162,7 @@ class Simp::Cli::Commands::Kv::Delete < Simp::Cli::Commands::Command
               'Indicates whether the keys are global',
               '(i.e., is not stored within a simpkv folder',
               'for a Puppet environment).',
-              "Defaults to #{@opts[:global]}." ) do |global|
+              "Defaults to #{@opts[:global]}.") do |global|
         @opts[:global] = global
       end
 
@@ -176,14 +177,13 @@ class Simp::Cli::Commands::Kv::Delete < Simp::Cli::Commands::Command
 
     remaining_args = opt_parser.parse(args)
 
-    unless @help_requested
-      if remaining_args.empty?
-        err_msg = 'Keys to remove are missing from command line'
-        raise Simp::Cli::ProcessingError, err_msg
-      else
-        @opts[:keys] = remaining_args[0].split(',')
-      end
+    return if @help_requested
+
+    if remaining_args.empty?
+      err_msg = 'Keys to remove are missing from command line'
+      raise Simp::Cli::ProcessingError, err_msg
+    else
+      @opts[:keys] = remaining_args[0].split(',')
     end
   end
-
 end

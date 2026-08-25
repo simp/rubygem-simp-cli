@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative '../action_item'
 require_relative '../data/simp_options_fips'
 require_relative '../data/simp_options_puppet_ca'
@@ -6,14 +8,14 @@ require_relative '../data/simp_options_puppet_server'
 
 module Simp; end
 class Simp::Cli; end
+
 module Simp::Cli::Config
   class Item::UpdatePuppetConfAction < ActionItem
-
     def initialize(puppet_env_info = DEFAULT_PUPPET_ENV_INFO)
-      super(puppet_env_info)
+      super
       @file        = File.join(@puppet_env_info[:puppet_config]['config'])
       @key         = 'puppet::conf'
-      @description = "Update Puppet settings"
+      @description = 'Update Puppet settings'
       @category    = :puppet_global
     end
 
@@ -21,12 +23,12 @@ module Simp::Cli::Config
       @applied_status = :failed
 
       backup_file = "#{@file}.#{@start_time.strftime('%Y%m%dT%H%M%S')}"
-      info( "Backing up #{@file} to #{backup_file}" )
+      info("Backing up #{@file} to #{backup_file}")
       FileUtils.cp(@file, backup_file)
       group_id = File.stat(@file).gid
       File.chown(nil, group_id, backup_file)
 
-      info( "Updating #{@file}" )
+      info("Updating #{@file}")
 
       # These seds remove options that have been deprecated and cause Puppet to
       # emit `Setting ___ is deprecated` warning messages on each run:
@@ -36,19 +38,19 @@ module Simp::Cli::Config
       execute("sed -i '/.*stringify_facts.*/d' #{@file}")
       execute("sed -i '/.*trusted_server_facts.*/d' #{@file}")
 
-      keylength = get_item( 'simp_options::fips' ).value ? '2048' : '4096'
-      puppet_server = get_item( 'simp_options::puppet::server' ).value
-      puppet_ca = get_item( 'simp_options::puppet::ca' ).value
-      puppet_ca_port = get_item( 'simp_options::puppet::ca_port' ).value
+      keylength = get_item('simp_options::fips').value ? '2048' : '4096'
+      puppet_server = get_item('simp_options::puppet::server').value
+      puppet_ca = get_item('simp_options::puppet::ca').value
+      puppet_ca_port = get_item('simp_options::puppet::ca_port').value
 
-      success = Simp::Cli::Utils::show_wait_spinner {
+      success = Simp::Cli::Utils.show_wait_spinner do
         config_success = execute("puppet config set digest_algorithm #{Simp::Cli::PUPPET_DIGEST_ALGORITHM}")
-        config_success = config_success && execute("puppet config set keylength #{keylength}")
-        config_success = config_success && execute("puppet config set server #{puppet_server}")
-        config_success = config_success && execute("puppet config set ca_server #{puppet_ca}")
-        config_success = config_success && execute("puppet config set ca_port #{puppet_ca_port}")
+        config_success &&= execute("puppet config set keylength #{keylength}")
+        config_success &&= execute("puppet config set server #{puppet_server}")
+        config_success &&= execute("puppet config set ca_server #{puppet_ca}")
+        config_success &&= execute("puppet config set ca_port #{puppet_ca_port}")
         config_success
-      }
+      end
 
       @applied_status = success ? :succeeded : :failed
     end
