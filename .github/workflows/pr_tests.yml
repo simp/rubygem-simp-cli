@@ -1,15 +1,13 @@
 # Run checks and test matrix on Pull Requests
 # ==============================================================================
 #
-# The testing matrix considers ruby/puppet versions supported by SIMP and PE:
+# The testing matrix considers ruby/puppet versions supported by SIMP:
 # ------------------------------------------------------------------------------
-# Release       Puppet   Ruby    EOL
-# PE 2021.Y     7.x      2.7     Quarterly updates
-# PE 2023.Y     8.x      3.2     Quarterly updates
+# Release      Gem        Ruby
+# OpenVox 8    openvox 8  3.2, 3.4
+# OpenVox 9*   openvox 8  4.0     (*unreleased; previewed with the OpenVox 8 gem)
 #
-# https://www.puppet.com/docs/pe/latest/component_versions_in_recent_pe_releases.html
-# https://www.puppet.com/products/puppet-enterprise/support-lifecycle
-# https://www.puppet.com/docs/pe/latest/getting_support_for_pe
+# https://voxpupuli.org/openvox/
 # ==============================================================================
 #
 # https://docs.github.com/en/actions/reference/events-that-trigger-workflows
@@ -27,30 +25,30 @@ on:
 
 jobs:
   ruby-style:
-    if: false # TODO Modules will need: rubocop in Gemfile, .rubocop.yml
-    name: 'Ruby Style (experimental)'
+    name: 'Ruby Style'
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
       - uses: actions/checkout@v7
-      - name: "Install Ruby ${{matrix.puppet.ruby_version}}"
+      - name: 'Install Ruby 4.0'
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7.8
+          ruby-version: 4.0.6
           bundler-cache: true
-      - run: |
+      - name: 'Run rubocop'
+        run: |
           bundle show
-          bundle exec rake rubocop
+          bundle exec rubocop
 
   releng-checks:
     name: 'RELENG checks'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: 'Install Ruby ${{matrix.puppet.ruby_version}}'
+      - name: 'Install Ruby 4.0'
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7.8
+          ruby-version: 4.0.6
           bundler-cache: true
       - name: 'Ensure executables are installed'
         run: |
@@ -73,12 +71,20 @@ jobs:
       fail-fast: false
       matrix:
         puppet:
-          - label: 'Puppet 7.x'
-            puppet_version: '~> 7.0'
-            ruby_version: '2.7'
-          - label: 'Puppet 8.x'
+          - label: 'OpenVox 8.x (Ruby 3.2)'
             puppet_version: '~> 8.0'
             ruby_version: '3.2'
+            experimental: false
+          - label: 'OpenVox 8.x (Ruby 3.4)'
+            puppet_version: '~> 8.0'
+            ruby_version: '3.4'
+            experimental: false
+          # OpenVox 9 is unreleased; preview the future Ruby 4.0 / OpenVox 9
+          # combo by running the OpenVox 8 gem on Ruby 4.0.
+          - label: 'OpenVox 9.x preview (Ruby 4.0, OpenVox 8 gem)'
+            puppet_version: '~> 8.0'
+            ruby_version: '4.0'
+            experimental: false
     env:
       PUPPET_VERSION: '${{matrix.puppet.puppet_version}}'
     steps:
@@ -101,16 +107,6 @@ jobs:
         # simp cli code fetches USER env variable.  In the docker container USER is
         # not available, but the process is running as root.
       - run: 'USER=root SIMP_SKIP_NON_SIMPOS_TESTS=1 bundle exec rake spec'
+        continue-on-error: ${{matrix.puppet.experimental}}
         env:
           SKIP_COVERAGE: yes
-
-
-#  dump_contexts:
-#    name: 'Examine Context contents'
-#    runs-on: ubuntu-16.04
-#    steps:
-#      - name: Dump contexts
-#        env:
-#          GITHUB_CONTEXT: ${{ toJson(github) }}
-#        run: echo "$GITHUB_CONTEXT"
-#
