@@ -7,12 +7,10 @@ require 'rspec/core/rake_task'
 require 'rubygems'
 require 'simp/rake'
 require 'simp/rake/beaker'
-require 'simp/rake/ci'
 require 'simp/cli/version'
 
-# Create pkg:* and simp:ci_* Rake tasks
+# Create pkg:* Rake tasks
 Simp::Rake::Pkg.new(File.dirname(__FILE__))
-Simp::Rake::Ci.new(File.dirname(__FILE__))
 
 @package='simp-cli'
 @rakefile_dir=File.dirname(__FILE__)
@@ -84,25 +82,13 @@ namespace :pkg do
     gem_dirs.each do |gem_dir|
       Dir.chdir gem_dir do
         Dir['*.gemspec'].each do |spec_file|
-          # highline optional (development-related) gems require cmake, so
-          # exclude them in the bundle
-          opts = (File.basename(gem_dir) == 'highline') ? '--without=code_quality' : ''
-          cmd = %Q{SIMP_RPM_BUILD=1 bundle exec gem build "#{spec_file}" &> /dev/null}
-          if ::Bundler.respond_to?(:with_unbundled_env)
-            # Use Bundler 2.x API
-            ::Bundler.with_unbundled_env do
-              %x{bundle install #{opts}}
-              sh cmd
-            end
-          else
-            # Use deprecated Bundler 1.x API
-            ::Bundler.with_clean_env do
-              %x{bundle install #{opts}}
-              sh cmd
-            end
+          # `gem build` does not need the bundle, so build outside of it to
+          # avoid resolving each vendored gem's development dependencies
+          ::Bundler.with_unbundled_env do
+            sh %Q{SIMP_RPM_BUILD=1 gem build "#{spec_file}"}
           end
 
-          FileUtils.mkdir_p 'dist'
+          FileUtils.mkdir_p File.join(@rakefile_dir, 'dist')
           FileUtils.mv Dir.glob('*.gem'), File.join(@rakefile_dir, 'dist')
         end
       end

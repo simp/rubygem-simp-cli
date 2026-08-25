@@ -9,17 +9,23 @@ gemspec
 
 # mandatory gems
 gem 'bundler'
-gem 'facter'
 gem 'highline', :path => 'ext/gems/highline'
+# highline requires abbrev, which is no longer a default gem in Ruby >= 3.4
+gem 'abbrev'
+# Required for Ruby >= 3.4
+gem 'syslog', require: false
+# Ruby 3.4+ removed 'observer' from default gems, but 'drb' (pulled in by
+# rspec/beaker dependencies) still requires it.
+gem 'observer', require: false
 # renovate: datasource=rubygems versioning=ruby
-gem 'openvox', ENV.fetch('OPENVOX_VERSION', ENV.fetch('PUPPET_VERSION', ['>= 7', '< 9']))
+gem 'openvox', ENV.fetch('OPENVOX_VERSION', ENV.fetch('PUPPET_VERSION', ['>= 8', '< 9']))
 # renovate: datasource=rubygems versioning=ruby
-gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', '~> 5.24.0')
+gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', '~> 6.0')
 
 # renovate: datasource=rubygems versioning=ruby
-gem 'r10k', ENV.fetch('R10k_VERSION', '~> 4')
+gem 'r10k', ENV.fetch('R10K_VERSION', ENV.fetch('R10k_VERSION', '~> 5'))
 # renovate: datasource=rubygems versioning=ruby
-gem 'simp-beaker-helpers', ENV.fetch('SIMP_BEAKER_HELPERS_VERSION', '~> 2.0.0')
+gem 'simp-beaker-helpers', ENV.fetch('SIMP_BEAKER_HELPERS_VERSION', '~> 3.0')
 
 group :testing do
   # to parse YUM repo files in `simp config` test
@@ -43,10 +49,11 @@ group :development do
   gem 'pry-byebug'
   gem 'pry-doc'
 
-  gem 'rubocop'
-  gem 'rubocop-performance'
-  gem 'rubocop-rake'
-  gem 'rubocop-rspec'
+  # rubocop, rubocop-rake, and rubocop-rspec are pulled in and version-pinned by
+  # voxpupuli-test (via simp-rake-helpers); pinning them here conflicts with its
+  # constraints. rubocop-performance is not a voxpupuli-test dependency, so it
+  # stays explicit.
+  gem 'rubocop-performance', '~> 1.26.0'
 end
 
 # Evaluate extra gemfiles if they exist

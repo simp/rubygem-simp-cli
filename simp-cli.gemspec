@@ -44,7 +44,7 @@ Gem::Specification.new do |s|
   ### dependencies will not be included in the .gemspec dependencies:
   #### ------------
   unless ['yes', 'true'].include?(ENV['SIMP_RPM_BUILD']) || ['yes', 'true'].include?(ENV['SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION'])
-    s.add_runtime_dependency 'puppet',   '>= 7', '< 9'
+    s.add_runtime_dependency 'openvox',  '>= 8', '< 9'
   end
   #### ------------
 
@@ -52,7 +52,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake',        '>= 12.3.3'
   s.add_development_dependency 'rspec',       '~> 3'
   s.add_development_dependency 'rspec-its',   '~> 1'
-  s.add_development_dependency 'listen',      '~> 3.0.0'
+  s.add_development_dependency 'listen',      '~> 3.0'
   s.add_development_dependency 'guard',       '~> 2'
   s.add_development_dependency 'guard-shell', '~> 0'
   s.add_development_dependency 'guard-rspec', '~> 4'

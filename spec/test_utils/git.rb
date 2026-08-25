@@ -27,12 +27,15 @@ module TestUtils
       fail("#{repo_dir} must be a fully qualified path") if repo_dir[0] != '/'
       fail("#{file} must be a fully qualified path") if file[0] != '/'
 
-      run_command("git init --bare #{repo_dir}")
+      # explicitly set the initial branch name so the test does not depend
+      # on the host's init.defaultBranch setting
+      run_command("git -c init.defaultBranch=master init --bare #{repo_dir}")
 
       clone_dir = "#{repo_dir}_clone".gsub('.git','')
       run_command("git clone file://#{repo_dir} #{clone_dir}")
 
       Dir.chdir(clone_dir) do
+        run_command('git symbolic-ref HEAD refs/heads/master')
         FileUtils.cp(file, '.')
         run_command("git add #{File.basename(file)}")
         run_command("git commit -m 'Added #{File.basename(file)}'")
