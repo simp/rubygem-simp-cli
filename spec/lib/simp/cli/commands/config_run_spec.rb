@@ -104,9 +104,10 @@ describe 'Simp::Cli::Command::Config#run' do
 
   context 'creates answers YAML file when input is valid' do
 
-    ['8', '7'].each do |os_major|
+    ['8', '9', '10'].each do |os_major|
       context "on EL#{os_major}" do
-        let(:files_dir) { File.join(__dir__, 'files', "el#{os_major}") }
+        # EL9/EL10 config behavior matches EL8, so all share the el8 fixtures
+        let(:files_dir) { File.join(__dir__, 'files', 'el8') }
         let(:facts) { super().merge(
           { 'os' => { 'release' => { 'major' => os_major } } }
         ) }

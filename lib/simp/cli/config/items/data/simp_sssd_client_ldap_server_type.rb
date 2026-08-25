@@ -17,7 +17,8 @@ module Simp::Cli::Config
     end
 
     def get_recommended_value
-      if (Facter.value('os')['release']['major'] > '7')
+      # os.release.major is a String; compare numerically so EL10+ works
+      if (Facter.value('os')['release']['major'].to_i > 7)
         '389ds'
       else
         'plain'
