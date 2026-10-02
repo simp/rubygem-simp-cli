@@ -193,7 +193,11 @@ EOM
 
 %changelog
 * Tue Aug 25 2026 Steven Pritchard <steve@sicura.us> - 8.0.0
-- Replace the legacy `puppet` gem runtime dependency with `openvox` >= 8
+- Replace the legacy `puppet` gem runtime dependency with `openvox` >= 8,
+  < 10 (OpenVox 8 and 9)
+- Fix the `simp config` YUM check on OpenVox repositories, where
+  `puppet-agent` is only provided by `openvox-agent`; it previously locked
+  `simp bootstrap` on every OpenVox server
 - Accept openvox-agent as an alternative to puppet-agent in the RPM
   dependencies, using RPM rich dependencies (EL >= 8)
 - Support Ruby 3.2 through 4.0 in the test tooling (simp-rake-helpers 6,

@@ -34,8 +34,8 @@ Once you have successfully configured YUM and verified that
   2. 'repoquery -i httpd' returns the correct repository
      (typically updates for EL7 and appstream for EL8)
   3. 'repoquery -i simp' returns the correct SIMP repository
-  4. 'repoquery -i puppet-agent' returns the correct puppetlabs
-     repository
+  4. 'repoquery -i --whatprovides puppet-agent' returns the correct
+     OpenVox (or Puppet) repository
   5. Any other issues identified in this file are addressed,
 you can remove this file and continue with 'simp bootstrap'.
 DOC
@@ -50,7 +50,9 @@ DOC
       # repository.
       result = Simp::Cli::Utils.show_wait_spinner do
         query_result = true
-        ['kernel*', 'httpd', 'simp', 'puppet-agent'].each do |pkg|
+        # openvox-agent only Provides puppet-agent, and repoquery matches
+        # package names unless asked for providers
+        ['kernel*', 'httpd', 'simp', '--whatprovides puppet-agent'].each do |pkg|
           query = run_command("repoquery -i #{pkg}")[:stdout].strip
           query_result = false unless %r{^Repository}.match?(query)
         end

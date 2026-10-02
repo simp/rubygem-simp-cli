@@ -44,7 +44,7 @@ Gem::Specification.new do |s|
   ### dependencies will not be included in the .gemspec dependencies:
   #### ------------
   unless ['yes', 'true'].include?(ENV['SIMP_RPM_BUILD']) || ['yes', 'true'].include?(ENV['SIMP_CLI_GEMSPEC_NO_PUPPET_VERSION'])
-    s.add_runtime_dependency 'openvox',  '>= 8', '< 9'
+    s.add_runtime_dependency 'openvox',  '>= 8', '< 10'
   end
   #### ------------
 
