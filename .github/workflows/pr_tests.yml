@@ -5,7 +5,7 @@
 # ------------------------------------------------------------------------------
 # Release      Gem        Ruby
 # OpenVox 8    openvox 8  3.2, 3.4
-# OpenVox 9*   openvox 8  4.0     (*unreleased; previewed with the OpenVox 8 gem)
+# OpenVox 9    openvox 9  4.0
 #
 # https://voxpupuli.org/openvox/
 # ==============================================================================
@@ -78,10 +78,8 @@ jobs:
             puppet_version: '~> 8.0'
             ruby_version: '3.4'
             experimental: false
-          # OpenVox 9 is unreleased; preview the future Ruby 4.0 / OpenVox 9
-          # combo by running the OpenVox 8 gem on Ruby 4.0.
-          - label: 'OpenVox 9.x preview (Ruby 4.0, OpenVox 8 gem)'
-            puppet_version: '~> 8.0'
+          - label: 'OpenVox 9.x (Ruby 4.0)'
+            puppet_version: '~> 9.0'
             ruby_version: '4.0'
             experimental: false
     env:

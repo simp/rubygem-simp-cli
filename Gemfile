@@ -18,7 +18,7 @@ gem 'syslog', require: false
 # rspec/beaker dependencies) still requires it.
 gem 'observer', require: false
 # renovate: datasource=rubygems versioning=ruby
-gem 'openvox', ENV.fetch('OPENVOX_VERSION', ENV.fetch('PUPPET_VERSION', ['>= 8', '< 9']))
+gem 'openvox', ENV.fetch('OPENVOX_VERSION', ENV.fetch('PUPPET_VERSION', ['>= 8', '< 10']))
 # renovate: datasource=rubygems versioning=ruby
 gem 'simp-rake-helpers', ENV.fetch('SIMP_RAKE_HELPERS_VERSION', '~> 6.0')
 
