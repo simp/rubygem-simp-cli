@@ -23,11 +23,11 @@ module Simp::Cli::Environment
         opts_data = data.reject { |k, _v| k == :enabled }
         case type
         when :puppet
-          @environments[:puppet]    = PuppetDirEnv.new(env, base_env_path, opts_data)
+          @environments[:puppet] = PuppetDirEnv.new(env, base_env_path, opts_data)
         when :secondary
           @environments[:secondary] = SecondaryDirEnv.new(env, base_env_path, opts_data)
         when :writable
-          @environments[:writable]  = WritableDirEnv.new(env, base_env_path, opts_data)
+          @environments[:writable] = WritableDirEnv.new(env, base_env_path, opts_data)
         else
           raise("ERROR: Unrecognized environment type '#{env_type}'")
         end

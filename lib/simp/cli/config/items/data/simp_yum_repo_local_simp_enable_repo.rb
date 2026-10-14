@@ -12,7 +12,7 @@ module Simp::Cli::Config
       @key         = 'simp::yum::repo::local_simp::enable_repo'
       @description = 'Whether to enable the SIMP-managed, SIMP and
 SIMP dependency YUM repository.'
-      @data_type   = :server_hiera
+      @data_type = :server_hiera
     end
 
     # NOTE: The default is 'no', because we are only using this to

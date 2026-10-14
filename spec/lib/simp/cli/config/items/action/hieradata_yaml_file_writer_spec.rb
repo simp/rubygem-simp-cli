@@ -72,8 +72,8 @@ describe Simp::Cli::Config::Item::HieradataYAMLFileWriter do
 
       expect(y).to be_a Hash
       expect(y).not_to be_empty
-      expect(y['item']).to  eq('foo')
-      expect(y['list']).to  eq(['one', 'two', 'three'])
+      expect(y['item']).to eq('foo')
+      expect(y['list']).to eq(['one', 'two', 'three'])
       expect(y.key?('yesno')).to be false
       expect(y.key?('action')).to be false
       expect(y['simp::classes']).to  eq(['some::class::one', 'some::class::two'])

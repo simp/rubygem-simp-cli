@@ -84,7 +84,7 @@ describe Simp::Cli::Config::Item::SimpOptionsDNSServers do
         expect(@ci).to receive(:run_command).with(nmcli_cmd, true)
                                             .and_return({ :stdout => "\n\n" })
 
-        expect(@ci.recommended_value.first).to match(%r{CHANGE THIS})
+        expect(@ci.recommended_value.first).to include('CHANGE THIS')
       end
     end
   end

@@ -605,7 +605,7 @@ describe 'Simp::Cli::Command::Config#run' do
         puts @output.string
         raise
       end
-      expect(@output.string).to match(%r{WARNING: Passwords did not match!  Please try again})
+      expect(@output.string).to include('WARNING: Passwords did not match!  Please try again')
 
       pw_prompt_lines = @output.string.split("\n").delete_if do |line|
         !line.include?('Please enter a password') and
@@ -657,7 +657,7 @@ describe 'Simp::Cli::Command::Config#run' do
         raise
       end
 
-      expect(@output.string).to match(%r{Invalid Password:})
+      expect(@output.string).to include('Invalid Password:')
       error_lines = @output.string.split("\n").delete_if do |line|
         !line.include?('Invalid Password:')
       end

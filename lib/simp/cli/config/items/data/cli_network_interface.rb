@@ -44,9 +44,9 @@ module Simp::Cli::Config
                   end
         recommended = devices.find { |x| x.match(%r{^br}) } ||
                       # el7 systemd naming convention; Ethernet
-                      devices.find { |x| x.match(%r{^en}) }   ||
+                      devices.find { |x| x.match(%r{^en}) } ||
                       # el7 biosdevname naming convention; embedded network interface
-                      devices.find { |x| x.match(%r{^em}) }   ||
+                      devices.find { |x| x.match(%r{^em}) } ||
                       # el7 biosdevname naming convention; PCI card network interface
                       devices.find { |x| x.match(%r{^p([0-9])+p([0-9])$}) } ||
                       # el6 kernel naming scheme

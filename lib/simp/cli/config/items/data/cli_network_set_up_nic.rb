@@ -27,7 +27,7 @@ You should enter 'yes' if the interface has not yet been configured.
 You may want to enter 'yes', if you want to reconfigure it and are **NOT**
 logged into the server via this interface.)
 
-      @data_type   = :cli_params
+      @data_type = :cli_params
     end
 
     def get_recommended_value

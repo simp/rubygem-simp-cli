@@ -52,7 +52,7 @@ describe Simp::Cli::Config::Item::AddPuppetHostsEntryAction do
       end
 
       it 'removes comments' do
-        expect(@content).not_to match(%r{# some comment})
+        expect(@content).not_to include('# some comment')
       end
 
       it 'retains other host entries' do
