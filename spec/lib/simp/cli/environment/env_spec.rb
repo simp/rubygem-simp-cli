@@ -14,12 +14,11 @@ describe Simp::Cli::Environment::Env do
   end
 
   describe '#type' do
-    # rubocop:disable RSpec/MultipleExpectations
+    # rubocop:disable-next RSpec/MultipleExpectations
     it 'returns type' do
       expect(described_class.new(:puppet, 'testenv', {}).type).to eq :puppet
       expect(described_class.new('puppet', 'testenv', {}).type).to eq 'puppet'
     end
-    # rubocop:enable RSpec/MultipleExpectations
   end
 
   describe '#run_command' do

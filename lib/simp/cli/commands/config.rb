@@ -40,7 +40,7 @@ At any time, you can exit `simp config` by entering <CTRL-C>. By default,
 if you exit early, the configuration you entered will be saved to
 EOM
 
-  INTRO_TEXT_PART3   = <<EOM
+  INTRO_TEXT_PART3 = <<EOM
 The next time you run `simp config`, you will be given the option to continue
 where you left off or to start all over.
 #{SECTION_SEPARATOR}
@@ -549,7 +549,7 @@ EOM
     #   silently ignored)
     cli_answers = args.to_h do |x|
       key, value = x.split('=', 2)
-      value = nil if value&.empty?
+      value = nil if value && value.empty?
       [key, value]
     end
     unless cli_answers.empty?

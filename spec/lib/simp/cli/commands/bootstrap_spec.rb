@@ -64,7 +64,7 @@ describe 'Simp::Cli::Command::Bootstrap' do
       end
 
       expect(@bootstrap).to receive(:get_hostname).and_return('foo')
-      expect(@bootstrap.send(:validate_host_sanity)).to match(%r{fully qualified hostname})
+      expect(@bootstrap.send(:validate_host_sanity)).to include('fully qualified hostname')
     end
   end
 end

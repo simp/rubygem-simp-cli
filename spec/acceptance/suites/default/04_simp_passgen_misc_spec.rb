@@ -38,21 +38,21 @@ describe 'simp passgen miscellaneous' do
           it "lists passwords when valid backend specified in #{env}" do
             cmd = "simp passgen show #{names.first} -e #{env} --backend #{valid_backend}"
             result = on(host, cmd).stdout
-            expect(result).to match(%r{Current:})
+            expect(result).to include('Current:')
           end
 
           it "sets passwords when valid backend specified in #{env}" do
             cmd = "simp passgen set new_name -e #{env} --backend #{valid_backend} --auto-gen"
             on(host, cmd)
             result = on(host, "simp passgen list -e #{env} --backend #{valid_backend}").stdout
-            expect(result).to match(%r{new_name})
+            expect(result).to include('new_name')
           end
 
           it "removes passwords when valid backend specified in #{env}" do
             cmd = "simp passgen remove new_name -e #{env} --backend #{valid_backend} --force"
             on(host, cmd)
             result = on(host, "simp passgen list -e #{env} --backend #{valid_backend}").stdout
-            expect(result).not_to match(%r{new_name})
+            expect(result).not_to include('new_name')
           end
         end
       end

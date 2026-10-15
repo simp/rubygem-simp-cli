@@ -37,13 +37,13 @@ describe Simp::Cli::Config::ListItem do
   describe '#instructions' do
     it "returns 'skip' instructions when default_value()=nil" do
       instr = @ci.instructions
-      expect(instr).to match(%r{Enter a space-delimited list \(hit enter to skip\)})
+      expect(instr).to include('Enter a space-delimited list (hit enter to skip)')
     end
 
     it "returns 'accept default value' instructions when default_value is set" do
       expect(@ci).to receive(:default_value).and_return(['default', 'array'])
       instr = @ci.instructions
-      expect(instr).to match(%r{Enter a space-delimited list \(hit enter to accept default value\)})
+      expect(instr).to include('Enter a space-delimited list (hit enter to accept default value)')
     end
   end
 

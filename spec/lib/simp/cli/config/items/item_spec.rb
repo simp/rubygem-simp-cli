@@ -31,7 +31,7 @@ describe Simp::Cli::Config::Item do
     it 'uses FIXME message as description if description is not set' do
       ci = TestItem.new
       ci.key = 'mykey'
-      expect(ci.to_yaml_s).to match(%r{FIXME})
+      expect(ci.to_yaml_s).to include('FIXME')
     end
 
     it 'returns nil instead of YAML key/value if @skip_yaml=true' do

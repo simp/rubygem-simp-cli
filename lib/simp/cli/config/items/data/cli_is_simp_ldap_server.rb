@@ -21,7 +21,7 @@ different configuration.  In these cases, you will need to set up
 appropriate central authentication services manually before or
 after bootstrapping."
 
-      @data_type   = :cli_params
+      @data_type = :cli_params
     end
 
     def get_recommended_value

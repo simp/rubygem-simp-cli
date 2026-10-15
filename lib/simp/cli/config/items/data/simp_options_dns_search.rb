@@ -16,7 +16,7 @@ module Simp::Cli::Config
       @description = %(The DNS domain search string.
 
 Remember to put these in the appropriate order for your environment!)
-      @file        = '/etc/resolv.conf'
+      @file = '/etc/resolv.conf'
     end
 
     def get_os_value

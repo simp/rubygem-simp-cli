@@ -14,7 +14,7 @@ module Simp::Cli::Config
       @description = %(Whether syslog log servers are specified.
 
 This is used to decide whether to prompt for forwarding log servers.)
-      @data_type   = :internal
+      @data_type = :internal
     end
 
     def get_recommended_value

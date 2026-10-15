@@ -13,7 +13,7 @@ module Simp::Cli::Config
       @description = %(The Puppet server's IP address.
 
 This is used to configure /etc/hosts properly.)
-      @data_type   = :internal
+      @data_type = :internal
     end
 
     # Always recommend the configured IP

@@ -103,7 +103,7 @@ describe 'simp executable' do
       warn("=== stderr: #{results[:stderr]}") unless results[:stderr].empty?
       warn("=== stdout: #{results[:stdout]}") unless results[:stdout].empty?
       expect(results[:exitstatus]).to eq 0
-      expect(results[:stdout]).to match(%r{SIMP Command Line Interface})
+      expect(results[:stdout]).to include('SIMP Command Line Interface')
       # expect(results[:stderr]).to be_empty
       stderr_without_binstubs_error = results[:stderr].gsub(binstubs_error, '')
       expect(stderr_without_binstubs_error.strip).to be_empty
@@ -112,7 +112,7 @@ describe 'simp executable' do
     it 'handles command line arguments' do
       results = execute("#{simp_exe} config -h")
       expect(results[:exitstatus]).to eq 0
-      expect(results[:stdout]).to match(%r{=== The SIMP Configuration Tool ===})
+      expect(results[:stdout]).to include('=== The SIMP Configuration Tool ===')
       # expect(results[:stderr]).to be_empty
       stderr_without_binstubs_error = results[:stderr].gsub(binstubs_error, '')
       expect(stderr_without_binstubs_error.strip).to be_empty
@@ -143,7 +143,7 @@ describe 'simp executable' do
       stdin_file = File.expand_path('files/simp_config_trunc_stdin_file', __dir__)
       results = execute("#{simp_exe} config #{@simp_config_args}", stdin_file)
       expect(results[:exitstatus]).to eq 1
-      expect(results[:stderr]).to match(%r{Input terminated! Exiting})
+      expect(results[:stderr]).to include('Input terminated! Exiting')
     end
 
     it 'gracefully handles program interrupt' do
@@ -159,7 +159,7 @@ describe 'simp executable' do
       # a nil exit status.
       unless results[:exitstatus].nil?
         expect(results[:exitstatus]).to eq 1
-        expect(results[:stderr]).to match(%r{Processing interrupted! Exiting})
+        expect(results[:stderr]).to include('Processing interrupted! Exiting')
       end
     end
 
@@ -174,9 +174,7 @@ describe 'simp executable' do
       results = execute("#{simp_exe} bootstrap --oops")
       expect(results[:exitstatus]).to eq 1
       expect(results[:stdout]).to be_empty
-      expect(results[:stderr]).to match(
-        %r{'bootstrap' command options error: invalid option: --oops},
-      )
+      expect(results[:stderr]).to include("'bootstrap' command options error: invalid option: --oops")
     end
   end
 end

@@ -9,10 +9,10 @@ describe 'simp passgen list operations' do
     hosts.each do |host|
       it 'onlies list environments containing simp-simplib module' do
         result = on(host, 'simp passgen envs').stdout
-        expect(result).to match(%r{old_simplib})
-        expect(result).to match(%r{new_simplib_legacy_passgen})
-        expect(result).to match(%r{new_simplib_simpkv_passgen})
-        expect(result).not_to match(%r{production})
+        expect(result).to include('old_simplib')
+        expect(result).to include('new_simplib_legacy_passgen')
+        expect(result).to include('new_simplib_simpkv_passgen')
+        expect(result).not_to include('production')
       end
     end
   end
