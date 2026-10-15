@@ -11,7 +11,7 @@ require 'rspec/its'
 shared_examples 'a child of Simp::Cli::Config::Item' do
   describe '#to_yaml_s' do
     it 'does not contain FIXME' do
-      expect(@ci.to_yaml_s).not_to include('FIXME')
+      expect(@ci.to_yaml_s.to_s).not_to include('FIXME')
     end
   end
 
