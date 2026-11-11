@@ -29,7 +29,7 @@ Gem::Specification.new do |s|
 
   # gem dependencies
   #   for the published gem
-  s.add_runtime_dependency 'highline', '>= 2.0.0', '< 3.0'
+  s.add_runtime_dependency 'highline', '>= 2.0.0', '< 3.1.3'
 
   #### NOTE: SIMP_RPM_BUILD
   ###
