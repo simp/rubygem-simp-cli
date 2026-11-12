@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'simp/cli/errors'
+
 module Simp; end
 class Simp::Cli; end
 module Simp::Cli::Config; end
@@ -9,6 +11,8 @@ class Simp::Cli::Config::Utils
   # Let's be DRY.  Before adding methods to this file, first see if
   # Simp::Cli::Utils has what you need.
   ###################################################################
+
+  SHA512_CRYPT_UNSUPPORTED_MSG = "This system's crypt(3) does not support SHA-512 password hashes"
 
   class << self
     def validate_domain(domain)
@@ -78,8 +82,25 @@ class Simp::Cli::Config::Utils
     end
 
     def encrypt_password_sha512(password, salt = rand(36**8).to_s(36))
-      require 'digest/sha2'
-      password.crypt("$6$#{salt}")
+      # crypt(3) without SHA-512 support either fails, which Ruby raises as
+      # Errno::EINVAL, or (e.g., on Ubuntu 26.04) silently returns a DES hash
+      # for a "$6$" salt
+      hash = begin
+        password.crypt("$6$#{salt}")
+      rescue SystemCallError
+        nil
+      end
+      raise Simp::Cli::ProcessingError, SHA512_CRYPT_UNSUPPORTED_MSG unless hash && validate_password_sha512(hash)
+
+      hash
+    end
+
+    # @return [Boolean] whether encrypt_password_sha512 works on this system
+    def sha512_crypt_supported?
+      encrypt_password_sha512('x', 'probe')
+      true
+    rescue Simp::Cli::ProcessingError
+      false
     end
 
     def validate_password_sha512(x)
