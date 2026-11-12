@@ -120,17 +120,36 @@ describe Simp::Cli::Config::Utils do
   end
 
   describe '.encrypt_password_sha512' do
-    it 'encrypts a known password and salt to the correct SHA-512 password hash', :real_crypt do
+    it 'encrypts a known password and salt to the correct SHA-512 password hash' do
       skip "this system's crypt(3) does not support SHA-512" unless SHA512_CRYPT_SUPPORTED
 
       expect(described_class.encrypt_password_sha512('foo', 'somesalt')).to eq '$6$somesalt$xK8qDo8XIAgPi.kqwyaXRXvyb6kUTZGisSL7HFiC4pQ7OEvk70x9v9P8dKjWsUni6qJT44R7rbx3YDQBT6ho50'
     end
 
-    it 'fails when crypt(3) returns something other than a SHA-512 hash', :real_crypt do
+    it 'fails when crypt(3) returns something other than a SHA-512 hash' do
       password = +'foo'
       allow(password).to receive(:crypt).and_return('$6/iozuRTIzwY')
 
       expect { described_class.encrypt_password_sha512(password, 'somesalt') }.to raise_error(Simp::Cli::ProcessingError, %r{does not support SHA-512})
+    end
+
+    it 'fails when crypt(3) rejects the SHA-512 salt' do
+      password = +'foo'
+      allow(password).to receive(:crypt).and_raise(Errno::EINVAL, 'crypt')
+
+      expect { described_class.encrypt_password_sha512(password, 'somesalt') }.to raise_error(Simp::Cli::ProcessingError, %r{does not support SHA-512})
+    end
+  end
+
+  describe '.sha512_crypt_supported?' do
+    it 'is true when encrypt_password_sha512 succeeds' do
+      allow(described_class).to receive(:encrypt_password_sha512).and_return('$6$probe$' + ('x' * 86))
+      expect(described_class.sha512_crypt_supported?).to be true
+    end
+
+    it 'is false when encrypt_password_sha512 fails' do
+      allow(described_class).to receive(:encrypt_password_sha512).and_raise(Simp::Cli::ProcessingError, 'nope')
+      expect(described_class.sha512_crypt_supported?).to be false
     end
   end
 

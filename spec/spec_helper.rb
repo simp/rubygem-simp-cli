@@ -25,22 +25,25 @@ unless ENV['SKIP_COVERAGE']
   end
 end
 
-# crypt(3) on some systems, such as Ubuntu 26.04, returns a DES hash for a
-# "$6$" salt, and Simp::Cli::Config::Utils.encrypt_password_sha512 raises
-# there rather than write a weak hash.
-SHA512_CRYPT_SUPPORTED = 'x'.crypt('$6$salt').start_with?('$6$')
+require_relative '../lib/simp/cli/config/utils'
+
+# crypt(3) on some systems can't produce SHA-512 hashes: Ubuntu 26.04 returns a
+# DES hash for a "$6$" salt, and others fail outright. There,
+# Simp::Cli::Config::Utils.encrypt_password_sha512 raises rather than write a
+# weak hash. This uses the same check as the code under test.
+SHA512_CRYPT_SUPPORTED = Simp::Cli::Config::Utils.sha512_crypt_supported?
 
 RSpec.configure do |config|
   $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 
-  # Where crypt(3) can't produce SHA-512 hashes, stand in a hash of the right
-  # form so that code that encrypts passwords can still be tested. Examples
-  # tagged :real_crypt opt out.
-  config.before(:each) do |example|
-    next if SHA512_CRYPT_SUPPORTED || example.metadata[:real_crypt]
+  # Examples tagged :stub_sha512_crypt exercise code that hashes a password
+  # with encrypt_password_sha512. Where crypt(3) can't produce SHA-512 hashes,
+  # stand in a hash of the right form for them.
+  config.before(:each, :stub_sha512_crypt) do
+    next if SHA512_CRYPT_SUPPORTED
 
     require 'digest/sha2'
-    require 'simp/cli/config/utils'
+    allow(Simp::Cli::Config::Utils).to receive(:sha512_crypt_supported?).and_return(true)
     allow(Simp::Cli::Config::Utils).to receive(:encrypt_password_sha512) do |password, salt = 'specsalt'|
       "$6$#{salt}$" + Digest::SHA512.base64digest(password).delete('=').tr('+', '.')
     end

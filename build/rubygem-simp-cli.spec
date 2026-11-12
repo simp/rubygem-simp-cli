@@ -206,7 +206,9 @@ EOM
   single line
 - Fail when the system's crypt(3) can't produce a SHA-512 password hash
   instead of silently writing a weaker one (crypt(3) on Ubuntu 26.04
-  returns a DES hash for a "$6$" salt)
+  returns a DES hash for a "$6$" salt). `simp config` checks this before
+  asking for the local privileged user's password and suggests setting
+  cli::local_priv_user_password to a pre-generated hash instead
 - Fix the EL version comparison in the simp::sssd::client::ldap_server_type
   recommendation so EL10+ recommends 389ds
 - Update GitHub Actions workflows to build and release EL8/EL9/EL10 RPMs
