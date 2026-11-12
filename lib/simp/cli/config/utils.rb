@@ -79,7 +79,16 @@ class Simp::Cli::Config::Utils
 
     def encrypt_password_sha512(password, salt = rand(36**8).to_s(36))
       require 'digest/sha2'
-      password.crypt("$6$#{salt}")
+      require 'simp/cli/errors'
+      hash = password.crypt("$6$#{salt}")
+
+      # crypt(3) that lacks SHA-512 support (e.g., Ubuntu 26.04) silently
+      # returns a DES hash for a "$6$" salt instead of failing
+      unless validate_password_sha512(hash)
+        raise Simp::Cli::ProcessingError, "This system's crypt(3) does not support SHA-512 password hashes"
+      end
+
+      hash
     end
 
     def validate_password_sha512(x)
