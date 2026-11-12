@@ -211,6 +211,10 @@ EOM
 - `simp config` KEY=VALUE arguments now accept '=' within VALUE (e.g.
   crypt hashes containing '$6$rounds=...'); such arguments previously
   raised an unhandled ArgumentError
+- `simp config` now writes `sssd::domains_entries` (a Hash of domain name to
+  options, e.g. `LDAP: {}`) instead of the deprecated `sssd::domains` Array,
+  and omits the key when there are no domains. Requires simp/sssd 11.0.0 or
+  later; the item class `SssdDomains` is now `SssdDomainsEntries`
 
 * Fri May 20 2022 Trevor Vaughan <tvaughan@onyxpoint.com> - 7.0.1
 - Always set the hostname to the one specified during `simp config` in the apply
