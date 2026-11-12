@@ -273,7 +273,7 @@ shared_examples 'simp config operation' do |host, options|
                                                            'plain'
                                                          end
 
-      expected['sssd::domains'] = ['LDAP']
+      expected['sssd::domains_entries'] = { 'LDAP' => {} }
       expected['simp_options::sssd'] = true if opts[:scenario] == 'poss'
     elsif opts[:scenario] == 'poss'
       expected['simp_options::sssd'] = if opts[:sssd]
