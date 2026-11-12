@@ -120,13 +120,13 @@ describe Simp::Cli::Config::Utils do
   end
 
   describe '.encrypt_password_sha512' do
-    it 'encrypts a known password and salt to the correct SHA-512 password hash' do
-      skip "this system's crypt(3) does not support SHA-512" unless 'x'.crypt('$6$salt').start_with?('$6$')
+    it 'encrypts a known password and salt to the correct SHA-512 password hash', :real_crypt do
+      skip "this system's crypt(3) does not support SHA-512" unless SHA512_CRYPT_SUPPORTED
 
       expect(described_class.encrypt_password_sha512('foo', 'somesalt')).to eq '$6$somesalt$xK8qDo8XIAgPi.kqwyaXRXvyb6kUTZGisSL7HFiC4pQ7OEvk70x9v9P8dKjWsUni6qJT44R7rbx3YDQBT6ho50'
     end
 
-    it 'fails when crypt(3) returns something other than a SHA-512 hash' do
+    it 'fails when crypt(3) returns something other than a SHA-512 hash', :real_crypt do
       password = +'foo'
       allow(password).to receive(:crypt).and_return('$6/iozuRTIzwY')
 

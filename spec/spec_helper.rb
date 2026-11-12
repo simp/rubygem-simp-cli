@@ -25,8 +25,26 @@ unless ENV['SKIP_COVERAGE']
   end
 end
 
+# crypt(3) on some systems, such as Ubuntu 26.04, returns a DES hash for a
+# "$6$" salt, and Simp::Cli::Config::Utils.encrypt_password_sha512 raises
+# there rather than write a weak hash.
+SHA512_CRYPT_SUPPORTED = 'x'.crypt('$6$salt').start_with?('$6$')
+
 RSpec.configure do |config|
   $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
+
+  # Where crypt(3) can't produce SHA-512 hashes, stand in a hash of the right
+  # form so that code that encrypts passwords can still be tested. Examples
+  # tagged :real_crypt opt out.
+  config.before(:each) do |example|
+    next if SHA512_CRYPT_SUPPORTED || example.metadata[:real_crypt]
+
+    require 'digest/sha2'
+    require 'simp/cli/config/utils'
+    allow(Simp::Cli::Config::Utils).to receive(:encrypt_password_sha512) do |password, salt = 'specsalt'|
+      "$6$#{salt}$" + Digest::SHA512.base64digest(password).delete('=').tr('+', '.')
+    end
+  end
 
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest

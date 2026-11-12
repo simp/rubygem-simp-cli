@@ -52,8 +52,8 @@ describe Simp::Cli::Config::Item::CliLocalPrivUserPassword do
   end
 
   describe '#encrypt' do
-    it 'generates a SHA512 encrypted password' do
-      skip "this system's crypt(3) does not support SHA-512" unless 'x'.crypt('$6$salt').start_with?('$6$')
+    it 'generates a SHA512 encrypted password', :real_crypt do
+      skip "this system's crypt(3) does not support SHA-512" unless SHA512_CRYPT_SUPPORTED
 
       password = 'a!S@d3F$g5H^j&k'
       encrypted = @ci.encrypt(password)
