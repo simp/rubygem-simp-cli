@@ -234,15 +234,8 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
         '-Xmx2g',
         # Do not use the native FIPS libraries
         '-Dcom.redhat.fips=false',
-        # Java 8 dropped -XX:MaxPermSize
         %(-Djava.io.tmpdir=#{server_conf_tmp}),
-      ]
-
-      if java_major_version && (java_major_version < 8)
-        java_args << '-XX:MaxPermSize=256m'
-      end
-
-      java_args = java_args.join(' ')
+      ].join(' ')
 
       `grep -q '^JAVA_ARGS' /etc/sysconfig/puppetserver`
 
@@ -496,22 +489,6 @@ class Simp::Cli::Commands::Bootstrap < Simp::Cli::Commands::Command
     elsif certs_exist
       info("Keeping current puppetserver certificates, in #{ssldir}", 'green')
     end
-  end
-
-  # @return [String] if the Java major version is available
-  # @return [nil] if the Java major version is unavailable
-  def java_major_version
-    return @java_major_version if @java_major_version
-
-    @java_major_version = nil
-
-    java_version = `java -version 2>&1`.lines.first
-
-    if $CHILD_STATUS.success?
-      @java_major_version = java_version.strip.split('_')[0].split('.')[1].to_i
-    end
-
-    @java_major_version
   end
 
   def parse_command_line(args)
