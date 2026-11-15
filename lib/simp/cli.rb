@@ -4,7 +4,7 @@ $LOAD_PATH << File.expand_path('..', __dir__)
 
 require 'optparse'
 require 'highline'
-HighLine.colorize_strings
+require 'simp/cli/colorize_strings'
 
 require 'simp/cli/commands'
 require 'simp/cli/errors'

@@ -5,7 +5,7 @@ require 'simp/cli/errors'
 require 'simp/cli/utils'
 
 require 'highline'
-HighLine.colorize_strings
+require 'simp/cli/colorize_strings'
 
 module Simp; end
 class Simp::Cli; end

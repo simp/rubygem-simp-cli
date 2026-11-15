@@ -210,6 +210,10 @@ EOM
   puppetserver's JAVA_ARGS. It misread every Java >= 9 version string as
   Java 0, and Java 17 and later refuse to start with that option, so the
   puppetserver never came up during bootstrap
+- Keep the core `String#clear` when adding HighLine's color methods to
+  String. HighLine's `clear` style replaced it, and Ruby 4's Net::HTTP
+  clears its read buffer with it, so on OpenVox 9 every HTTP response was
+  misread and `simp bootstrap` never saw the puppetserver come up
 - Require `acl`: `simp environment new` and `simp environment fix` run
   `setfacl`, which EL10 cloud images don't include
 - Fix the EL version comparison in the simp::sssd::client::ldap_server_type

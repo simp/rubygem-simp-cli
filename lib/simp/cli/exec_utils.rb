@@ -2,7 +2,7 @@
 
 require 'simp/cli/errors'
 require 'highline/import'
-HighLine.colorize_strings # for red() method added to String
+require 'simp/cli/colorize_strings'
 
 module Simp; end
 class Simp::Cli; end

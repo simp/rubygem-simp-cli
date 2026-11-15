@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'highline/import'
-HighLine.colorize_strings
+require 'simp/cli/colorize_strings'
 
 require 'logger'
 
