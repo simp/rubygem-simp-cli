@@ -23,7 +23,9 @@
 simp_options::auditd: true
 simp_options::clamav: true
 simp_options::firewall: true
-simp_options::haveged: true
+pupmod::rngd: true
+rngd::service_ensure: running
+rngd::service_enable: true
 simp_options::ldap: true
 simp_options::logrotate: true
 simp_options::pam: true
