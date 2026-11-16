@@ -27,7 +27,9 @@ simp::scenario: 'simp_lite'
 # SIMP-lite scenario defaults
 simp_options::auditd: true
 simp_options::clamav: true
-simp_options::haveged: true
+pupmod::rngd: true
+rngd::service_ensure: running
+rngd::service_enable: true
 simp_options::logrotate: true
 simp_options::pam: true
 simp_options::pki: simp
