@@ -23,6 +23,20 @@ module Simp::Cli::Config
       @generate_option = :never_generate
     end
 
+    # Fail before asking for a password that can't be hashed
+    def query_ask
+      unless Simp::Cli::Config::Utils.sha512_crypt_supported?
+        raise Simp::Cli::ProcessingError, <<~EOM.strip
+          #{Simp::Cli::Config::Utils::SHA512_CRYPT_UNSUPPORTED_MSG}.
+          Set #{@key} to a SHA-512 hash of the password instead, either as
+          #{@key}=<hash> on the command line or in an answers file (-a).
+          'openssl passwd -6' generates such a hash.
+        EOM
+      end
+
+      super
+    end
+
     def query_prompt
       # make it clear we are asking for the password, not the hash
       username = get_item('cli::local_priv_user').value
