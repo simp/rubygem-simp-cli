@@ -51,8 +51,19 @@ describe Simp::Cli::Config::Item::CliLocalPrivUserPassword do
     end
   end
 
+  describe '#query_ask' do
+    it 'fails before prompting when crypt(3) does not support SHA-512' do
+      allow(Simp::Cli::Config::Utils).to receive(:sha512_crypt_supported?).and_return(false)
+      expect(@ci).not_to receive(:ask)
+
+      expect { @ci.query_ask }.to raise_error(Simp::Cli::ProcessingError, %r{does not support SHA-512.*cli::local_priv_user_password=<hash>.*openssl passwd -6}m)
+    end
+  end
+
   describe '#encrypt' do
     it 'generates a SHA512 encrypted password' do
+      skip "this system's crypt(3) does not support SHA-512" unless SHA512_CRYPT_SUPPORTED
+
       password = 'a!S@d3F$g5H^j&k'
       encrypted = @ci.encrypt(password)
       expect(Simp::Cli::Config::Utils.validate_password_sha512(encrypted)).to be true

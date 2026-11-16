@@ -18,7 +18,7 @@ require 'yaml'
 #       that are not caught by HighLine, Simp::Cli::Command::Config#run
 #       calls are wrapped in a Timeout block.
 
-describe 'Simp::Cli::Command::Config#run' do
+describe 'Simp::Cli::Command::Config#run', :stub_sha512_crypt do
   let(:max_config_run_seconds) { 60 }
   # answers/hieradata values derived from facts when a test uses defaults
   let(:keys_from_mocked_facts) do
