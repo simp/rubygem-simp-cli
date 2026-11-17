@@ -42,9 +42,11 @@ module Simp::Cli::Config
       end
     end
 
-    # don't be interactive
+    # Don't be interactive.  This also replaces an invalid preset (which
+    # determine_value_with_override discards) with the default instead of
+    # leaving the value nil.
     def query
-      nil
+      @value = default_value_noninteractive
     end
 
     def default_value_noninteractive

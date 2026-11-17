@@ -48,6 +48,22 @@ describe Simp::Cli::Config::Item::SssdDomainsEntries do
     end
   end
 
+  describe '#determine_value' do
+    before :each do
+      item = Simp::Cli::Config::Item::SimpOptionsLdap.new
+      item.value = true
+      @ci.config_items[item.key] = item
+      allow(@ci).to receive(:warn)
+    end
+
+    it 'replaces an invalid preset with the recommended value when queries are allowed' do
+      @ci.value = 'LDAP'
+      @ci.determine_value(true, false)
+      expect(@ci.value).to eq('LDAP' => {})
+      expect(@ci.to_yaml_s).to include("sssd::domains_entries:\n  LDAP: {}")
+    end
+  end
+
   describe '#to_yaml_s' do
     it 'writes a Hash of domains as a Hash' do
       @ci.value = { 'LDAP' => {} }
