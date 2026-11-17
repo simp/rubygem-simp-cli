@@ -35,6 +35,6 @@ simp_options::syslog::failover_log_servers: []
 simp_options::syslog::log_servers: []
 simp_options::trusted_nets:
   - "1.2.3.0/24"
-sssd::domains:
-  - LDAP
+sssd::domains_entries:
+  LDAP: {}
 useradd::securetty: []

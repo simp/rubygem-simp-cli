@@ -111,7 +111,7 @@
         - AddSimpServerLdapClassToServerAction
     - SimpOptionsSSSD            SKIPQUERY SILENT: # default enables and overrides simp_options class default
        true:
-        - SssdDomains            SKIPQUERY SILENT       # default is correct
+        - SssdDomainsEntries     SKIPQUERY SILENT       # default is correct
    false:
     - SimpOptionsLdap            SKIPQUERY SILENT VALUE=no NOYAML  # override default to match simp_options class default
     - SimpOptionsSSSD              # not in scenario so query

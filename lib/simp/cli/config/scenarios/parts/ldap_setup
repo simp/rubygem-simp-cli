@@ -16,7 +16,7 @@
         - AddSimpServerLdapClassToServerAction
     - SimpOptionsSSSD            %ldap_true_sssd_query_options%: # %ldap_true_sssd_query_comment%
        true:
-        - SssdDomains            SKIPQUERY SILENT       # default is correct
+        - SssdDomainsEntries     SKIPQUERY SILENT       # default is correct
    false:
     - SimpOptionsLdap            %ldap_false_ldap_query_options%  # %ldap_false_ldap_query_comment%
     - SimpOptionsSSSD            %ldap_false_sssd_query_options%  # %ldap_false_sssd_query_comment%
