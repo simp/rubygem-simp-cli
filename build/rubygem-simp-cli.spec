@@ -61,6 +61,7 @@ URL: https://github.com/simp/rubygem-simp-cli
 Source0: %{name}-%{cli_version}-%{release}.tar.gz
 Source1: %{gemname}-%{cli_version}.gem
 %if 0%{?rhel} > 7
+Recommends: acl
 Recommends: cracklib
 Recommends: curl
 Recommends: diffutils
@@ -87,6 +88,7 @@ Recommends: simp-adapter >= 1.0.1
 Recommends: simp-environment-skeleton >= 7.1.1
 Recommends: yum-utils
 %else
+Requires: acl
 Requires: cracklib
 Requires: curl
 Requires: diffutils
@@ -204,6 +206,17 @@ EOM
   simp-beaker-helpers 3, r10k 5, the openvox gem)
 - Fix DNS server detection when nmcli reports multiple servers on a
   single line
+- `simp bootstrap` no longer adds `-XX:MaxPermSize=256m` to the
+  puppetserver's JAVA_ARGS. It misread every Java >= 9 version string as
+  Java 0, and Java 17 and later refuse to start with that option, so the
+  puppetserver never came up during bootstrap
+- Keep the core `String#clear` and `String#reverse` when adding HighLine's
+  color methods to String. HighLine's `clear` and `reverse` styles replaced
+  them, and Ruby 4's Net::HTTP clears its read buffer with `clear`, so on
+  OpenVox 9 every HTTP response was misread and `simp bootstrap` never saw
+  the puppetserver come up
+- Require `acl`: `simp environment new` and `simp environment fix` run
+  `setfacl`, which EL10 cloud images don't include
 - Fail when the system's crypt(3) can't produce a SHA-512 password hash
   instead of silently writing a weaker one (crypt(3) on Ubuntu 26.04
   returns a DES hash for a "$6$" salt). `simp config` checks this before
