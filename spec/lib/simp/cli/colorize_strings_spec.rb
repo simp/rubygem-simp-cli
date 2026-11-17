@@ -13,4 +13,8 @@ describe 'simp/cli/colorize_strings' do
     expect(s.clear).to equal(s)
     expect(s).to be_empty
   end
+
+  it 'keeps the core String#reverse' do
+    expect('abc'.reverse).to eq('cba')
+  end
 end
