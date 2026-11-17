@@ -44,6 +44,7 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapSyncDn do
 
     it "doesn't validate bad ldap_sync_dns" do
       expect(@ci.validate('cn=')).to be false
+      expect(@ci.validate('cn=a,garbage')).to be false
       expect(@ci.validate("x\ncn=a,dc=tasty")).to be false
       expect(@ci.validate(nil)).to be false
       expect(@ci.validate(false)).to be false

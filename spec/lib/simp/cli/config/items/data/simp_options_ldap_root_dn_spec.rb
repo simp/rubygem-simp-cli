@@ -45,6 +45,7 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapRootDn do
     it "doesn't validate bad ldap_root_dns" do
       expect(@ci.validate('dc=tasty,dc=bacon')).to be false
       expect(@ci.validate('cn=')).to be false
+      expect(@ci.validate('cn=a,garbage')).to be false
       expect(@ci.validate("x\ncn=a,dc=tasty")).to be false
       expect(@ci.validate(nil)).to be false
       expect(@ci.validate(false)).to be false

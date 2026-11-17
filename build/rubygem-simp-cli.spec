@@ -233,11 +233,13 @@ EOM
   options, e.g. `LDAP: {}`) instead of the deprecated `sssd::domains` Array,
   and omits the key when there are no domains. Requires simp/sssd 11.0.0 or
   later; the item class `SssdDomains` is now `SssdDomainsEntries`
-- `simp config` accepts any valid LDAP DN for `simp_options::ldap::base_dn`
-  (e.g. `DC=example,DC=com`, the form `simplib::ldap::domain_to_dn()`
-  produces, or `o=Example`), and accepts `CN=` as well as `cn=` for the
-  bind, sync and root DNs. Malformed values such as an empty `dc=` or a
-  multi-line string are rejected
+- `simp config` validates LDAP DNs as whole DNs with case-insensitive
+  attribute types. `simp_options::ldap::base_dn` accepts any valid DN (e.g.
+  `DC=example,DC=com`, the form `simplib::ldap::domain_to_dn()` produces),
+  except that the SIMP LDAP server's base DN must still start with `dc=`.
+  The bind, sync and root DNs accept `CN=` as well as `cn=`. Malformed DNs,
+  such as an empty value, a `;` or missing comma between RDNs, or stray
+  whitespace or line breaks, are rejected
 
 * Fri May 20 2022 Trevor Vaughan <tvaughan@onyxpoint.com> - 7.0.1
 - Always set the hostname to the one specified during `simp config` in the apply

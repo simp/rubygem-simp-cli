@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../item'
+require_relative '../../utils'
 require_relative 'cli_is_simp_ldap_server'
 
 module Simp; end
@@ -15,11 +16,11 @@ module Simp::Cli::Config
     end
 
     def validate(x)
-      x.to_s.match?(%r{\Acn=[^,\n]+(?:,.+)?\z}i)
+      Simp::Cli::Config::Utils.validate_ldap_cn_dn(x)
     end
 
     def not_valid_message
-      "Valid LDAP Sync Distinguished Name must begin with a 'cn=' RDN"
+      "Valid LDAP Sync Distinguished Name must be a DN that begins with a 'cn=' RDN"
     end
 
     def get_recommended_value
