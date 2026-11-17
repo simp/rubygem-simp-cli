@@ -37,6 +37,38 @@ describe Simp::Cli::Config::Utils do
     end
   end
 
+  describe '.validate_ldap_dn' do
+    it 'validates DNs regardless of attribute case or type' do
+      [
+        'dc=example,dc=com',
+        'DC=example,DC=com',
+        'o=Example',
+        'ou=People, dc=example,dc=com',
+        'cn=Doe\\, John,ou=People,dc=example,dc=com',
+        'cn=a+uid=b,dc=example,dc=com',
+        '2.5.4.3=a,dc=example',
+      ].each do |dn|
+        expect(described_class.validate_ldap_dn(dn)).to be(true), dn
+      end
+    end
+
+    it "doesn't validate malformed DNs" do
+      [
+        'dc=',
+        '=example',
+        'dc=example,',
+        'dc=example,,dc=com',
+        'example.com',
+        "x\ndc=example",
+        "dc=example\n",
+        nil,
+        false,
+      ].each do |dn|
+        expect(described_class.validate_ldap_dn(dn)).to be(false), dn.inspect
+      end
+    end
+  end
+
   describe '.validate_fqdn' do
     it 'validates good FQDNs' do
       expect(described_class.validate_fqdn('simp.dev')).to be true

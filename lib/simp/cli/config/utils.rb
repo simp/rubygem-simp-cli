@@ -41,6 +41,21 @@ class Simp::Cli::Config::Utils
       ((fqdn =~ regex) ? true : false)
     end
 
+    # Validate an LDAP Distinguished Name: one or more comma-separated
+    # RDNs, each `attribute=value` (multi-valued RDNs joined with `+`).
+    # Attribute types are case-insensitive, and may be names (`dc`, `DC`,
+    # `o`, `ou`, ...) or numeric OIDs. Values must be non-empty; a `,`, `+`
+    # or `\` inside a value must be escaped with a backslash.
+    def validate_ldap_dn(dn)
+      return false unless dn.is_a?(String)
+
+      attr  = %r{(?:[A-Za-z][A-Za-z0-9-]*|\d+(?:\.\d+)*)}
+      value = %r{(?:[^,+\\\n]|\\.)+}
+      ava   = %r{#{attr}=#{value}}
+      rdn   = %r{#{ava}(?:\+#{ava})*}
+      dn.match?(%r{\A#{rdn}(?: *, *#{rdn})*\z})
+    end
+
     def validate_ip(ip)
       return false unless ip.respond_to?(:=~)
 

@@ -44,10 +44,15 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapBaseDn do
   describe '#validate' do
     it 'validates ldap_base_dns' do
       expect(@ci.validate('dc=tasty,dc=bacon')).to be true
+      expect(@ci.validate('DC=tasty,DC=bacon')).to be true
+      expect(@ci.validate('o=Bacon')).to be true
+      expect(@ci.validate('ou=Hosts,dc=tasty,dc=bacon')).to be true
     end
 
     it "doesn't validate bad ldap_base_dns" do
-      expect(@ci.validate('cn=hostAuth,ou=Hosts,dc=tasty,dc=bacon')).to be false
+      expect(@ci.validate('dc=')).to be false
+      expect(@ci.validate("x\ndc=tasty,dc=bacon")).to be false
+      expect(@ci.validate('tasty.bacon')).to be false
       expect(@ci.validate(nil)).to be false
       expect(@ci.validate(false)).to be false
     end

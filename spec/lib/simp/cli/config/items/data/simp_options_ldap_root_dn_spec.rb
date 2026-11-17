@@ -34,8 +34,18 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapRootDn do
       expect(@ci.validate('cn=hostAuth,ou=Hosts,dc=tasty,dc=bacon')).to be true
     end
 
+    it 'validates an uppercase CN' do
+      expect(@ci.validate('CN=LDAPAdmin,OU=Hosts,DC=tasty,DC=bacon')).to be true
+    end
+
+    it 'validates the hiera-interpolated recommended value' do
+      expect(@ci.validate("cn=LDAPAdmin,ou=People,%{hiera('simp_options::ldap::base_dn')}")).to be true
+    end
+
     it "doesn't validate bad ldap_root_dns" do
       expect(@ci.validate('dc=tasty,dc=bacon')).to be false
+      expect(@ci.validate('cn=')).to be false
+      expect(@ci.validate("x\ncn=a,dc=tasty")).to be false
       expect(@ci.validate(nil)).to be false
       expect(@ci.validate(false)).to be false
     end

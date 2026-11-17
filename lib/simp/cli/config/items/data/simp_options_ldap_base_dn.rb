@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative '../item'
+require_relative '../../utils'
 require_relative 'cli_is_simp_ldap_server'
 require_relative 'cli_network_hostname'
 
@@ -28,11 +29,11 @@ module Simp::Cli::Config
     end
 
     def validate(x)
-      (x.to_s =~ %r{^dc=}) ? true : false
+      Simp::Cli::Config::Utils.validate_ldap_dn(x)
     end
 
     def not_valid_message
-      "Valid LDAP Base Distinguished Name must begin with 'dc='"
+      "Invalid LDAP Base Distinguished Name. Use a DN such as 'dc=example,dc=com'"
     end
   end
 end

@@ -15,11 +15,11 @@ module Simp::Cli::Config
     end
 
     def validate(x)
-      (x.to_s =~ %r{^cn=}) ? true : false
+      x.to_s.match?(%r{\Acn=[^,\n]+(?:,.+)?\z}i)
     end
 
     def not_valid_message
-      "Valid LDAP Bind Distinguished Name must begin with 'cn='"
+      "Valid LDAP Bind Distinguished Name must begin with a 'cn=' RDN"
     end
 
     def get_recommended_value
