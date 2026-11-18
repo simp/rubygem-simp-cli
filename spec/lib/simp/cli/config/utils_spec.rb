@@ -37,6 +37,74 @@ describe Simp::Cli::Config::Utils do
     end
   end
 
+  describe '.validate_ldap_dn' do
+    it 'validates DNs regardless of attribute case or type' do
+      [
+        'dc=example,dc=com',
+        'DC=example,DC=com',
+        'o=Example',
+        'ou=People, dc=example,dc=com',
+        'cn=Doe\\, John,ou=People,dc=example,dc=com',
+        'cn=a+uid=b,dc=example,dc=com',
+        '2.5.4.3=a,dc=example',
+        'cn=Some Name,dc=example',
+        'cn=\\#1,dc=example',
+        'cn=\\3Cx\\3E,dc=example',
+      ].each do |dn|
+        expect(described_class.validate_ldap_dn(dn)).to be(true), dn
+      end
+    end
+
+    it "doesn't validate malformed DNs" do
+      [
+        'dc=',
+        '=example',
+        'dc=example,',
+        'dc=example,,dc=com',
+        'example.com',
+        "x\ndc=example",
+        "dc=example\n",
+        "dc=example\r",
+        'dc=example,dc=com ',
+        'dc= example',
+        'dc=example;dc=com',
+        'dc=example dc=com',
+        'dc=#zz,dc=com',
+        'cn=a<b,dc=example',
+        nil,
+        false,
+      ].each do |dn|
+        expect(described_class.validate_ldap_dn(dn)).to be(false), dn.inspect
+      end
+    end
+  end
+
+  describe '.validate_ldap_cn_dn' do
+    it 'validates DNs that start with a cn= RDN' do
+      expect(described_class.validate_ldap_cn_dn('cn=hostAuth,ou=Hosts,dc=example,dc=com')).to be true
+      expect(described_class.validate_ldap_cn_dn('CN=hostAuth,OU=Hosts,DC=example,DC=com')).to be true
+    end
+
+    it 'validates a Hiera interpolation in an RDN position' do
+      expect(described_class.validate_ldap_cn_dn("cn=hostAuth,ou=Hosts,%{hiera('simp_options::ldap::base_dn')}")).to be true
+    end
+
+    it "doesn't validate other or malformed DNs" do
+      [
+        'dc=example,dc=com',
+        'cn=a,garbage',
+        'cn=a,,',
+        'cn=a, ',
+        'cn= ,dc=example',
+        "cn=%{hiera('x')}",
+        "%{hiera('simp_options::ldap::base_dn')}",
+        nil,
+      ].each do |dn|
+        expect(described_class.validate_ldap_cn_dn(dn)).to be(false), dn.inspect
+      end
+    end
+  end
+
   describe '.validate_fqdn' do
     it 'validates good FQDNs' do
       expect(described_class.validate_fqdn('simp.dev')).to be true

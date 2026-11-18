@@ -42,12 +42,32 @@ describe Simp::Cli::Config::Item::SimpOptionsLdapBaseDn do
   end
 
   describe '#validate' do
+    context 'when this host is the SIMP LDAP server' do
+      before :each do
+        item = Simp::Cli::Config::Item::CliIsSimpLdapServer.new
+        item.value = true
+        @ci.config_items[item.key] = item
+      end
+
+      it 'requires a leading dc= RDN' do
+        expect(@ci.validate('DC=tasty,DC=bacon')).to be true
+        expect(@ci.validate('o=Bacon')).to be false
+        expect(@ci.validate('cn=hostAuth,ou=Hosts,dc=tasty,dc=bacon')).to be false
+        expect(@ci.not_valid_message).to include("must start with 'dc='")
+      end
+    end
+
     it 'validates ldap_base_dns' do
       expect(@ci.validate('dc=tasty,dc=bacon')).to be true
+      expect(@ci.validate('DC=tasty,DC=bacon')).to be true
+      expect(@ci.validate('o=Bacon')).to be true
+      expect(@ci.validate('ou=Hosts,dc=tasty,dc=bacon')).to be true
     end
 
     it "doesn't validate bad ldap_base_dns" do
-      expect(@ci.validate('cn=hostAuth,ou=Hosts,dc=tasty,dc=bacon')).to be false
+      expect(@ci.validate('dc=')).to be false
+      expect(@ci.validate("x\ndc=tasty,dc=bacon")).to be false
+      expect(@ci.validate('tasty.bacon')).to be false
       expect(@ci.validate(nil)).to be false
       expect(@ci.validate(false)).to be false
     end

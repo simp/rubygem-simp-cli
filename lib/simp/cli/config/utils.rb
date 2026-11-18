@@ -14,6 +14,26 @@ class Simp::Cli::Config::Utils
 
   SHA512_CRYPT_UNSUPPORTED_MSG = "This system's crypt(3) does not support SHA-512 password hashes"
 
+  # LDAP Distinguished Name grammar (RFC 4514), used by validate_ldap_dn.
+  #
+  # * Attribute types are names (case-insensitive) or numeric OIDs.
+  # * A value is non-empty. `"`, `+`, `,`, `;`, `<`, `=`, `>` and `\` must be
+  #   escaped with a backslash (or written as `\XX` hex pairs), as must a
+  #   leading `#` or space and a trailing space. `=` isn't special in RFC 4514,
+  #   but an unescaped one almost always means a missing comma.
+  # * Control characters (including CR, LF and tab) are never allowed.
+  # * Multi-valued RDNs are joined with `+`; spaces around the `,` between
+  #   RDNs are accepted.
+  LDAP_DN_ATTR      = %r{(?:[A-Za-z][A-Za-z0-9-]*|\d+(?:\.\d+)*)}.freeze
+  LDAP_DN_ESCAPE    = %r{\\(?:[ "\#+,;<=>\\]|\h\h)}.freeze
+  LDAP_DN_PLAIN     = %r{[^\p{Cntrl} "+,;<=>\\]}.freeze
+  LDAP_DN_VALUE     = %r{(?:#{LDAP_DN_ESCAPE}|(?!\#)#{LDAP_DN_PLAIN})(?:(?:#{LDAP_DN_ESCAPE}|#{LDAP_DN_PLAIN}| )*(?:#{LDAP_DN_ESCAPE}|#{LDAP_DN_PLAIN}))?}.freeze
+  LDAP_DN_RDN       = %r{#{LDAP_DN_ATTR}=#{LDAP_DN_VALUE}(?:\+#{LDAP_DN_ATTR}=#{LDAP_DN_VALUE})*}.freeze
+  LDAP_DN_REGEX     = %r{\A#{LDAP_DN_RDN}(?: *, *#{LDAP_DN_RDN})*\z}.freeze
+
+  # A Hiera interpolation such as %{hiera('simp_options::ldap::base_dn')}
+  HIERA_INTERPOLATION_REGEX = %r{%\{[^{}\p{Cntrl}]+\}}.freeze
+
   class << self
     def validate_domain(domain)
       # From Simplib::Domain custom type from pupmod-simp-simplib
@@ -39,6 +59,24 @@ class Simp::Cli::Config::Utils
                 ([A-Za-z0-9]{2}|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])\.?
               )$}
       ((fqdn =~ regex) ? true : false)
+    end
+
+    # Validate an LDAP Distinguished Name against LDAP_DN_REGEX.
+    def validate_ldap_dn(dn)
+      dn.is_a?(String) && LDAP_DN_REGEX.match?(dn)
+    end
+
+    # Validate an LDAP DN whose first RDN is `cn=...` (e.g. a bind DN).
+    #
+    # A whole RDN may be a Hiera interpolation, as in SIMP's recommended
+    # values (`cn=hostAuth,ou=Hosts,%{hiera('simp_options::ldap::base_dn')}`).
+    # Each interpolation is replaced with a placeholder RDN before the DN
+    # is validated, so it can't hide a malformed DN around it.
+    def validate_ldap_cn_dn(dn)
+      return false unless dn.is_a?(String)
+
+      resolved = dn.gsub(HIERA_INTERPOLATION_REGEX, 'dc=interpolated')
+      resolved.match?(%r{\Acn=}i) && validate_ldap_dn(resolved)
     end
 
     def validate_ip(ip)
