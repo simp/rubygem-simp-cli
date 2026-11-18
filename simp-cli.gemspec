@@ -51,7 +51,7 @@ Gem::Specification.new do |s|
   # for development
   s.add_development_dependency 'rake',        '>= 12.3.3'
   s.add_development_dependency 'rspec',       '~> 3'
-  s.add_development_dependency 'rspec-its',   '~> 1'
+  s.add_development_dependency 'rspec-its',   '~> 2'
   s.add_development_dependency 'listen',      '~> 3.0'
   s.add_development_dependency 'guard',       '~> 2'
   s.add_development_dependency 'guard-shell', '~> 0'
