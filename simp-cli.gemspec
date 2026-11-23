@@ -58,7 +58,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'guard-rspec', '~> 4'
   s.add_development_dependency 'pry',         '~> 0'
   s.add_development_dependency 'pry-doc',     '~> 1'
-  s.add_development_dependency 'dotenv',      '~> 2'
+  s.add_development_dependency 'dotenv',      '~> 3'
   s.add_development_dependency 'rubocop',     '~> 1'
 
   # simple text description of external requirements (for humans to read)
