@@ -9,7 +9,9 @@ gemspec
 
 # mandatory gems
 gem 'bundler'
-gem 'highline', :path => 'ext/gems/highline'
+# the highline version the RPM bundles (see build/highline_version.rb)
+require_relative 'build/highline_version'
+gem 'highline', SimpCliBuild.highline_version
 # highline requires abbrev, which is no longer a default gem in Ruby >= 3.4
 gem 'abbrev'
 # Required for Ruby >= 3.4

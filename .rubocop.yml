@@ -20,7 +20,7 @@ AllCops:
   - "**/Puppetfile"
   - "**/Vagrantfile"
   - "**/Guardfile"
-  - ext/**/*
+  - src/**/*
 Layout/EmptyLinesAroundAttributeAccessor:
   Enabled: true
 Layout/LineLength:

@@ -2,6 +2,7 @@
 /coverage
 /dist
 /pkg
+/src
 /.rspec_system
 /.bundle
 /vendor

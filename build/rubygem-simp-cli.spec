@@ -160,12 +160,7 @@ mkdir -p %{buildroot}/%{gemdir}
 mkdir -p %{buildroot}/%{_bindir} # NOTE: this is needed for el7
 gem install --local --install-dir %{buildroot}/%{gemdir} --force %{SOURCE1}
 
-cd ext/gems/highline
-if [ `which bundle 2>/dev/null` ]; then
-  bundle install
-fi
 gem install --local --install-dir %{buildroot}/%{gemdir} --force %{SOURCE11}
-cd -
 
 cat <<EOM > %{buildroot}%{_bindir}/simp
 #!/bin/bash

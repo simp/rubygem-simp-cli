@@ -21,7 +21,7 @@ unless ENV['SKIP_COVERAGE']
   require 'simplecov'
   SimpleCov.start do
     add_filter '/spec/' # don't count coverage of test files!
-    add_filter '/ext/'  # don't count coverage of highline library included in the rpm
+    add_filter '/src/'  # don't count coverage of the highline checkout built for the rpm
   end
 end
 
