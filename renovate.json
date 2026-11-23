@@ -4,5 +4,22 @@
     "config:recommended",
     "github>simp/renovate-config",
     "github>simp/renovate-config:ruby.json"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "The highline version the RPM bundles, built from highline's upstream git tag (see the Rakefile's checkout_highline task)",
+      "managerFilePatterns": [
+        "/^build/rubygem-simp-cli\\.spec$/"
+      ],
+      "matchStrings": [
+        "%global\\s+highline_version\\s+(?<currentValue>\\S+)"
+      ],
+      "depNameTemplate": "highline",
+      "packageNameTemplate": "JEG2/highline",
+      "datasourceTemplate": "github-tags",
+      "versioningTemplate": "ruby",
+      "extractVersionTemplate": "^v(?<version>\\d+(?:\\.\\d+)*)$"
+    }
   ]
 }

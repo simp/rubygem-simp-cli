@@ -20,6 +20,7 @@ CLEAN.include "#{@package}-*.gem"
 CLEAN.include 'coverage'
 CLEAN.include 'dist'
 CLEAN.include 'pkg'
+CLEAN.include 'src'
 Find.find( @rakefile_dir ) do |path|
   if File.directory? path
     CLEAN.include path if File.basename(path) == 'tmp'
@@ -30,6 +31,22 @@ end
 
 # Create beaker:* acceptance test Rake tasks
 Simp::Rake::Beaker.new(File.dirname(__FILE__))
+
+# The RPM's highline subpackage is built from highline's upstream git tag for
+# the version in the RPM spec file, so the spec is the one place to change it.
+@highline_repo = 'https://github.com/JEG2/highline.git'
+@highline_version = File.read(File.join(@rakefile_dir, 'build', "rubygem-#{@package}.spec"))[%r{^%global\s+highline_version\s+(\S+)}, 1]
+
+desc "Check out highline #{@highline_version} from #{@highline_repo} into src/gems/highline"
+task :checkout_highline do
+  dir = File.join(@rakefile_dir, 'src', 'gems', 'highline')
+  FileUtils.mkdir_p File.dirname(dir)
+  sh %(git clone -q #{@highline_repo} "#{dir}") unless File.directory?(File.join(dir, '.git'))
+  Dir.chdir(dir) do
+    sh 'git fetch -q --tags'
+    sh %(git checkout -q "v#{@highline_version}")
+  end
+end
 
 desc 'Ensure gemspec-safe permissions on all files'
 task :chmod do
@@ -75,9 +92,9 @@ namespace :pkg do
   #  end
 
   desc "build rubygem package for #{@package}"
-  task :gem => :chmod do
+  task :gem => [:chmod, :checkout_highline] do
     gem_dirs = [@rakefile_dir]
-    gem_dirs += Dir.glob('ext/gems/*')
+    gem_dirs += Dir.glob(File.join(@rakefile_dir, 'src', 'gems', '*'))
 
     gem_dirs.each do |gem_dir|
       Dir.chdir gem_dir do
