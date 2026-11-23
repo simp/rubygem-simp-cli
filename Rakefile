@@ -33,19 +33,20 @@ end
 Simp::Rake::Beaker.new(File.dirname(__FILE__))
 
 # The RPM's highline subpackage is built from highline's upstream git tag for
-# the version in the RPM spec file, so the spec is the one place to change it.
+# the version in the RPM spec file (see build/highline_version.rb).
+require_relative 'build/highline_version'
 @highline_repo = 'https://github.com/JEG2/highline.git'
-@highline_version = File.read(File.join(@rakefile_dir, 'build', "rubygem-#{@package}.spec"))[%r{^%global\s+highline_version\s+(\S+)}, 1]
+@highline_version = SimpCliBuild.highline_version
 
 desc "Check out highline #{@highline_version} from #{@highline_repo} into src/gems/highline"
 task :checkout_highline do
   dir = File.join(@rakefile_dir, 'src', 'gems', 'highline')
+  # Always start from a fresh, shallow clone of the tag, so nothing left
+  # behind by an earlier build (edits, untracked files, built gems) can end
+  # up in the RPM.
+  FileUtils.rm_rf dir
   FileUtils.mkdir_p File.dirname(dir)
-  sh %(git clone -q #{@highline_repo} "#{dir}") unless File.directory?(File.join(dir, '.git'))
-  Dir.chdir(dir) do
-    sh 'git fetch -q --tags'
-    sh %(git checkout -q "v#{@highline_version}")
-  end
+  sh 'git', 'clone', '-q', '--depth', '1', '--branch', "v#{@highline_version}", @highline_repo, dir
 end
 
 desc 'Ensure gemspec-safe permissions on all files'

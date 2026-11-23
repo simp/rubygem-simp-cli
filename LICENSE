@@ -26,4 +26,5 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-NOTE: Items in the 'ext' directory are external projects and may contain their own licenses
+NOTE: Gems under 'src/gems' are checked out from their upstream projects at build time
+and carry their own licenses

@@ -9,8 +9,9 @@ gemspec
 
 # mandatory gems
 gem 'bundler'
-# the highline version the RPM bundles (build/rubygem-simp-cli.spec)
-gem 'highline', File.read(File.join(__dir__, 'build', 'rubygem-simp-cli.spec'))[%r{^%global\s+highline_version\s+(\S+)}, 1]
+# the highline version the RPM bundles (see build/highline_version.rb)
+require_relative 'build/highline_version'
+gem 'highline', SimpCliBuild.highline_version
 # highline requires abbrev, which is no longer a default gem in Ruby >= 3.4
 gem 'abbrev'
 # Required for Ruby >= 3.4
