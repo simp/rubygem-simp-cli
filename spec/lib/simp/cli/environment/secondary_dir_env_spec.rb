@@ -139,6 +139,36 @@ describe Simp::Cli::Environment::SecondaryDirEnv do
       end
     end
 
+    describe '#copy_rsync_skeleton_files' do
+      let(:tmp_env_path) { Dir.mktmpdir }
+      let(:opts) { super().merge(environmentpath: tmp_env_path) }
+      let(:rsync_dest) { File.join(tmp_env_path, env_name, 'rsync') }
+
+      before(:each) do
+        allow(described_object).to receive(:copy_skeleton_files)
+        FileUtils.mkdir_p(File.join(rsync_dest, 'RedHat'))
+      end
+
+      after(:each) { FileUtils.remove_entry(tmp_env_path) }
+
+      context 'when the skeleton has no CentOS entry' do
+        it 'links CentOS to RedHat' do
+          described_object.send(:copy_rsync_skeleton_files)
+          expect(File.symlink?(File.join(rsync_dest, 'CentOS'))).to be true
+          expect(File.readlink(File.join(rsync_dest, 'CentOS'))).to eq('RedHat')
+        end
+      end
+
+      context 'when the skeleton already provides CentOS -> RedHat' do
+        before(:each) { File.symlink('RedHat', File.join(rsync_dest, 'CentOS')) }
+
+        it 'does not create a link inside RedHat' do
+          expect { described_object.send(:copy_rsync_skeleton_files) }.not_to raise_error
+          expect(File.symlink?(File.join(rsync_dest, 'RedHat', 'RedHat'))).to be false
+        end
+      end
+    end
+
     describe '#update' do
       it { expect { described_object.update }.to raise_error(NotImplementedError) }
     end
