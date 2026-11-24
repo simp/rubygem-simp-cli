@@ -140,12 +140,13 @@ module Simp::Cli::Environment
       create_fakeca_cacert_key                                    # A5.2
     end
 
-    # Copy rsync skeleton files and create rsync/CentOS link to rsync/RedHat
+    # Copy rsync skeleton files and create rsync/CentOS link to rsync/RedHat if the skeleton does not provide it
     def copy_rsync_skeleton_files
       info("Copying rsync skeleton files from '#{@rsync_skeleton_path} into #{@type} env".cyan)
       copy_skeleton_files(@rsync_skeleton_path, @rsync_dest_path) # C1.2, C2.1
       Dir.chdir(@rsync_dest_path) do
-        FileUtils.ln_s('RedHat', 'CentOS') # C.5.2
+        # The skeleton may already ship the link
+        FileUtils.ln_s('RedHat', 'CentOS') unless File.exist?('CentOS') || File.symlink?('CentOS') # C.5.2
       end
     end
 

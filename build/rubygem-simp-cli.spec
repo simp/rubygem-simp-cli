@@ -235,6 +235,8 @@ EOM
   The bind, sync and root DNs accept `CN=` as well as `cn=`. Malformed DNs,
   such as an empty value, a `;` or missing comma between RDNs, or stray
   whitespace or line breaks, are rejected
+- `simp environment new` creates the `rsync/CentOS` link only when the rsync
+  skeleton does not already provide it
 
 * Fri May 20 2022 Trevor Vaughan <tvaughan@onyxpoint.com> - 7.0.1
 - Always set the hostname to the one specified during `simp config` in the apply
